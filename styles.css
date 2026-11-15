@@ -6358,7 +6358,8 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 2
    de la sesión se ajustan al estado visible. Con la píldora (ya
    sin el anexo de AUTH-444) vuelven los valores de la era
    AUTH-456: la píldora mide lo mismo y el aire del anexo (+44)
-   desaparece. Con la barra (116 px en dos filas)
+   desaparece. Con la barra (94 px: el nombre en su
+   línea y una fila de controles; 148 px en la banda ≤370)
    todo baja lo que su altura libera. Con la completa abierta no
    hace falta resguardo: es una tapa de pantalla entera y la
    pila de botones se retira con el fondo. ═══ */
@@ -6369,13 +6370,26 @@ body.sess-on.sess-view-pill .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0
 body.sess-on.sess-view-pill .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 76px); }
 body.sess-on.sess-view-pill .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 72px + 76px); }
 body.sess-on.sess-view-pill #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 278px + 76px); }
-body.sess-on.sess-view-bar .foot { padding-bottom: 296px; }
-body.sess-on.sess-view-bar #train-content.nav-page-on, body.sess-on.sess-view-bar #progress-content.nav-page-on { padding-bottom: 292px; }
-body.sess-on.sess-view-bar .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 210px + 76px); }
-body.sess-on.sess-view-bar .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 210px + 72px + 76px); }
-body.sess-on.sess-view-bar .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 210px + 72px + 72px + 76px); }
-body.sess-on.sess-view-bar .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 210px + 72px + 72px + 72px + 76px); }
-body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 216px + 76px); }
+body.sess-on.sess-view-bar .foot { padding-bottom: 274px; }
+body.sess-on.sess-view-bar #train-content.nav-page-on, body.sess-on.sess-view-bar #progress-content.nav-page-on { padding-bottom: 270px; }
+body.sess-on.sess-view-bar .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 188px + 76px); }
+body.sess-on.sess-view-bar .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 188px + 72px + 76px); }
+body.sess-on.sess-view-bar .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 188px + 72px + 72px + 76px); }
+body.sess-on.sess-view-bar .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 188px + 72px + 72px + 72px + 76px); }
+body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 194px + 76px); }
+/* AUTH-464 · D-BARRA: en la banda más estrecha (≤370 px) la
+   fila de controles de la barra no cabe sin achicar nada y
+   los botones bajan a su propia fila: la barra mide 148 px
+   y los resguardos de la vista siguen esa altura. */
+@media (max-width: 370px) {
+  body.sess-on.sess-view-bar .foot { padding-bottom: 328px; }
+  body.sess-on.sess-view-bar #train-content.nav-page-on, body.sess-on.sess-view-bar #progress-content.nav-page-on { padding-bottom: 324px; }
+  body.sess-on.sess-view-bar .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 242px + 76px); }
+  body.sess-on.sess-view-bar .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 242px + 72px + 76px); }
+  body.sess-on.sess-view-bar .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 242px + 72px + 72px + 76px); }
+  body.sess-on.sess-view-bar .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 242px + 72px + 72px + 72px + 76px); }
+  body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 248px + 76px); }
+}
 
 /* AUTH-464 · LAS PUERTAS DE LA PÍLDORA: 44 px en la esquina
    superior absoluta — la píldora no crece ni un píxel. */
@@ -6386,22 +6400,28 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sp-door small { font-size: 8px; font-weight: 800; letter-spacing: .02em; color: rgba(255,255,255,.82); line-height: 1.1; white-space: nowrap; }
 
 /* AUTH-464 · LA BARRA MINIMIZADA: la misma casa que la píldora
-   (fija, sobre el dock, su mismo ancho) con solo el tiempo del
-   ejercicio, su nombre y Detener/Finalizar. Vive en DOS filas
-   en todas las bandas (116 px): la etiqueta real «Finalizar
-   ejercicio» de AUTH-449 no cabe en una fila con el nombre sin
-   achicar palabras ni toques — la maqueta B la dibujó con la
-   etiqueta corta; aquí manda la palabra completa. */
-#sess-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); z-index: 44; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #1b2a4a; border-radius: 20px; color: #fff; font-family: inherit; padding: 8px 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; row-gap: 4px; box-shadow: 0 10px 26px rgba(15,23,42,.30); }
-.sb-main { display: flex; align-items: center; gap: 9px; flex: 0 0 100%; min-width: 0; min-height: 48px; padding: 0 4px; background: none; border: none; color: #fff; font: inherit; text-align: left; cursor: pointer; border-radius: 12px; }
+   (fija, sobre el dock, su mismo ancho) con el nombre del
+   ejercicio en su propia línea a todo lo ancho — siempre
+   entero — y UNA fila de controles (la puerta Ampliar, el
+   tiempo del ejercicio y Detener/Finalizar). D-BARRA
+   (Ronald, 2026-11-14): su botón de finalizar dice la
+   etiqueta corta «Finalizar», solo en la barra; aun así,
+   con el nombre entero la fila única de 64 px no existe en
+   ningún ancho (la barra se topa en 430 px), así que el
+   nombre baja a su propia línea (la salida S4 aprobada) y
+   la barra mide 94 px; en la banda ≤370 px ni la fila de
+   controles cabe sin achicar y los botones bajan a su
+   propia fila (148 px, con sus resguardos propios). */
+#sess-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); z-index: 44; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #1b2a4a; border-radius: 20px; color: #fff; font-family: inherit; padding: 8px 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; row-gap: 6px; box-shadow: 0 10px 26px rgba(15,23,42,.30); }
+.sb-main { display: flex; align-items: center; gap: 9px; flex: 1 1 auto; min-width: 0; min-height: 48px; padding: 0 4px; background: none; border: none; color: #fff; font: inherit; text-align: left; cursor: pointer; border-radius: 12px; }
 .sb-main:active { background: rgba(255,255,255,.08); }
 .sb-up { display: flex; flex-direction: column; align-items: center; flex: none; line-height: 1.05; }
 .sb-chev { font-size: 17px; color: #C6FF4A; }
 .sb-expand { font-size: 9.5px; font-weight: 800; letter-spacing: .07em; color: rgba(255,255,255,.78); }
 .sb-clock { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
-.sb-paused { font-size: 12.5px; font-weight: 700; color: #fbbf24; }
-.sb-name { flex: 1 1 auto; min-width: 0; font-size: 15.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sb-btns { display: flex; gap: 8px; flex: 0 0 100%; }
+.sb-name { flex: 0 0 100%; display: block; width: 100%; box-sizing: border-box; min-height: 24px; padding: 2px 4px; background: none; border: none; color: #fff; font: inherit; font-size: 15.5px; font-weight: 700; text-align: left; cursor: pointer; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-name:active { background: rgba(255,255,255,.08); }
+.sb-btns { display: flex; gap: 8px; flex: none; }
 .sb-btn { height: 48px; padding: 0 15px; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; color: #fff; cursor: pointer; font-family: inherit; white-space: nowrap; }
 .sb-btn.ini { background: linear-gradient(180deg, #22c55e, #16a34a); }
 .sb-btn.stop { background: linear-gradient(180deg, #f59e0b, #d97706); }
