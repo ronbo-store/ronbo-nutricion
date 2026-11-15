@@ -47482,8 +47482,35 @@ async function renderLibrary() {
    toque de la tarjeta sigue haciendo lo que hacía en cada vista
    (abrir la ficha en el catálogo; nada en bandeja y aportes, cuyos
    botones viven dentro de la columna). */
+/* AUTH-471 (L-4 velocidad) · Miniatura de tarjeta para las fotos
+   PROPIAS de la biblioteca: junto a cada foto del repo de assets vive
+   su gemela ligera «<nombre>.thumb.webp» (WebP 480, generada sin tocar
+   el original). La tarjeta pinta la miniatura; la ficha y el visor
+   siguen con la foto completa. Si la miniatura falla al cargar,
+   libThumbErr pasa una vez a la foto completa y, si también falla,
+   deja el marcador sin foto de la tarjeta — la tarjeta nunca se rompe
+   por una foto. Las fotos de terceros no se derivan. */
+function libThumbSrc(url) {
+  const u = String(url || '');
+  if (!u || u.indexOf('ronbo-nutri-assets') < 0) return u;
+  if (/\.thumb\.webp($|[?#])/.test(u)) return u;
+  return u.replace(/\.(jpe?g|png|gif|webp)($|[?#])/i, '.thumb.webp$2');
+}
+window.libThumbErr = function (el) {
+  if (!el) return;
+  const full = el.getAttribute ? el.getAttribute('data-full') : '';
+  if (full && el.getAttribute('src') !== full) { el.removeAttribute('data-full'); el.setAttribute('src', full); return; }
+  const d = document.createElement('div');
+  d.className = 'lib-thumb lib-thumb-soft'; d.setAttribute('aria-hidden', 'true');
+  const g = document.createElement('span'); g.className = 'lib-thumb-glyph'; g.textContent = '🏋️';
+  d.appendChild(g); el.replaceWith(d);
+};
 function libCardMediaHTML(ex) {
-  if (ex.foto_url) return `<img class="lib-thumb" src="${esc(ex.foto_url)}" alt="">`;
+  if (ex.foto_url) {
+    const th = libThumbSrc(ex.foto_url);
+    if (th !== ex.foto_url) return `<img class="lib-thumb" src="${esc(th)}" alt="" loading="lazy" decoding="async" data-full="${esc(ex.foto_url)}" onerror="libThumbErr(this)">`;
+    return `<img class="lib-thumb" src="${esc(ex.foto_url)}" alt="" loading="lazy" decoding="async">`;
+  }
   const th = ytThumbOf(ex.video_youtube_url);
   if (th) return `<img class="lib-thumb" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="lib" onerror="ytThumbErr(this)">`;
   return `<div class="lib-thumb lib-thumb-soft" aria-hidden="true">${ex.video_youtube_url ? `<span class="lib-thumb-play">▶</span><span class="lib-thumb-lab">${esc(t('train.lib.video'))}</span>` : `<span class="lib-thumb-glyph">🏋️</span>`}</div>`;
@@ -61218,7 +61245,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261115-planificador-rapido';
+const PWA_SW_VERSION = '20261115-fotos-ligeras';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
