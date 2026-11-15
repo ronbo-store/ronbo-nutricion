@@ -3191,6 +3191,36 @@ body.nav-lock.prog-page #act-flame { visibility: visible; }
 .wc-why { font-size: 13.5px; color: #475569; margin: 0 0 10px; }
 .wc-btn { width: 100%; min-height: 48px; font-size: 15.5px; }
 
+/* ═══ «TU PESO SE MUDA A PROGRESO» (AUTH-463) ═══
+   La línea de acción de Inicio (.weight-log-line): la puerta
+   que queda en el sitio de la tarjeta, con su misma
+   superficie (la de .weight-card) en UNA línea de 52 px +
+   14 de margen = 66 px de huella (la tarjeta ocupaba 250:
+   Inicio libera 184 netos, decisión S1). El pliegue de
+   Progreso (.mp-weight): cabezal blanco como las baldosas
+   de la rejilla, 52 px + 14 de margen superior = 66 px de
+   huella plegado (la cifra del estudio); abierto, la tarjeta
+   de siempre se ve bajo el cabezal con 10 px de aire y su
+   propio margen inferior. El ancho de la línea: un <button>
+   con width auto NO se estira como un div (se queda al
+   ancho de su contenido — lo midió el arnés de este
+   paquete); width calc(100% − 88px) se casa con el
+   margin-right de 88 del despeje AUTH-354, que es
+   incondicional, y el borde derecho cae exactamente donde
+   caía el de la tarjeta. */
+.weight-log-line { display: flex; align-items: center; gap: 8px; box-sizing: border-box; width: calc(100% - 88px); min-height: 52px; margin-bottom: 14px; padding: 8px 20px; background: #fff; border: 0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); font: inherit; font-size: 15.5px; font-weight: 700; color: #1f2a44; text-align: left; cursor: pointer; }
+.weight-log-line:active { opacity: .6; }
+.wll-txt { flex: 1; min-width: 0; }
+.wll-chev { flex: none; font-size: 19px; font-weight: 800; color: #0d9488; }
+.mp-weight { margin-top: 14px; }
+.mpw-fold-head { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 52px; box-sizing: border-box; padding: 10px 14px; background: #fff; border: 1px solid var(--line, #d8e2de); border-radius: 14px; box-shadow: 0 1px 3px rgba(15,23,42,.05); font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.mpw-fold-head:active { opacity: .6; }
+.mpw-fold-txt { flex: none; font-size: 15px; font-weight: 800; color: #1f2a44; }
+.mpw-fold-val { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mpw-fold-chev { flex: none; font-size: 14px; color: #0f766e; transition: transform .15s ease; }
+.mpw-fold-head[aria-expanded="true"] .mpw-fold-chev { transform: rotate(180deg); }
+.mp-weight .weight-card { margin-top: 10px; }
+
 /* ELIMINAR USUARIO — BORRADO COMPLETO (AUTH-2026-11-01-NNN): el botón
    de borrado en Accesos va en ROJO y separado de «Quitar acceso»
    (revocar apaga la cuenta; eliminar la borra con todos sus datos).
@@ -5181,7 +5211,10 @@ body.swap-sheet-open .asst-fab { display: none !important; }
    · Inicio: la tarjeta de «Metas de hoy» (.goals-card, con los
      círculos de comidas, el agua y el registro rápido dentro),
      la tarjeta «⚖️ Tu peso» (.weight-card, con su botón a todo
-     el ancho), el aviso de borrador de IA (#ai-draft-notice, con
+     el ancho; desde AUTH-463 la tarjeta vive en Progreso y en
+     Inicio el despeje lo hereda su línea de acción
+     #weight-log-line, que ocupa su sitio), el aviso de
+     borrador de IA (#ai-draft-notice, con
      su botón), el panel de la semana (.week-panel) y las alertas
      del entrenador (#trainer-alerts) ganan margin-right de 88 px:
      la TARJETA ENTERA — no solo su texto — queda fuera de la
@@ -5201,7 +5234,7 @@ body.swap-sheet-open .asst-fab { display: none !important; }
      pila (z 44/45): sus botones quedan sobre los discos, nunca
      debajo — la batería lo verifica por punto de toque.
    Sin cambios de lógica: app.js solo cambia el sello. ═══ */
-.goals-card, .weight-card, #ai-draft-notice, #trainer-alerts { margin-right: 88px; }
+.goals-card, #weight-log-line, #ai-draft-notice, #trainer-alerts { margin-right: 88px; }
 #tab-track .week-panel { margin-right: 88px; }
 #admin-zone-box { padding-right: 88px; }
 [data-admpeople-slot] .admuse-people-tabs { margin-right: 88px; }

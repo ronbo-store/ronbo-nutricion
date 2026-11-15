@@ -290,20 +290,20 @@
     <div id="goals-engine"></div>
   </div>
 
-  <!-- Tarjeta «Tu peso» en Inicio (PESO-VISIBLE, 2026-11-01;
-       aprobación de Ronald en el chat, 2026-11-01 14:49 CST,
-       sobre la maqueta mq-peso-visible): tarjeta permanente
-       justo DEBAJO de «Metas de hoy» (que no se toca), visible
-       SOLO en Inicio — nace oculta y weightCardSync (app.js,
-       gancho en switchTab, espejo de goalsCardSync) la muestra
-       únicamente con la pestaña «Mi registro» activa. Muestra
-       el último pesaje propio (o el estado del primer día) y su
-       botón abre EL MISMO modal de pesaje de siempre
-       (openWeightModal): ninguna ruta nueva de guardado. Se
-       pinta desde renderWeightCard, llamada por renderWeight. -->
-  <div class="weight-card" id="weight-card" style="display:none">
-    <div id="weight-card-body"></div>
-  </div>
+  <!-- Línea de acción «⚖️ Registrar mi peso» en Inicio
+       (AUTH-463; decisiones de Ronald 2026-11-14: D1 + S1).
+       Aquí vivía la tarjeta «Tu peso» entera (PESO-VISIBLE,
+       2026-11-01); la tarjeta SE MUDÓ a Progreso — vive en
+       #mp-weight, bajo la rejilla, plegada en una línea — y
+       en su sitio queda SOLO esta línea de acción: una PUERTA
+       discreta que abre EL MISMO modal de pesaje de siempre
+       (openWeightModal), sin copiar la tarjeta (ni el número
+       ni el historial viven aquí). Visible SOLO en Inicio:
+       nace oculta y weightCardSync (app.js, gancho en
+       switchTab, espejo de goalsCardSync) la muestra
+       únicamente con la pestaña «Mi registro» activa. Su
+       cableado vive en la cola de renderWeightCard. -->
+  <button type="button" class="weight-log-line" id="weight-log-line" style="display:none"><span class="wll-ico" aria-hidden="true">⚖️</span><span class="wll-txt" data-i18n="wcard.log">Log my weight</span><span class="wll-chev" aria-hidden="true">›</span></button>
 
   <!-- Botón redondo flotante del cronómetro deportivo (arriba a la
        derecha, familia de la llamita): sustituye a la pastilla de la
@@ -482,6 +482,23 @@
     <button type="button" class="btn-primary btn-sm mp-quick-btn" data-mp-act="quick" data-i18n="mp.quickBtn">＋ Quick log</button>
   </div>
   <div id="mp-cards" class="mp-cards"><div class="wempty" data-i18n="mp.loading">Loading…</div></div>
+  <!-- «Tu peso» PLEGADO EN PROGRESO (AUTH-463; decisiones de
+       Ronald 2026-11-14: D1 + S1 + lecturas S2/S3): la tarjeta
+       que vivía en Inicio se muda AQUÍ, bajo la rejilla y sobre
+       los comentarios del entrenador, nacida PLEGADA en una
+       línea («⚖️ Tu peso · <último peso> ›», patrón AUTH-452:
+       estado solo en memoria de la sesión, nace plegada en
+       cada arranque). El div #weight-card es EL MISMO de
+       siempre, con su mismo cuerpo y su mismo pintor
+       (renderWeightCard): mudanza de superficie, no
+       reescritura. El dato de la línea lo pinta la cola de
+       renderWeightCard en #mpw-fold-val. -->
+  <div class="mp-weight" id="mp-weight">
+    <button type="button" class="mpw-fold-head" id="mpw-fold-btn" aria-expanded="false" aria-controls="weight-card"><span class="mpw-fold-txt" data-i18n="wcard.title">⚖️ Your weight</span><span class="mpw-fold-val" id="mpw-fold-val"></span><span class="mpw-fold-chev" aria-hidden="true">▾</span></button>
+    <div class="weight-card" id="weight-card" style="display:none">
+      <div id="weight-card-body"></div>
+    </div>
+  </div>
   <div id="mp-comments"></div>
 </div>
     <!-- AUTH-2026-11-09-339 («Progreso en cuatro cuadros»):

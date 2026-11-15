@@ -51848,9 +51848,30 @@ function weightChartSVG(data) {
    modal, con la misma ruta de guardado a nutrition_weight y la
    fecha de hoy lista. Se repinta desde renderWeight (a la que
    loadAll y el propio guardado ya llaman, así que tras guardar la
-   tarjeta muestra el peso nuevo sin tocar nada más) y se ve SOLO
-   en Inicio vía weightCardSync (espejo de goalsCardSync). */
-function weightCardSync(tabName) { const c = $('weight-card'); if (c) c.style.display = (tabName === 'track') ? '' : 'none'; }
+   tarjeta muestra el peso nuevo sin tocar nada más).
+   LA MUDANZA A PROGRESO (AUTH-463; decisiones de Ronald
+   2026-11-14: D1 la tarjeta se muda · S1 Inicio conserva la
+   línea de acción): la tarjeta SALE de Inicio y vive en
+   Progreso, PLEGADA en una línea («⚖️ Tu peso · <último
+   peso> ›») bajo la rejilla y sobre los comentarios del
+   entrenador; al abrirla se ve ESTA MISMA tarjeta, pintada
+   por la misma renderWeightCard en el mismo
+   #weight-card-body — mudanza de superficie, no reescritura:
+   ni la lógica, ni el modal, ni los datos cambian. En Inicio
+   queda SOLO la línea de acción «⚖️ Registrar mi peso ›»
+   (#weight-log-line), una puerta que abre el mismo
+   openWeightModal; weightCardSync pasa a gobernarla a ella
+   (visible solo en Inicio, como la tarjeta antes). El
+   pliegue vive en memoria de la sesión (MPW_OPEN) y nace
+   plegado en cada arranque, como los demás pliegues de la
+   casa (AUTH-452). */
+function weightCardSync(tabName) { const c = $('weight-log-line'); if (c) c.style.display = (tabName === 'track') ? '' : 'none'; }
+let MPW_OPEN = false;
+function mpWeightSetOpen(open) {
+  MPW_OPEN = !!open;
+  const c = $('weight-card'); if (c) c.style.display = MPW_OPEN ? '' : 'none';
+  const b = $('mpw-fold-btn'); if (b) b.setAttribute('aria-expanded', MPW_OPEN ? 'true' : 'false');
+}
 /* Fecha corta localizada para la tira del histórico de la tarjeta
    (punto 79 de la cola): «27 oct» / «Oct 27» — el mismo patrón Intl
    de la casa (el monFmt del gráfico semanal), con la fecha
@@ -51917,6 +51938,21 @@ function renderWeightCard() {
   if (b) b.onclick = () => openWeightModal(null);
   const hb = $('wc-hist-btn');
   if (hb) hb.onclick = () => { navOpenPage('progress'); progSetSub('medidas'); };
+  /* AUTH-463: el dato de la línea plegada de Progreso — el
+     último peso, con el MISMO formato del número grande de
+     esta tarjeta — se pinta aquí, en el repintado de siempre
+     (tras loadAll y tras cada guardado, venga de la puerta
+     que venga), así que la línea refleja el pesaje nuevo sin
+     tocar nada más. Sin pesajes, la línea va sin dato: nunca
+     se inventa una cifra. La línea de acción de Inicio y el
+     cabezal del pliegue se cablean también aquí, con la
+     misma asignación idempotente de esta cola. */
+  const fv = $('mpw-fold-val');
+  if (fv) fv.textContent = data.length ? `· ${fmtMassVal(data[data.length - 1].weight)} ${UNIT_PREFS.mass}` : '';
+  const ll = $('weight-log-line');
+  if (ll) ll.onclick = () => openWeightModal(null);
+  const fb = $('mpw-fold-btn');
+  if (fb) fb.onclick = () => mpWeightSetOpen(!MPW_OPEN);
 }
 
 function renderWeight() {
