@@ -5809,7 +5809,24 @@ en: {
   'scan.failed': 'The lookup failed right now. Try again, or log the food by hand.',
   'food.recipes': 'Recipe book',
   'recipes.title': 'Recipe book',
-  'recipes.hint': 'Real recipes whose values are calculated from the house USDA food table — never typed in by hand. The number shown is the real size of the catalog.',
+  'recipes.hint': 'Real recipes. The house ones calculate their values from the house USDA food table; the ones that come from a book bring their book values — each card says where its values come from. The number shown is the real size of the catalog.',
+  'recipes.bookFilter': 'Book',
+  'recipes.allBooks': 'All books',
+  'recipes.viewFicha': 'See the full card',
+  'recipes.fichaTitle': 'Recipe card',
+  'recipes.originBookTag': 'From its book',
+  'recipes.originBook': 'Values from its book',
+  'recipes.originHouse': 'Values calculated in-house',
+  'recipes.prep': 'Prep',
+  'recipes.cook': 'Cooking',
+  'recipes.sodium': 'Sodium',
+  'recipes.utensils': 'Utensils',
+  'recipes.tips': 'Tips',
+  'recipes.substitutions': 'Substitutions',
+  'recipes.storage': 'Storage',
+  'recipes.serving': 'Serving ideas',
+  'recipes.ingredientsGrams': 'Ingredients (with grams)',
+  'recipes.moreBtn': 'Show more ({n} left)',
   'recipes.searchPh': 'Search by name or ingredient',
   'recipes.all': 'All',
   'recipes.vegano': 'Vegan',
@@ -10955,7 +10972,24 @@ es: {
   'scan.failed': 'La búsqueda falló en este momento. Inténtalo de nuevo o registra la comida a mano.',
   'food.recipes': 'Recetario',
   'recipes.title': 'Recetario',
-  'recipes.hint': 'Recetas reales cuyos valores se calculan desde la tabla de alimentos USDA de la casa — nunca escritos a mano. La cifra mostrada es el tamaño real del catálogo.',
+  'recipes.hint': 'Recetas reales. Las de la casa calculan sus valores desde la tabla de alimentos USDA de la casa; las que vienen de un libro traen los valores de su libro — cada tarjeta dice de dónde salen sus valores. La cifra mostrada es el tamaño real del catálogo.',
+  'recipes.bookFilter': 'Libro',
+  'recipes.allBooks': 'Todos los libros',
+  'recipes.viewFicha': 'Ver la ficha completa',
+  'recipes.fichaTitle': 'Ficha de la receta',
+  'recipes.originBookTag': 'De su libro',
+  'recipes.originBook': 'Valores de su libro',
+  'recipes.originHouse': 'Valores calculados en casa',
+  'recipes.prep': 'Preparación',
+  'recipes.cook': 'Cocción',
+  'recipes.sodium': 'Sodio',
+  'recipes.utensils': 'Utensilios',
+  'recipes.tips': 'Consejos',
+  'recipes.substitutions': 'Sustituciones',
+  'recipes.storage': 'Conservación',
+  'recipes.serving': 'Para servir',
+  'recipes.ingredientsGrams': 'Ingredientes (con gramos)',
+  'recipes.moreBtn': 'Mostrar más (quedan {n})',
   'recipes.searchPh': 'Busca por nombre o ingrediente',
   'recipes.all': 'Todas',
   'recipes.vegano': 'Vegano',
@@ -30191,7 +30225,7 @@ function scanPrefill(d) {
    — la cola de aprobación de siempre la publica. Los valores se
    calculan en vivo al escribir, con la misma función pura. */
 let recipeDraft = null; // {id} de la receta que prellenó el formulario — solo memoria; muere con el episodio (aiClearDraft)
-const RECIPES_UI = { list: null, wishes: undefined, pattern: 'all', q: '', servings: {} };
+const RECIPES_UI = { list: null, wishes: undefined, pattern: 'all', q: '', servings: {}, book: 'all', showN: 30 };
 const RECIPE_PATTERNS = ['all', 'vegano', 'vegetariano', 'sin_gluten', 'keto', 'proteina'];
 const RECIPE_MEAT_FAMS = ['pollo', 'carne', 'cerdo', 'pescado', 'mariscos'];
 const RECIPE_ANIMAL_FAMS = RECIPE_MEAT_FAMS.concat(['huevos', 'lacteos']);
@@ -30226,15 +30260,22 @@ function recipeValues(r) {
       kcal: Math.round(c.kcal), prot: rcpR1(c.prot), carb: rcpR1(c.carb),
       azuc: rcpR1(c.sugar), gras: rcpR1(c.fat),
       fiber: (fiberFull || c.fiberKnown > 0) ? { val: rcpR1(c.fiberKnown), full: fiberFull } : null,
-      fromIngs: true
+      fromIngs: true, nullMacros: null, macrosPartial: false
     };
   }
   const m = (r && r.macrosPerServing) || {};
+  /* AUTH-467: una fuente puede traer SOLO las kcal (las recetas
+     sueltas de los libros): los macros ausentes vienen null y NO
+     son ceros. nullMacros dice cuáles faltan, para que la tarjeta
+     pinte «—» y las etiquetas calculadas no se deriven de un
+     parcial. Los números en sí no cambian (0 en el cálculo). */
+  const nullMacros = { prot: m.prot == null, carb: m.carb == null, azuc: m.azuc == null, gras: m.gras == null };
   return {
     kcal: Number(m.kcal) || 0, prot: Number(m.prot) || 0, carb: Number(m.carb) || 0,
     azuc: Number(m.azuc) || 0, gras: Number(m.gras) || 0,
     fiber: (r && typeof r.fiber === 'number') ? { val: r.fiber, full: true } : null,
-    fromIngs: false
+    fromIngs: false, nullMacros,
+    macrosPartial: nullMacros.prot || nullMacros.carb || nullMacros.azuc || nullMacros.gras
   };
 }
 /* Derivación de restricciones desde los ingredientes — EL criterio
@@ -30269,8 +30310,11 @@ function recipeTags(r) {
   const s = new Set((r && r.restrictions) || []);
   const v = recipeValues(r);
   const net = v.carb - (v.fiber ? v.fiber.val : 0);
-  if (net <= 10) s.add('keto');
-  if (v.prot >= 20) s.add('proteina');
+  /* AUTH-467: keto/proteína solo se derivan si el macro que los
+     sostiene VIENE en la fuente (con carbos ausentes, una receta
+     de solo-kcal caería en «keto» por tener 0: un falso). */
+  if (!(v.nullMacros && v.nullMacros.carb) && net <= 10) s.add('keto');
+  if (!(v.nullMacros && v.nullMacros.prot) && v.prot >= 20) s.add('proteina');
   return s;
 }
 function recipeSearchText(r) {
@@ -30281,10 +30325,13 @@ function recipeSearchText(r) {
   if (r && r.ingredients) for (const L of ['es', 'en']) for (const it of (r.ingredients[L] || [])) push(it.name, null);
   return acNorm(parts.join(' '));
 }
-function recipeFilter(list, pattern, q) {
+function recipeFilter(list, pattern, q, book) {
   const nq = acNorm(q || '');
   return (list || []).filter(r => {
     if (pattern && pattern !== 'all' && !recipeTags(r).has(pattern)) return false;
+    /* AUTH-467: el filtro por libro/categoría convive con el de
+       dieta; sin libro elegido (o 'all') no acota nada. */
+    if (book && book !== 'all' && (!r.book || r.book.id !== book)) return false;
     if (nq && !recipeSearchText(r).includes(nq)) return false;
     return true;
   });
@@ -30419,12 +30466,17 @@ function recipesRenderList() {
   if (chipsEl) {
     chipsEl.innerHTML = RECIPE_PATTERNS.map(p =>
       `<button type="button" class="rcp-chip${RECIPES_UI.pattern === p ? ' on' : ''}" data-rcp-pat="${p}">${esc(t(p === 'all' ? 'recipes.all' : 'recipes.' + p))}</button>`).join('');
-    chipsEl.querySelectorAll('[data-rcp-pat]').forEach(b => b.onclick = () => { RECIPES_UI.pattern = b.dataset.rcpPat; recipesRenderList(); });
+    chipsEl.querySelectorAll('[data-rcp-pat]').forEach(b => b.onclick = () => { RECIPES_UI.pattern = b.dataset.rcpPat; RECIPES_UI.showN = 30; recipesRenderList(); });
   }
   const all = RECIPES_UI.list || [];
   const offered = all.filter(r => !recipeBlockedFor(r, RECIPES_UI.wishes));
   const hiddenN = all.length - offered.length;
-  const shown = recipeFilter(offered, RECIPES_UI.pattern, RECIPES_UI.q);
+  recipesBookSync(offered);
+  const shown = recipeFilter(offered, RECIPES_UI.pattern, RECIPES_UI.q, RECIPES_UI.book);
+  /* AUTH-467: la lista se pinta por tramos (showN) — con 1.147
+     recetas, pintarlas todas de una vez ahoga el teléfono; el
+     contador de la nota sigue diciendo el total filtrado. */
+  const page = shown.slice(0, RECIPES_UI.showN);
   const noteEl = $('recipes-note');
   if (noteEl) {
     noteEl.textContent = (shown.length === 1 ? t('recipes.countOne') : t('recipes.count', { n: shown.length })) +
@@ -30432,7 +30484,7 @@ function recipesRenderList() {
   }
   if (!shown.length) { listEl.innerHTML = `<p class="progress-hint">${esc(t('recipes.none'))}</p>`; return; }
   const L = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'es';
-  listEl.innerHTML = shown.map(r => {
+  listEl.innerHTML = page.map(r => {
     const v = recipeValues(r);
     const tags = [...recipeTags(r)].filter(x => RECIPE_PATTERNS.includes(x));
     const title = (r.title && (r.title[L] || r.title.es || r.title.en)) || '';
@@ -30445,11 +30497,12 @@ function recipesRenderList() {
     return `<article class="rcp-card">
       ${r.photoUrl ? `<img class="rcp-photo" src="${esc(r.photoUrl)}" alt="" loading="lazy">` : `<div class="rcp-photo rcp-photo-ph" aria-hidden="true">🍽️</div>`}
       <h3 class="rcp-title">${esc(title)}${r.status !== 'publicada' ? ` <span class="rcp-pending">${esc(t('recipes.pending'))}</span>` : ''}</h3>
-      <p class="rcp-tags">${tags.map(x => `<span class="rcp-tag">${esc(t('recipes.' + x))}</span>`).join('')}${r.timeMin ? `<span class="rcp-tag">⏱ ${esc(String(r.timeMin))} ${esc(t('recipes.min'))}</span>` : ''}</p>
-      <p class="rcp-vals">${esc(t('recipes.perServing'))}: <b>${esc(String(v.kcal))} kcal</b> · P ${esc(String(v.prot))} g · C ${esc(String(v.carb))} g · ${esc(t('recipes.sugar'))} ${esc(String(v.azuc))} g · ${esc(t('recipes.fat'))} ${esc(String(v.gras))} g${v.fiber ? `<br>${esc(t('recipes.fiber'))}: ${v.fiber.full ? esc(String(v.fiber.val)) + ' g' : '≥ ' + esc(String(v.fiber.val)) + ' g — ' + esc(t('recipes.fiberPartialShort'))}` : ''}</p>
+      <p class="rcp-tags">${tags.map(x => `<span class="rcp-tag">${esc(t('recipes.' + x))}</span>`).join('')}${r.timeMin ? `<span class="rcp-tag">⏱ ${esc(String(r.timeMin))} ${esc(t('recipes.min'))}</span>` : ''}${r.valuesOrigin === 'libro' ? `<span class="rcp-tag rcp-origin">${esc(t('recipes.originBookTag'))}</span>` : ''}</p>
+      <p class="rcp-vals">${esc(t('recipes.perServing'))}: <b>${esc(String(v.kcal))} kcal</b> · P ${esc(rcpMacroTxt(v, 'prot'))} g · C ${esc(rcpMacroTxt(v, 'carb'))} g · ${esc(t('recipes.sugar'))} ${esc(rcpMacroTxt(v, 'azuc'))} g · ${esc(t('recipes.fat'))} ${esc(rcpMacroTxt(v, 'gras'))} g${v.fiber ? `<br>${esc(t('recipes.fiber'))}: ${v.fiber.full ? esc(String(v.fiber.val)) + ' g' : '≥ ' + esc(String(v.fiber.val)) + ' g — ' + esc(t('recipes.fiberPartialShort'))}` : ''}</p>
       <p class="rcp-sec">${esc(t('recipes.ingredients'))}</p>
       <ul class="rcp-ings">${ingHtml}</ul>
       ${steps.length ? `<p class="rcp-sec">${esc(t('recipes.steps'))}</p><ol class="rcp-steps">${steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}
+      ${recipeHasFicha(r) ? `<button type="button" class="btn-secondary rcp-ficha-btn" data-rcp-ficha="${esc(r.id)}">${esc(t('recipes.viewFicha'))}</button>` : ''}
       <div class="rcp-actions">
         <div class="rcp-stepper" role="group" aria-label="${esc(t('nutri.recipe.servings'))}">
           <button type="button" class="rcp-step" data-rcp-minus="${esc(r.id)}" aria-label="−">−</button>
@@ -30459,7 +30512,9 @@ function recipesRenderList() {
         <button type="button" class="btn-main btn-sm" data-rcp-use="${esc(r.id)}">${esc(t('recipes.logBtn'))}</button>
       </div>
     </article>`;
-  }).join('');
+  }).join('') + (shown.length > page.length ? `<div class="rcp-more"><button type="button" class="btn-secondary" data-rcp-more="1">${esc(t('recipes.moreBtn', { n: shown.length - page.length }))}</button></div>` : '');
+  listEl.querySelectorAll('[data-rcp-ficha]').forEach(b => b.onclick = () => rcpfOpen(b.dataset.rcpFicha));
+  listEl.querySelectorAll('[data-rcp-more]').forEach(b => b.onclick = () => { RECIPES_UI.showN += 30; recipesRenderList(); });
   listEl.querySelectorAll('[data-rcp-use]').forEach(b => b.onclick = () => {
     const r = (RECIPES_UI.list || []).find(x => x.id === b.dataset.rcpUse);
     if (r) recipeUseDraft(r);
@@ -30605,7 +30660,153 @@ async function recipesFormSave() {
 { const b = $('btn-food-recipes'); if (b) b.onclick = () => foodOpenRecipes(); }
 { const c = $('btn-food-recipes-close'); if (c) c.onclick = () => foodOpenFloat(); }
 { const n = $('btn-recipe-new'); if (n) n.onclick = () => recipesFormShow(); }
-{ const q = $('recipes-q'); if (q) q.addEventListener('input', () => { RECIPES_UI.q = q.value; recipesRenderList(); }); }
+{ const q = $('recipes-q'); if (q) q.addEventListener('input', () => { RECIPES_UI.q = q.value; RECIPES_UI.showN = 30; recipesRenderList(); }); }
+
+/* ═══ AUTH-467 · «EL CATÁLOGO GRANDE» — pieza 1 de 3 del paquete
+   «El recetario se carga solo» (decisiones de Ronald, 2026-11-15:
+   las 1.130 recetas de los libros entran TAL CUAL al mismo
+   catálogo que las 17 de siempre, con filtro por libro/categoría,
+   etiqueta de origen de los valores y las fotos de los PDF).
+   Este bloque trae el filtro por libro (el botón-pastilla y la
+   hoja de facetas de la casa, los de AUTH-443), la hoja de la
+   ficha rica (#rcpf-float, hermana de #mishor-float) y el texto
+   honesto de los macros ausentes. La lista por tramos y las
+   pastillas viven en recipesRenderList. ═══ */
+/* El valor de un macro para pintar: «—» cuando la fuente no lo
+   trae (null), nunca un 0 disfrazado de dato. */
+function rcpMacroTxt(v, k) {
+  return (v && v.nullMacros && v.nullMacros[k]) ? '—' : String(v ? v[k] : 0);
+}
+/* ¿Trae la receta una ficha rica CON CONTENIDO? Las sueltas
+   traen el objeto ficha vacío: sin contenido no hay puerta —
+   su tarjeta ya lo dice todo. */
+function recipeHasFicha(r) {
+  const f = r && r.ficha; if (!f) return false;
+  const L = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'es';
+  const txt = o => { const s = o && (o[L] || o.es || o.en); return typeof s === 'string' && !!s.trim(); };
+  const arr = o => { const a = o && (o[L] || o.es || o.en); return Array.isArray(a) && a.some(x => String(x || '').trim()); };
+  return !!(txt(f.description) || txt(f.difficulty) || txt(f.cuisine) || txt(f.storage) || txt(f.servingSuggestions)
+    || arr(f.tips) || arr(f.substitutions)
+    || (Array.isArray(f.utensils) && f.utensils.some(x => String(x || '').trim()))
+    || f.prepMin != null || f.cookMin != null || f.sodiumMg != null);
+}
+/* Los libros presentes en la lista ofrecida, con su conteo —
+   el contexto de conteo es la lista tras el filtro duro de
+   alergias, como en las facetas de la Biblioteca. */
+function recipesBookOptions(offered) {
+  const L = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'es';
+  const byId = new Map();
+  for (const r of (offered || [])) {
+    if (!r.book || !r.book.id) continue;
+    if (!byId.has(r.book.id)) {
+      byId.set(r.book.id, {
+        key: r.book.id,
+        label: (r.book.category && (r.book.category[L] || r.book.category.es || r.book.category.en)) || r.book.id,
+        n: 0, num: (typeof r.book.num === 'number' ? r.book.num : 99)
+      });
+    }
+    byId.get(r.book.id).n++;
+  }
+  return [...byId.values()].sort((a, b) => a.num - b.num || a.label.localeCompare(b.label));
+}
+function recipesBookSync(offered) {
+  const btn = $('recipes-book-btn'); if (!btn) return;
+  const sel = recipesBookOptions(offered).find(o => o.key === RECIPES_UI.book);
+  libFacetBtnFace(btn, 'recipes.bookFilter', sel ? sel.label : t('recipes.allBooks'), !!sel);
+  libFacetBtnWire(btn, recipesBookOpen);
+}
+function recipesBookOpen() {
+  const offered = (RECIPES_UI.list || []).filter(r => !recipeBlockedFor(r, RECIPES_UI.wishes));
+  libFacetSheetOpen({
+    title: t('recipes.bookFilter'), allLabel: t('recipes.allBooks'), total: offered.length,
+    options: recipesBookOptions(offered), current: RECIPES_UI.book === 'all' ? '' : RECIPES_UI.book,
+    onPick: k => { RECIPES_UI.book = k || 'all'; RECIPES_UI.showN = 30; recipesRenderList(); }
+  });
+}
+/* ── La hoja de la ficha: pinta la receta ENTERA desde ficha{}
+   (descripción, ingredientes con gramos por secciones, pasos,
+   utensilios, consejos, sustituciones, conservación y
+   sugerencias) — de solo lectura; las acciones (porciones,
+   Registrar) quedan en la tarjeta, sin duplicar. ── */
+function rcpfOpen(id) {
+  const r = (RECIPES_UI.list || []).find(x => x.id === id); if (!r) return;
+  rcpfPaint(r);
+  const bd = $('rcpf-backdrop'), f = $('rcpf-float'); if (!bd || !f) return;
+  bd.style.display = ''; f.style.display = '';
+  try { coverSync(); } catch {}
+}
+function rcpfClose() {
+  const bd = $('rcpf-backdrop'), f = $('rcpf-float');
+  if (bd) bd.style.display = 'none';
+  if (f) f.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+function rcpfPaint(r) {
+  const body = $('rcpf-body'); if (!body) return;
+  const L = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'es';
+  const f = r.ficha || {};
+  const pick = o => (o && (o[L] || o.es || o.en)) || '';
+  const pickArr = o => (o && (o[L] || o.es || o.en)) || [];
+  const v = recipeValues(r);
+  const title = (r.title && (r.title[L] || r.title.es || r.title.en)) || '';
+  const meta = [];
+  if (r.timeMin) meta.push(`⏱ ${r.timeMin} ${t('recipes.min')}`);
+  if (f.prepMin != null) meta.push(`${t('recipes.prep')}: ${f.prepMin} ${t('recipes.min')}`);
+  if (f.cookMin != null) meta.push(`${t('recipes.cook')}: ${f.cookMin} ${t('recipes.min')}`);
+  if (pick(f.difficulty)) meta.push(pick(f.difficulty));
+  if (pick(f.cuisine)) meta.push(pick(f.cuisine));
+  if (f.sodiumMg != null) meta.push(`${t('recipes.sodium')}: ${f.sodiumMg} mg`);
+  /* Ingredientes con gramos: la tabla detallada del libro,
+     agrupada por sus secciones; sin detalle, la lista de la
+     tarjeta (anclada o simple) con su propio encabezado. */
+  let ingHtml = '';
+  const det = Array.isArray(r.ingredientsDetail) ? r.ingredientsDetail : [];
+  if (det.length) {
+    let sec = null; const rows = [];
+    for (const it of det) {
+      const s = it.section || '';
+      if (s && s !== sec) { sec = s; rows.push(`<li class="rcpf-ingsec">${esc(s)}</li>`); }
+      const qty = (it.qty != null && it.qty !== '') ? ` — ${esc(String(it.qty))} ${esc(it.unit || '')}` : '';
+      const gr = (it.grams != null && it.unit !== 'g') ? ` (${esc(String(it.grams))} g)` : '';
+      rows.push(`<li>${esc(it.name || '')}${qty}${gr}</li>`);
+    }
+    ingHtml = `<p class="rcp-sec">${esc(t('recipes.ingredientsGrams'))}</p><ul class="rcp-ings">${rows.join('')}</ul>`;
+  } else {
+    const ings = Array.isArray(r.ings) ? r.ings : null;
+    const listHtml = ings
+      ? ings.map(g => `<li>${esc(L === 'en' ? (g.nameEn || g.name || '') : (g.name || ''))} — ${esc(String(g.grams))} g</li>`).join('')
+      : ((((r.ingredients || {})[L]) || []).map(it => `<li>${esc(it.name || '')}${it.qty ? ' — ' + esc(String(it.qty)) + ' ' + esc(it.unit || '') : ''}</li>`).join(''));
+    if (listHtml) ingHtml = `<p class="rcp-sec">${esc(t('recipes.ingredients'))}</p><ul class="rcp-ings">${listHtml}</ul>`;
+  }
+  const steps = ((r.steps || {})[L]) || [];
+  const times = Array.isArray(f.stepTimesMin) ? f.stepTimesMin : [];
+  const stepsHtml = steps.length ? `<p class="rcp-sec">${esc(t('recipes.steps'))}</p><ol class="rcp-steps">${steps.map((s, i) => `<li>${esc(s)}${times[i] ? ` <span class="rcpf-steptime">· ${esc(String(times[i]))} ${esc(t('recipes.min'))}</span>` : ''}</li>`).join('')}</ol>` : '';
+  const secList = (key, arr) => (arr && arr.length) ? `<p class="rcp-sec">${esc(t(key))}</p><ul class="rcp-ings">${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+  const secTxt = (key, s) => s ? `<p class="rcp-sec">${esc(t(key))}</p><p class="rcpf-txt">${esc(s)}</p>` : '';
+  body.innerHTML = `
+    ${r.photoUrl ? `<img class="rcp-photo" src="${esc(r.photoUrl)}" alt="">` : `<div class="rcp-photo rcp-photo-ph" aria-hidden="true">🍽️</div>`}
+    <h3 class="rcp-title">${esc(title)}</h3>
+    <p class="rcpf-origin">${esc(t(r.valuesOrigin === 'libro' ? 'recipes.originBook' : 'recipes.originHouse'))}</p>
+    <p class="rcp-vals">${esc(t('recipes.perServing'))}: <b>${esc(String(v.kcal))} kcal</b> · P ${esc(rcpMacroTxt(v, 'prot'))} g · C ${esc(rcpMacroTxt(v, 'carb'))} g · ${esc(t('recipes.sugar'))} ${esc(rcpMacroTxt(v, 'azuc'))} g · ${esc(t('recipes.fat'))} ${esc(rcpMacroTxt(v, 'gras'))} g${v.fiber ? `<br>${esc(t('recipes.fiber'))}: ${v.fiber.full ? esc(String(v.fiber.val)) + ' g' : '≥ ' + esc(String(v.fiber.val)) + ' g — ' + esc(t('recipes.fiberPartialShort'))}` : ''}</p>
+    ${meta.length ? `<p class="rcpf-meta">${meta.map(m => `<span class="rcp-tag">${esc(m)}</span>`).join('')}</p>` : ''}
+    ${pick(f.description) ? `<p class="rcpf-txt">${esc(pick(f.description))}</p>` : ''}
+    ${ingHtml}
+    ${stepsHtml}
+    ${secList('recipes.utensils', Array.isArray(f.utensils) ? f.utensils : [])}
+    ${secList('recipes.tips', pickArr(f.tips))}
+    ${secList('recipes.substitutions', pickArr(f.substitutions))}
+    ${secTxt('recipes.storage', pick(f.storage))}
+    ${secTxt('recipes.serving', pick(f.servingSuggestions))}`;
+}
+(function rcpfWire() {
+  const c = $('btn-rcpf-close'); if (c) c.onclick = rcpfClose;
+  const bd = $('rcpf-backdrop'); if (bd) bd.onclick = rcpfClose;
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const f = $('rcpf-float');
+    if (f && f.style.display !== 'none') rcpfClose();
+  });
+})();
 
 /* Cierre tocando fuera (el label COMIDA del dock se excluye: su
    propio handler ya alterna) y con Escape — espejo de actividad. */
@@ -61017,7 +61218,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261115-horarios-reunidos';
+const PWA_SW_VERSION = '20261115-catalogo-grande';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

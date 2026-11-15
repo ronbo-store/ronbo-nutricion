@@ -5006,7 +5006,7 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 /* == HORARIOS DE ALIMENTACIÓN SUGERIDOS (dev 2026-11-09): la hoja
    #sched-float es hermana de #plan-float en la familia .act-float;
    estos estilos son solo de sus filas y controles. == */
-#sched-backdrop, #mishor-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
+#sched-backdrop, #mishor-backdrop, #rcpf-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
 /* AUTH-466 · «Mis horarios»: la tarjeta del área personal (azul
    oscuro de la casa, #16283f, el del panel de sesión) y las filas
    de su hoja índice. La tarjeta es un botón de ancho completo:
@@ -6637,3 +6637,18 @@ textarea.gest-in { resize: none; }
 .gest-save { display: block; width: 100%; min-height: 52px; background: #0d9488; color: #fff; border: 0; border-radius: 12px; font-size: 16px; font-weight: 700; font-family: inherit; margin-top: 20px; cursor: pointer; }
 .gest-del { display: block; width: 100%; min-height: 48px; background: #fff; color: #b3261e; border: 1px solid #f0c6c2; border-radius: 12px; font-size: 15px; font-weight: 700; font-family: inherit; margin-top: 10px; cursor: pointer; }
 .gest-note { font-size: 12.5px; color: #6b7280; line-height: 1.45; margin: 10px 0 0; }
+
+/* ═══ AUTH-467 · «EL CATÁLOGO GRANDE» — el filtro por libro del
+   recetario (el botón-pastilla de la casa bajo el buscador), la
+   pastilla de origen en la tarjeta, la puerta de la ficha, el
+   botón de tramo y la hoja de la ficha rica (#rcpf-float). ═══ */
+#recipes-book-btn { width: 100%; margin-top: 10px; }
+.rcp-tag.rcp-origin { background: rgba(180, 83, 9, .16); }
+.rcp-ficha-btn { width: 100%; min-height: 48px; margin-top: 12px; }
+.rcp-more { margin: 4px 0 12px; }
+.rcp-more .btn-secondary { width: 100%; min-height: 52px; }
+.rcpf-origin { font-size: 13px; font-weight: 800; color: #b45309; margin: 2px 0 6px; }
+.rcpf-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.rcpf-txt { line-height: 1.55; margin: 6px 0; }
+.rcpf-ingsec { list-style: none; margin: 8px 0 2px -22px; font-weight: 800; }
+.rcpf-steptime { font-weight: 700; white-space: nowrap; }

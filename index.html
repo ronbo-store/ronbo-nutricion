@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261115-horarios-reunidos">
+<link rel="stylesheet" href="styles.css?v=20261115-catalogo-grande">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1195,6 +1195,10 @@
     </div>
     <p class="photo-hint" data-i18n="recipes.hint">Real recipes whose values are calculated from the house USDA food table — never typed in by hand. The number shown is the real size of the catalog.</p>
     <input type="search" id="recipes-q" autocomplete="off" data-i18n-ph="recipes.searchPh" placeholder="Search by name or ingredient">
+    <!-- AUTH-467: el filtro por libro/categoría — el botón-pastilla
+         de la casa (el de los filtros de la Biblioteca, AUTH-443);
+         abre la hoja compartida de facetas #libf-float. -->
+    <button type="button" class="libf-btn" id="recipes-book-btn" aria-haspopup="dialog"></button>
     <div class="rcp-chips" id="recipes-chips"></div>
     <p class="progress-hint" id="recipes-note"></p>
     <div id="recipes-list"></div>
@@ -1276,6 +1280,20 @@
       <button type="button" class="pend-close" id="btn-mishor-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="mishor-body"></div>
+  </div>
+  <!-- AUTH-467 · Hoja de la ficha de la receta: la vista que pinta
+       la ficha rica (descripción, ingredientes con gramos, pasos,
+       consejos, conservación, sustituciones) desde ficha{} cuando
+       la receta la trae. Hermana de #mishor-float en la familia
+       .act-float, con su velo propio; la pinta rcpfPaint y es de
+       solo lectura (las acciones viven en la tarjeta). -->
+  <div id="rcpf-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="rcpf-float" style="display:none" role="dialog" aria-modal="true" aria-label="Recipe card" data-i18n-aria="recipes.fichaTitle">
+    <div class="pend-head">
+      <h2><span data-i18n="recipes.fichaTitle">Recipe card</span></h2>
+      <button type="button" class="pend-close" id="btn-rcpf-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="rcpf-body"></div>
   </div>
   <div id="sched-backdrop" style="display:none"></div>
   <div class="act-float act-sheet" id="sched-float" style="display:none" role="dialog" aria-label="My daily schedule" data-i18n-aria="sched.sheetTitle">
@@ -2474,6 +2492,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261115-horarios-reunidos"></script>
+<script type="module" src="app.js?v=20261115-catalogo-grande"></script>
 </body>
 </html>
