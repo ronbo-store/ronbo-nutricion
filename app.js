@@ -5813,6 +5813,8 @@ en: {
   'recipes.bookFilter': 'Book',
   'recipes.allBooks': 'All books',
   'recipes.viewFicha': 'See the full card',
+  'recipes.fichaLoading': 'Loading the full card…',
+  'recipes.fichaLoadErr': 'The full card could not be loaded right now. Close it and try again in a moment.',
   'recipes.fichaTitle': 'Recipe card',
   'recipes.originBookTag': 'From its book',
   'recipes.originBook': 'Values from its book',
@@ -10976,6 +10978,8 @@ es: {
   'recipes.bookFilter': 'Libro',
   'recipes.allBooks': 'Todos los libros',
   'recipes.viewFicha': 'Ver la ficha completa',
+  'recipes.fichaLoading': 'Cargando la ficha…',
+  'recipes.fichaLoadErr': 'La ficha completa no pudo cargar ahora. Ciérrala e inténtalo en un momento.',
   'recipes.fichaTitle': 'Ficha de la receta',
   'recipes.originBookTag': 'De su libro',
   'recipes.originBook': 'Valores de su libro',
@@ -30681,6 +30685,11 @@ function rcpMacroTxt(v, k) {
    traen el objeto ficha vacío: sin contenido no hay puerta —
    su tarjeta ya lo dice todo. */
 function recipeHasFicha(r) {
+  /* AUTH-469: la ficha vive fuera del documento (subcolección
+     recipes/{id}/ficha/full) y el documento trae la marca
+     hasFicha; con la ficha íntegra en memoria (cachés viejas o
+     ya traída en la sesión) manda la comprobación de contenido. */
+  if (r && r.hasFicha === true) return true;
   const f = r && r.ficha; if (!f) return false;
   const L = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'es';
   const txt = o => { const s = o && (o[L] || o.es || o.en); return typeof s === 'string' && !!s.trim(); };
@@ -30728,14 +30737,37 @@ function recipesBookOpen() {
    utensilios, consejos, sustituciones, conservación y
    sugerencias) — de solo lectura; las acciones (porciones,
    Registrar) quedan en la tarjeta, sin duplicar. ── */
-function rcpfOpen(id) {
+let RCPF_TOKEN = 0;
+async function rcpfOpen(id) {
   const r = (RECIPES_UI.list || []).find(x => x.id === id); if (!r) return;
-  rcpfPaint(r);
   const bd = $('rcpf-backdrop'), f = $('rcpf-float'); if (!bd || !f) return;
   bd.style.display = ''; f.style.display = '';
   try { coverSync(); } catch {}
+  /* AUTH-469: con la ficha íntegra ya en memoria (caché vieja o
+     traída en esta sesión) se pinta al instante, como siempre;
+     si el documento vino ligero, la ficha se trae bajo demanda
+     de recipes/{id}/ficha/full con su estado de carga honesto.
+     El testigo evita que una respuesta tardía pinte sobre otra
+     ficha abierta después. */
+  if (r.ficha) { rcpfPaint(r); return; }
+  const body = $('rcpf-body'); if (!body) return;
+  const tk = ++RCPF_TOKEN;
+  body.innerHTML = `<p class="progress-hint">${esc(t('recipes.fichaLoading'))}</p>`;
+  try {
+    const s = await getDoc(doc(db, 'recipes', id, 'ficha', 'full'));
+    if (tk !== RCPF_TOKEN) return;
+    if (!s.exists()) throw new Error('sin ficha');
+    const d = s.data() || {};
+    r.ficha = d.ficha || {};
+    if (Array.isArray(d.ingredientsDetail)) r.ingredientsDetail = d.ingredientsDetail;
+    rcpfPaint(r);
+  } catch {
+    if (tk !== RCPF_TOKEN) return;
+    body.innerHTML = `<p class="progress-hint">${esc(t('recipes.fichaLoadErr'))}</p>`;
+  }
 }
 function rcpfClose() {
+  RCPF_TOKEN++;
   const bd = $('rcpf-backdrop'), f = $('rcpf-float');
   if (bd) bd.style.display = 'none';
   if (f) f.style.display = 'none';
@@ -61245,7 +61277,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261115-fotos-ligeras';
+const PWA_SW_VERSION = '20261115-recetario-rapido';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -63853,11 +63885,24 @@ async function nutriViewRecipes(body) {
   const me = auth.currentUser.uid;
   const lang = (typeof LANG !== 'undefined' && LANG) || 'es';
   let recipes = [];
-  try {
-    const snap = await getDocs(collection(db, 'recipes'));
-    snap.forEach(d => { const x = { id: d.id, ...d.data() }; if (x.status === 'publicada') recipes.push(x); });
-  } catch {}
   const myNutri = NUTRI.myRel && NUTRI.myRel.nutritionistUid;
+  try {
+    /* AUTH-469: la lectura sin acotar se traía la colección
+       entera; pasa a ser el trío de consultas probables ante
+       las reglas que ya usa el recetario (correctivo AUTH-365),
+       con los mismos filtros de cliente de siempre — el
+       conjunto visible resultante es el mismo, en el mismo
+       orden de documento. */
+    const byId = new Map();
+    const add = snap => snap.forEach(d => { if (!byId.has(d.id)) byId.set(d.id, { id: d.id, ...d.data() }); });
+    add(await getDocs(query(collection(db, 'recipes'), where('scope', '==', 'general'), where('status', '==', 'publicada'))));
+    add(await getDocs(query(collection(db, 'recipes'), where('ownerUid', '==', me))));
+    if (myNutri && myNutri !== me) {
+      try { add(await getDocs(query(collection(db, 'recipes'), where('ownerUid', '==', myNutri), where('scope', '==', 'privada'), where('status', '==', 'publicada')))); } catch {}
+    }
+    recipes = [...byId.values()].filter(x => x.status === 'publicada');
+    recipes.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  } catch {}
   recipes = recipes.filter(r => r.scope === 'general' || (myNutri && r.ownerUid === myNutri) || r.ownerUid === me);
   let favs = new Set();
   try {
@@ -63874,13 +63919,18 @@ async function nutriViewRecipes(body) {
     (!F.goal || (r.goalTags || []).includes(F.goal)) &&
     (!F.allergen || !(r.allergens || []).includes(F.allergen)) &&
     (!F.restriction || (r.restrictions || []).includes(F.restriction)));
+  /* AUTH-469: la vista pinta por tramos de 30, como el
+     recetario (AUTH-467); el contador vive en el módulo y solo
+     se reinicia al cambiar un filtro. */
+  if (!NUTRI.recipesShowN) NUTRI.recipesShowN = 30;
+  const page = visible.slice(0, NUTRI.recipesShowN);
   const chipRow = (key, values, labelFn) => `<div class="nutri-chips"><button type="button" class="nutri-chip${!F[key] ? ' sel' : ''}" data-rf="${key}|">${esc(t('purpose.useBoth'))}</button>${values.map(v => `<button type="button" class="nutri-chip${F[key] === v ? ' sel' : ''}" data-rf="${key}|${v}">${esc(labelFn(v))}</button>`).join('')}</div>`;
   body.innerHTML = `
   <p class="progress-hint">${esc(t('nutri.recipe.goals'))}</p>${chipRow('goal', NUTRI_GOAL_TAGS, v => v)}
   <p class="progress-hint">${esc(t('nutri.recipe.allergens'))} (fuera)</p>${chipRow('allergen', NUTRI_ALLERGENS, v => v)}
   <p class="progress-hint">${esc(t('nutri.recipe.restrictions'))}</p>${chipRow('restriction', NUTRI_RESTRICTIONS, v => v)}
   <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="rc-propose">${esc(NUTRI.myProfile && NUTRI.myProfile.status === 'aprobado' ? t('nutri.recipe.new') : t('nutri.recipe.propose'))}</button></div>
-  ${visible.map(r => {
+  ${page.map(r => {
     const sv = NUTRI.recipeServings[r.id] || r.servings || 1;
     const title = (r.title && (r.title[lang] || r.title.es || r.title.en)) || '';
     const ings = (r.ingredients && (r.ingredients[lang] || r.ingredients.es) || []).map(i => `<li>${esc(i.name)} — ${esc(i.qty)} ${esc(i.unit)}</li>`).join('');
@@ -63893,13 +63943,15 @@ async function nutriViewRecipes(body) {
     ${ings ? `<ul class="nutri-ings">${ings}</ul>` : ''}
     ${r.videoUrl ? `<br><a href="${esc(r.videoUrl)}" target="_blank" rel="noopener">▶ video</a>` : ''}
   </div>`; }).join('') || `<p class="progress-hint">${esc(t('nutri.admin.empty'))}</p>`}
+  ${visible.length > page.length ? `<div class="rcp-more"><button type="button" class="btn-secondary" data-rmore="1">${esc(t('recipes.moreBtn', { n: visible.length - page.length }))}</button></div>` : ''}
   ${assignments.length ? `<div class="nutri-sub"><b>${esc(t('nutri.recipe.assignments'))}</b></div>` + assignments.map(a => {
     const r = recipes.find(x => x.id === a.recipeId);
     const title = r ? ((r.title && (r.title[lang] || r.title.es)) || '') : a.recipeId;
     return `<div class="nutri-card"><b>${esc(title)}</b> · ${esc(a.date || '')} · ${esc(a.meal || '')} · ${a.servings || 1} ${esc(t('nutri.recipe.servings'))}
     ${a.doneAt ? `<br>✅ ${esc(t('nutri.recipe.done'))}` : `<div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-asg-done="${esc(a.id)}">${esc(t('nutri.recipe.markDone'))}</button></div>`}</div>`;
   }).join('') : ''}`;
-  body.querySelectorAll('[data-rf]').forEach(b => b.onclick = () => { const [k, v] = b.dataset.rf.split('|'); NUTRI.filters[k] = v; nutriRenderFloat(); });
+  body.querySelectorAll('[data-rf]').forEach(b => b.onclick = () => { const [k, v] = b.dataset.rf.split('|'); NUTRI.filters[k] = v; NUTRI.recipesShowN = 30; nutriRenderFloat(); });
+  body.querySelectorAll('[data-rmore]').forEach(b => b.onclick = () => { NUTRI.recipesShowN = (NUTRI.recipesShowN || 30) + 30; nutriRenderFloat(); });
   body.querySelectorAll('[data-rsv]').forEach(inp => inp.onchange = () => { NUTRI.recipeServings[inp.dataset.rsv] = Math.max(0.5, Number(inp.value) || 1); nutriRenderFloat(); });
   body.querySelectorAll('[data-rfav]').forEach(b => b.onclick = async () => {
     const rid = b.dataset.rfav, fid = me + '_' + rid;
