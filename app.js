@@ -4506,6 +4506,51 @@ en: {
   'planwk.wishesLine': '{n} meals a day, as you asked',
   'planwk.allergyLine': 'no {food}, ever',
   'planwk.noneYet': 'you do not have a plan from your coach yet — tell them your wishes and they will build you one',
+  'planau.tabToday': 'Today',
+  'planau.tabWeek': 'Week',
+  'planau.tabMonth': 'Month',
+  'planau.tabPlan': 'Plan',
+  'planau.srcAuto': 'Automatic',
+  'planau.subAuto': 'Your week, built on its own from your goals and your plan · each day compared with its own goal',
+  'planau.regen': 'Another week',
+  'planau.regenBusy': 'Building your week…',
+  'planau.factor': '×{f} servings',
+  'planau.noRecipe': 'No recipe fits here',
+  'planau.weekNotBuilt': 'That week was not built',
+  'planau.listTitle': 'Shopping list for the week',
+  'planau.listSessionSun': 'To cook on Sunday',
+  'planau.listSessionWed': 'To cook on Wednesday',
+  'planau.cookLine': 'You cook: {pattern} · {repeat}',
+  'planau.cookPat.semana': 'on Sunday, for the whole week',
+  'planau.cookPat.diario': 'every day, fresh',
+  'planau.cookPat.varias': 'two or three times a week',
+  'planau.cookRep.norep': 'no repeats',
+  'planau.cookRep.repok': 'repeats are fine',
+  'planau.change': 'Change',
+  'planau.monthArmed': 'Built',
+  'planau.monthPending': 'It will be built when you open it',
+  'planau.planDayBase': 'normal day',
+  'planau.planDayExigente': 'demanding day',
+  'planau.planDayDescanso': 'rest day',
+  'planau.planGoals': '{kcal} kcal · {carb} g carbs · {gras} g fat',
+  'planau.cookTitle': 'How do you organize your cooking?',
+  'planau.cookSub': 'I ask you once and the app organizes your week around your answer. You can change it whenever you want from the planner itself.',
+  'planau.cookQ1': 'When do you cook?',
+  'planau.cookOptWeek': 'On Sunday, for the whole week',
+  'planau.cookOptDaily': 'Every day, fresh',
+  'planau.cookOptFew': 'Two or three times a week',
+  'planau.cookQ2': 'And the dishes?',
+  'planau.cookOptNoRep': 'No repeats within the week',
+  'planau.cookOptRepOk': 'Repeating is fine, simpler',
+  'planau.cookSave': 'Save and build my week',
+  'planau.cookNeed': 'Answer both questions so I can build your week',
+  'planau.sessionSun': 'Cooked on Sunday',
+  'planau.sessionWed': 'Cooked on Wednesday',
+  'planau.aisleProtein': 'Meat, fish & plant protein',
+  'planau.aisleProduce': 'Fruit & vegetables',
+  'planau.aisleDairy': 'Dairy & eggs',
+  'planau.aisleGrains': 'Grains, breads & legumes',
+  'planau.aisleOther': 'Pantry & other',
   'nutri.consentTitle': 'My food-care data',
   'nutri.consentHint': 'Only with your specific consent, your food coach can see: allergies, intolerances, declared conditions, relevant medications, cultural or religious preferences and vegetarianism. No diagnoses are made in the app: with a condition, you get a referral, never a medical diet.',
   'nutri.consentGive': 'Give my consent and save',
@@ -9671,6 +9716,51 @@ es: {
   'planwk.wishesLine': '{n} comidas al día, como pediste',
   'planwk.allergyLine': 'sin {food}, nunca',
   'planwk.noneYet': 'todavía no tienes un plan de tu coach — cuéntale tus deseos y te arma uno',
+  'planau.tabToday': 'Hoy',
+  'planau.tabWeek': 'Semana',
+  'planau.tabMonth': 'Mes',
+  'planau.tabPlan': 'Plan',
+  'planau.srcAuto': 'Automático',
+  'planau.subAuto': 'Tu semana, armada sola desde tus metas y tu plan · cada día comparado con su propia meta',
+  'planau.regen': 'Otra semana',
+  'planau.regenBusy': 'Armando tu semana…',
+  'planau.factor': '×{f} porciones',
+  'planau.noRecipe': 'Sin receta que encaje aquí',
+  'planau.weekNotBuilt': 'Esa semana no se armó',
+  'planau.listTitle': 'Lista de compras de la semana',
+  'planau.listSessionSun': 'Para cocinar el domingo',
+  'planau.listSessionWed': 'Para cocinar el miércoles',
+  'planau.cookLine': 'Cocinas: {pattern} · {repeat}',
+  'planau.cookPat.semana': 'el domingo, para toda la semana',
+  'planau.cookPat.diario': 'cada día, fresco',
+  'planau.cookPat.varias': 'dos o tres veces por semana',
+  'planau.cookRep.norep': 'sin repetir',
+  'planau.cookRep.repok': 'repetir está bien',
+  'planau.change': 'Cambiar',
+  'planau.monthArmed': 'Armada',
+  'planau.monthPending': 'Se armará al abrirla',
+  'planau.planDayBase': 'día normal',
+  'planau.planDayExigente': 'día exigente',
+  'planau.planDayDescanso': 'día de descanso',
+  'planau.planGoals': '{kcal} kcal · {carb} g carbos · {gras} g grasa',
+  'planau.cookTitle': '¿Cómo te organizas para cocinar?',
+  'planau.cookSub': 'Te lo pregunto una vez y la app organiza tu semana con tu respuesta. Puedes cambiarlo cuando quieras desde el propio planificador.',
+  'planau.cookQ1': '¿Cuándo cocinas?',
+  'planau.cookOptWeek': 'El domingo, para toda la semana',
+  'planau.cookOptDaily': 'Cada día, fresco',
+  'planau.cookOptFew': 'Dos o tres veces por semana',
+  'planau.cookQ2': '¿Y los platos?',
+  'planau.cookOptNoRep': 'Que no se repitan en la semana',
+  'planau.cookOptRepOk': 'Repetir está bien, más simple',
+  'planau.cookSave': 'Guardar y armar mi semana',
+  'planau.cookNeed': 'Contesta las dos preguntas para armar tu semana',
+  'planau.sessionSun': 'Se cocina el domingo',
+  'planau.sessionWed': 'Se cocina el miércoles',
+  'planau.aisleProtein': 'Carnes, pescados y proteínas vegetales',
+  'planau.aisleProduce': 'Frutas y verduras',
+  'planau.aisleDairy': 'Lácteos y huevos',
+  'planau.aisleGrains': 'Cereales, panes y legumbres',
+  'planau.aisleOther': 'Despensa y otros',
   'nutri.consentTitle': 'Mis datos de alimentación',
   'nutri.consentHint': 'Solo con tu consentimiento específico, tu coach de alimentación puede ver: alergias, intolerancias, condiciones declaradas, medicamentos relevantes, preferencias culturales o religiosas y vegetarianismo. En la app no se hacen diagnósticos: ante una condición, recibes derivación, nunca una dieta médica.',
   'nutri.consentGive': 'Dar mi consentimiento y guardar',
@@ -61277,7 +61367,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261115-recetario-rapido';
+const PWA_SW_VERSION = '20261115-planificador-semanal';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -66173,7 +66263,7 @@ function mmInitEditor(body, opts) {
 }
 function mmLoadWeekIntoEditor() {
   const M = MENU, me = M.me;
-  const own = mmMenuForWeek(M.menus, M.weekStart, 'alumno', M.studentUid);
+  const own = mmMenuForWeek((M.menus || []).filter(m => !mmIsAutoMenu(m)), M.weekStart, 'alumno', M.studentUid);   /* AUTH-468: el editor jamás abre la semana automática */
   const coachAll = (M.menus || []).filter(x => x.weekStart === M.weekStart && x.authorRole === 'coach' && x.status !== 'archivado');
   const coachMine = M.mode === 'coach' ? (coachAll.filter(x => x.authorUid === me)[0] || null) : null;
   const coachVig = coachAll.filter(x => x.status === 'vigente')[0] || null;
@@ -66356,7 +66446,7 @@ async function mmCopyDo() {
   const shifted = M.days.map(d => ({ ...d, date: planISOAddDays(d.date, shift), meals: mmClone(d.meals) }));
   const filt = mmFilterDays(shifted, M.wishes);
   try {
-    const existing = mmMenuForWeek(M.menus, target, M.mode === 'coach' ? 'coach' : 'alumno', M.me);
+    const existing = mmMenuForWeek((M.menus || []).filter(m => !mmIsAutoMenu(m)), target, M.mode === 'coach' ? 'coach' : 'alumno', M.me);   /* AUTH-468: copiar nunca se funde sobre la semana automática */
     const payload = {
       studentUid: M.studentUid,
       nutritionistUid: M.mode === 'coach' ? M.me : (M.nutritionistUid || null),
@@ -66403,7 +66493,15 @@ function mealMenuStudentSection() {
    cierra la hoja (y la ventana de Comida si estaba abierta) antes
    de abrir #nutri-float: una sola vía, sin hojas apiladas. El
    diario «Hoy» no se toca: menú y diario no se leen entre sí. ═══ */
-const PLANWK = { weekStart: null, showing: 'own', openDay: null, sc: null, editorWeek: null };
+const PLANWK = { weekStart: null, showing: 'own', openDay: null, sc: null, editorWeek: null,
+  /* AUTH-468: vista de la hoja (hoy|semana|mes|plan), el documento
+     automático resuelto, el catálogo cacheado, la lista desplegada
+     y el candado de regeneración. */
+  view: 'hoy', auto: null, catalog: null, listOpen: false, busy: false,
+  /* AUTH-473: ids del catálogo cuyo detalle (ficha e ingredientes
+     con gramos) ya se trajo de recipes/{id}/ficha/full en esta
+     sesión; no se repite la lectura. */
+  details: null };
 
 function planWeekRange(weekStart) {
   const a = String(weekStart || ''), b = planISOAddDays(a, 6);
@@ -66426,11 +66524,17 @@ function planBandChip(kcal, targetKcal, hasItems) {
 }
 /* Qué menús hay en una semana, espejo del editor: el propio del
    alumno (mmMenuForWeek) y el vigente de su coach, si lo hay. */
+function mmIsAutoMenu(m) { return !!(m && m.auto && m.auto.v === 1); }
 function planResolveMenu(menus, weekStart, me) {
-  const own = mmMenuForWeek(menus, weekStart, 'alumno', me);
-  const coachVig = (menus || []).filter(m => m.weekStart === weekStart && m.authorRole === 'coach' && m.status === 'vigente')
+  const list = menus || [];
+  /* AUTH-468: la semana automática es un menú propio con sello
+     auto.v=1; «own» pasa a ser el menú propio MANUAL (el editor
+     jamás debe abrir el automático) y «auto» se resuelve aparte. */
+  const auto = list.find(m => m.weekStart === weekStart && mmIsAutoMenu(m) && m.studentUid === me) || null;
+  const own = mmMenuForWeek(list.filter(m => !mmIsAutoMenu(m)), weekStart, 'alumno', me);
+  const coachVig = list.filter(m => m.weekStart === weekStart && m.authorRole === 'coach' && m.status === 'vigente')
     .sort((a, b) => String((b.updatedAt && b.updatedAt.seconds) || '').localeCompare(String((a.updatedAt && a.updatedAt.seconds) || '')))[0] || null;
-  return { own, coachVig };
+  return { own, coachVig, auto };
 }
 function planDayMealsHTML(day) {
   const meals = (day.meals || []).filter(m => (m.items || []).length);
@@ -66445,42 +66549,67 @@ function planSheetHTML() {
   const me = auth.currentUser && auth.currentUser.uid;
   const wk = PLANWK.weekStart || mmMondayOf(todayISO());
   const menus = NUTRI.myMenus || [];
-  const { own, coachVig } = planResolveMenu(menus, wk, me);
-  if (PLANWK.showing === 'coach' && !coachVig) PLANWK.showing = 'own';
-  if (PLANWK.showing === 'own' && !own && coachVig) PLANWK.showing = 'coach';
-  const menu = PLANWK.showing === 'coach' ? coachVig : own;
+  const { own, coachVig, auto } = planResolveMenu(menus, wk, me);
+  PLANWK.auto = auto;
+  if (PLANWK.showing === 'coach' && !coachVig) PLANWK.showing = auto ? 'auto' : 'own';
+  if (PLANWK.showing === 'auto' && !auto) PLANWK.showing = own ? 'own' : (coachVig ? 'coach' : 'own');
+  if (PLANWK.showing === 'own' && !own && coachVig && !auto) PLANWK.showing = 'coach';
+  const menu = PLANWK.showing === 'coach' ? coachVig : (PLANWK.showing === 'auto' ? auto : own);
+  const isAuto = PLANWK.showing === 'auto' && !!auto;
   const sc = PLANWK.sc || {};
   const structure = sc.structure || null;
   const baseGoals = structure && structure.days && structure.days.base ? structure.days.base.goals : null;
-  let h = `<div class="plan-wk-head"><button type="button" class="plan-wk-nav" id="plan-wk-prev" aria-label="‹">‹</button><div class="plan-wk-title">${esc(t('planwk.weekOf', { range: planWeekRange(wk) }))}</div><button type="button" class="plan-wk-nav" id="plan-wk-next" aria-label="›">›</button></div>`;
-  if (baseGoals && baseGoals.kcal) h += `<p class="plan-sub">${esc(t('planwk.sub', { kcal: Math.round(baseGoals.kcal) }))}</p>`;
-  if (menu) h += `<p class="progress-hint">${esc(t('menu.status.' + (menu.status || 'vigente')))} · ${esc(menu.authorRole === 'coach' ? t('menu.byCoach') : t('menu.byYou'))}${structure ? ' · ' + esc(t(sc.source === 'plan' ? 'menu.targetFromPlan' : 'menu.targetFromGoals')) : ''}</p>`;
+  let h = planTabsHTML();
+  h += `<div class="plan-wk-head"><button type="button" class="plan-wk-nav" id="plan-wk-prev" aria-label="‹">‹</button><div class="plan-wk-title">${esc(t('planwk.weekOf', { range: planWeekRange(wk) }))}</div><button type="button" class="plan-wk-nav" id="plan-wk-next" aria-label="›">›</button></div>`;
+  if (PLANWK.view === 'mes') return h + planMonthHTML(wk, menus);
+  if (PLANWK.view === 'plan') return h + planPlanHTML(wk);
+  if (isAuto) {
+    h += `<p class="plan-sub">${esc(t('planau.subAuto'))}</p>`;
+    h += `<p class="progress-hint">${esc(t('menu.status.' + (auto.status || 'vigente')))} · ${esc(t('planau.srcAuto'))}</p>`;
+  } else if (baseGoals && baseGoals.kcal) {
+    h += `<p class="plan-sub">${esc(t('planwk.sub', { kcal: Math.round(baseGoals.kcal) }))}</p>`;
+  }
+  if (menu && !isAuto) {
+    h += `<p class="progress-hint">${esc(t('menu.status.' + (menu.status || 'vigente')))} · ${esc(menu.authorRole === 'coach' ? t('menu.byCoach') : t('menu.byYou'))}${structure ? ' · ' + esc(t(sc.source === 'plan' ? 'menu.targetFromPlan' : 'menu.targetFromGoals')) : ''}</p>`;
+  }
   const prop = NUTRI.myMenuProposed;
   if (prop && prop.weekStart === wk) {
     h += `<div class="nutri-card mp-proposal"><b>🍽️ ${esc(t('menu.proposalTitle'))}</b><p class="progress-hint">${esc(t('planwk.proposalSub'))}</p><div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="plan-open-proposal">${esc(t('menu.view'))}</button></div></div>`;
   }
-  if (own && coachVig) {
-    h += `<div class="plan-src"><button type="button" class="btn-ghost btn-sm" data-plan-src="own">${esc(t('menu.byYou'))}</button><button type="button" class="btn-ghost btn-sm" data-plan-src="coach">${esc(t('menu.byCoach'))}</button></div>`;
+  const srcs = [];
+  if (auto) srcs.push(['auto', 'planau.srcAuto']);
+  if (own) srcs.push(['own', 'menu.byYou']);
+  if (coachVig) srcs.push(['coach', 'menu.byCoach']);
+  if (srcs.length > 1) {
+    h += `<div class="plan-src">${srcs.map(([v, k]) => `<button type="button" class="btn-ghost btn-sm" data-plan-src="${v}">${esc(t(k))}</button>`).join('')}</div>`;
   }
   if (menu) {
-    if (!structure) h += `<div class="nutri-card"><p class="progress-hint">${esc(t('menu.noGoals'))}</p></div>`;
+    if (!structure && !isAuto) h += `<div class="nutri-card"><p class="progress-hint">${esc(t('menu.noGoals'))}</p></div>`;
     const byDate = {};
     (menu.days || []).forEach(d => { byDate[d.date] = d; });
+    const pat = isAuto ? ((auto.auto || {}).cookPattern || 'semana') : null;
     for (let i = 0; i < 7; i++) {
       const iso = planISOAddDays(wk, i);
+      if (PLANWK.view === 'semana' && isAuto) {
+        if (i === 0 && (pat === 'semana' || pat === 'varias')) h += `<div class="plan-session">🍳 ${esc(t('planau.sessionSun'))}</div>`;
+        if (i === 3 && pat === 'varias') h += `<div class="plan-session">🍳 ${esc(t('planau.sessionWed'))}</div>`;
+      }
       const day = byDate[iso] || { date: iso, dayType: 'base', meals: [] };
-      const tot = mmDayTotals(day);
-      const has = (day.meals || []).some(m => (m.items || []).length);
-      const tgt = structure ? mmDayTarget(structure, day.dayType) : null;
+      const tot = isAuto ? planAutoDayTotals(day) : mmDayTotals(day);
+      const has = isAuto ? (day.meals || []).some(m => m.recipeId) : (day.meals || []).some(m => (m.items || []).length);
+      const tgt = isAuto ? (day.goals || null) : (structure ? mmDayTarget(structure, day.dayType) : null);
       const isToday = iso === todayISO();
       const open = PLANWK.openDay === iso;
       const kcalTxt = tgt ? `${Math.round(tot.kcal)} / ${Math.round(tgt.kcal)} kcal` : `${Math.round(tot.kcal)} kcal`;
-      h += `<div class="plan-day${isToday ? ' today' : ''}"><button type="button" class="plan-day-head" data-plan-day="${iso}" aria-expanded="${open}"><span class="plan-day-name">${esc(weekdayName(iso))} ${parseInt(iso.slice(8), 10)}</span>${isToday ? `<span class="plan-today-tag">${esc(t('planwk.today'))}</span>` : ''}<span class="plan-day-kcal">${esc(kcalTxt)}</span>${planBandChip(tot.kcal, tgt ? tgt.kcal : null, has)}<span class="plan-chev">${open ? '▴' : '▾'}</span></button>${open ? `<div class="plan-day-body">${planDayMealsHTML(day)}</div>` : ''}</div>`;
+      h += `<div class="plan-day${isToday ? ' today' : ''}"><button type="button" class="plan-day-head" data-plan-day="${iso}" aria-expanded="${open}"><span class="plan-day-name">${esc(weekdayName(iso))} ${parseInt(iso.slice(8), 10)}</span>${isToday ? `<span class="plan-today-tag">${esc(t('planwk.today'))}</span>` : ''}<span class="plan-day-kcal">${esc(kcalTxt)}</span>${planBandChip(tot.kcal, tgt ? tgt.kcal : null, has)}<span class="plan-chev">${open ? '▴' : '▾'}</span></button>${open ? `<div class="plan-day-body">${isAuto ? planAutoDayMealsHTML(day) : planDayMealsHTML(day)}</div>` : ''}</div>`;
     }
+    if (PLANWK.view === 'semana' && isAuto) h += planAutoListHTML(auto) + planAutoFootHTML();
   } else {
-    h += `<div class="plan-empty"><p>${esc(t('menu.empty'))}</p></div>`;
+    const pastWk = wk < mmMondayOf(todayISO());
+    h += `<div class="plan-empty"><p>${esc(t(pastWk ? 'planau.weekNotBuilt' : 'menu.empty'))}</p></div>`;
   }
-  h += `<button type="button" class="btn-primary plan-edit-btn" id="plan-open-editor">✏️ ${esc(t('planwk.editBtn'))}</button>`;
+  if (!isAuto) h += `<button type="button" class="btn-primary plan-edit-btn" id="plan-open-editor">✏️ ${esc(t('planwk.editBtn'))}</button>`;
+  if (isAuto && PLANWK.view === 'hoy') h += `<button type="button" class="btn-primary plan-edit-btn" id="plan-regen" ${PLANWK.busy ? 'disabled' : ''}>🔄 ${esc(t(PLANWK.busy ? 'planau.regenBusy' : 'planau.regen'))}</button>`;
   return h;
 }
 function planPaintSheet() {
@@ -66490,50 +66619,79 @@ function planPaintSheet() {
   const nav = delta => {
     PLANWK.weekStart = planISOAddDays(PLANWK.weekStart, delta);
     PLANWK.showing = 'own';
+    PLANWK.listOpen = false;
     const hoy = todayISO(), fin = planISOAddDays(PLANWK.weekStart, 6);
     PLANWK.openDay = (hoy >= PLANWK.weekStart && hoy <= fin) ? hoy : null;
-    planPaintSheet();
+    planAutoEnsure(false).then(() => { if (PLANWK.auto && PLANWK.showing === 'own') PLANWK.showing = 'auto'; planPaintSheet(); });
   };
-  on('plan-wk-prev', () => nav(-7));
-  on('plan-wk-next', () => nav(7));
+  on('plan-wk-prev', () => nav(PLANWK.view === 'mes' ? -28 : -7));
+  on('plan-wk-next', () => nav(PLANWK.view === 'mes' ? 28 : 7));
   on('plan-open-editor', () => planOpenEditor());
   on('plan-open-proposal', () => planOpenEditor());
+  on('plan-regen', () => planAutoRegen());
+  on('plan-cook-change', () => { planCloseSheet(); planCookOpen(true); });
+  on('plan-list-open', () => { PLANWK.listOpen = !PLANWK.listOpen; planPaintSheet(); });
   body.querySelectorAll('[data-plan-day]').forEach(b => { b.onclick = () => { const d = b.getAttribute('data-plan-day'); PLANWK.openDay = PLANWK.openDay === d ? null : d; planPaintSheet(); }; });
   body.querySelectorAll('[data-plan-src]').forEach(b => { b.onclick = () => { PLANWK.showing = b.getAttribute('data-plan-src'); planPaintSheet(); }; });
+  body.querySelectorAll('[data-plan-view]').forEach(b => { b.onclick = () => { PLANWK.view = b.getAttribute('data-plan-view'); if (PLANWK.view === 'hoy') { const hoy = todayISO(); if (hoy >= PLANWK.weekStart && hoy <= planISOAddDays(PLANWK.weekStart, 6)) PLANWK.openDay = hoy; } planPaintSheet(); }; });
+  body.querySelectorAll('[data-plan-goto-week]').forEach(b => { b.onclick = () => { PLANWK.weekStart = b.getAttribute('data-plan-goto-week'); PLANWK.view = 'semana'; PLANWK.openDay = null; PLANWK.showing = 'own'; planAutoEnsure(false).then(() => { if (PLANWK.auto) PLANWK.showing = 'auto'; planPaintSheet(); }); }; });
+  body.querySelectorAll('[data-plan-goto-day]').forEach(b => { b.onclick = () => { PLANWK.view = 'semana'; PLANWK.openDay = b.getAttribute('data-plan-goto-day'); planPaintSheet(); }; });
 }
 async function planOpenSheet() {
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  /* AUTH-468 + REFRESCO sobre AUTH-471: el estreno pregunta la
+     cocina UNA vez, antes de abrir la hoja; si la persona ya
+     respondió, no aparece. La puerta se resuelve SIN esperar a
+     la red cuando las preferencias ya están en memoria; solo si
+     la sesión aún no las ha cargado se esperan primero, porque
+     el destino (hoja de cocina u hoja del planificador) depende
+     de esa respuesta. */
+  if (!SCHED_PREFS) { try { await schedLoadOwn(); } catch {} }
+  if (!SCHED_PREFS || !SCHED_PREFS.cookPattern || !SCHED_PREFS.cookRepeat) { planCookOpen(false); return; }
+  planSheetOpenNow();
+}
+function planSheetOpenNow() {
   const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
   const bd = $('plan-backdrop'), f = $('plan-float'); if (!bd || !f) return;
   PLANWK.weekStart = mmMondayOf(todayISO());
   PLANWK.showing = 'own';
+  PLANWK.view = 'hoy';
+  PLANWK.listOpen = false;
   PLANWK.openDay = todayISO();
   bd.style.display = ''; f.style.display = '';
   try { coverSync(); } catch {}
-  /* AUTH-470: la hoja pinta AL INSTANTE con lo que ya está en
+  /* AUTH-471 + REFRESCO: la hoja pinta AL INSTANTE desde la
      memoria (NUTRI.myMenus, la misma fuente desde la que la
-     tarjeta de Comida pinta su línea) y la lectura fresca de
-     menús corre EN SEGUNDO PLANO: al llegar, repinta solo si la
-     hoja sigue abierta y sin tocar la semana que la persona
-     esté mirando. Antes el pintado esperaba a esa lectura —
-     una consulta al servidor que, sin menús, devuelve CERO
-     documentos — y la hoja se quedaba en «Cargando...» todo el
-     viaje de ida y vuelta (la consulta vacía medida por REST
-     desde la VM tarda ~2,8 s; en el teléfono de Ronald se
-     estiró a ~25 s). La estructura (PLANWK.sc) se calcula con
-     datos en memoria que NO dependen de la lectura: mismos
-     valores antes y al llegar, mismo pintado final. */
+     tarjeta de Comida pinta su línea) — sin «Cargando...» y sin
+     ningún await antes del primer pintado. Si la semana
+     automática ya está en memoria se resuelve y se muestra como
+     fuente desde ese primer pintado; si no, se pinta el estado
+     honesto de lo que haya (el menú propio, el del coach o el
+     vacío). La lectura fresca de menús y el rearme de la semana
+     (planAutoEnsure) corren EN SEGUNDO PLANO: al llegar repintan
+     SOLO si la hoja sigue abierta y sin tocar la semana, la
+     vista ni el día que la persona esté mirando. Antes de este
+     refresco la apertura de la pieza esperaba a esa lectura y
+     al rearme antes de pintar — la lentitud que AUTH-471 ya
+     había eliminado de la hoja volvía por esta puerta. */
   PLANWK.sc = mmStructureFor(NUTRI.myPlan, (typeof GOALS !== 'undefined' ? GOALS : null), NUTRI.myWishes);
+  const pre = planResolveMenu(NUTRI.myMenus || [], PLANWK.weekStart, me);
+  PLANWK.auto = pre.auto;
+  if (pre.auto) PLANWK.showing = 'auto';
   planPaintSheet();
-  try {
-    const menus = await mmLoadMenus(me);
-    NUTRI.myMenus = menus;
-    NUTRI.myMenuProposed = menus.filter(x => x.status === 'propuesto' && x.authorRole === 'coach')
-      .sort((a, b) => String(b.weekStart || '').localeCompare(String(a.weekStart || '')))[0] || null;
-    PLANWK.sc = mmStructureFor(NUTRI.myPlan, (typeof GOALS !== 'undefined' ? GOALS : null), NUTRI.myWishes);
+  (async () => {
+    try {
+      const menus = await mmLoadMenus(me);
+      NUTRI.myMenus = menus;
+      NUTRI.myMenuProposed = menus.filter(x => x.status === 'propuesto' && x.authorRole === 'coach')
+        .sort((a, b) => String(b.weekStart || '').localeCompare(String(a.weekStart || '')))[0] || null;
+      PLANWK.sc = mmStructureFor(NUTRI.myPlan, (typeof GOALS !== 'undefined' ? GOALS : null), NUTRI.myWishes);
+    } catch {}
+    try { await planAutoEnsure(false); } catch {}
+    if (PLANWK.auto && PLANWK.showing === 'own') PLANWK.showing = 'auto';
     if (f.style.display !== 'none') planPaintSheet();
-  } catch {}
-}
-function planCloseSheet() {
+  })();
+}function planCloseSheet() {
   const bd = $('plan-backdrop'), f = $('plan-float');
   if (bd) bd.style.display = 'none';
   if (f) f.style.display = 'none';
@@ -66548,6 +66706,583 @@ function planOpenEditor() {
   try { foodCloseAll(); } catch {}
   nutriOpenFloat('menu');
 }
+/* ============================================================
+   AUTH-468 · PLANIFICADOR SEMANAL AUTOMÁTICO (pieza 2 del
+   recetario): la semana se arma sola, determinista y sin IA,
+   desde el catálogo publicado, las metas por día de la app
+   (goalsDayGoalsFor) y la estructura de comidas; filtro DURO
+   de alergias con recipeBlockedFor (lo bloqueado jamás se
+   sirve); la semana vive como menú propio en nutrition_menus
+   con el sello auto.v=1 (id determinista auto_{uid}_{lunes});
+   la pregunta de cocina se guarda en schedprefs. CERO
+   organización manual: la única acción sobre la semana
+   automática es pedir otra (gen+1). El editor manual jamás
+   abre el documento automático (mmIsAutoMenu).
+   ============================================================ */
+function planAutoDocId(uid, wk) { return 'auto_' + uid + '_' + wk; }
+function planAutoHash(str) {
+  let h = 0x811c9dc5;
+  const s = String(str || '');
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return ('0000000' + (h >>> 0).toString(16)).slice(-8);
+}
+function planAutoRng(seed) {
+  let a = (parseInt(seed, 16) || 0) >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let x = Math.imul(a ^ (a >>> 15), 1 | a);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const PLANAUTO_BOOK_SLOTS = {
+  'libro-01-desayunos-es': ['Desayuno'],
+  'libro-02-ensaladas-bowls-es': ['Almuerzo', 'Cena'],
+  'libro-03-vegetarianos-es': ['Almuerzo', 'Cena'],
+  'libro-04-pollo-es': ['Almuerzo', 'Cena'],
+  'libro-05-pescados-es': ['Almuerzo', 'Cena'],
+  'libro-06-carnes-es': ['Almuerzo', 'Cena'],
+  'libro-07-sopas-es': ['Almuerzo', 'Cena'],
+  'libro-08-pastas-cereales-es': ['Almuerzo', 'Cena'],
+  'libro-09-snacks-es': ['Merienda', 'Snack'],
+  'libro-10-postres-es': ['Merienda', 'Snack'],
+  'libro-11-panaderia-es': ['Desayuno', 'Merienda'],
+  'libro-12-smoothies-es': ['Desayuno', 'Merienda', 'Snack'],
+  'libro-13-bebidas-es': ['Merienda', 'Snack'],
+  'libro-14-salsas-es': []
+};
+const PLANAUTO_CAT_SLOTS = {
+  'desayunos': ['Desayuno'], 'ensaladas y bowls': ['Almuerzo', 'Cena'],
+  'vegetarianos': ['Almuerzo', 'Cena'], 'pollo': ['Almuerzo', 'Cena'],
+  'pescados': ['Almuerzo', 'Cena'], 'carnes': ['Almuerzo', 'Cena'],
+  'sopas': ['Almuerzo', 'Cena'], 'pastas y cereales': ['Almuerzo', 'Cena'],
+  'snacks': ['Merienda', 'Snack'], 'postres': ['Merienda', 'Snack'],
+  'panaderia': ['Desayuno', 'Merienda'],
+  'smoothies': ['Desayuno', 'Merienda', 'Snack'],
+  'bebidas': ['Merienda', 'Snack'], 'salsas': []
+};
+function planAutoSlots(r) {
+  const b = r && r.book;
+  if (b && b.id && PLANAUTO_BOOK_SLOTS[b.id]) return PLANAUTO_BOOK_SLOTS[b.id];
+  if (b && b.id === 'recetas-sueltas') {
+    /* El menu de la ficha es un texto por idioma ({es, en}), no
+       una cadena: se lee el idioma que haya. (En la preparación
+       original la expresión regular corría sobre el objeto y
+       jamás nombraba el hueco; y desde AUTH-473 la ficha de las
+       sueltas sin contenido ya no vive en el documento — el
+       detalle se trae de la subcolección al cargar el catálogo
+       cuando la receta trae la marca hasFicha.) */
+    const fm = (r.ficha && r.ficha.menu) || null;
+    const menu = typeof fm === 'string' ? fm : ((fm && (fm.es || fm.en)) || '');
+    const m = /Desayuno|Almuerzo|Merienda|Cena|Snack/.exec(menu);
+    return m ? [m[0]] : ['Almuerzo', 'Cena'];
+  }
+  if (b && b.category && b.category.es) {
+    const s = PLANAUTO_CAT_SLOTS[acNorm(b.category.es)];
+    if (s) return s;
+  }
+  if (b) return ['Almuerzo', 'Cena'];
+  const tx = acNorm(((r.title || {}).es || '') + ' ' + ((r.title || {}).en || ''));
+  if (/avena|yogur|yogurt|huevo|omelette|tostada|pancake|desayuno|breakfast|egg/.test(tx)) return ['Desayuno'];
+  if (/sopa|ensalada|soup|salad/.test(tx)) return ['Almuerzo', 'Cena'];
+  if (/smoothie|batido/.test(tx)) return ['Desayuno', 'Merienda', 'Snack'];
+  return ['Almuerzo', 'Cena'];
+}
+function planAutoFactor(targetKcal, v) {
+  let f = targetKcal / ((v && v.kcal) || 1);
+  f = Math.max(0.5, Math.min(2, f));
+  f = Math.round(f * 20) / 20;
+  return Math.max(0.5, Math.min(2, f));
+}
+function planAutoFactorTxt(f) {
+  if (f == null) return '';
+  return (Math.round(f * 100) / 100).toString().replace('.', ',');
+}
+function planAutoEmptyMeal() {
+  return { recipeId: null, title: null, photoUrl: null, factor: null,
+    values: { kcal: 0, prot: null, carb: null, azuc: null, gras: null, fiber: null },
+    nulls: { prot: true, carb: true, azuc: true, gras: true, fiber: true }, ings: [] };
+}
+function planAutoMealIngs(r, factor) {
+  const serv = Number(r.servings) > 0 ? Number(r.servings) : 1;
+  if (Array.isArray(r.ingredientsDetail)) {
+    return r.ingredientsDetail.map(d => ({
+      name: d.name || '',
+      grams: (d.grams != null && Number(d.grams) > 0) ? Math.round(Number(d.grams) * factor / serv) : null,
+      qty: (d.qty != null && Number(d.qty) > 0) ? Math.round(Number(d.qty) * factor / serv * 10) / 10 : null,
+      unit: d.unit || ''
+    }));
+  }
+  /* AUTH-473: sin el detalle en memoria (las sueltas, cuyo
+     detalle no migró a la subcolección), las líneas salen de la
+     lista `ingredients` del propio documento ligero — nombre y
+     cantidad tal cual los trae la receta, escalados igual; si
+     la unidad es el gramo, la cantidad ES el peso. Lo que no
+     trae cantidad no se inventa: la línea va solo con su
+     nombre, como la lista de compras trata lo que no tiene
+     conversión fiable. */
+  const lista = (r.ingredients && (r.ingredients.es || r.ingredients.en)) || [];
+  return (Array.isArray(lista) ? lista : []).map(d => {
+    if (typeof d === 'string') return { name: d, grams: null, qty: null, unit: '' };
+    const q = (d && d.qty != null && Number(d.qty) > 0) ? Math.round(Number(d.qty) * factor / serv * 10) / 10 : null;
+    const unit = (d && d.unit) || '';
+    return { name: (d && d.name) || '', grams: (q != null && /^(g|gr|gramos?)$/i.test(unit)) ? Math.round(q) : null, qty: q, unit };
+  });
+}
+function planAutoMealFromRecipe(r, v, factor) {
+  const ings = planAutoMealIngs(r, factor);
+  const nm = v.nullMacros || { prot: false, carb: false, azuc: false, gras: false };
+  const fibFull = !!(v.fiber && v.fiber.full);
+  const r1 = x => Math.round(x * 10) / 10;
+  const values = {
+    kcal: Math.round(v.kcal * factor),
+    prot: nm.prot ? null : r1(v.prot * factor),
+    carb: nm.carb ? null : r1(v.carb * factor),
+    azuc: nm.azuc ? null : r1(v.azuc * factor),
+    gras: nm.gras ? null : r1(v.gras * factor),
+    fiber: fibFull ? r1(v.fiber.val * factor) : null
+  };
+  const nulls = { prot: !!nm.prot, carb: !!nm.carb, azuc: !!nm.azuc, gras: !!nm.gras, fiber: !fibFull };
+  return { recipeId: r.id, title: { es: (r.title && r.title.es) || '', en: (r.title && r.title.en) || null },
+    photoUrl: r.photoUrl || null, factor, values, nulls, ings };
+}
+function planAutoDayTotals(day) {
+  const s = { kcal: 0, prot: 0, carb: 0, sugar: 0, fat: 0, fiber: 0 };
+  const nulls = { prot: false, carb: false, sugar: false, fat: false, fiber: false };
+  for (const m of ((day && day.meals) || [])) {
+    if (!m.recipeId) continue;
+    const v = m.values || {}, n = m.nulls || {};
+    s.kcal += Number(v.kcal) || 0;
+    if (n.prot) nulls.prot = true; else s.prot += Number(v.prot) || 0;
+    if (n.carb) nulls.carb = true; else s.carb += Number(v.carb) || 0;
+    if (n.azuc) nulls.sugar = true; else s.sugar += Number(v.azuc) || 0;
+    if (n.gras) nulls.fat = true; else s.fat += Number(v.gras) || 0;
+    if (n.fiber) nulls.fiber = true; else s.fiber += Number(v.fiber) || 0;
+  }
+  const r1 = x => Math.round(x * 10) / 10;
+  return { kcal: Math.round(s.kcal),
+    prot: nulls.prot ? null : r1(s.prot), carb: nulls.carb ? null : r1(s.carb),
+    sugar: nulls.sugar ? null : r1(s.sugar), fat: nulls.fat ? null : r1(s.fat),
+    fiber: nulls.fiber ? null : r1(s.fiber) };
+}
+function planAutoPick(pool, target, di, used, repeatPref, rng) {
+  if (!pool.length || !(target.kcal > 0)) return planAutoEmptyMeal();
+  /* Distancia combinada en logaritmos: cercanía calórica al
+     objetivo del ámbito + cercanía de la proteína ya escalada a
+     su objetivo (una dieta alta en proteína no se sirve con
+     recetas de baja densidad proteica aunque calcen en kcal). */
+  const cands = pool.map(r => {
+    const v = recipeValues(r);
+    let score = Math.abs(Math.log((v.kcal || 1) / target.kcal));
+    if (target.prot > 0) {
+      if (v.nullMacros && v.nullMacros.prot) {
+        score += 0.7;   /* proteína desconocida: no cuenta para la meta; penalización declarada */
+      } else {
+        const f = Math.max(0.5, Math.min(2, target.kcal / (v.kcal || 1)));
+        score += Math.abs(Math.log(Math.max(1, (v.prot || 0) * f) / target.prot));
+      }
+    }
+    return { r, v, score };
+  });
+  let ordered = (repeatPref === 'norep') ? cands.filter(c => !used.has(c.r.id)) : cands.slice();
+  if (!ordered.length) ordered = cands.slice();
+  ordered.sort((a, b) => a.score - b.score);
+  /* Entre los 5 mejores manda la semilla (uid|semana|hash|gen):
+     «Otra semana» cambia de verdad la semana sin salir de los
+     buenos ajustes; con las mismas entradas, la misma semana. */
+  const ventana = ordered.slice(0, 5);
+  const enRango = ventana.filter(c => { const raw = target.kcal / (c.v.kcal || 1); return raw >= 0.5 && raw <= 2; });
+  const elegibles = enRango.length ? enRango : ventana;
+  let pick = elegibles[Math.floor(rng() * elegibles.length)] || elegibles[0];
+  if (!pick) pick = ordered[0];
+  if (!pick) return planAutoEmptyMeal();
+  const factor = planAutoFactor(target.kcal, pick.v);
+  used.set(pick.r.id, di);
+  return planAutoMealFromRecipe(pick.r, pick.v, factor);
+}
+function planAutoProteinPass(meals, dc, di, used, inp, poolFor) {
+  const tgt = dc.goals.prot;
+  if (!(tgt > 0)) return;
+  let sum = 0;
+  for (const m of meals) { if (!m.recipeId || !m.values || m.values.prot == null) return; sum += m.values.prot; }
+  if (sum >= 0.9 * tgt) return;
+  for (const slotName of ['Almuerzo', 'Cena', 'Desayuno', 'Merienda', 'Snack']) {
+    const ix = meals.findIndex(m => m.name === slotName && m.recipeId);
+    if (ix < 0) continue;
+    const cur = meals[ix];
+    const curDens = (cur.values.kcal > 0) ? (cur.values.prot || 0) / cur.values.kcal : 0;
+    let best = null;
+    for (const r of poolFor(slotName)) {
+      if (r.id === cur.recipeId) continue;
+      if (inp.cookRepeat === 'norep' && used.has(r.id)) continue;
+      const v = recipeValues(r);
+      if (!(v.kcal > 0) || (v.nullMacros && v.nullMacros.prot)) continue;
+      if (Math.abs(v.kcal - cur.target.kcal) > 0.25 * cur.target.kcal) continue;
+      const dens = v.prot / v.kcal;
+      if (dens <= curDens) continue;
+      if (!best || dens > best.dens) best = { r, v, dens };
+    }
+    if (best) {
+      used.delete(cur.recipeId);
+      const factor = planAutoFactor(cur.target.kcal, best.v);
+      meals[ix] = { name: cur.name, time: cur.time, target: cur.target, ...planAutoMealFromRecipe(best.r, best.v, factor) };
+      used.set(best.r.id, di);
+      return;
+    }
+  }
+}
+function planAutoBuildWeek(inp, gen) {
+  const rng = planAutoRng(planAutoHash(inp.uid + '|' + inp.weekStart + '|' + inp.hash + '|' + gen));
+  const used = new Map();
+  const pools = {};
+  const poolFor = slot => {
+    if (pools[slot]) return pools[slot];
+    const list = (inp.catalog || []).filter(r => {
+      const v = recipeValues(r);
+      if (!(v.kcal > 0)) return false;
+      if (!planAutoSlots(r).includes(slot)) return false;
+      if (recipeBlockedFor(r, inp.wishes)) return false;   /* filtro DURO: lo bloqueado jamás se sirve */
+      return true;
+    });
+    const arr = list.slice();
+    for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp; }
+    pools[slot] = arr;
+    return arr;
+  };
+  const days = inp.days.map((dc, di) => {
+    const shareSet = inp.shares[dc.dayType] || inp.shares.base || [];
+    const meals = shareSet.map(sh => {
+      const target = { kcal: dc.goals.kcal * sh.kcal, prot: dc.goals.prot * sh.prot, carb: dc.goals.carb * sh.carb, azuc: dc.goals.azuc * sh.azuc, gras: dc.goals.gras * sh.gras };
+      const picked = planAutoPick(poolFor(sh.name), target, di, used, inp.cookRepeat, rng);
+      return { name: sh.name, time: inp.times[sh.name] || MM_DEFAULT_TIMES[sh.name] || '', target, ...picked };
+    });
+    planAutoProteinPass(meals, dc, di, used, inp, poolFor);
+    return { date: dc.date, dayType: dc.dayType, goals: dc.goals,
+      meals: meals.map(m => { const { target, ...rest } = m; return rest; }) };
+  });
+  return { days };
+}
+function planAutoCatalogSig(catalog) {
+  let sum = 0;
+  const ids = [];
+  for (const r of (catalog || [])) { ids.push(r.id); sum += recipeValues(r).kcal || 0; }
+  return (catalog || []).length + ':' + sum + ':' + planAutoHash(ids.sort().join(','));
+}
+function planAutoInputs(uid, wk, wishes, pendCfg, catalog) {
+  const w = wishes || {};
+  const days = [];
+  let anyKcal = false;
+  for (let i = 0; i < 7; i++) {
+    const iso = planISOAddDays(wk, i);
+    const dg = goalsDayGoalsFor(iso);
+    const g = (dg && dg.goals) || {};
+    const goals = { kcal: Number(g.kcal) || 0, prot: Number(g.prot) || 0, carb: Number(g.carb) || 0,
+      azuc: Number(g.azuc != null ? g.azuc : g.sugar) || 0, gras: Number(g.gras != null ? g.gras : g.fat) || 0 };
+    if (goals.kcal > 0) anyKcal = true;
+    days.push({ date: iso, dayType: (dg && dg.dayLevel) || 'base', goals });
+  }
+  if (!anyKcal) return null;
+  const sc = mmStructureFor((typeof NUTRI !== 'undefined' ? NUTRI.myPlan : null), (typeof GOALS !== 'undefined' ? GOALS : null), w);
+  const structure = sc && sc.structure ? sc.structure : null;
+  const mealsPerDay = w.mealsPerDay || (structure && structure.mealsPerDay) || 4;
+  const shares = {};
+  for (const dt of ['base', 'exigente', 'descanso']) {
+    const sd = structure && structure.days ? (structure.days[dt] || structure.days.base) : null;
+    const meals = sd && sd.meals ? sd.meals : mealPlanMeals({ kcal: 100, prot: 100, carb: 100, azuc: 100, gras: 100 }, mealsPerDay, null);
+    shares[dt] = meals.map(m => {
+      const out = { name: m.name };
+      for (const f of ['kcal', 'prot', 'carb', 'azuc', 'gras']) {
+        const tot = meals.reduce((a, x) => a + (Number(x[f]) || 0), 0);
+        out[f] = tot > 0 ? (Number(m[f]) || 0) / tot : (f === 'kcal' ? 1 / meals.length : 0);
+      }
+      return out;
+    });
+  }
+  const times = {};
+  for (const m of ((pendCfg && pendCfg.meals) || [])) if (m && m.name && m.time) times[m.name] = m.time;
+  const wSig = [((w.allergies) || []).slice().sort().join(','), ((w.dislikes) || []).slice().sort().join(','), acNorm(w.allergyText || ''), mealsPerDay].join('|');
+  const hash = planAutoHash([uid, wk, JSON.stringify(days), JSON.stringify(shares), wSig, SCHED_PREFS.cookPattern, SCHED_PREFS.cookRepeat, planAutoCatalogSig(catalog)].join('~'));
+  return { uid, weekStart: wk, days, shares, times, mealsPerDay, cookPattern: SCHED_PREFS.cookPattern, cookRepeat: SCHED_PREFS.cookRepeat, wishes: w, catalog, hash };
+}
+/* AUTH-473: el detalle de una receta (su ficha y sus
+   ingredientes con gramos) ya no viaja en el documento ligero:
+   vive en recipes/{id}/ficha/full y se trae bajo demanda, con
+   la misma fusión que hace la hoja de la ficha (rcpfOpen).
+   PLANWK.details recuerda lo ya traído en la sesión. */
+async function planAutoLoadDetails(ids) {
+  const want = [...new Set(ids || [])].filter(id => !!id);
+  if (!want.length) return;
+  if (!PLANWK.details) PLANWK.details = new Set();
+  const byId = {};
+  for (const r of (PLANWK.catalog || [])) byId[r.id] = r;
+  await Promise.all(want.map(async id => {
+    if (PLANWK.details.has(id)) return;
+    PLANWK.details.add(id);
+    const r = byId[id]; if (!r || !r.hasFicha) return;
+    try {
+      const s = await getDoc(doc(db, 'recipes', id, 'ficha', 'full'));
+      if (!s.exists()) return;
+      const d = s.data() || {};
+      if (d.ficha) r.ficha = d.ficha;
+      if (Array.isArray(d.ingredientsDetail)) r.ingredientsDetail = d.ingredientsDetail;
+    } catch {}
+  }));
+}
+async function planAutoLoadCatalog() {
+  if (PLANWK.catalog) return PLANWK.catalog;
+  try {
+    const snap = await getDocs(query(collection(db, 'recipes'), where('scope', '==', 'general'), where('status', '==', 'publicada')));
+    const list = [];
+    snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+    PLANWK.catalog = list;
+    /* El hueco de una suelta se nombra desde el menu de su
+       ficha: el detalle de las sueltas con la marca hasFicha se
+       trae ANTES de armar, para resolver el hueco con el dato
+       real (hoy ninguna suelta del catálogo trae la marca: el
+       hueco cae en su reserva declarada, Almuerzo · Cena). */
+    await planAutoLoadDetails(list.filter(r => r.hasFicha && r.book && r.book.id === 'recetas-sueltas').map(r => r.id));
+    return PLANWK.catalog;
+  } catch { return PLANWK.catalog || []; }
+}
+async function planAutoEnsure(force) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me) return null;
+  const wk = PLANWK.weekStart || mmMondayOf(todayISO());
+  const found = planResolveMenu(NUTRI.myMenus || [], wk, me).auto;
+  PLANWK.auto = found;
+  if (wk < mmMondayOf(todayISO())) return found;   /* una semana pasada sin documento jamás se genera hacia atrás */
+  if (!SCHED_PREFS) { try { await schedLoadOwn(); } catch {} }
+  if (!SCHED_PREFS || !SCHED_PREFS.cookPattern || !SCHED_PREFS.cookRepeat) return found;
+  let wishes = NUTRI.myWishes || null;
+  if (!wishes) {
+    try { const s = await getDoc(doc(db, 'nutrition_wishes', me)); wishes = s.exists() ? (s.data() || {}) : {}; NUTRI.myWishes = wishes; }
+    catch { wishes = {}; }
+  }
+  if (!PLANWK.sc) { try { PLANWK.sc = mmStructureFor(NUTRI.myPlan, (typeof GOALS !== 'undefined' ? GOALS : null), wishes); } catch {} }
+  const catalog = await planAutoLoadCatalog();
+  if (!catalog || !catalog.length) return found;
+  let pendCfg = null;
+  try { pendCfg = await schedLoadPendCfg(); } catch {}
+  const inp = planAutoInputs(me, wk, wishes, pendCfg, catalog);
+  if (!inp) return found;
+  if (!force && found && found.auto && found.auto.inputsHash === inp.hash) return found;
+  const gen = force ? (((found && found.auto && found.auto.gen) || 0) + 1) : ((found && found.auto && found.auto.gen) || 0);
+  const built = planAutoBuildWeek(inp, gen);
+  if (!built) return found;
+  /* AUTH-473: las comidas elegidas traen su detalle
+     (ingredientes con gramos) de la subcolección ANTES de
+     guardar: el documento de la semana nace completo, con los
+     gramos reales de la ficha y no con la lista simple del
+     documento ligero. Solo se leen las elegidas (las ~28 de la
+     semana), una vez por sesión y receta. */
+  await planAutoLoadDetails([...new Set(built.days.flatMap(d => (d.meals || []).filter(m => m.recipeId).map(m => m.recipeId)))]);
+  const catById = {};
+  for (const r of catalog) catById[r.id] = r;
+  for (const d of built.days) for (const m of d.meals) {
+    if (m.recipeId && catById[m.recipeId]) m.ings = planAutoMealIngs(catById[m.recipeId], m.factor);
+  }
+  const payload = { studentUid: me, nutritionistUid: null, authorRole: 'alumno', authorUid: me,
+    status: 'vigente', basedOnPlanId: null, weekStart: wk, days: built.days,
+    wishesSnapshot: { allergies: wishes.allergies || [], allergyText: wishes.allergyText || '', dislikes: wishes.dislikes || [] },
+    changeRequest: null,
+    auto: { v: 1, gen, inputsHash: inp.hash, cookPattern: inp.cookPattern, cookRepeat: inp.cookRepeat, generatedAt: Date.now() },
+    updatedAt: serverTimestamp() };
+  if (!found) payload.createdAt = serverTimestamp();
+  try {
+    await setDoc(doc(db, 'nutrition_menus', planAutoDocId(me, wk)), payload);
+    const docObj = { id: planAutoDocId(me, wk), ...payload, updatedAt: null };
+    NUTRI.myMenus = NUTRI.myMenus || [];
+    const ix = NUTRI.myMenus.findIndex(m => m.id === docObj.id);
+    if (ix >= 0) NUTRI.myMenus[ix] = docObj; else NUTRI.myMenus.push(docObj);
+    PLANWK.auto = docObj;
+    return docObj;
+  } catch { return found; }
+}
+async function planAutoRegen() {
+  if (PLANWK.busy) return;
+  PLANWK.busy = true;
+  planPaintSheet();
+  try { await planAutoEnsure(true); } catch {}
+  PLANWK.busy = false;
+  planPaintSheet();
+}
+function planAutoMacroTxt(meal, field) {
+  if (meal.nulls && meal.nulls[field]) return '—';
+  return acNum(meal.values ? meal.values[field] : null) + ' g';
+}
+function planAutoMealHTML(meal) {
+  if (!meal.recipeId) {
+    return `<div class="plan-meal plan-auto-meal"><div class="plan-meal-top"><span class="plan-meal-time">${esc(meal.time || '')}</span><span class="plan-meal-name">${esc(mealName(meal.name))}</span></div><p class="progress-hint">${esc(t('planau.noRecipe'))}</p></div>`;
+  }
+  const v = meal.values || {};
+  const mac = `${esc(t('th.protShort'))} ${planAutoMacroTxt(meal, 'prot')} · ${esc(t('th.carbShort'))} ${planAutoMacroTxt(meal, 'carb')} · ${esc(t('th.fatShort'))} ${planAutoMacroTxt(meal, 'gras')}`;
+  const ings = (meal.ings || []).map(g => `<div class="plan-item"><span>${esc(g.name || '')}</span><span class="plan-item-g">${g.grams != null ? Math.round(g.grams) + ' g' : (g.qty != null ? esc(String(g.qty)) + (g.unit ? ' ' + esc(g.unit) : '') : '')}</span></div>`).join('');
+  const title = (meal.title && (meal.title[LANG] || meal.title.es || meal.title.en)) || '';
+  return `<div class="plan-meal plan-auto-meal"><div class="plan-meal-top">${meal.photoUrl ? `<img class="plan-auto-thumb" src="${esc(meal.photoUrl)}" alt="">` : ''}<span class="plan-meal-time">${esc(meal.time || '')}</span><span class="plan-meal-name">${esc(mealName(meal.name))}</span><span class="plan-meal-kcal">${Math.round(v.kcal || 0)} kcal</span></div><div class="plan-auto-title">${esc(title)} <span class="plan-auto-factor">${esc(t('planau.factor', { f: planAutoFactorTxt(meal.factor) }))}</span></div>${ings}<div class="plan-meal-mac">${mac}</div></div>`;
+}
+function planAutoDayMealsHTML(day) {
+  const meals = (day && day.meals) || [];
+  if (!meals.length) return `<p class="progress-hint">${esc(t('planwk.dayEmpty'))}</p>`;
+  return meals.map(planAutoMealHTML).join('');
+}
+function planAutoShopSections(days) {
+  const agg = new Map();
+  for (const d of (days || [])) for (const m of (d.meals || [])) for (const g of (m.ings || [])) {
+    const name = String(g.name || '').trim();
+    if (!name) continue;
+    const keyN = acNorm(name);
+    if (g.grams != null) {
+      const k = 'g:' + keyN;
+      const cur = agg.get(k) || { name, grams: 0, qty: null, unit: '' };
+      cur.grams += Number(g.grams) || 0;
+      agg.set(k, cur);
+    } else if (g.qty != null) {
+      const k = 'q:' + keyN + ':' + acNorm(g.unit || '');
+      const cur = agg.get(k) || { name, grams: null, qty: 0, unit: g.unit || '' };
+      cur.qty += Number(g.qty) || 0;
+      agg.set(k, cur);
+    } else if (!agg.has('n:' + keyN)) {
+      agg.set('n:' + keyN, { name, grams: null, qty: null, unit: '' });
+    }
+  }
+  const secs = {};
+  for (const row of agg.values()) {
+    const fam = mmItemFamily({ name: row.name });
+    const aisle = MM_AISLE_OF[fam] || 'otros';
+    const secId = (aisle === 'vegetales' || aisle === 'frutas') ? 'frutasVerduras' : aisle;
+    (secs[secId] = secs[secId] || []).push(row);
+  }
+  const order = [['proteinas', 'planau.aisleProtein'], ['frutasVerduras', 'planau.aisleProduce'], ['lacteos', 'planau.aisleDairy'], ['granos', 'planau.aisleGrains'], ['otros', 'planau.aisleOther']];
+  const out = [];
+  for (const [id, key] of order) {
+    const rows = (secs[id] || []).slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
+    if (!rows.length) continue;
+    out.push({ title: t(key), rows: rows.map(r => ({ name: r.name,
+      qtyTxt: r.grams != null ? mmGramsText(r.grams) : (r.qty != null ? (Math.round(r.qty * 10) / 10) + (r.unit ? ' ' + r.unit : '') : '') })) });
+  }
+  return out;
+}
+function planAutoShopping(days, pattern) {
+  const list = days || [];
+  const defs = pattern === 'diario'
+    ? list.map(d => ({ title: weekdayName(d.date) + ' ' + parseInt(d.date.slice(8), 10), days: [d] }))
+    : pattern === 'varias'
+      ? [{ title: t('planau.listSessionSun'), days: list.slice(0, 3) }, { title: t('planau.listSessionWed'), days: list.slice(3) }]
+      : [{ title: t('planau.listTitle'), days: list }];
+  return defs.map(g => ({ title: g.title, sections: planAutoShopSections(g.days) }));
+}
+function planAutoListHTML(autoDoc) {
+  const head = `<button type="button" class="plan-day-head" id="plan-list-open"><span class="plan-day-name">🛒 ${esc(t('planau.listTitle'))}</span><span class="plan-chev">${PLANWK.listOpen ? '▴' : '▾'}</span></button>`;
+  if (!PLANWK.listOpen) return head;
+  const groups = planAutoShopping(autoDoc.days || [], (autoDoc.auto || {}).cookPattern || 'semana');
+  let h = head + `<div class="plan-list">`;
+  for (const g of groups) {
+    h += `<div class="plan-list-gt">${esc(g.title)}</div>`;
+    for (const sec of g.sections) {
+      h += `<div class="plan-list-sec">${esc(sec.title)}</div>` + sec.rows.map(r => `<div class="plan-item"><span>${esc(r.name)}</span><span class="plan-item-g">${esc(r.qtyTxt)}</span></div>`).join('');
+    }
+  }
+  return h + `</div>`;
+}
+function planAutoFootHTML() {
+  const a = (PLANWK.auto && PLANWK.auto.auto) || {};
+  const pat = a.cookPattern || (SCHED_PREFS && SCHED_PREFS.cookPattern) || 'semana';
+  const rep = a.cookRepeat || (SCHED_PREFS && SCHED_PREFS.cookRepeat) || 'norep';
+  return `<div class="plan-auto-foot"><span>${esc(t('planau.cookLine', { pattern: t('planau.cookPat.' + pat), repeat: t('planau.cookRep.' + rep) }))}</span><button type="button" class="btn-ghost btn-sm" id="plan-cook-change">${esc(t('planau.change'))}</button></div><button type="button" class="btn-primary plan-edit-btn" id="plan-regen" ${PLANWK.busy ? 'disabled' : ''}>🔄 ${esc(t(PLANWK.busy ? 'planau.regenBusy' : 'planau.regen'))}</button>`;
+}
+function planTabsHTML() {
+  const v = PLANWK.view || 'hoy';
+  const tab = (id, key) => `<button type="button" class="plan-tab${v === id ? ' on' : ''}" data-plan-view="${id}">${esc(t(key))}</button>`;
+  return `<div class="plan-tabs">${tab('hoy', 'planau.tabToday')}${tab('semana', 'planau.tabWeek')}${tab('mes', 'planau.tabMonth')}${tab('plan', 'planau.tabPlan')}</div>`;
+}
+function planMonthHTML(wk, menus) {
+  const y = parseInt(wk.slice(0, 4), 10), mo = parseInt(wk.slice(5, 7), 10);
+  const first = wk.slice(0, 8) + '01';
+  const lastDay = new Date(y, mo, 0).getDate();
+  const last = wk.slice(0, 8) + String(lastDay).padStart(2, '0');
+  let cur = mmMondayOf(first);
+  let h = '';
+  while (cur <= last) {
+    const has = (menus || []).some(m => m.weekStart === cur && m.status !== 'archivado');
+    h += `<button type="button" class="plan-day-head plan-month-row" data-plan-goto-week="${cur}"><span class="plan-day-name">${esc(t('planwk.weekOf', { range: planWeekRange(cur) }))}</span><span class="plan-chip ${has ? 'ok' : 'none'}">${esc(t(has ? 'planau.monthArmed' : 'planau.monthPending'))}</span></button>`;
+    cur = planISOAddDays(cur, 7);
+  }
+  return h;
+}
+function planPlanHTML(wk) {
+  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+  const lib = (typeof LIB_BY_ID !== 'undefined') ? LIB_BY_ID : {};
+  let h = '';
+  for (let i = 0; i < 7; i++) {
+    const iso = planISOAddDays(wk, i);
+    const det = goalsDayLevelForDate(iso, plan, cfg, lib);
+    const dg = goalsDayGoalsFor(iso);
+    const g = (dg && dg.goals) || {};
+    const lab = det.dayIndex != null && plan && plan.days && plan.days[det.dayIndex] ? (plan.days[det.dayIndex].label || '') : '';
+    const lvl = det.dayLevel === 'exigente' ? 'planau.planDayExigente' : det.dayLevel === 'descanso' ? 'planau.planDayDescanso' : 'planau.planDayBase';
+    h += `<button type="button" class="plan-day-head" data-plan-goto-day="${iso}"><span class="plan-day-name">${esc(weekdayName(iso))} ${parseInt(iso.slice(8), 10)}</span>${lab ? `<span class="plan-today-tag">${esc(lab)}</span>` : ''}<span class="plan-day-kcal">${esc(t('planau.planGoals', { kcal: Math.round(g.kcal || 0), carb: Math.round(g.carb || 0), gras: Math.round(g.gras || 0) }))}</span><span class="plan-chip ${det.dayLevel === 'exigente' ? 'high' : det.dayLevel === 'descanso' ? 'low' : 'ok'}">${esc(t(lvl))}</span></button>`;
+  }
+  return h;
+}
+/* La pregunta de cocina: hoja de estreno (una sola vez) y de
+   cambio; la respuesta vive en schedprefs (cookPattern /
+   cookRepeat) y la usa el armado. */
+const PLANCOOK = { pattern: null, repeat: null, fromChange: false };
+function planCookOpen(fromChange) {
+  PLANCOOK.pattern = (SCHED_PREFS && SCHED_PREFS.cookPattern) || null;
+  PLANCOOK.repeat = (SCHED_PREFS && SCHED_PREFS.cookRepeat) || null;
+  PLANCOOK.fromChange = !!fromChange;
+  const bd = $('plancook-backdrop'), f = $('plancook-float');
+  if (!bd || !f) return;
+  bd.style.display = ''; f.style.display = '';
+  planCookPaint();
+  try { coverSync(); } catch {}
+}
+function planCookClose() {
+  const bd = $('plancook-backdrop'), f = $('plancook-float');
+  if (bd) bd.style.display = 'none';
+  if (f) f.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+function planCookPaint() {
+  const body = $('plancook-body');
+  if (!body) return;
+  const opt = (group, val, key, emoji) => `<button type="button" class="plan-cook-opt${PLANCOOK[group] === val ? ' on' : ''}" data-cook="${group}:${val}"><span class="plan-cook-emoji">${emoji}</span><span>${esc(t(key))}</span></button>`;
+  body.innerHTML = `
+    <p class="plan-cook-sub">${esc(t('planau.cookSub'))}</p>
+    <div class="plan-cook-q">${esc(t('planau.cookQ1'))}</div>
+    ${opt('pattern', 'semana', 'planau.cookOptWeek', '📆')}
+    ${opt('pattern', 'diario', 'planau.cookOptDaily', '🍽️')}
+    ${opt('pattern', 'varias', 'planau.cookOptFew', '🔁')}
+    <div class="plan-cook-q">${esc(t('planau.cookQ2'))}</div>
+    ${opt('repeat', 'norep', 'planau.cookOptNoRep', '🎲')}
+    ${opt('repeat', 'repok', 'planau.cookOptRepOk', '👍')}
+    <button type="button" class="btn-primary plan-cook-save" id="plan-cook-save" ${PLANCOOK.pattern && PLANCOOK.repeat ? '' : 'disabled'}>${esc(t('planau.cookSave'))}</button>`;
+  body.querySelectorAll('[data-cook]').forEach(b => { b.onclick = () => { const parts = b.getAttribute('data-cook').split(':'); PLANCOOK[parts[0]] = parts[1]; planCookPaint(); }; });
+  const sv = $('plan-cook-save');
+  if (sv) sv.onclick = planCookSave;
+}
+async function planCookSave() {
+  if (!PLANCOOK.pattern || !PLANCOOK.repeat) { toast(t('planau.cookNeed'), true); return; }
+  if (!SCHED_PREFS) { try { await schedLoadOwn(); } catch {} }
+  if (!SCHED_PREFS) SCHED_PREFS = schedPrefsDefaults();
+  SCHED_PREFS.cookPattern = PLANCOOK.pattern;
+  SCHED_PREFS.cookRepeat = PLANCOOK.repeat;
+  const ok = await schedPersist(schedSavePrefs);
+  if (!ok) { toast(t('sched.saveError'), true); return; }
+  planCookClose();
+  planSheetOpenNow();
+}
+(function planCookWire() {
+  const c = $('btn-plancook-close'); if (c) c.onclick = planCookClose;
+  const bd = $('plancook-backdrop'); if (bd) bd.onclick = planCookClose;
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const f = $('plancook-float');
+    if (f && f.style.display !== 'none') planCookClose();
+  });
+})();
 /* Las dos puertas a la hoja — la tarjeta de Comida y el botón
    grande del coach — comparten el atributo data-plan-open. */
 document.addEventListener('click', e => {
@@ -66789,7 +67524,7 @@ function schedPrefsDefaults() {
   return { v: 1, workdays: [1, 2, 3, 4, 5], tolerance: '', remindersOn: false,
     breaksStrict: false, sleepMarginMin: 45,
     routine: { work: { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] }, free: { wake: '', sleep: '' }, we: { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] } },
-    trainTimes: {}, fasting: null, trainGoalMin: null };
+    trainTimes: {}, fasting: null, trainGoalMin: null, cookPattern: null, cookRepeat: null };
 }
 /* ── AUTH-359 · Meta de tiempo por entrenamiento ─────────────────
    Campo de primer nivel de schedPrefs: trainGoalMin (entero de
@@ -67349,6 +68084,8 @@ async function schedLoadOwn() {
   if (!Array.isArray(SCHED_PREFS.workdays)) SCHED_PREFS.workdays = [1, 2, 3, 4, 5];
   if (!SCHED_PREFS.fasting || !SCHED_PREFS.fasting.from || !SCHED_PREFS.fasting.to) SCHED_PREFS.fasting = null;
   SCHED_PREFS.trainGoalMin = schedGoalNorm(SCHED_PREFS.trainGoalMin);   /* AUTH-359: solo en memoria, sin reescritura */
+  SCHED_PREFS.cookPattern = ['semana', 'diario', 'varias'].includes(SCHED_PREFS.cookPattern) ? SCHED_PREFS.cookPattern : null;   /* AUTH-468: pregunta de cocina del planificador; solo en memoria, sin reescritura */
+  SCHED_PREFS.cookRepeat = ['norep', 'repok'].includes(SCHED_PREFS.cookRepeat) ? SCHED_PREFS.cookRepeat : null;
   SCHED_STATE = Object.assign(schedStateDefaults(), ss.exists() ? ss.data() : {});
   if (!SCHED_STATE.days) SCHED_STATE.days = {};
   if (!SCHED_STATE.adjust) SCHED_STATE.adjust = { preGapDeltaMin: 0, rangeWidenMin: 0 };
@@ -68376,16 +69113,17 @@ document.addEventListener('click', e => {
 function planCardHTML() {
   const me = auth.currentUser && auth.currentUser.uid;
   const wk = mmMondayOf(todayISO());
-  const { own, coachVig } = planResolveMenu(NUTRI.myMenus || [], wk, me);
-  const menu = own || coachVig;
+  const { own, coachVig, auto } = planResolveMenu(NUTRI.myMenus || [], wk, me);
+  const menu = auto || own || coachVig;
   const range = planWeekRange(wk);
   let line, chip = '';
   if (menu) {
     const day = (menu.days || []).find(d => d.date === todayISO()) || null;
-    const tot = day ? mmDayTotals(day) : { kcal: 0 };
+    const isAuto = mmIsAutoMenu(menu);
+    const tot = day ? (isAuto ? planAutoDayTotals(day) : mmDayTotals(day)) : { kcal: 0 };
     const sc = mmStructureFor(NUTRI.myPlan, (typeof GOALS !== 'undefined' ? GOALS : null), NUTRI.myWishes);
-    const tgt = (sc.structure && day) ? mmDayTarget(sc.structure, day.dayType) : null;
-    const has = !!day && (day.meals || []).some(m => (m.items || []).length);
+    const tgt = isAuto ? (day && day.goals ? day.goals : null) : ((sc.structure && day) ? mmDayTarget(sc.structure, day.dayType) : null);
+    const has = !!day && (isAuto ? (day.meals || []).some(m => m.recipeId) : (day.meals || []).some(m => (m.items || []).length));
     line = tgt ? t('planwk.cardLine', { range, kcal: Math.round(tot.kcal), goal: Math.round(tgt.kcal) })
       : t('planwk.cardLineNoGoal', { range, kcal: Math.round(tot.kcal) });
     chip = planBandChip(tot.kcal, tgt ? tgt.kcal : null, has);

@@ -4891,6 +4891,27 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .plan-item-g { color: #64748b; white-space: nowrap; }
 .plan-meal-mac { font-size: 12px; color: #7c8a94; padding-left: 12px; }
 .plan-edit-btn { width: 100%; min-height: 52px; font-size: 15.5px; margin-top: 4px; }
+
+/* AUTH-468 · Planificador automático: pestañas de la hoja, hoja de
+   cocina, comidas con receta, divisorias de cocinado y lista. */
+.plan-tabs { display: flex; gap: 6px; margin: 4px 0 10px; }
+.plan-tab { flex: 1; min-height: 48px; border-radius: 999px; border: 1.5px solid #cfd8de; background: #fff; font: inherit; font-weight: 700; font-size: 14px; color: #40536a; cursor: pointer; }
+.plan-tab.on { background: #0f766e; border-color: #0f766e; color: #fff; }
+.plan-session { font-size: 12.5px; font-weight: 800; letter-spacing: .4px; color: #5b7a8c; margin: 12px 2px 4px; }
+.plan-auto-thumb { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; flex: none; }
+.plan-auto-title { font-size: 15px; font-weight: 700; color: #22303c; padding: 2px 0 4px; }
+.plan-auto-factor { font-size: 12.5px; font-weight: 800; color: #0f766e; white-space: nowrap; }
+.plan-list-sec { font-size: 12px; font-weight: 800; letter-spacing: .6px; color: #5b7a8c; margin: 12px 0 4px; }
+.plan-list-gt { font-size: 14px; font-weight: 800; color: #22303c; margin: 12px 0 2px; }
+.plan-auto-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 14px 0 4px; font-size: 13.5px; color: #40536a; }
+.plan-cook-sub { font-size: 13.5px; color: #7b8a97; line-height: 1.55; margin-bottom: 6px; }
+.plan-cook-q { font-size: 15px; font-weight: 800; color: #22303c; margin: 14px 0 8px; }
+.plan-cook-opt { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; border: 2px solid #dbe4ea; border-radius: 14px; padding: 10px 14px; margin-bottom: 9px; font: inherit; font-size: 15px; font-weight: 600; color: #22303c; background: #fff; text-align: left; cursor: pointer; box-sizing: border-box; }
+.plan-cook-opt.on { border-color: #0f766e; background: #e9f5f3; }
+.plan-cook-emoji { font-size: 20px; }
+.plan-cook-save { width: 100%; min-height: 52px; margin-top: 8px; }
+.plan-cook-save:disabled { opacity: .45; }
+.plan-month-row { margin-bottom: 8px; border: 1.5px solid #e3ebef; border-radius: 14px; }
 .plan-open-btn { width: 100%; min-height: 52px; font-size: 16px; margin-top: 12px; }
 .plan-caption { text-align: center; margin-top: 6px; }
 .planline { font-size: 15px; line-height: 1.55; color: #334155; margin: 10px 0 2px; }
