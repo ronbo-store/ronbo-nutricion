@@ -6358,9 +6358,11 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 2
    de la sesión se ajustan al estado visible. Con la píldora (ya
    sin el anexo de AUTH-444) vuelven los valores de la era
    AUTH-456: la píldora mide lo mismo y el aire del anexo (+44)
-   desaparece. Con la barra (94 px: el nombre en su
-   línea y una fila de controles; 148 px en la banda ≤370)
-   todo baja lo que su altura libera. Con la completa abierta no
+   desaparece. Con la barra (AUTH-465: UNA sola línea de
+   ≈60 px en TODAS las bandas) todo baja lo que su altura
+   libera: la base de la pila es 88 (su bottom) + 60 (su
+   alto) + 6 = 154 en toda banda — ya no hay banda estrecha
+   con geometría propia. Con la completa abierta no
    hace falta resguardo: es una tapa de pantalla entera y la
    pila de botones se retira con el fondo. ═══ */
 body.sess-on.sess-view-pill .foot { padding-bottom: 358px; }
@@ -6370,26 +6372,13 @@ body.sess-on.sess-view-pill .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0
 body.sess-on.sess-view-pill .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 76px); }
 body.sess-on.sess-view-pill .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 272px + 72px + 72px + 72px + 76px); }
 body.sess-on.sess-view-pill #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 278px + 76px); }
-body.sess-on.sess-view-bar .foot { padding-bottom: 274px; }
-body.sess-on.sess-view-bar #train-content.nav-page-on, body.sess-on.sess-view-bar #progress-content.nav-page-on { padding-bottom: 270px; }
-body.sess-on.sess-view-bar .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 188px + 76px); }
-body.sess-on.sess-view-bar .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 188px + 72px + 76px); }
-body.sess-on.sess-view-bar .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 188px + 72px + 72px + 76px); }
-body.sess-on.sess-view-bar .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 188px + 72px + 72px + 72px + 76px); }
-body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 194px + 76px); }
-/* AUTH-464 · D-BARRA: en la banda más estrecha (≤370 px) la
-   fila de controles de la barra no cabe sin achicar nada y
-   los botones bajan a su propia fila: la barra mide 148 px
-   y los resguardos de la vista siguen esa altura. */
-@media (max-width: 370px) {
-  body.sess-on.sess-view-bar .foot { padding-bottom: 328px; }
-  body.sess-on.sess-view-bar #train-content.nav-page-on, body.sess-on.sess-view-bar #progress-content.nav-page-on { padding-bottom: 324px; }
-  body.sess-on.sess-view-bar .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 242px + 76px); }
-  body.sess-on.sess-view-bar .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 242px + 72px + 76px); }
-  body.sess-on.sess-view-bar .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 242px + 72px + 72px + 76px); }
-  body.sess-on.sess-view-bar .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 242px + 72px + 72px + 72px + 76px); }
-  body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 248px + 76px); }
-}
+body.sess-on.sess-view-bar .foot { padding-bottom: 240px; }
+body.sess-on.sess-view-bar #train-content.nav-page-on, body.sess-on.sess-view-bar #progress-content.nav-page-on { padding-bottom: 236px; }
+body.sess-on.sess-view-bar .act-flame { bottom: calc(env(safe-area-inset-bottom, 0px) + 154px + 76px); }
+body.sess-on.sess-view-bar .sw-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 154px + 72px + 76px); }
+body.sess-on.sess-view-bar .help-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 154px + 72px + 72px + 76px); }
+body.sess-on.sess-view-bar .share-fab { bottom: calc(env(safe-area-inset-bottom, 0px) + 154px + 72px + 72px + 72px + 76px); }
+body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 160px + 76px); }
 
 /* AUTH-464 · LAS PUERTAS DE LA PÍLDORA: 44 px en la esquina
    superior absoluta — la píldora no crece ni un píxel. */
@@ -6399,34 +6388,31 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sp-door-g { font-size: 15px; line-height: 1.05; }
 .sp-door small { font-size: 8px; font-weight: 800; letter-spacing: .02em; color: rgba(255,255,255,.82); line-height: 1.1; white-space: nowrap; }
 
-/* AUTH-464 · LA BARRA MINIMIZADA: la misma casa que la píldora
-   (fija, sobre el dock, su mismo ancho) con el nombre del
-   ejercicio en su propia línea a todo lo ancho — siempre
-   entero — y UNA fila de controles (la puerta Ampliar, el
-   tiempo del ejercicio y Detener/Finalizar). D-BARRA
-   (Ronald, 2026-11-14): su botón de finalizar dice la
-   etiqueta corta «Finalizar», solo en la barra; aun así,
-   con el nombre entero la fila única de 64 px no existe en
-   ningún ancho (la barra se topa en 430 px), así que el
-   nombre baja a su propia línea (la salida S4 aprobada) y
-   la barra mide 94 px; en la banda ≤370 px ni la fila de
-   controles cabe sin achicar y los botones bajan a su
-   propia fila (148 px, con sus resguardos propios). */
-#sess-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); z-index: 44; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #1b2a4a; border-radius: 20px; color: #fff; font-family: inherit; padding: 8px 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; row-gap: 6px; box-shadow: 0 10px 26px rgba(15,23,42,.30); }
-.sb-main { display: flex; align-items: center; gap: 9px; flex: 1 1 auto; min-width: 0; min-height: 48px; padding: 0 4px; background: none; border: none; color: #fff; font: inherit; text-align: left; cursor: pointer; border-radius: 12px; }
-.sb-main:active { background: rgba(255,255,255,.08); }
-.sb-up { display: flex; flex-direction: column; align-items: center; flex: none; line-height: 1.05; }
-.sb-chev { font-size: 17px; color: #C6FF4A; }
-.sb-expand { font-size: 9.5px; font-weight: 800; letter-spacing: .07em; color: rgba(255,255,255,.78); }
-.sb-clock { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
-.sb-name { flex: 0 0 100%; display: block; width: 100%; box-sizing: border-box; min-height: 24px; padding: 2px 4px; background: none; border: none; color: #fff; font: inherit; font-size: 15.5px; font-weight: 700; text-align: left; cursor: pointer; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sb-name:active { background: rgba(255,255,255,.08); }
-.sb-btns { display: flex; gap: 8px; flex: none; }
-.sb-btn { height: 48px; padding: 0 15px; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; color: #fff; cursor: pointer; font-family: inherit; white-space: nowrap; }
-.sb-btn.ini { background: linear-gradient(180deg, #22c55e, #16a34a); }
-.sb-btn.stop { background: linear-gradient(180deg, #f59e0b, #d97706); }
-.sb-btn.fin { background: #b3261e; }
-.sb-btn.how { background: rgba(255,255,255,.16); }
+/* AUTH-465 · LA BARRA MINIMIZADA EN UNA SOLA LÍNEA: la misma
+   casa que la píldora (fija, sobre el dock, su mismo ancho)
+   con todo en UNA línea de ≈60 px en todas las bandas
+   (decisión D-BARRA-2 de Ronald, 2026-11-14: botones de
+   icono): la puerta Ampliar (⌃, 44×44), el reloj del
+   ejercicio, el nombre (flexible, con «…» si no cabe
+   entero — nunca invisible) y los botones de ICONO
+   Detener ⏸ / Finalizar ✓ (48×44, colores planos de la
+   maqueta aprobada). En pausa, el ⏸ pasa a ▶ con el
+   mismo tamaño y color. La palabra completa de cada
+   icono vive en su aria-label/title. Retiradas las
+   geometrías de AUTH-464 (el nombre en su propia línea
+   — 94 px — y la fila propia de botones a ≤370 px —
+   148 px): una línea siempre. */
+#sess-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); z-index: 44; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #1b2a4a; border-radius: 20px; color: #fff; font-family: inherit; padding: 8px 10px; display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; box-shadow: 0 10px 26px rgba(15,23,42,.30); }
+.sb-amp { flex: 0 0 44px; width: 44px; height: 44px; padding: 0; background: none; border: none; color: #fff; cursor: pointer; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: inherit; }
+.sb-amp:active { background: rgba(255,255,255,.08); }
+.sb-chev { font-size: 17px; color: #C6FF4A; line-height: 1; }
+.sb-clock { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
+.sb-name { flex: 1 1 auto; min-width: 0; color: #fff; font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-ico { flex: 0 0 48px; width: 48px; height: 44px; padding: 0; border: none; border-radius: 12px; font-size: 19px; font-weight: 700; color: #fff; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; }
+.sb-ico.ini { background: #16a34a; }
+.sb-ico.stop { background: #e8930c; }
+.sb-ico.fin { background: #b3261e; }
+.sb-how { flex: none; height: 44px; padding: 0 13px; border: none; border-radius: 12px; font-size: 14.5px; font-weight: 800; color: #fff; background: rgba(255,255,255,.16); cursor: pointer; font-family: inherit; white-space: nowrap; }
 /* AUTH-464 · LA PANTALLA COMPLETA DEL PANEL: tapa de pantalla
    entera (doctrina AUTH-338) con la columna topada a 640 px
    centrada en bandas anchas (precedente AUTH-420). */

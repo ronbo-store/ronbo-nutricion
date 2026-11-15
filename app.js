@@ -38878,34 +38878,43 @@ function sessPillInit() {
 function sessDoorsHTML() {
   return `<div class="sp-doors"><button type="button" class="sp-door" data-sess-view="full" aria-label="${esc(t('sess.viewFull'))}"><span class="sp-door-g" aria-hidden="true">⤢</span><small>${esc(t('sess.viewFull'))}</small></button><button type="button" class="sp-door" data-sess-view="bar" aria-label="${esc(t('sess.viewBar'))}"><span class="sp-door-g" aria-hidden="true">⌄</span><small>${esc(t('sess.viewBar'))}</small></button></div>`;
 }
-/* ── LA BARRA: el nombre del ejercicio en su propia línea
-   (a todo lo ancho, siempre entero) y, en UNA sola fila de
-   controles, la puerta Ampliar, el tiempo del ejercicio y
-   Detener/Finalizar según la misma máquina de estados.
-   D-BARRA (Ronald, 2026-11-14 21:09 CST): el botón de
-   finalizar de la BARRA dice la etiqueta corta «Finalizar»
-   (clave sess.barFinish, solo aquí: la píldora y la tarjeta
-   conservan «Finalizar ejercicio»); con la etiqueta larga
-   y el nombre entero, la fila única no existía en ningún
-   ancho (la barra se topa en 430 px), así que el nombre
-   baja a su propia línea — la salida S4 aprobada — en
-   todas las bandas. La zona Ampliar (la puerta con el
-   tiempo, precedente AUTH-457) vuelve a la PÍLDORA
-   (D2-bis). En pausa, la barra enseña el reloj CONGELADO
-   y el botón Seguir — la palabra «en pausa» vive en la
-   píldora y en la completa; aquí no cabe sin partir la
-   fila en las bandas estrechas y el estado se lee igual.
-   En cierre con pregunta, la barra enseña la
-   puerta a la píldora, donde viven las caras (S3). ── */
+/* ── LA BARRA: UNA SOLA LÍNEA en todas las bandas
+   (AUTH-465, decisión D-BARRA-2 de Ronald, 2026-11-14
+   21:56 CST: «Una línea con botones de icono (⏸ y ✓)»,
+   sobre las maquetas medidas con su ejercicio real).
+   Orden de la línea: la puerta Ampliar (icono ⌃, zona de
+   toque 44×44; vuelve a la PÍLDORA, D2-bis) · el reloj
+   del ejercicio · el nombre del ejercicio (flexible, con
+   «…» si no cabe entero — nunca invisible) · Detener
+   SOLO ICONO ⏸ (ámbar; en pausa pasa a ▶ Seguir, mismo
+   tamaño y color, y el reloj queda CONGELADO, como
+   siempre) · Finalizar SOLO ICONO ✓ (rojo). La palabra
+   completa de cada botón de icono vive en su
+   aria-label/title en el idioma activo — la pintura es
+   solo el glifo. Los iconos son SOLO de la barra: la
+   píldora, la completa y la tarjeta conservan sus
+   botones con las palabras completas. Se retiran las
+   geometrías de AUTH-464 (el nombre en su propia línea
+   y la fila propia de botones a ≤370 px): la barra mide
+   ≈60 px siempre. En cierre con pregunta, la barra
+   enseña la puerta «¿Qué tal fue?» a la píldora, donde
+   viven las caras (S3); y finalizar DESDE la barra sube
+   solo a la píldora (sessPanelWire). ── */
 function sessBarSync(run) {
   const bar = $('sess-bar'); if (!bar) return;
   let st = null; try { st = trainBarState(); } catch {}
   let sig, html;
+  /* AUTH-465: la palabra completa de cada botón de icono
+     vive en su aria-label/title; las claves del flujo
+     traen el glifo pegado («⏸ Detener») y se despega
+     para la etiqueta hablada. */
+  const wordOf = k => t(k).replace(/^[^\p{L}]+/u, '').trim();
+  const amp = `<button type="button" class="sb-amp" data-sess-view="pill" aria-label="${esc(t('sess.barExpand'))}" title="${esc(t('sess.barExpand'))}"><span class="sb-chev" aria-hidden="true">⌃</span></button>`;
   if (!st) {
     /* Sin estado del día: la barra honesta — solo la puerta
        para ampliar, con el día; ningún reloj inventado. */
     sig = 'deg|' + (run.label || '');
-    html = `<button type="button" class="sb-name" data-sess-view="pill">${esc(run.label || t('sess.pillPlain'))}</button><button type="button" class="sb-main" data-sess-view="pill"><span class="sb-up"><span class="sb-chev" aria-hidden="true">⌃</span><span class="sb-expand">${esc(t('sess.barExpand'))}</span></span></button>`;
+    html = `${amp}<span class="sb-name">${esc(run.label || t('sess.pillPlain'))}</span>`;
   } else {
     const ck = st.di + ':' + st.cur;
     const curChk = st.checks[ck] || null;
@@ -38914,15 +38923,14 @@ function sessBarSync(run) {
     const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
     sig = ['bar', st.di, st.cur, curChk ? 1 : 0, flowSt, run.label || ''].join('|');
     let btns;
-    if (!curChk) btns = `<button type="button" class="sb-btn ini" data-pill-start="${ck}">${esc(t('train.flow.start'))}</button>`;
-    else if (flowSt === 'closing') btns = flowHasData(curChk) ? `<button type="button" class="sb-btn how" data-sess-view="pill">${esc(t('train.flow.howWas'))} ›</button>` : '';
-    else if (flowSt === 'paused') btns = `<button type="button" class="sb-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button><button type="button" class="sb-btn fin" data-pill-finish="${ck}">${esc(t('sess.barFinish'))}</button>`;
-    else if (flowSt === 'open') btns = `<button type="button" class="sb-btn stop" data-pill-pause="${ck}">${esc(t('train.flow.pause'))}</button><button type="button" class="sb-btn fin" data-pill-finish="${ck}">${esc(t('sess.barFinish'))}</button>`;
-    else btns = `<button type="button" class="sb-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button>`;
+    if (!curChk) btns = `<button type="button" class="sb-ico ini" data-pill-start="${ck}" aria-label="${esc(wordOf('train.flow.start'))}" title="${esc(wordOf('train.flow.start'))}"><span aria-hidden="true">▶</span></button>`;
+    else if (flowSt === 'closing') btns = flowHasData(curChk) ? `<button type="button" class="sb-how" data-sess-view="pill">${esc(t('train.flow.howWas'))} ›</button>` : '';
+    else if (flowSt === 'paused') btns = `<button type="button" class="sb-ico stop" data-pill-resume="${ck}" aria-label="${esc(wordOf('train.flow.resume'))}" title="${esc(wordOf('train.flow.resume'))}"><span aria-hidden="true">▶</span></button><button type="button" class="sb-ico fin" data-pill-finish="${ck}" aria-label="${esc(t('sess.barFinish'))}" title="${esc(t('sess.barFinish'))}"><span aria-hidden="true">✓</span></button>`;
+    else if (flowSt === 'open') btns = `<button type="button" class="sb-ico stop" data-pill-pause="${ck}" aria-label="${esc(wordOf('train.flow.pause'))}" title="${esc(wordOf('train.flow.pause'))}"><span aria-hidden="true">⏸</span></button><button type="button" class="sb-ico fin" data-pill-finish="${ck}" aria-label="${esc(t('sess.barFinish'))}" title="${esc(t('sess.barFinish'))}"><span aria-hidden="true">✓</span></button>`;
+    else btns = `<button type="button" class="sb-ico ini" data-pill-resume="${ck}" aria-label="${esc(wordOf('train.flow.resume'))}" title="${esc(wordOf('train.flow.resume'))}"><span aria-hidden="true">▶</span></button>`;
     const clock = curChk && flowSt !== 'closing'
       ? `<span class="sb-clock"><span class="sess-bar-exclock">⏱ 0:00</span></span>` : '';
-    html = `<button type="button" class="sb-name" data-sess-view="pill">${esc(curName)}</button><button type="button" class="sb-main" data-sess-view="pill"><span class="sb-up"><span class="sb-chev" aria-hidden="true">⌃</span><span class="sb-expand">${esc(t('sess.barExpand'))}</span></span>${clock}</button>`
-      + `<div class="sb-btns">${btns}</div>`;
+    html = `${amp}${clock}<span class="sb-name">${esc(curName)}</span>${btns}`;
   }
   if (sig !== SESS_BAR_SIG) {
     SESS_BAR_SIG = sig;
