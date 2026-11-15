@@ -61218,7 +61218,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261115-cascara-ligera';
+const PWA_SW_VERSION = '20261115-planificador-rapido';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -66429,17 +66429,30 @@ async function planOpenSheet() {
   PLANWK.showing = 'own';
   PLANWK.openDay = todayISO();
   bd.style.display = ''; f.style.display = '';
-  const body = $('plan-sheet-body');
-  if (body) body.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
   try { coverSync(); } catch {}
+  /* AUTH-470: la hoja pinta AL INSTANTE con lo que ya está en
+     memoria (NUTRI.myMenus, la misma fuente desde la que la
+     tarjeta de Comida pinta su línea) y la lectura fresca de
+     menús corre EN SEGUNDO PLANO: al llegar, repinta solo si la
+     hoja sigue abierta y sin tocar la semana que la persona
+     esté mirando. Antes el pintado esperaba a esa lectura —
+     una consulta al servidor que, sin menús, devuelve CERO
+     documentos — y la hoja se quedaba en «Cargando...» todo el
+     viaje de ida y vuelta (la consulta vacía medida por REST
+     desde la VM tarda ~2,8 s; en el teléfono de Ronald se
+     estiró a ~25 s). La estructura (PLANWK.sc) se calcula con
+     datos en memoria que NO dependen de la lectura: mismos
+     valores antes y al llegar, mismo pintado final. */
+  PLANWK.sc = mmStructureFor(NUTRI.myPlan, (typeof GOALS !== 'undefined' ? GOALS : null), NUTRI.myWishes);
+  planPaintSheet();
   try {
     const menus = await mmLoadMenus(me);
     NUTRI.myMenus = menus;
     NUTRI.myMenuProposed = menus.filter(x => x.status === 'propuesto' && x.authorRole === 'coach')
       .sort((a, b) => String(b.weekStart || '').localeCompare(String(a.weekStart || '')))[0] || null;
     PLANWK.sc = mmStructureFor(NUTRI.myPlan, (typeof GOALS !== 'undefined' ? GOALS : null), NUTRI.myWishes);
+    if (f.style.display !== 'none') planPaintSheet();
   } catch {}
-  planPaintSheet();
 }
 function planCloseSheet() {
   const bd = $('plan-backdrop'), f = $('plan-float');
