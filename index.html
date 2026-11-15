@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261115-recetario-rapido">
+<link rel="stylesheet" href="styles.css?v=20261115-planificador-semanal">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1246,6 +1246,19 @@
       <button type="button" class="pend-close" id="btn-plan-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="plan-sheet-body"></div>
+  </div>
+
+  <!-- AUTH-468 · Hoja de estreno del planificador: la pregunta de
+       cocina (una sola vez; la respuesta vive en schedprefs).
+       Hermana de #plan-float en la familia .act-float, con velo
+       propio; la pinta planCookPaint (app.js). -->
+  <div id="plancook-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="plancook-float" style="display:none" role="dialog" aria-modal="true" aria-label="How do you organize your cooking?" data-i18n-aria="planau.cookTitle">
+    <div class="pend-head">
+      <h2>🍳 <span data-i18n="planau.cookTitle">How do you organize your cooking?</span></h2>
+      <button type="button" class="pend-close" id="btn-plancook-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="plancook-body"></div>
   </div>
 
   <!-- «Progreso en este plan» y «Revisar propuestas» del detalle
@@ -2492,6 +2505,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261115-recetario-rapido"></script>
+<script type="module" src="app.js?v=20261115-planificador-semanal"></script>
 </body>
 </html>
