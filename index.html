@@ -1264,6 +1264,19 @@
        comidas, entrenamiento y descanso con rangos sugeridos. Su
        contenido lo pinta schedPaintSheet (app.js) SOLO desde los
        documentos del propio usuario; abrirla no escribe nada. -->
+  <!-- AUTH-466 · Hoja «Mis horarios»: el ÍNDICE que reúne los
+       horarios (comidas, ayuno, entreno, trabajo y avisos de
+       entrega). Hermana de #sched-float en la familia .act-float,
+       con su velo propio; cada fila abre el editor que ya existe
+       (la hoja «Mi horario diario»). La pinta mishorPaintSheet. -->
+  <div id="mishor-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="mishor-float" style="display:none" role="dialog" aria-modal="true" aria-label="My schedules" data-i18n-aria="mishor.title">
+    <div class="pend-head">
+      <h2>🕐 <span data-i18n="mishor.title">My schedules</span></h2>
+      <button type="button" class="pend-close" id="btn-mishor-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="mishor-body"></div>
+  </div>
   <div id="sched-backdrop" style="display:none"></div>
   <div class="act-float act-sheet" id="sched-float" style="display:none" role="dialog" aria-label="My daily schedule" data-i18n-aria="sched.sheetTitle">
     <div class="pend-head">
@@ -1607,6 +1620,12 @@ cuando no hay declaración legible (decisión 5). -->
          regreso; este botón vuelve a «Mi registro» (navGoHome).
          Lo muestra solo el rol usuario (app.js, al entrar). -->
     <button type="button" class="btn-ghost btn-sm" id="btn-profile-back" style="display:none">← <span data-i18n="nav.back">Back</span></button>
+    <!-- AUTH-466 · «MIS HORARIOS»: la tarjeta que reúne todos los
+         horarios del usuario (decisión de Ronald, 2026-11-15: en su
+         área personal, ARRIBA de todo, grande y con las horas a la
+         vista). La pinta mishorCardSync (app.js) solo desde los
+         datos del propio usuario; es la primera tarjeta de la vista. -->
+    <div id="mishor-box"></div>
     <div id="profile-card-box"></div>
     <!-- LA RUTA COMPLETADA (órdenes de Ronald, 2026-11-08): al
          completar la ruta base, la tarjeta «Tu ruta» sale de

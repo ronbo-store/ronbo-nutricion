@@ -5006,7 +5006,28 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 /* == HORARIOS DE ALIMENTACIÓN SUGERIDOS (dev 2026-11-09): la hoja
    #sched-float es hermana de #plan-float en la familia .act-float;
    estos estilos son solo de sus filas y controles. == */
-#sched-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
+#sched-backdrop, #mishor-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
+/* AUTH-466 · «Mis horarios»: la tarjeta del área personal (azul
+   oscuro de la casa, #16283f, el del panel de sesión) y las filas
+   de su hoja índice. La tarjeta es un botón de ancho completo:
+   título grande, dos líneas de valores reales y chevron. */
+#mishor-box { margin-bottom: 12px; }
+#mishor-box:empty { margin-bottom: 0; }
+.mishor-card { display: block; width: 100%; box-sizing: border-box; text-align: left; background: #16283f; color: #fff; border: 0; border-radius: 18px; padding: 16px 18px; box-shadow: 0 8px 22px rgba(15, 30, 50, .28); cursor: pointer; font: inherit; }
+.mishor-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.mishor-card-ico { font-size: 24px; line-height: 1; }
+.mishor-card-title { flex: 1; font-size: 19px; font-weight: 800; }
+.mishor-card-chev { font-size: 20px; color: #9fc1d8; }
+.mishor-card-line { display: block; font-size: 13.5px; color: #c9d8e4; line-height: 1.65; }
+.mishor-card-line b { color: #fff; }
+.mishor-group { font-size: 12px; font-weight: 800; letter-spacing: .6px; color: #5b7a8c; margin: 16px 0 4px; }
+.mishor-group:first-child { margin-top: 2px; }
+.mishor-row { display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; min-height: 56px; padding: 8px 2px; background: none; border: 0; border-bottom: 1px solid #eef2f5; font: inherit; text-align: left; cursor: pointer; }
+.mishor-row-ico { font-size: 18px; width: 24px; text-align: center; flex: none; }
+.mishor-row-tx { flex: 1; min-width: 0; }
+.mishor-row-tx b { display: block; font-size: 15px; color: #22303c; }
+.mishor-row-tx span { display: block; font-size: 12.5px; color: #7b8a97; line-height: 1.45; }
+.mishor-row-chev { font-size: 17px; color: #9fb0bf; flex: none; }
 .sched-card-in { border-color: #b7d7f0; background: #f2f8fd; }
 .sched-tz { font-size: 12.5px; color: #64748b; line-height: 1.45; margin: 0 0 10px; }
 .sched-note { border: 1.5px solid #d7e5e1; background: #f8fafc; border-radius: 14px; padding: 10px 12px; margin: 0 0 10px; font-size: 13.5px; color: #334155; line-height: 1.45; }

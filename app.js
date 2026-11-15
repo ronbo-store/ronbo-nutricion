@@ -2158,6 +2158,7 @@ function dosCollectPlaces() {
    foto conserva su camino de siempre (#avatar-file). */
 async function renderProfileView() {
   const box = $('profile-card-box'); if (!box) return;
+  try { mishorCardSync(); } catch {}
   try { renderPurposeProfileBox(); } catch {}
   try { renderNutriBoxes(); } catch {}
   try { routeProfileSync(); } catch {}
@@ -8471,6 +8472,28 @@ en: {
   'chal.cat.weight4-30.title': 'Weigh in 4 times this month',
   'chal.cat.streak7-7.title': '7-day streak',
   'chal.cat.streak14-14.title': '14-day streak',
+  'mishor.title': 'My schedules',
+  'mishor.mealsWord': 'Meals',
+  'mishor.fastWord': 'Fasting',
+  'mishor.trainWord': 'Training',
+  'mishor.menuArrives': 'Your menu arrives',
+  'mishor.noFast': 'No fasting',
+  'mishor.notSet': 'Not set yet',
+  'mishor.wdShort': 'Sun|Mon|Tue|Wed|Thu|Fri|Sat',
+  'mishor.groupMeals': 'MEALS',
+  'mishor.groupTrain': 'TRAINING',
+  'mishor.groupWork': 'WORK',
+  'mishor.groupNotices': 'NOTICES & DELIVERIES',
+  'mishor.rowMeals': 'Meal times',
+  'mishor.rowFast': 'Fasting',
+  'mishor.rowTrain': 'Training days & time',
+  'mishor.rowWork': 'Work days',
+  'mishor.rowMenuToday': 'Today\'s menu',
+  'mishor.rowSunday': 'Sundays · week + list',
+  'mishor.arrivesAt': 'Arrives at {time} — your training time',
+  'mishor.nextTrain': 'No training today · next: {day} {time}',
+  'mishor.noTrainTime': 'No training time set',
+  'mishor.sundayVal': 'The week menu + the shopping-list reminder',
   'sched.title': 'My daily schedule',
   'sched.cardLineTrain': 'Today: {n} meals · you train at {time}',
   'sched.cardLineRest': 'Today: {n} meals · rest day',
@@ -13596,6 +13619,28 @@ es: {
   'chal.cat.weight4-30.title': 'Pésate 4 veces este mes',
   'chal.cat.streak7-7.title': 'Racha de 7 días',
   'chal.cat.streak14-14.title': 'Racha de 14 días',
+  'mishor.title': 'Mis horarios',
+  'mishor.mealsWord': 'Comidas',
+  'mishor.fastWord': 'Ayuno',
+  'mishor.trainWord': 'Entreno',
+  'mishor.menuArrives': 'Tu menú llega',
+  'mishor.noFast': 'Sin ayuno',
+  'mishor.notSet': 'Sin poner todavía',
+  'mishor.wdShort': 'Dom|Lun|Mar|Mié|Jue|Vie|Sáb',
+  'mishor.groupMeals': 'COMIDAS',
+  'mishor.groupTrain': 'ENTRENAMIENTO',
+  'mishor.groupWork': 'TRABAJO',
+  'mishor.groupNotices': 'AVISOS Y ENTREGAS',
+  'mishor.rowMeals': 'Horas de comidas',
+  'mishor.rowFast': 'Ayuno',
+  'mishor.rowTrain': 'Días y hora de entreno',
+  'mishor.rowWork': 'Días de trabajo',
+  'mishor.rowMenuToday': 'Tu menú de hoy',
+  'mishor.rowSunday': 'Domingos · semana + lista',
+  'mishor.arrivesAt': 'Llega a las {time} — tu hora de entreno',
+  'mishor.nextTrain': 'Hoy no hay entreno · próximo: {day} {time}',
+  'mishor.noTrainTime': 'Sin hora de entreno',
+  'mishor.sundayVal': 'El menú de la semana + el recordatorio de compras',
   'sched.title': 'Mi horario diario',
   'sched.cardLineTrain': 'Hoy: {n} comidas · entrenas a las {time}',
   'sched.cardLineRest': 'Hoy: {n} comidas · día de descanso',
@@ -66260,6 +66305,191 @@ document.addEventListener('click', e => {
    favorecer (puntos 6 y 11), la frecuencia por sí sola no cambia
    el peso (punto 10); Maruthur et al. 2024 (PMID 38639542) — con
    calorías equivalentes, la ventana horaria no cambió el peso. ═══ */
+/* ═══ AUTH-466 · «MIS HORARIOS» — LA REUNIÓN DE LOS HORARIOS EN
+   EL ÁREA PERSONAL (decisión de Ronald, 2026-11-15 02:36 CST:
+   «tiene que ser visible… quizás en el área de administración
+   del usuario», con la maqueta aprobada: la tarjeta va ARRIBA de
+   su área personal — «Mi perfil» —, grande, azul oscuro de la
+   casa, con las horas clave a la vista). Ronald lo pidió porque
+   los horarios «están a poco alcance» y la gente no los organiza.
+   Este bloque NO crea datos ni editores: es un ÍNDICE. La tarjeta
+   (la primera de «Mi perfil») y la hoja «Mis horarios» pintan
+   RESÚMENES leídos del MISMO sistema de horarios de siempre
+   (SCHED_PREFS / SCHED_DAY, reunidos por schedGather) y cada fila
+   abre el editor que ya existe: la hoja «Mi horario diario» y,
+   para rutina/ayuno/entreno/trabajo, su caja «Mis datos». Abrir
+   la tarjeta o la hoja no escribe nada. ═══ */
+let MISHOR_LOADING = false;
+function mishorWdShort() { return String(t('mishor.wdShort') || '').split('|'); }
+/* Comprime weekdays (0=domingo) en tramos Lun→Dom con los nombres
+   cortos del idioma activo: [1,2,3,4,5] → «Lun–Vie»; [1,3,5] →
+   «Lun · Mié · Vie»; [] → ''. */
+function mishorDaysRuns(wds) {
+  const names = mishorWdShort();
+  const order = [1, 2, 3, 4, 5, 6, 0];
+  const set = new Set(wds || []);
+  const seq = order.filter(d => set.has(d));
+  if (!seq.length) return '';
+  const parts = [];
+  let i = 0;
+  while (i < seq.length) {
+    let j = i;
+    while (j + 1 < seq.length && order.indexOf(seq[j + 1]) === order.indexOf(seq[j]) + 1) j++;
+    if (j > i) parts.push(names[seq[i]] + '–' + names[seq[j]]);
+    else parts.push(names[seq[i]]);
+    i = j + 1;
+  }
+  return parts.join(' · ');
+}
+function mishorFastDurTxt(f) {
+  if (!f || !f.from || !f.to) return '';
+  const a = pendParseHM(f.from), b = pendParseHM(f.to);
+  if (a == null || b == null) return '';
+  const mins = ((b - a) % 1440 + 1440) % 1440;
+  if (!mins) return '';
+  const h = mins / 60;
+  return (Number.isInteger(h) ? String(h) : h.toFixed(1)) + ' h';
+}
+/* El resumen ÚNICO de la tarjeta y de la hoja, leído de los datos
+   vivos del propio usuario. Sin SCHED_PREFS/SCHED_DAY todavía,
+   los tramos salen vacíos y la tarjeta pinta su estado de carga. */
+function mishorSummary() {
+  const p = SCHED_PREFS || schedPrefsDefaults();
+  const out = { meals: '', mealsFull: '', fast: '', fastFull: '', fastOn: false, train: '', menuToday: '', menuTime: '', work: '' };
+  if (typeof SCHED_DAY !== 'undefined' && SCHED_DAY && Array.isArray(SCHED_DAY.meals)) {
+    const ms = SCHED_DAY.meals.filter(m => m && m.from != null);
+    out.meals = ms.map(m => pendFmtHM(m.from)).join(' · ');
+    out.mealsFull = ms.map(m => `${m.name} ${pendFmtHM(m.from)}`).join(' · ');
+  }
+  /* El ayuno solo se anuncia si está ACTIVO de verdad: con el
+     freno de salud de AUTH-357 puesto (o sin poder comprobarlo),
+     el motor ya lo trata como nulo y este índice hace lo mismo. */
+  const fastOff = (typeof SCHED_CTX !== 'undefined' && SCHED_CTX && (SCHED_CTX.fastBlocked || SCHED_CTX.fastUnknown));
+  if (p.fasting && p.fasting.from && p.fasting.to && !fastOff) {
+    out.fastOn = true;
+    out.fast = mishorFastDurTxt(p.fasting);
+    out.fastFull = out.fast ? `${out.fast} · ${p.fasting.from}–${p.fasting.to}` : `${p.fasting.from}–${p.fasting.to}`;
+  }
+  const tt = p.trainTimes || {};
+  const byTime = {};
+  for (let wd = 0; wd < 7; wd++) {
+    const e = tt[String(wd)] || {};
+    if (e.time) (byTime[e.time] = byTime[e.time] || []).push(wd);
+  }
+  const times = Object.keys(byTime);
+  if (times.length === 1) {
+    let extra = '';
+    for (let wd = 0; wd < 7; wd++) { const e = tt[String(wd)] || {}; if (e.time2) { extra = e.time2; break; } }
+    out.train = mishorDaysRuns(byTime[times[0]]) + ' · ' + times[0] + (extra ? ' · ' + extra : '');
+  } else if (times.length > 1) {
+    const names = mishorWdShort();
+    const parts = [];
+    [1, 2, 3, 4, 5, 6, 0].forEach(wd => { const e = tt[String(wd)] || {}; if (e.time) parts.push(names[wd] + ' ' + e.time); });
+    out.train = parts.join(' · ');
+  }
+  /* La entrega del día llega a la hora de entreno de HOY (con su
+     cambio de hoy si lo hay); si hoy no hay entreno, se anuncia
+     el próximo día con entreno. */
+  if (typeof SCHED_CTX !== 'undefined' && SCHED_CTX && SCHED_CTX.ready) {
+    const wd = SCHED_CTX.weekday;
+    const day = schedDayState(SCHED_CTX.regISO);
+    const tToday = (day.trainOverride && day.trainOverride.time) || (tt[String(wd)] || {}).time || '';
+    if (tToday) { out.menuToday = t('mishor.arrivesAt', { time: tToday }); out.menuTime = tToday; }
+    else {
+      const names = mishorWdShort();
+      for (let k = 1; k <= 7; k++) {
+        const nwd = (wd + k) % 7, e = tt[String(nwd)] || {};
+        if (e.time) { out.menuToday = t('mishor.nextTrain', { day: names[nwd], time: e.time }); break; }
+      }
+      if (!out.menuToday) out.menuToday = t('mishor.noTrainTime');
+    }
+  }
+  out.work = mishorDaysRuns(Array.isArray(p.workdays) ? p.workdays : []);
+  return out;
+}
+function mishorCardHTML() {
+  const s = mishorSummary();
+  const loading = !SCHED_PREFS || !SCHED_DAY;
+  const mealsSeg = s.meals || (loading ? '…' : t('mishor.notSet'));
+  const fastSeg = s.fastOn ? s.fast : t('mishor.noFast');
+  let line2 = '🏋️ ' + esc(t('mishor.trainWord')) + ' <b>' + esc(s.train || (loading ? '…' : t('mishor.notSet'))) + '</b>';
+  if (s.menuTime) line2 += ' · 🔔 ' + esc(t('mishor.menuArrives')) + ' <b>' + esc(s.menuTime) + '</b>';
+  return `<button type="button" class="mishor-card" data-mishor-open aria-label="${esc(t('mishor.title'))}">`
+    + `<span class="mishor-card-top"><span class="mishor-card-ico" aria-hidden="true">🕐</span><span class="mishor-card-title">${esc(t('mishor.title'))}</span><span class="mishor-card-chev" aria-hidden="true">›</span></span>`
+    + `<span class="mishor-card-line">🍽️ ${esc(t('mishor.mealsWord'))} <b>${esc(mealsSeg)}</b> · 🌙 ${esc(t('mishor.fastWord'))} <b>${esc(fastSeg)}</b></span>`
+    + `<span class="mishor-card-line">${line2}</span>`
+    + `</button>`;
+}
+function mishorCardSync() {
+  const box = $('mishor-box'); if (!box) return;
+  if (!auth.currentUser) { box.innerHTML = ''; return; }
+  box.innerHTML = mishorCardHTML();
+  if ((!SCHED_PREFS || !SCHED_DAY) && !MISHOR_LOADING) {
+    MISHOR_LOADING = true;
+    schedGather().catch(() => {}).finally(() => { MISHOR_LOADING = false; try { mishorCardSync(); } catch {} });
+  }
+}
+function mishorRowHTML(kind, ico, title, value) {
+  return `<button type="button" class="mishor-row" data-mishor-row="${kind}">`
+    + `<span class="mishor-row-ico" aria-hidden="true">${ico}</span>`
+    + `<span class="mishor-row-tx"><b>${esc(title)}</b><span>${esc(value || '')}</span></span>`
+    + `<span class="mishor-row-chev" aria-hidden="true">›</span></button>`;
+}
+function mishorSheetHTML() {
+  const s = mishorSummary();
+  const notSet = t('mishor.notSet');
+  let h = `<div class="mishor-group">${esc(t('mishor.groupMeals'))}</div>`;
+  h += mishorRowHTML('meals', '🍽️', t('mishor.rowMeals'), s.mealsFull || notSet);
+  h += mishorRowHTML('fast', '🌙', t('mishor.rowFast'), s.fastOn ? s.fastFull : t('mishor.noFast'));
+  h += `<div class="mishor-group">${esc(t('mishor.groupTrain'))}</div>`;
+  h += mishorRowHTML('train', '📅', t('mishor.rowTrain'), s.train || notSet);
+  h += `<div class="mishor-group">${esc(t('mishor.groupWork'))}</div>`;
+  h += mishorRowHTML('work', '💼', t('mishor.rowWork'), s.work || notSet);
+  h += `<div class="mishor-group">${esc(t('mishor.groupNotices'))}</div>`;
+  h += mishorRowHTML('menu', '🍽️', t('mishor.rowMenuToday'), s.menuToday || notSet);
+  h += mishorRowHTML('sunday', '📆', t('mishor.rowSunday'), t('mishor.sundayVal'));
+  return h;
+}
+function mishorPaintSheet() {
+  const body = $('mishor-body'); if (!body) return;
+  body.innerHTML = mishorSheetHTML();
+}
+async function mishorOpenSheet() {
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  const bd = $('mishor-backdrop'), f = $('mishor-float'); if (!bd || !f) return;
+  bd.style.display = ''; f.style.display = '';
+  const body = $('mishor-body');
+  if (body) body.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
+  try { coverSync(); } catch {}
+  try { await schedGather(); } catch {}
+  mishorPaintSheet();
+}
+function mishorCloseSheet() {
+  const bd = $('mishor-backdrop'), f = $('mishor-float');
+  if (bd) bd.style.display = 'none';
+  if (f) f.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+/* Cada fila abre el editor que YA existe: la hoja «Mi horario
+   diario» (su vista del día para comidas y para el menú de hoy;
+   su caja «Mis datos» — el modo prefs de siempre — para ayuno,
+   entreno, trabajo y el interruptor de avisos de los domingos). */
+async function mishorRowGo(kind) {
+  mishorCloseSheet();
+  await schedOpenSheet();
+  if (kind === 'fast' || kind === 'train' || kind === 'work' || kind === 'sunday') {
+    SCHED_UI.mode = 'prefs'; schedPaintSheet();
+  }
+}
+document.addEventListener('click', e => {
+  const open = e.target && e.target.closest ? e.target.closest('[data-mishor-open]') : null;
+  if (open) { mishorOpenSheet(); return; }
+  const row = e.target && e.target.closest ? e.target.closest('[data-mishor-row]') : null;
+  if (row) { mishorRowGo(row.getAttribute('data-mishor-row')); return; }
+  if (e.target && e.target.id === 'btn-mishor-close') { mishorCloseSheet(); return; }
+  if (e.target && e.target.id === 'mishor-backdrop') { mishorCloseSheet(); return; }
+});
+
 function schedPrefsRef() { return doc(db, 'nutrition_sched', `${auth.currentUser.uid}_schedprefs`); }
 function schedStateRef() { return doc(db, 'nutrition_sched', `${auth.currentUser.uid}_schedstate`); }
 function schedPrefsDefaults() {
