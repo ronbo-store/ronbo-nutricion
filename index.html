@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261115-mecanismo-medida">
+<link rel="stylesheet" href="styles.css?v=20261115-dock-sin-sesion">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -2112,8 +2112,12 @@ cuando no hay declaración legible (decisión 5). -->
 
   <!-- Dock flotante GLOBAL (corrección reprueba, 2026-10-24): la fila
        de redondos vive FUERA de las pestañas, como hija directa de
-       #app-view, y se pinta fija abajo con .actions-dock
-       (position:fixed). Antes vivía dentro de #tab-track y al pasar a
+       body — FUERA de #app-view —, y se pinta fija abajo con
+       .actions-dock (position:fixed). Por vivir fuera de #app-view
+       nace OCULTO (display:none, el patrón de #main-tabs) y lo
+       muestra y lo oculta el mismo camino que muestra y oculta la
+       app en app.js: sin sesión no se ve (corrección 2026-11-15).
+       Antes vivía dentro de #tab-track y al pasar a
        «Mis clientes» o «Accesos» la pestaña oculta se lo llevaba: los
        botones principales solo existían en «Mi registro». Ahora el
        dock — UNA sola instancia, con su estado (pendientes en rojo) —
@@ -2122,7 +2126,7 @@ cuando no hay declaración legible (decisión 5). -->
        primero si se tocan desde otra área (dockHome en app.js). Las
        puertas por rol no cambian: applyFeatureGates oculta botones
        por id, como siempre. -->
-  <div class="actions-dock">
+  <div class="actions-dock" id="actions-dock" style="display:none">
     <div class="rounds-row">
       <button type="button" class="round-action" id="btn-nav-home" aria-label="Home" data-i18n-aria="nav.home"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 25 L24 9 L41 25"/><path d="M13.5 21.5 V39 H34.5 V21.5"/><path d="M20.5 39 V29.5 H27.5 V39"/></svg></span><span class="round-label" data-i18n="nav.home">Home</span></button>
       <button type="button" class="round-action" id="btn-toggle-progress" aria-expanded="false" aria-label="My progress" data-i18n-aria="progress.title"><span class="round-circle" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 48 48" fill="#fff" aria-hidden="true" focusable="false"><rect x="9" y="32" width="6" height="7" rx="1.5"/><rect x="17.5" y="27" width="6" height="12" rx="1.5"/><rect x="26" y="22" width="6" height="17" rx="1.5"/><rect x="28.5" y="15" width="13" height="4.6" rx="2.3" transform="rotate(-45 35 17.3)"/><polygon points="31.5,6.8 44,6.8 44,19.3"/></svg></span><span class="round-label"><span data-i18n="main.progress">Progress</span> <span class="round-chev" id="chev-progress" aria-hidden="true">▾</span></span></button>
@@ -2539,6 +2543,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261115-mecanismo-medida"></script>
+<script type="module" src="app.js?v=20261115-dock-sin-sesion"></script>
 </body>
 </html>

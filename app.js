@@ -15912,6 +15912,7 @@ onAuthStateChanged(auth, async user => {
     try { captureSignupLinks(); signupPaintConfirmHint(); } catch {}
     $('auth-view').style.display = '';
     $('app-view').style.display = 'none';
+    $('actions-dock').style.display = 'none';
     /* La pantalla de acceso vuelve a mostrarse: la entrada con clave
        se re-arma con un reto fresco (sugerencia automática o botón,
        según el soporte real del navegador). */
@@ -16025,6 +16026,10 @@ onAuthStateChanged(auth, async user => {
      de TODOS los roles — también del alumno, que la estrena con
      UNA sola pastilla («Administración», ver la regla de abajo). */
   $('main-tabs').style.display = '';
+  /* El dock vive fuera de #app-view (hijo de body): nace oculto y
+     solo se muestra aquí, con la app ya dentro (corrección
+     2026-11-15: sin sesión no se ve). */
+  $('actions-dock').style.display = '';
   /* La pastilla sin regla propia de rol («Mi registro») se oculta
      para el alumno. Las demás caen a 'none' para el rol usuario
      por sus reglas de siempre (Accesos, Entrenadores, Biblioteca,
@@ -16276,6 +16281,7 @@ function startUserDocWatch(uid) {
       if (serverClass === 'gate') {
         $('app-view').style.display = 'none';
         $('auth-view').style.display = '';
+        $('actions-dock').style.display = 'none';
         showRenewalGate();
       } else { /* 'unapproved': aprobación retirada, consentimiento vigente */
         /* DEFECTOS-072 (b): el mismo texto de espera resuelto
@@ -61534,7 +61540,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261115-mecanismo-medida';
+const PWA_SW_VERSION = '20261115-dock-sin-sesion';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
