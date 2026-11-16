@@ -6224,6 +6224,29 @@ body.train-drag-lock { overflow: hidden; overscroll-behavior: none; }
 .cardio-save { margin-top: 12px; width: 100%; min-height: 48px; background: #fff; color: #0a5c50; border: 0; font: inherit; font-weight: 800; font-size: 15px; padding: 13px 0; border-radius: 12px; cursor: pointer; }
 .cardio-sum { display: flex; align-items: center; gap: 9px; margin-top: 11px; font-size: 14.5px; font-weight: 700; color: #fff; }
 .cardio-edit { margin-left: auto; flex: none; min-height: 44px; background: transparent; border: 1.5px solid rgba(255,255,255,.55); color: #fff; font: inherit; font-size: 13px; font-weight: 700; padding: 8px 13px; border-radius: 99px; cursor: pointer; }
+/* ═══ AUTH-481 · LOS PUNTOS DE CARDIO DEL DÍA: el rótulo de
+   la secuencia, los campos con rueda (− / valor / +) del
+   registro de máquinas, la foto del panel como prueba, la
+   puerta de añadir y la línea del día. Mismo cristal que el
+   bloque de AUTH-426 y
+   toques de 44 px o más, como manda la casa: la app se usa
+   entrenando. ═══ */
+.cardio2-label { font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.85); margin: 12px 0 2px; }
+.cardio2-fields { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.cardio2-fld { flex: 1 1 150px; background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.3); border-radius: 12px; padding: 8px 10px; }
+.cardio2-fld label { display: block; font-size: 10.5px; letter-spacing: 1px; color: #bfe8df; font-weight: 700; }
+.cardio2-step { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.cardio2-step button { flex: 0 0 44px; width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(255,255,255,.55); background: transparent; color: #fff; font: inherit; font-size: 21px; font-weight: 800; line-height: 1; cursor: pointer; padding: 0; }
+.cardio2-step input { flex: 1; min-width: 0; width: 100%; background: transparent; border: 0; outline: 0; font: inherit; font-size: 19px; font-weight: 800; color: #fff; text-align: center; padding: 2px 0; }
+.cardio2-more { margin-top: 12px; min-height: 44px; background: transparent; border: 1.5px solid rgba(255,255,255,.55); color: #fff; font: inherit; font-size: 14px; font-weight: 800; padding: 10px 16px; border-radius: 99px; cursor: pointer; }
+.cardio2-photo-btn { margin-top: 12px; width: 100%; min-height: 52px; background: #fff; color: #0a5c50; border: 0; font: inherit; font-weight: 800; font-size: 15.5px; padding: 14px 0; border-radius: 12px; cursor: pointer; }
+.cardio2-photo-prev { margin-top: 10px; }
+.cardio2-photo-prev img { display: block; width: 100%; max-height: 180px; object-fit: cover; border-radius: 12px; border: 1.5px solid rgba(255,255,255,.35); }
+.cardio2-photo-del { margin-top: 8px; min-height: 44px; background: transparent; border: 1.5px solid rgba(255,255,255,.55); color: #fff; font: inherit; font-size: 13px; font-weight: 700; padding: 8px 13px; border-radius: 99px; cursor: pointer; }
+.cardio2-del { margin-top: 10px; min-height: 44px; background: transparent; border: 1.5px solid rgba(255,255,255,.55); color: #ffd9a8; font: inherit; font-size: 13.5px; font-weight: 700; padding: 9px 16px; border-radius: 99px; cursor: pointer; }
+.cardio2-add { display: block; width: 100%; min-height: 52px; margin: 12px 0; background: transparent; border: 1.5px dashed rgba(255,255,255,.6); border-radius: 16px; color: #fff; font: inherit; font-size: 16.5px; font-weight: 800; padding: 14px 0; cursor: pointer; }
+.cardio2-ok { color: #b8ffd9; font-weight: 800; }
+.cardio2-line { font-size: 15.5px; font-weight: 700; color: #fff; margin: 10px 0 4px; }
 
 /* ═══ AUTH-434 · LA PAUSA DEL EJERCICIO (decisión de
    Ronald, 2026-11-12, sobre su maqueta aprobada): el botón

@@ -6246,6 +6246,24 @@ en: {
   'train.cardio.mode.row': 'Rowing machine', 'train.cardio.mode.elliptical': 'Elliptical trainer',
   'train.cardio.mode.stairs': 'Stair climber', 'train.cardio.mode.jog': 'Light jog (treadmill)',
   'train.cardio.mode.rope': 'Jump rope',
+  'train.cardio2.points': 'Day points',
+  'train.cardio2.machine.treadmill': 'Treadmill', 'train.cardio2.machine.stairs': 'Stair climber',
+  'train.cardio2.machine.bike': 'Bike', 'train.cardio2.machine.elliptical': 'Elliptical',
+  'train.cardio2.machine.row': 'Rowing machine', 'train.cardio2.machine.arc': 'ARC trainer',
+  'train.cardio2.machine.skierg': 'SkiErg', 'train.cardio2.machine.other': 'Other machine',
+  'train.cardio2.hr': 'AVERAGE HEART RATE', 'train.cardio2.kcalReq': 'CALORIES',
+  'train.cardio2.more': 'More data', 'train.cardio2.less': 'Less data',
+  'train.cardio2.photo': '📷 Panel photo', 'train.cardio2.photoRemove': 'Remove photo',
+  'train.cardio2.add': '+ Add cardio', 'train.cardio2.register': 'Register cardio',
+  'train.cardio2.save': 'Save cardio ✓', 'train.cardio2.remove': 'Remove',
+  'train.cardio2.needKcal': 'Enter the calories the machine showed.',
+  'train.cardio2.line': '⏱️ Cardio today: {min} min', 'train.cardio2.lineKcal': ' · {kcal} kcal',
+  'train.cardio2.lineGoal': ' — those minutes count toward your goal of {goal} min',
+  'train.cardio2.spec.incline': 'INCLINE · %', 'train.cardio2.spec.speed': 'AVG SPEED · KM/H',
+  'train.cardio2.spec.spmSteps': 'STEPS/MIN', 'train.cardio2.spec.spmStrokes': 'STROKES/MIN',
+  'train.cardio2.spec.level': 'LEVEL', 'train.cardio2.spec.rpm': 'CADENCE · RPM',
+  'train.cardio2.spec.watts': 'POWER · W', 'train.cardio2.spec.strides': 'STRIDES',
+  'train.cardio2.spec.split': 'PACE · /500 M',
   'move.title': 'While you move',
   'move.doorSub': 'Read or listen',
   'move.vanMin': '{n} of {m} min',
@@ -11503,6 +11521,24 @@ es: {
   'train.cardio.mode.row': 'Remo', 'train.cardio.mode.elliptical': 'Elíptica',
   'train.cardio.mode.stairs': 'Escaladora', 'train.cardio.mode.jog': 'Trote suave (caminadora)',
   'train.cardio.mode.rope': 'Saltar la cuerda',
+  'train.cardio2.points': 'Puntos del día',
+  'train.cardio2.machine.treadmill': 'Caminadora', 'train.cardio2.machine.stairs': 'Escaladora',
+  'train.cardio2.machine.bike': 'Bicicleta', 'train.cardio2.machine.elliptical': 'Elíptica',
+  'train.cardio2.machine.row': 'Remo', 'train.cardio2.machine.arc': 'ARC',
+  'train.cardio2.machine.skierg': 'SkiErg', 'train.cardio2.machine.other': 'Otra máquina',
+  'train.cardio2.hr': 'RITMO CARDÍACO MEDIO', 'train.cardio2.kcalReq': 'CALORÍAS',
+  'train.cardio2.more': 'Más datos', 'train.cardio2.less': 'Menos datos',
+  'train.cardio2.photo': '📷 Foto del panel', 'train.cardio2.photoRemove': 'Quitar foto',
+  'train.cardio2.add': '+ Añadir cardio', 'train.cardio2.register': 'Registrar cardio',
+  'train.cardio2.save': 'Guardar cardio ✓', 'train.cardio2.remove': 'Quitar',
+  'train.cardio2.needKcal': 'Escribe las calorías que marcó la máquina.',
+  'train.cardio2.line': '⏱️ Cardio hoy: {min} min', 'train.cardio2.lineKcal': ' · {kcal} kcal',
+  'train.cardio2.lineGoal': ' — esos minutos suman a tu meta de {goal} min',
+  'train.cardio2.spec.incline': 'INCLINACIÓN · %', 'train.cardio2.spec.speed': 'VELOCIDAD MEDIA · KM/H',
+  'train.cardio2.spec.spmSteps': 'PASOS/MIN', 'train.cardio2.spec.spmStrokes': 'PALADAS/MIN',
+  'train.cardio2.spec.level': 'NIVEL', 'train.cardio2.spec.rpm': 'CADENCIA · RPM',
+  'train.cardio2.spec.watts': 'POTENCIA · W', 'train.cardio2.spec.strides': 'ZANCADAS',
+  'train.cardio2.spec.split': 'RITMO · /500 M',
   'move.title': 'Mientras te mueves',
   'move.doorSub': 'Lee o escucha',
   'move.vanMin': 'van {n} de {m} min',
@@ -38656,18 +38692,26 @@ function trainGuidedHTML(plan, day, di) {
        motor, trainSessionReorder: persistencia y remapeo de
        marcas idénticos a los del arrastre de la lista. */
     const canDrag = trainReorderAllowed() && M > 1;
+    /* AUTH-481: el calentamiento en Sí con registro válido ES
+       el punto 1 de la ruta — las paradas se numeran
+       desplazadas; en «No» no ocupa punto y la numeración es
+       la de siempre. El contador «Ejercicio N de M» (posText)
+       no se toca: cuenta ejercicios, no puntos. */
+    const c2Off = trainCardio2ViewOf(trainCardio2Read(plan.id).warm) ? 1 : 0;
     const stops = eff.map((it, ei2) => {
       const photo = trainExPhoto(it.ex);
       const thumb = !photo ? ytThumbOf(trainExVideo(it.ex)) : '';
       const spec = [it.ex.sets, it.ex.reps].filter(Boolean).join(' × ');
       const isNow = ei2 === focus;
-      return `<div class="guide-stop${isNow ? ' is-now' : ''}"><span class="guide-stop-n">${ei2 + 1}</span>${photo ? `<img class="guide-stop-photo" src="${esc(photo)}" alt="" loading="lazy">` : (thumb ? `<img class="guide-stop-photo" src="${esc(thumb)}" alt="" loading="lazy">` : '')}<span class="guide-stop-mid"><span class="guide-stop-name">${esc(trainExName(it.ex))}</span>${spec ? `<span class="guide-stop-spec">${esc(spec)}</span>` : ''}${isNow ? `<span class="guide-stop-tag">${t('train.flow.nowFirst')}</span>` : ''}</span>${canDrag ? `<button type="button" class="guide-stop-grip" data-guide-grip="${di}:${ei2}" aria-label="${esc(t('train.custom.move'))}">⠿</button>` : ''}</div>`;
+      return `<div class="guide-stop${isNow ? ' is-now' : ''}"><span class="guide-stop-n">${ei2 + 1 + c2Off}</span>${photo ? `<img class="guide-stop-photo" src="${esc(photo)}" alt="" loading="lazy">` : (thumb ? `<img class="guide-stop-photo" src="${esc(thumb)}" alt="" loading="lazy">` : '')}<span class="guide-stop-mid"><span class="guide-stop-name">${esc(trainExName(it.ex))}</span>${spec ? `<span class="guide-stop-spec">${esc(spec)}</span>` : ''}${isNow ? `<span class="guide-stop-tag">${t('train.flow.nowFirst')}</span>` : ''}</span>${canDrag ? `<button type="button" class="guide-stop-grip" data-guide-grip="${di}:${ei2}" aria-label="${esc(t('train.custom.move'))}">⠿</button>` : ''}</div>`;
     }).join('');
     return `<h4>${esc(label)}</h4>`
-      + trainCardioWarmHTML(plan, di)
+      + trainCardio2WarmHTML(plan, di, undefined, { label: true })
       + `<div class="guide-head"><div class="guide-pos">${esc(posText)}<span class="guide-meta"> · ${esc(metaLine)}</span></div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div></div>`
+      + trainCardio2LineHTML(plan.id, undefined)
       + (canDrag ? `<div class="guide-drag-hint">${t('train.flow.dragHint')}</div>` : '')
       + `<div class="guide-route">${stops}</div>`
+      + trainCardio2ExtrasHTML(plan, di, undefined, c2Off + M + 1)
       + `<button type="button" class="guide-start-btn" data-train-start="${di}">${t('train.flow.beginDay')}</button>`
       + trainGuidePreTailHTML(di)
       + `<p class="guide-route-note">${t('train.flow.beginNote')}</p>`
@@ -38710,11 +38754,14 @@ function trainGuidedHTML(plan, day, di) {
         ? `<button type="button" class="guide-next guide-next-btn" data-guide-next-open="${di}">${esc(t('train.guide.next', { name: trainExName(eff[nextEi].ex) }))} <span class="guide-next-chev" aria-hidden="true">›</span></button></div>`
         : `<div class="guide-next">${esc(t('train.guide.endNext'))}</div></div>`);
   }
+  const c2OffS = trainCardio2ViewOf(trainCardio2Read(plan.id).warm) ? 1 : 0;   /* AUTH-481: desplazamiento del punto del calentamiento, como en la ruta sin empezar */
   return `<h4>${esc(label)}</h4>`
-    + trainCardioWarmHTML(plan, di)
+    + trainCardio2WarmHTML(plan, di, undefined, { label: true })
     + `<div class="guide-head"><div class="guide-pos">${esc(posText)}<span class="guide-meta"> · ${esc(metaLine)}</span></div><div class="guide-bar"><div style="width:${M ? Math.round(100 * doneCount / M) : 0}%"></div></div></div>`
+    + trainCardio2LineHTML(plan.id, undefined)
     + (doneLines ? `<div class="guide-done-title">${t('train.guide.doneTitle')}</div>${doneLines}` : '')
     + focusHTML
+    + trainCardio2ExtrasHTML(plan, di, undefined, c2OffS + M + 1)
     + trainRemovedLineHTML(plan, di)
     + trainSessionHTML(day)
     + trainEditTailHTML(plan.id, di)
@@ -43159,6 +43206,28 @@ function trainCardioDetail(v) {
    resumen plegado tras «Guardar calentamiento». */
 function trainCardioWarmHTML(plan, di, iso, log) {
   if (log) {
+    /* AUTH-481: un registro con «cardioList» pinta sus puntos
+       desde ese bloque — el calentamiento con su título de
+       siempre y cada punto añadido como línea de solo lectura.
+       Sin «cardioList», la rama legada de abajo manda intacta. */
+    if (Array.isArray(log.cardioList) && log.cardioList.length) {
+      const items = log.cardioList.map(b => ({ v: trainCardio2FromLogEntry(b), warm: !!(b && b.warm === true) })).filter(x => x.v);
+      if (items.length) {
+        const warmItem = items.find(x => x.warm) || null;
+        const rest = items.filter(x => x !== warmItem);
+        let out = '';
+        if (warmItem) {
+          const metaW = trainCardio2Meta(warmItem.v.machine);
+          out += `<div class="cardio-warm is-read"><div class="cardio-warm-head"><span class="cardio-warm-title">🔥 ${esc(t('train.cardio.title'))}</span></div>`
+            + `<div class="cardio-sum">${metaW && metaW.icon ? `<span aria-hidden="true">${metaW.icon}</span>` : ''}<span>${esc(trainCardio2Detail(warmItem.v))}</span></div></div>`;
+        }
+        out += rest.map(x => {
+          const metaX = trainCardio2Meta(x.v.machine);
+          return `<div class="cardio-warm is-read"><div class="cardio-sum">${metaX && metaX.icon ? `<span aria-hidden="true">${metaX.icon}</span>` : ''}<span>${esc(trainCardio2Detail(x.v))}</span></div></div>`;
+        }).join('');
+        return out;
+      }
+    }
     const v = trainCardioFromLog(log.cardioWarmup);
     if (!v) return '';
     const metaR = trainCardioMeta(v.mode);
@@ -43242,6 +43311,459 @@ function trainCardioWire(box) {
     trainCardioWrite(planId, { ...d, folded: false }, iso);
     loadMyTraining();
   };
+}
+/* ═══ AUTH-481 · EL CALENTAMIENTO DENTRO DE LOS PUNTOS DEL DÍA +
+   REGISTRO MANUAL DE CARDIO DE MÁQUINAS (fase 1 del análisis
+   analisis-cardio-maquinas-2026-11-16, maqueta aprobada por
+   Ronald el 2026-11-16): el calentamiento deja de ser una
+   tarjeta aparte encima de la lista y pasa a ser el punto n.º 1
+   de los puntos del día, conservando su interruptor Sí/No
+   grande — nace en «No»: sin número, sin ocupar punto y fuera
+   de la tarjeta de compartir, como siempre — y en «Sí» se
+   registra AHÍ MISMO con el registro nuevo de máquinas. El
+   mismo registro sirve para los puntos de cardio que se añaden
+   al final del día («+ Añadir cardio»). El modelo de AUTH-426
+   NO se toca: este módulo vive en su propio borrador local
+   gemelo y al cerrar proyecta el calentamiento a su bloque
+   legado «cardioWarmup» (compartir, historial y la llamita de
+   AUTH-437 leen lo de siempre) y guarda además el bloque nuevo
+   «cardioList» con todas las entradas del día. Sin reglas
+   nuevas: la regla viva de training_logs no cierra las claves
+   del documento (precedente AUTH-426). La foto del panel se
+   guarda como PRUEBA junto a la entrada; en esta fase la app
+   no lee sus valores (eso es la fase 2 del análisis). ═══ */
+const TRAIN_CARDIO2_MACHINES = [
+  { id: 'treadmill', icon: '🚶', dist: 'km', spec: ['incline', 'speed'] },
+  { id: 'stairs', icon: '🪜', dist: '', spec: ['floors', 'spm'] },
+  { id: 'bike', icon: '🚲', dist: 'km', spec: ['level', 'rpm', 'watts'] },
+  { id: 'elliptical', icon: '⭕', dist: 'km', spec: ['level', 'strides'] },
+  { id: 'row', icon: '🚣', dist: 'm', spec: ['split', 'spm'] },
+  { id: 'arc', icon: '', dist: 'km', spec: ['level'] },
+  { id: 'skierg', icon: '🎿', dist: 'm', spec: ['level', 'split'] },
+  { id: 'other', icon: '➕', dist: 'km', spec: [] }
+];
+/* Campos específicos DECLARADOS: paso y techo de cada rueda. El
+   split (ritmo del remo y del SkiErg) viaja en segundos por
+   500 m y se enseña como m:ss. */
+const TRAIN_CARDIO2_SPECS = {
+  incline: { step: 0.5, max: 40 }, speed: { step: 0.5, max: 40 },
+  floors: { step: 1, max: 999 }, spm: { step: 1, max: 300 },
+  level: { step: 1, max: 100 }, rpm: { step: 1, max: 250 },
+  watts: { step: 5, max: 2500 }, strides: { step: 10, max: 99999 },
+  split: { step: 5, max: 3600 }
+};
+function trainCardio2Meta(id) { return TRAIN_CARDIO2_MACHINES.find(m => m.id === id) || null; }
+function trainCardio2SpecLabel(machineId, specId) {
+  if (specId === 'floors') return 'train.cardio.floors';
+  if (specId === 'spm') return machineId === 'stairs' ? 'train.cardio2.spec.spmSteps' : 'train.cardio2.spec.spmStrokes';
+  return 'train.cardio2.spec.' + specId;
+}
+function trainCardio2Key(planId, iso) {
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  return 'ronbofit-session-cardio2-' + uid + '|' + planId + '|' + (iso || todayISO());
+}
+function trainCardio2San(v) {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
+  const meta = trainCardio2Meta(v.machine);
+  const posN = x => { const n = Number(x); return (isFinite(n) && n > 0) ? n : null; };
+  const posI = x => { const n = posN(x); return n == null ? null : Math.floor(n); };
+  const out = { machine: meta ? meta.id : null, minutes: posN(v.minutes), kcal: posI(v.kcal),
+    dist: posN(v.dist), hr: posI(v.hr), spec: {}, photo: null, folded: v.folded === true };
+  if (meta) for (const s of meta.spec) {
+    const raw = (v.spec && typeof v.spec === 'object') ? Number(v.spec[s]) : NaN;
+    if (isFinite(raw) && raw > 0) out.spec[s] = Math.min(raw, TRAIN_CARDIO2_SPECS[s].max);
+  }
+  if (typeof v.photo === 'string' && v.photo.startsWith('data:image/') && v.photo.length <= 700000) out.photo = v.photo;
+  if (typeof v.lm === 'string' && trainCardioMeta(v.lm)) out.lm = v.lm;
+  return out;
+}
+function trainCardio2SanDoc(v) {
+  const out = { warm: null, extras: [] };
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return out;
+  out.warm = trainCardio2San(v.warm);
+  if (Array.isArray(v.extras)) out.extras = v.extras.map(trainCardio2San).filter(Boolean);
+  return out;
+}
+/* La conversión de un borrador de AUTH-426 que aún viva en el
+   dispositivo: su modalidad pasa a máquina del registro nuevo y
+   sus pisos, a campo específico de la escaladora; la modalidad
+   original queda en «lm» para que la proyección del cierre sea
+   fiel. Es solo lectura: ningún gesto nuevo escribe ya el
+   borrador viejo, y el primer guardado de este módulo lo
+   retira (trainCardio2Write). */
+const TRAIN_CARDIO2_FROM_LEGACY = { bike: 'bike', walk: 'treadmill', jog: 'treadmill', row: 'row', elliptical: 'elliptical', stairs: 'stairs', rope: 'other' };
+function trainCardio2FromLegacy(d) {
+  if (!d) return null;
+  const machine = TRAIN_CARDIO2_FROM_LEGACY[d.mode] || null;
+  const e = trainCardio2San({ machine, minutes: d.minutes, kcal: d.kcal, dist: d.dist,
+    spec: machine === 'stairs' && d.floors != null ? { floors: d.floors } : {}, folded: d.folded });
+  if (e && d.mode) e.lm = d.mode;
+  return e;
+}
+function trainCardio2Read(planId, iso) {
+  try {
+    const raw = localStorage.getItem(trainCardio2Key(planId, iso));
+    if (raw != null) return trainCardio2SanDoc(JSON.parse(raw || 'null'));
+  } catch {}
+  const legacy = trainCardioRead(planId, iso);
+  if (legacy) return { warm: trainCardio2FromLegacy(legacy), extras: [] };
+  return { warm: null, extras: [] };
+}
+function trainCardio2Write(planId, doc, iso) {
+  try {
+    if (doc == null) localStorage.removeItem(trainCardio2Key(planId, iso));
+    else {
+      const s = trainCardio2SanDoc(doc);
+      if (!s.warm && !s.extras.length) localStorage.removeItem(trainCardio2Key(planId, iso));
+      else localStorage.setItem(trainCardio2Key(planId, iso), JSON.stringify(s));
+    }
+  } catch {}
+  /* Desde el primer gesto, este borrador es la fuente del
+     calentamiento: el gemelo de AUTH-426 se retira para que un
+     cierre posterior no resucite su estado anterior. */
+  trainCardioWrite(planId, null, iso);
+}
+/* La vista normalizada de una entrada: máquina y minutos, o
+   nada — la misma doctrina del calentamiento de AUTH-426. */
+function trainCardio2ViewOf(e) {
+  if (!e) return null;
+  const meta = trainCardio2Meta(e.machine);
+  if (!meta || !(Number(e.minutes) > 0)) return null;
+  const out = { machine: e.machine, minutes: Number(e.minutes),
+    kcal: e.kcal != null ? Math.floor(Number(e.kcal)) : null,
+    dist: meta.dist && e.dist != null ? Number(e.dist) : null, distUnit: meta.dist || null,
+    hr: e.hr != null ? Math.floor(Number(e.hr)) : null, spec: {}, photo: e.photo || null };
+  for (const s of meta.spec) if (e.spec && e.spec[s] != null) out.spec[s] = Number(e.spec[s]);
+  if (e.lm) out.lm = e.lm;
+  return out;
+}
+/* Un punto de cardio añadido solo cuenta si está COMPLETO:
+   máquina, minutos y las calorías que marcó la máquina (los
+   obligatorios del registro). */
+function trainCardio2ExtraValid(e) { const v = trainCardio2ViewOf(e); return (v && v.kcal != null) ? v : null; }
+function trainCardio2Totals(planId, iso) {
+  const doc = trainCardio2Read(planId, iso);
+  let min = 0, kcal = 0;
+  const w = trainCardio2ViewOf(doc.warm);
+  if (w) { min += w.minutes; if (w.kcal) kcal += w.kcal; }
+  doc.extras.forEach(e => { const v = trainCardio2ExtraValid(e); if (v) { min += v.minutes; kcal += v.kcal; } });
+  return { min, kcal };
+}
+/* La proyección del calentamiento al bloque legado de
+   AUTH-426: modalidad equivalente, distancia en su unidad,
+   pisos de la escaladora y kcal SOLO si esa modalidad las
+   admite (la doctrina de la llamita queda intacta). Las
+   máquinas sin equivalente legado (ARC, SkiErg, otra) no
+   proyectan: su verdad vive en «cardioList». */
+const TRAIN_CARDIO2_TO_LEGACY = { treadmill: 'walk', bike: 'bike', elliptical: 'elliptical', row: 'row', stairs: 'stairs' };
+function trainCardio2LegacyBlock(v) {
+  const mode = v.lm || TRAIN_CARDIO2_TO_LEGACY[v.machine] || null;
+  if (!mode) return null;
+  const metaL = trainCardioMeta(mode);
+  const out = { mode, minutes: v.minutes };
+  if (metaL && metaL.dist && v.dist != null) { if (metaL.dist === 'km') out.distanceKm = v.dist; else out.distanceM = v.dist; }
+  if (mode === 'stairs' && v.spec && v.spec.floors != null) out.floors = Math.floor(v.spec.floors);
+  if (metaL && metaL.kcal && v.kcal != null) out.kcalMachine = v.kcal;
+  return out;
+}
+function trainCardio2BlockOf(v) {
+  const out = { machine: v.machine, minutes: v.minutes };
+  if (v.kcal != null) out.kcal = v.kcal;
+  if (v.dist != null) { if (v.distUnit === 'm') out.distanceM = v.dist; else out.distanceKm = v.dist; }
+  if (v.hr != null) out.hr = v.hr;
+  if (v.spec && Object.keys(v.spec).length) out.spec = { ...v.spec };
+  if (v.photo) out.photo = v.photo;
+  return out;
+}
+/* Lo que el cierre del día se lleva de este módulo. Sin clave
+   cardio2 en el dispositivo devuelve null y el cierre es byte
+   a byte el de siempre. */
+function trainCardio2ForClose(planId) {
+  let has = false;
+  try { has = localStorage.getItem(trainCardio2Key(planId)) != null; } catch {}
+  if (!has) return null;
+  const doc = trainCardio2Read(planId);
+  const list = [];
+  let warmLegacy = null;
+  const w = trainCardio2ViewOf(doc.warm);
+  if (w) { warmLegacy = trainCardio2LegacyBlock(w); list.push({ ...trainCardio2BlockOf(w), warm: true }); }
+  doc.extras.forEach(e => { const v = trainCardio2ExtraValid(e); if (v) list.push(trainCardio2BlockOf(v)); });
+  return { warmLegacy, list: list.length ? list : null };
+}
+function trainCardio2FromLogEntry(b) {
+  if (!b || typeof b !== 'object' || Array.isArray(b)) return null;
+  return trainCardio2ViewOf(trainCardio2San({ machine: b.machine, minutes: b.minutes, kcal: b.kcal,
+    dist: b.distanceKm != null ? b.distanceKm : (b.distanceM != null ? b.distanceM : null),
+    hr: b.hr, spec: b.spec || {}, photo: b.photo }));
+}
+function trainCardio2SplitText(sec) {
+  const s = Math.round(Number(sec) || 0);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+function trainCardio2Detail(v) {
+  const parts = [t('train.cardio2.machine.' + v.machine), t('train.cardio.minText', { min: v.minutes })];
+  if (v.dist != null) parts.push(fmt(v.dist) + ' ' + v.distUnit);
+  if (v.spec && v.spec.floors != null) parts.push(t('train.cardio.floorsText', { n: Math.floor(v.spec.floors) }));
+  if (v.kcal != null) parts.push(fmt(v.kcal) + ' kcal');
+  return parts.join(' · ');
+}
+/* LA LÍNEA DEL DÍA: los minutos de cardio del día y su gasto,
+   con el recordatorio de que esos minutos suman a la meta de
+   tiempo. Las calorías se ENSEÑAN como gasto de actividad; no
+   se suman a lo que la persona puede comer (decisión de Ronald
+   pendiente, fuera de este paquete). */
+function trainCardio2LineHTML(planId, iso) {
+  const tot = trainCardio2Totals(planId, iso);
+  if (!(tot.min > 0)) return '';
+  const goal = (typeof trainGoalMin === 'function') ? trainGoalMin() : null;
+  let s = esc(t('train.cardio2.line', { min: fmt(tot.min) }));
+  if (tot.kcal > 0) s += esc(t('train.cardio2.lineKcal', { kcal: fmt(tot.kcal) }));
+  if (goal != null) s += esc(t('train.cardio2.lineGoal', { goal }));
+  return `<div class="cardio2-line">${s}</div>`;
+}
+/* Un campo numérico del registro: rótulo y rueda de la casa —
+   botón − / + de 44 px y el valor como input real en el centro
+   (se puede teclear; la coma se normaliza a punto al guardar,
+   como en el bloque de AUTH-426). */
+function trainCardio2StepFieldHTML(T, f, label, val, isSplit) {
+  const v = val == null ? '' : (isSplit ? trainCardio2SplitText(val) : String(val));
+  return `<div class="cardio2-fld"><label>${esc(label)}</label><div class="cardio2-step"><button type="button" data-cardio2-step="${T}:${f}:-1" aria-label="−">−</button><input type="${isSplit ? 'text' : 'number'}" inputmode="decimal" min="0" step="any" data-cardio2-t="${T}" data-cardio2-f="${f}" value="${v}"><button type="button" data-cardio2-step="${T}:${f}:1" aria-label="+">+</button></div></div>`;
+}
+/* EL FORMULARIO DEL REGISTRO — el mismo para el calentamiento
+   en Sí (T = 'warm') y para cada punto añadido (T = 'x<i>'):
+   máquinas en chips grandes, comunes siempre visibles, los
+   específicos de la máquina tras «Más datos ›» (nacen
+   plegados, la regla de crecimiento de la casa), la foto del
+   panel siempre visible y el guardar grande. */
+function trainCardio2FormHTML(T, e, isWarm) {
+  const meta = trainCardio2Meta(e.machine);
+  const pills = TRAIN_CARDIO2_MACHINES.map(m => `<button type="button" data-cardio2-t="${T}" data-cardio2-machine="${m.id}" aria-pressed="${e.machine === m.id ? 'true' : 'false'}" class="${e.machine === m.id ? 'is-sel' : ''}">${m.icon ? m.icon + ' ' : ''}${esc(t('train.cardio2.machine.' + m.id))}</button>`).join('');
+  const F = [];
+  F.push(trainCardio2StepFieldHTML(T, 'minutes', t('train.cardio.minutes'), e.minutes, false));
+  F.push(trainCardio2StepFieldHTML(T, 'kcal', isWarm ? t('train.cardio.kcal') : t('train.cardio2.kcalReq'), e.kcal, false));
+  if (meta && meta.dist) F.push(trainCardio2StepFieldHTML(T, 'dist', t(meta.dist === 'm' ? 'train.cardio.distM' : 'train.cardio.distKm'), e.dist, false));
+  F.push(trainCardio2StepFieldHTML(T, 'hr', t('train.cardio2.hr'), e.hr, false));
+  let specHTML = '';
+  if (meta && meta.spec.length) {
+    const SF = meta.spec.map(s => trainCardio2StepFieldHTML(T, 'spec:' + s, t(trainCardio2SpecLabel(e.machine, s)), (e.spec && e.spec[s] != null) ? e.spec[s] : null, s === 'split')).join('');
+    specHTML = `<button type="button" class="cardio2-more" data-cardio2-more="${T}">${esc(t('train.cardio2.more'))} ›</button><div class="cardio2-fields" data-cardio2-specbox="${T}" hidden>${SF}</div>`;
+  }
+  const dose = isWarm ? `<div class="cardio-hint">${esc(e.machine === 'stairs' ? t('train.cardio.doseStairs') : t('train.cardio.dose'))}</div>`
+    + `<div class="cardio-warn" data-cardio2-warn${(e.minutes != null && e.minutes > 10) ? '' : ' hidden'}>${esc(t('train.cardio.warnLong'))}</div>`
+    + `<div class="cardio-hint">${esc(t('train.cardio.kcalSub'))}</div>` : '';
+  const photo = `<button type="button" class="cardio2-photo-btn" data-cardio2-photo="${T}">${esc(t('train.cardio2.photo'))}</button>`
+    + `<input type="file" accept="image/*" data-cardio2-file="${T}" hidden>`
+    + (e.photo ? `<div class="cardio2-photo-prev"><img src="${e.photo}" alt="${esc(t('train.cardio2.photo'))}"><button type="button" class="cardio2-photo-del" data-cardio2-photo-del="${T}">${esc(t('train.cardio2.photoRemove'))}</button></div>` : '');
+  const save = `<button type="button" class="cardio-save" data-cardio2-save="${T}">${esc(isWarm ? t('train.cardio.save') : t('train.cardio2.save'))}</button>`;
+  const del = isWarm ? '' : `<button type="button" class="cardio2-del" data-cardio2-del="${T}">${esc(t('train.cardio2.remove'))}</button>`;
+  return `<div class="cardio-pills">${pills}</div><div class="cardio2-fields">${F.join('')}</div>${specHTML}${dose}${photo}${save}${del}`;
+}
+/* EL PUNTO DEL CALENTAMIENTO. En «No»: la línea compacta con
+   su interruptor, sin número — no ocupa punto. En «Sí»: el
+   punto n.º 1 (o el número que le pase la vista) con el
+   registro, o su resumen plegado en una línea tras guardar,
+   con la puerta de «Mientras te mueves» de siempre colgando
+   del resumen (moveBlockZoneHTML, intacta). */
+function trainCardio2WarmHTML(plan, di, iso, opts) {
+  if (!plan || !plan.id || di == null || di < -1) return '';
+  const o = opts || {};
+  const doc = trainCardio2Read(plan.id, iso);
+  const w = doc.warm;
+  const view = trainCardio2ViewOf(w);
+  const num = view ? (o.num != null ? o.num : 1) : null;
+  const label = o.label ? `<p class="cardio2-label">${esc(t('train.cardio2.points'))}</p>` : '';
+  const head = `<div class="cardio-warm-head"><span class="cardio-warm-title">🔥 ${num != null ? num + ' · ' : ''}${esc(t('train.cardio.title'))}</span></div>`;
+  const seg = `<div class="cardio-seg" role="group"><button type="button" data-cardio2-tog="0" aria-pressed="${w ? 'false' : 'true'}" class="${w ? '' : 'is-on'}">${esc(t('train.start.no'))}</button><button type="button" data-cardio2-tog="1" aria-pressed="${w ? 'true' : 'false'}" class="${w ? 'is-on' : ''}">${esc(t('train.start.yes'))}</button></div>`;
+  const wrap = inner => `<div class="cardio-warm cardio2-point" data-cardio2-plan="${esc(plan.id)}" data-cardio2-iso="${esc(iso || todayISO())}">${head}${seg}${inner}</div>`;
+  if (!w) return label + wrap(`<div class="cardio-hint">${esc(t('train.cardio.hintNo'))}</div>`);
+  if (w.folded && view) {
+    const metaF = trainCardio2Meta(view.machine);
+    return label + wrap(`<div class="cardio-sum">${metaF && metaF.icon ? `<span aria-hidden="true">${metaF.icon}</span>` : ''}<span>${esc(trainCardio2Detail(view))}</span><button type="button" class="cardio-edit" data-cardio2-edit="warm">${esc(t('train.cardio.edit'))}</button></div>` + moveBlockZoneHTML(plan, iso, view));
+  }
+  return label + wrap(trainCardio2FormHTML('warm', w, true));
+}
+/* LOS PUNTOS AÑADIDOS Y SU PUERTA: cada extra guardado es una
+   línea plegada con su número de punto; el que se está
+   registrando enseña el formulario; la puerta «+ Añadir
+   cardio» cierra la lista. startNum = el número del primer
+   punto añadido (tras el calentamiento y los ejercicios). Así
+   lo muestra la maqueta aprobada: el cardio de cierre es un
+   punto que la persona AÑADE al final si lo hizo — no un
+   punto fijo impuesto. (El «¿y si el cardio fuera al
+   principio y al final?» fue una pregunta de Ronald del
+   2026-11-16, no una orden; queda anotado en el informe del
+   paquete por si un día lo decide.) */
+function trainCardio2ExtrasHTML(plan, di, iso, startNum) {
+  if (!plan || !plan.id || di == null || di < -1) return '';
+  const doc = trainCardio2Read(plan.id, iso);
+  const attrs = `data-cardio2-plan="${esc(plan.id)}" data-cardio2-iso="${esc(iso || todayISO())}"`;
+  const parts = doc.extras.map((e, i) => {
+    const T = 'x' + i;
+    const v = trainCardio2ViewOf(e);
+    if (e.folded && v) {
+      const meta = trainCardio2Meta(v.machine);
+      return `<div class="cardio-warm cardio2-folded" ${attrs}><div class="cardio-sum">${meta && meta.icon ? `<span aria-hidden="true">${meta.icon}</span>` : ''}<span>${(startNum || 1) + i} · ${esc(trainCardio2Detail(v))}</span><span class="cardio2-ok" aria-hidden="true">✓</span><button type="button" class="cardio-edit" data-cardio2-edit="${T}">${esc(t('train.cardio.edit'))}</button></div></div>`;
+    }
+    return `<div class="cardio-warm cardio2-point" ${attrs}><div class="cardio-warm-head"><span class="cardio-warm-title">➕ ${esc(t('train.cardio2.register'))}</span></div>${trainCardio2FormHTML(T, e, false)}</div>`;
+  });
+  parts.push(`<button type="button" class="cardio2-add" data-cardio2-add="1" ${attrs}>${esc(t('train.cardio2.add'))}</button>`);
+  return parts.join('');
+}
+/* Cableado de los puntos (lo llama loadMyTraining tras pintar,
+   junto al de AUTH-426): cada gesto guarda al acto en el
+   borrador local — la disciplina de la casa, sin un «Cancelar»
+   global — y repinta; los campos guardan al cambiar y las
+   ruedas en el sitio, sin repintar (para no perder el foco). */
+function trainCardio2Wire(box) {
+  if (!box) return;
+  const roots = box.querySelectorAll('[data-cardio2-plan]');
+  if (!roots.length) return;
+  const ctxOf = el => { const r = el.closest('[data-cardio2-plan]'); return r ? { planId: r.dataset.cardio2Plan, iso: r.dataset.cardio2Iso || undefined } : null; };
+  const getE = (doc, T) => T === 'warm' ? doc.warm : doc.extras[Number(T.slice(1))] || null;
+  const setE = (doc, T, e) => { if (T === 'warm') doc.warm = e; else doc.extras[Number(T.slice(1))] = e; };
+  const numOf = raw => { const s = String(raw == null ? '' : raw).trim().replace(',', '.'); if (s === '') return null; const n = Number(s); return (isFinite(n) && n > 0) ? n : null; };
+  const splitOf = raw => { const s = String(raw == null ? '' : raw).trim(); if (!s) return null; const m = s.match(/^(\d+):([0-5]?\d)$/); if (m) return Number(m[1]) * 60 + Number(m[2]); const n = Number(s.replace(',', '.')); return (isFinite(n) && n > 0) ? Math.round(n) : null; };
+  const blank = () => ({ machine: null, minutes: null, kcal: null, dist: null, hr: null, spec: {}, photo: null, folded: false });
+  box.querySelectorAll('[data-cardio2-tog]').forEach(b => b.onclick = () => {
+    const c = ctxOf(b); if (!c) return;
+    const doc = trainCardio2Read(c.planId, c.iso);
+    if (b.dataset.cardio2Tog === '1') {
+      /* Al decir Sí nace el borrador con la dosis por defecto
+         del estudio: 5 minutos, sin máquina aún (la de
+         AUTH-426, en el registro nuevo). */
+      if (!doc.warm) doc.warm = { machine: null, minutes: 5, kcal: null, dist: null, hr: null, spec: {}, photo: null, folded: false };
+    } else doc.warm = null;   /* No = ausencia de dato: el borrador se retira */
+    trainCardio2Write(c.planId, doc, c.iso);
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-cardio2-machine]').forEach(b => b.onclick = () => {
+    const c = ctxOf(b); if (!c) return;
+    const T = b.dataset.cardio2T, doc = trainCardio2Read(c.planId, c.iso), e = getE(doc, T);
+    if (!e) return;
+    /* Cambiar de máquina limpia las lecturas de la máquina
+       anterior (eran de ESA máquina); los minutos se
+       conservan — la regla de AUTH-426. */
+    setE(doc, T, { ...e, machine: b.dataset.cardio2Machine, dist: null, hr: null, kcal: null, spec: {}, folded: false });
+    trainCardio2Write(c.planId, doc, c.iso);
+    loadMyTraining();
+  });
+  const applyField = (T, c, f, val) => {
+    const doc = trainCardio2Read(c.planId, c.iso), e = getE(doc, T);
+    if (!e) return null;
+    const ne = { ...e, spec: { ...(e.spec || {}) } };
+    if (f.startsWith('spec:')) { const s = f.slice(5); if (val == null) delete ne.spec[s]; else ne.spec[s] = val; }
+    else ne[f] = (f === 'kcal' || f === 'hr') && val != null ? Math.floor(val) : val;
+    setE(doc, T, ne);
+    trainCardio2Write(c.planId, doc, c.iso);
+    return ne;
+  };
+  box.querySelectorAll('[data-cardio2-f]').forEach(inp => inp.onchange = () => {
+    const c = ctxOf(inp); if (!c) return;
+    const f = inp.dataset.cardio2F;
+    const val = f === 'spec:split' ? splitOf(inp.value) : numOf(inp.value);
+    const ne = applyField(inp.dataset.cardio2T, c, f, val);
+    if (ne && inp.dataset.cardio2T === 'warm') {
+      const root = inp.closest('[data-cardio2-plan]');
+      const w = root ? root.querySelector('[data-cardio2-warn]') : null;
+      if (w) w.hidden = !(ne.minutes != null && ne.minutes > 10);
+    }
+  });
+  box.querySelectorAll('[data-cardio2-step]').forEach(b => b.onclick = () => {
+    const c = ctxOf(b); if (!c) return;
+    const segP = b.dataset.cardio2Step.split(':');
+    const dir = Number(segP[segP.length - 1]);
+    const T = segP[0], f = segP.slice(1, -1).join(':');   /* el campo puede ser «spec:split»: la dirección es el último segmento */
+    const doc = trainCardio2Read(c.planId, c.iso), e = getE(doc, T);
+    if (!e) return;
+    let step = 1, max = null, cur = 0;
+    if (f === 'minutes') { step = 1; cur = e.minutes || 0; }
+    else if (f === 'kcal') { step = 5; cur = e.kcal || 0; }
+    else if (f === 'dist') { step = 0.1; cur = e.dist || 0; }
+    else if (f === 'hr') { step = 1; cur = e.hr || 0; }
+    else if (f.startsWith('spec:')) { const s = f.slice(5); step = TRAIN_CARDIO2_SPECS[s].step; max = TRAIN_CARDIO2_SPECS[s].max; cur = (e.spec && e.spec[s]) || 0; }
+    let val = Math.round((cur + dir * step) * 100) / 100;
+    if (val <= 0) val = null;
+    if (val != null && max != null) val = Math.min(val, max);
+    const ne = applyField(T, c, f, val);
+    if (!ne) return;
+    const root = b.closest('[data-cardio2-plan]');
+    const inp = root ? root.querySelector(`[data-cardio2-f="${f}"][data-cardio2-t="${T}"]`) : null;
+    if (inp) inp.value = val == null ? '' : (f === 'spec:split' ? trainCardio2SplitText(val) : String(val));
+    if (T === 'warm') {
+      const w = root ? root.querySelector('[data-cardio2-warn]') : null;
+      if (w) w.hidden = !(ne.minutes != null && ne.minutes > 10);
+    }
+  });
+  box.querySelectorAll('[data-cardio2-more]').forEach(b => b.onclick = () => {
+    const root = b.closest('[data-cardio2-plan]'); if (!root) return;
+    const sb = root.querySelector(`[data-cardio2-specbox="${b.dataset.cardio2More}"]`);
+    if (!sb) return;
+    sb.hidden = !sb.hidden;
+    b.textContent = sb.hidden ? t('train.cardio2.more') + ' ›' : t('train.cardio2.less') + ' ›';
+  });
+  box.querySelectorAll('[data-cardio2-photo]').forEach(b => b.onclick = () => {
+    const root = b.closest('[data-cardio2-plan]'); if (!root) return;
+    const inp = root.querySelector(`[data-cardio2-file="${b.dataset.cardio2Photo}"]`);
+    if (inp) inp.click();
+  });
+  box.querySelectorAll('[data-cardio2-file]').forEach(inp => inp.onchange = async () => {
+    const c = ctxOf(inp); if (!c) return;
+    const file = inp.files && inp.files[0];
+    if (!file) return;
+    const T = inp.dataset.cardio2File;
+    try {
+      let url = await compressFoodPhoto(file, 900);
+      if (url && url.length > 700000) url = await compressFoodPhoto(file, 640);
+      if (!url || url.length > 700000) { toast(t('common.error'), true); return; }
+      const doc = trainCardio2Read(c.planId, c.iso), e = getE(doc, T);
+      if (!e) return;
+      setE(doc, T, { ...e, photo: url });
+      trainCardio2Write(c.planId, doc, c.iso);
+      loadMyTraining();
+    } catch { toast(t('common.error'), true); }
+  });
+  box.querySelectorAll('[data-cardio2-photo-del]').forEach(b => b.onclick = () => {
+    const c = ctxOf(b); if (!c) return;
+    const T = b.dataset.cardio2PhotoDel, doc = trainCardio2Read(c.planId, c.iso), e = getE(doc, T);
+    if (!e) return;
+    setE(doc, T, { ...e, photo: null });
+    trainCardio2Write(c.planId, doc, c.iso);
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-cardio2-save]').forEach(b => b.onclick = () => {
+    const c = ctxOf(b); if (!c) return;
+    const T = b.dataset.cardio2Save, doc = trainCardio2Read(c.planId, c.iso), e = getE(doc, T);
+    if (!e) return;
+    if (!e.machine) { toast(t('train.cardio.needMode'), true); return; }
+    if (!(e.minutes > 0)) { toast(t('train.cardio.needMin'), true); return; }
+    if (T !== 'warm' && !(e.kcal > 0)) { toast(t('train.cardio2.needKcal'), true); return; }
+    setE(doc, T, { ...e, folded: true });
+    trainCardio2Write(c.planId, doc, c.iso);
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-cardio2-edit]').forEach(b => b.onclick = () => {
+    const c = ctxOf(b); if (!c) return;
+    const T = b.dataset.cardio2Edit, doc = trainCardio2Read(c.planId, c.iso), e = getE(doc, T);
+    if (!e) return;
+    setE(doc, T, { ...e, folded: false });
+    trainCardio2Write(c.planId, doc, c.iso);
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-cardio2-del]').forEach(b => b.onclick = () => {
+    const c = ctxOf(b); if (!c) return;
+    const T = b.dataset.cardio2Del, doc = trainCardio2Read(c.planId, c.iso);
+    const i = Number(T.slice(1));
+    if (Number.isInteger(i) && doc.extras[i]) doc.extras.splice(i, 1);
+    trainCardio2Write(c.planId, doc, c.iso);
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-cardio2-add]').forEach(b => b.onclick = () => {
+    const c = ctxOf(b); if (!c) return;
+    const doc = trainCardio2Read(c.planId, c.iso);
+    doc.extras.push(blank());
+    trainCardio2Write(c.planId, doc, c.iso);
+    loadMyTraining();
+  });
 }
 /* MIS HOBBIES EN LA TARJETA (AUTH-438; orden de Ronald
    del 2026-11-12 18:29 CST y sus decisiones D1–D4 de esa
@@ -45340,7 +45862,8 @@ async function loadMyTraining() {
   const dayCompactHTML = (day, di, mode, log, tailHTML) => {
     const label = day.label || ('Día ' + (di + 1));
     let exHtml;
-    if (mode === 'edit') { const effL = trainEffectiveList(plan, di); const canMv = trainReorderAllowed();
+    let nEx = (day.exercises || []).length;   /* AUTH-481: los ejercicios pintados mandan en la numeración de los puntos de cardio */
+    if (mode === 'edit') { const effL = trainEffectiveList(plan, di); const canMv = trainReorderAllowed(); nEx = effL.length;
       /* AUTH-462 (D-B): con la ruta de la sesión viva, la lista
          se pinta en EL ORDEN DE LA RUTA — el saltado se ve al
          final, en el orden en que de verdad se va a hacer. Cada
@@ -45392,9 +45915,22 @@ async function loadMyTraining() {
     /* AUTH-426: el calentamiento abre también la tarjeta
        vestida — editable en edición (su sesión de esa fecha) y
        de solo lectura, desde el registro, en día cerrado; en
-       la ficha del entrenador (mode 'ficha') no nace. */
-    const cardioHtml = (mode === 'edit' || mode === 'done') ? trainCardioWarmHTML(plan, di, (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW) ? TRAIN_VIEW.sel : undefined, mode === 'done' ? log : null) : '';
-    return `<h4>${esc(label)}</h4>${cardioHtml}${exHtml}${mode === 'edit' ? trainRemovedLineHTML(plan, di, (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW) ? TRAIN_VIEW.sel : undefined) : ''}${trainSessionHTML(day)}${tail}${trainExtrasZoneHTML()}`;
+       la ficha del entrenador (mode 'ficha') no nace.
+       AUTH-481: en edición lo pinta el módulo nuevo como punto
+       n.º 1 de la lista, con los puntos de cardio añadidos tras
+       las filas y la línea del día tras los puntos; en día
+       cerrado manda el pintor de lectura de siempre (que ya
+       sabe leer el bloque «cardioList» nuevo). */
+    const selIsoC = (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW) ? TRAIN_VIEW.sel : undefined;
+    const cardioHtml = mode === 'done' ? trainCardioWarmHTML(plan, di, selIsoC, log)
+      : mode === 'edit' ? trainCardio2WarmHTML(plan, di, selIsoC, { label: true }) : '';
+    let cardioTail = '';
+    if (mode === 'edit') {
+      const docC = trainCardio2Read(plan.id, selIsoC);
+      cardioTail = trainCardio2ExtrasHTML(plan, di, selIsoC, (trainCardio2ViewOf(docC.warm) ? 1 : 0) + nEx + 1)
+        + trainCardio2LineHTML(plan.id, selIsoC);
+    }
+    return `<h4>${esc(label)}</h4>${cardioHtml}${exHtml}${cardioTail}${mode === 'edit' ? trainRemovedLineHTML(plan, di, selIsoC) : ''}${trainSessionHTML(day)}${tail}${trainExtrasZoneHTML()}`;
   };
   /* ENTRENAMIENTO-HOY: tira semanal + tarjeta del día (por defecto
      HOY). La configuración de pendientes es la ancla «cfg»: si
@@ -45936,6 +46472,7 @@ async function loadMyTraining() {
   trainWireUnitSels(box);
   trainExtrasWire(box);
   trainCardioWire(box);   /* AUTH-426: el cableado del calentamiento, junto al de la zona de extras */
+  trainCardio2Wire(box);   /* AUTH-481: el de los puntos de cardio del registro nuevo, en el mismo sitio */
   box.querySelectorAll('[data-train-set-load]').forEach(inp => inp.oninput = () => {
     const [di, ei, si] = inp.dataset.trainSetLoad.split(':');
     const c = TRAIN_CHECKS[di + ':' + ei];
@@ -46158,6 +46695,22 @@ async function loadMyTraining() {
        de claves de training_logs: sin delta de reglas. */
     const cardioClose = trainCardioForClose(plan.id);
     if (cardioClose) data.cardioWarmup = cardioClose;
+    /* AUTH-481 · LOS PUNTOS DE CARDIO VIAJAN AL REGISTRO: si
+       la sesión usó el registro nuevo (hay clave cardio2 en el
+       dispositivo), su cierre manda — el calentamiento se
+       proyecta al bloque legado de arriba (y lo sustituye: el
+       borrador viejo pudo quedar desfasado tras la conversión)
+       y TODAS las entradas válidas del día viajan como bloque
+       propio «cardioList», junto a exercisesDone y sin contar
+       como ejercicios. Sin clave cardio2, esta rama no existe
+       y la carga es byte a byte la de siempre. Sin delta de
+       reglas (la regla viva no cierra las claves del doc). */
+    const cardio2Close = trainCardio2ForClose(plan.id);
+    if (cardio2Close) {
+      if (cardio2Close.warmLegacy) data.cardioWarmup = cardio2Close.warmLegacy;
+      else delete data.cardioWarmup;
+      if (cardio2Close.list) data.cardioList = cardio2Close.list;
+    }
     /* CRONÓMETRO DE SESIÓN + ENCUESTA (punto 88 de la cola): si el
        reloj de esta sesión corre, el confirmar lo DETIENE aquí —
        la duración real se mide en este instante — y la encuesta
@@ -46185,6 +46738,7 @@ async function loadMyTraining() {
       TRAIN_CLOSE_DI = null;
       trainEditsClear(plan.id);   /* PERSONALIZA: los cambios de hoy ya viven en el registro; el borrador local se retira */
       trainCardioWrite(plan.id, null);   /* AUTH-426: el borrador del calentamiento se retira con el día, como las ediciones */
+      trainCardio2Write(plan.id, null);   /* AUTH-481: y su gemelo nuevo, en el mismo sitio */
       Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
       trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: cerrado el día, el borrador de marcas se retira con él */
       sessPillTick();
@@ -61540,7 +62094,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261115-dock-sin-sesion';
+const PWA_SW_VERSION = '20261116-calentamiento-cardio';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
