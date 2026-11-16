@@ -31557,6 +31557,113 @@ async function asstDictDoorOpen() {
   try { navOpenPage('train'); } catch {}
   dictSheetOpen(plan, di, today);
 }
+/* ── EL PERFIL DE VOZ (AUTH-483; orden de Ronald, 2026-11-16) ──
+   Tras escuchar una reflexión, Ronald: «El escuchar está
+   hermoso, pero quiero que uses la voz de un hombre con el
+   mismo ritmo de Inmagis. Más pausado, menos mecánico».
+   TODA la voz audible de la app pasa por asstSpeak (las
+   respuestas del coach, el artículo de la sesión y las
+   tarjetas de «Mientras te mueves»), así que el perfil vive
+   aquí, en un solo sitio, y asstSpeak es su único cliente:
+   · VOZ DE HOMBRE PRIMERO: al elegir entre las voces del
+     aparato se prefiere una voz del idioma identificable
+     como de hombre; luego, cualquier voz del idioma (la
+     regla de AUTH-276: la local antes que la remota, que
+     puede quedarse muda en iOS); y solo al final, sin voz
+     del idioma, la del sistema (no se fija ninguna).
+     La identificación es por el NOMBRE de la voz: las
+     listas de nombres de hombre de cada idioma, comparadas
+     por palabra completa tras quitar acentos (así «Jorge»
+     y «Juan» cuentan, y «Paulina» o «Samantha» no se
+     cuelan por parecerse); un marcador explícito del
+     propio nombre («male», «masculino») también cuenta,
+     y uno femenino excluye.
+   · RITMO DE INMAGIS: rate 0.88 (más pausado que el 1.0
+     de siempre) y pitch 1.0 (el tono natural, sin
+     robotizar), en todas las locuciones.
+   · MENOS MECÁNICO: el texto se enuncia FRASE A FRASE
+     (vozSplitPhrases + una locución por frase, encoladas
+     en orden), para que las pausas entre frases respiren
+     como en las grabaciones, en vez de una sola locución
+     corrida de hasta 1.500 caracteres. */
+const VOZ_PROFILE = { rate: 0.88, pitch: 1.0 };
+const VOZ_MALE_ES = ['adrian', 'alberto', 'alejandro', 'alfonso', 'alfredo', 'alonso', 'alvaro', 'andres', 'angel', 'antonio', 'arturo', 'borja', 'carlos', 'cesar', 'cristian', 'cristobal', 'damian', 'daniel', 'dario', 'david', 'diego', 'eduardo', 'elias', 'emiliano', 'emilio', 'enrique', 'ernesto', 'esteban', 'fabian', 'federico', 'felipe', 'felix', 'fernando', 'francisco', 'gabriel', 'gerardo', 'german', 'gonzalo', 'guillermo', 'gustavo', 'hector', 'hernan', 'hugo', 'ignacio', 'ismael', 'ivan', 'jaime', 'javier', 'jeronimo', 'jesus', 'joaquin', 'jonathan', 'jorge', 'jose', 'juan', 'julio', 'leandro', 'leonardo', 'lucas', 'luciano', 'luis', 'manuel', 'marcelo', 'marco', 'marcos', 'mariano', 'mario', 'martin', 'mateo', 'matias', 'mauricio', 'miguel', 'nicolas', 'octavio', 'orlando', 'oscar', 'pablo', 'patricio', 'pedro', 'rafael', 'ramiro', 'ramon', 'raul', 'ricardo', 'roberto', 'rodrigo', 'rolando', 'ruben', 'salvador', 'samuel', 'santiago', 'sebastian', 'sergio', 'simon', 'teodoro', 'tomas', 'vicente', 'victor'];
+const VOZ_MALE_EN = ['aaron', 'adam', 'alex', 'alfred', 'andrew', 'anthony', 'arthur', 'austin', 'benjamin', 'bill', 'brandon', 'brian', 'bruce', 'caleb', 'carl', 'carlos', 'carter', 'cedric', 'chad', 'charles', 'chase', 'chester', 'chris', 'christian', 'christopher', 'clarence', 'clark', 'claude', 'clayton', 'clifford', 'clinton', 'clyde', 'cody', 'cole', 'colin', 'conrad', 'corey', 'craig', 'curtis', 'cyrus', 'dale', 'dalton', 'damian', 'damon', 'dan', 'daniel', 'danny', 'dante', 'darius', 'darrell', 'darren', 'dave', 'david', 'davis', 'dean', 'dennis', 'derek', 'derrick', 'desmond', 'devin', 'devon', 'dexter', 'dick', 'dillon', 'dimitri', 'dion', 'dirk', 'dmitri', 'dmitry'];
+function vozTokens(nombre) {
+  return String(nombre || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/[^a-z]+/).filter(Boolean);
+}
+function vozEsDeHombre(v, want) {
+  const toks = vozTokens(v && v.name);
+  if (!toks.length) return false;
+  if (toks.includes('female') || toks.includes('femenina') || toks.includes('femenino') || toks.includes('mujer')) return false;
+  if (toks.includes('male') || toks.includes('masculino') || toks.includes('masculina') || toks.includes('hombre')) return true;
+  const lista = want === 'es' ? VOZ_MALE_ES : VOZ_MALE_EN;
+  return toks.some(tk => lista.includes(tk));
+}
+function vozPickVoice(want) {
+  let vs = [];
+  try { vs = window.speechSynthesis.getVoices() || []; } catch {}
+  if (!vs.length) return null;
+  const delIdioma = vs.filter(v => String((v && v.lang) || '').toLowerCase().startsWith(want));
+  if (!delIdioma.length) return null;
+  const hombres = delIdioma.filter(v => vozEsDeHombre(v, want));
+  return hombres.find(v => v.localService) || hombres[0] || delIdioma.find(v => v.localService) || delIdioma[0] || null;
+}
+/* La fábrica ÚNICA de locuciones audibles: nace con el
+   perfil aplicado (voz elegida, idioma, ritmo y tono).
+   La de desbloqueo de asstUnlockSpeech NO pasa por aquí:
+   es un «.» a volumen 0 que despierta el canal, no una
+   escucha, y su forma mínima es la probada de AUTH-259/276. */
+function vozUtterance(texto, want) {
+  const u = new SpeechSynthesisUtterance(texto);
+  u.lang = want === 'es' ? 'es-ES' : 'en-US';
+  u.rate = VOZ_PROFILE.rate;
+  u.pitch = VOZ_PROFILE.pitch;
+  try { const v = vozPickVoice(want); if (v) u.voice = v; } catch {}
+  return u;
+}
+/* El corte en frases: parte por la puntuación fuerte
+   (. ! ? …) quedándose con las comillas o paréntesis de
+   cierre; NO parte un decimal (el «.» de 1.5 no es fin de
+   frase); un resto sin letras ni números se pega a la
+   frase anterior; y una frase de más de 300 caracteres
+   respira en su última coma, punto y coma o dos puntos
+   antes del tope. */
+function vozSplitPhrases(text) {
+  const s = String(text == null ? '' : text).replace(/\s+/g, ' ').trim();
+  if (!s) return [];
+  const crudas = [];
+  let cur = '';
+  const volcar = () => { const p = cur.trim(); cur = ''; if (p) crudas.push(p); };
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    cur += ch;
+    const esPunto = ch === '.' && !(/\d/.test(s[i - 1] || '') && /\d/.test(s[i + 1] || ''));
+    if (ch === '!' || ch === '?' || ch === '…' || esPunto) {
+      while (i + 1 < s.length && /["»”’')\]]/.test(s[i + 1])) { cur += s[i + 1]; i++; }
+      volcar();
+    }
+  }
+  volcar();
+  const out = [];
+  const empujar = p => {
+    p = String(p || '').trim();
+    if (!p) return;
+    if (out.length && p.replace(/[^\p{L}\p{N}]/gu, '').length < 2) out[out.length - 1] += ' ' + p;
+    else out.push(p);
+  };
+  for (const p0 of crudas) {
+    let p = p0;
+    while (p.length > 300) {
+      const corte = Math.max(p.lastIndexOf(', ', 300), p.lastIndexOf('; ', 300), p.lastIndexOf(': ', 300));
+      if (corte < 80) break;
+      empujar(p.slice(0, corte + 1));
+      p = p.slice(corte + 2).trim();
+    }
+    empujar(p);
+  }
+  return out.length ? out : [s];
+}
 /* ── La voz del teléfono (fase 1) ── */
 function asstUnlockSpeech() {
   /* DESBLOQUEO iOS (AUTH-2026-11-05-259; corregido por
@@ -31602,18 +31709,37 @@ function asstSpeak(text) {
     if (!('speechSynthesis' in window)) return;
     const syn = window.speechSynthesis;
     const gen = (ASST.speakGen = (ASST.speakGen || 0) + 1);
-    const mk = () => {
-      const u = new SpeechSynthesisUtterance(String(text).slice(0, 1500));
-      const want = LANG === 'es' ? 'es' : 'en';
-      /* AUTH-2026-11-06-276: se prefiere la voz LOCAL del idioma
-         (localService: la descargada en el aparato); una voz solo
-         remota puede quedarse muda en iOS. Sin ninguna local, la
-         primera del idioma, como antes. */
-      try { const vs = syn.getVoices() || []; const v = vs.find(x => (x.lang || '').toLowerCase().startsWith(want) && x.localService) || vs.find(x => (x.lang || '').toLowerCase().startsWith(want)); if (v) u.voice = v; } catch {}
-      u.lang = LANG === 'es' ? 'es-ES' : 'en-US';
-      u.onend = () => { if (ASST.speakWatch) { clearTimeout(ASST.speakWatch); ASST.speakWatch = null; } ASST.speakAwait = false; asstSpeakPaint(false); };
-      u.onerror = () => { if (ASST.speakWatch) { clearTimeout(ASST.speakWatch); ASST.speakWatch = null; } ASST.speakAwait = false; asstSpeakPaint(false); };
-      return u;
+    /* AUTH-483: la tanda de esta llamada — el texto cortado en
+       frases (vozSplitPhrases) y una locución por frase, todas
+       nacidas de la fábrica del perfil (vozUtterance: voz de
+       hombre primero — la local antes que la remota, doctrina
+       AUTH-276 —, ritmo pausado y tono natural). Cada tanda
+       lleva su número de LOTE (ASST.speakBatch, que crece con
+       cada tanda construida, también la del reintento): solo
+       la ÚLTIMA frase de la tanda vigente apaga el rótulo al
+       terminar — el fin de una tanda cancelada (sus eventos
+       llegan tarde, tras el cancel) no apaga la que la
+       reemplaza, ni siquiera dentro de la misma llamada. */
+    const want = LANG === 'es' ? 'es' : 'en';
+    const frases = vozSplitPhrases(ASST.lastSay);
+    if (!frases.length) return;
+    const mkBatch = () => {
+      const lote = (ASST.speakBatch = (ASST.speakBatch || 0) + 1);
+      const tanda = frases.map((f, i) => {
+        const u = vozUtterance(f, want);
+        const esUltima = i === frases.length - 1;
+        const fin = () => {
+          if (!esUltima || ASST.speakGen !== gen || ASST.speakBatch !== lote) return;
+          if (ASST.speakWatch) { clearTimeout(ASST.speakWatch); ASST.speakWatch = null; }
+          ASST.speakAwait = false;
+          asstSpeakPaint(false);
+        };
+        u.onend = fin;
+        u.onerror = fin;
+        return u;
+      });
+      tanda.lote = lote;
+      return tanda;
     };
     let started = false, retried = false;
     /* AUTH-2026-11-06-287: EL VIGILANTE DE FIN DE FRASE. El reporte de
@@ -31626,10 +31752,16 @@ function asstSpeak(text) {
        el rótulo y ASST.speaking quedaban encendidos para siempre.
        Este vigilante estima la duración de la frase (tope 60 s) y,
        si vence sin fin, cancela, apaga el rótulo y avisa con la
-       salida de «Escuchar» (asstVoiceFail). */
+       salida de «Escuchar» (asstVoiceFail).
+       AUTH-483: la estimación se divide por el rate pausado del
+       perfil y el tope sube a 180 s — una lectura larga (hasta
+       1.500 caracteres) a ritmo de Inmagis pasa de 60 s sin
+       estar colgada — y el vigilante cubre la tanda ENTERA:
+       se arma al arrancar la primera frase y lo desarma el
+       fin de la última. */
     const armWatch = () => {
       if (ASST.speakWatch) clearTimeout(ASST.speakWatch);
-      const est = Math.min(60000, Math.max(6000, String(text).length * 95 + 5000));
+      const est = Math.min(180000, Math.max(6000, Math.round(String(text).length * 95 / VOZ_PROFILE.rate) + 5000));
       ASST.speakWatch = setTimeout(() => {
         ASST.speakWatch = null;
         if (ASST.speakGen !== gen || !ASST.speaking || ASST.muted) return;
@@ -31642,10 +31774,13 @@ function asstSpeak(text) {
     const speakNow = () => {
       if (ASST.speakGen !== gen) return;
       try { syn.resume(); } catch {}
-      const u = mk();
-      u.onstart = () => { started = true; asstSpeakPaint(true); armWatch(); };
+      /* AUTH-483: se encola la tanda ENTERA, frase a frase y en
+         orden; el arranque que cuenta es el de la PRIMERA
+         frase (su onstart pinta y arma el vigilante). */
+      const tanda = mkBatch();
+      tanda[0].onstart = () => { if (ASST.speakGen !== gen || ASST.speakBatch !== tanda.lote) return; started = true; asstSpeakPaint(true); armWatch(); };
       ASST.speakAwait = true;
-      syn.speak(u);
+      tanda.forEach(u => { try { syn.speak(u); } catch {} });
       /* AUTH-2026-11-06-276: «Hablando…» se pinta cuando la utterance
          ARRANCA (onstart), no al invocarla — pintarlo al invocar
          mentía: la app decía «Hablando…» de una frase que iOS había
@@ -31658,11 +31793,16 @@ function asstSpeak(text) {
       setTimeout(() => {
         if (started || retried || ASST.muted || ASST.speakGen !== gen) return;
         retried = true;
+        /* AUTH-483: el reintento cancela la cola ENTERA antes de
+           re-hablar — re-encolar sobre una cola a medias
+           duplicaría las frases — y vuelve a encolar la tanda
+           completa tras re-despertar el canal. */
+        try { syn.cancel(); } catch {}
         try { asstUnlockSpeech(); } catch {}
-        const u2 = mk();
-        u2.onstart = () => { started = true; asstSpeakPaint(true); armWatch(); };
+        const tanda2 = mkBatch();
+        tanda2[0].onstart = () => { if (ASST.speakGen !== gen || ASST.speakBatch !== tanda2.lote) return; started = true; asstSpeakPaint(true); armWatch(); };
         ASST.speakAwait = true;
-        syn.speak(u2);
+        tanda2.forEach(u => { try { syn.speak(u); } catch {} });
         setTimeout(() => {
           if (!started && !ASST.muted && ASST.speakGen === gen) { ASST.speakAwait = false; asstSpeakPaint(false); asstVoiceFail(); }
         }, 1500);
@@ -62168,7 +62308,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261116-cuadrito-cardio';
+const PWA_SW_VERSION = '20261116-voz-escuchar';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
