@@ -6492,6 +6492,7 @@ en: {
   'sess.ofDay': '{p}% of the day',
   'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel', 'sess.barFinish': 'Finish',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
+  'sess.cardioIncl': 'includes {min} min of cardio',
   'sess.pillSub': 'It only stops when you finish, in Training',
   'sess.kicker': 'QUICK SURVEY', 'sess.title': 'Workout finished!',
   'sess.dur': 'Duration: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -11767,6 +11768,7 @@ es: {
   'sess.ofDay': '{p}% del día',
   'sess.barLabel': 'Barra de la sesión', 'sess.fullLabel': 'Panel de la sesión', 'sess.barFinish': 'Finalizar',
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
+  'sess.cardioIncl': 'incluye {min} min de cardio',
   'sess.pillSub': 'Solo se detiene al finalizar, en Entrenamiento',
   'sess.kicker': 'ENCUESTA RÁPIDA', 'sess.title': '¡Entrenamiento finalizado!',
   'sess.dur': 'Duración: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -39015,6 +39017,25 @@ function sessFmtClock(ms) {
 function sessTotalTagHTML() {
   return `<span class="sp-total-tag"><span class="tag-full">${esc(t('sess.totalTag'))}</span><span class="tag-short">${esc(t('sess.totalTagShort'))}</span></span>`;
 }
+/* AUTH-482 · EL TOTAL DEL CUADRITO CUENTA TAMBIÉN EL
+   CARDIO (decisión de Ronald, 2026-11-16, su opción A):
+   el reloj grande de la píldora y de la cara completa =
+   el tiempo vivo desde el arranque del cronómetro + los
+   minutos de cardio del día que ese reloj NO abarca
+   (trainCardio2PillMin: la suma de AUTH-481 con su regla
+   anti-doble-conteo). La línea pequeña que lo explica
+   nace solo si esos minutos son > 0; sin cardio incluido,
+   el cuadrito es el de siempre, sin línea. El reloj del
+   ejercicio, el «SIGUE» y el cierre del día no se tocan:
+   el elapsedSec del registro sigue siendo el cronómetro
+   puro, como hasta hoy. */
+function sessCardioMin(run) {
+  if (!run || !run.planId) return 0;
+  try { const m = trainCardio2PillMin(run.planId); return (typeof m === 'number' && isFinite(m) && m > 0) ? m : 0; } catch { return 0; }
+}
+function sessCardioLineHTML(cls, cMin) {
+  return cMin > 0 ? `<div class="${cls}">${esc(t('sess.cardioIncl', { min: fmt(cMin) }))}</div>` : '';
+}
 function sessFmtExClock(ms) {
   const s = Math.max(0, Math.floor(ms / 1000)), p2 = n => String(n).padStart(2, '0');
   return s >= 3600
@@ -39133,9 +39154,10 @@ function sessPillSync(run) {
   let pillPaused = false;
   let pillChip = false;
   let pillFaces = false;
+  const cMin = sessCardioMin(run);   /* AUTH-482: los minutos de cardio que el total suma (0 = cuadrito de siempre) */
   if (!st) {
-    sig = 'deg|' + (run.label || '');
-    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}</div><div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + sessDoorsHTML();
+    sig = 'deg|' + (run.label || '') + '|c' + cMin;
+    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}</div>${sessCardioLineHTML('sp-cardio', cMin)}<div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + sessDoorsHTML();
   } else {
     const ck = st.di + ':' + st.cur;
     const curChk = st.checks[ck] || null;
@@ -39146,7 +39168,7 @@ function sessPillSync(run) {
     const doneN = st.eff.filter((_, ei) => { const c = st.checks[st.di + ':' + ei]; return !!(c && c.done === true); }).length;
     const pct = total ? Math.round(100 * doneN / total) : 0;
     const tipPh = (typeof UDATA !== 'undefined' && UDATA && UDATA.photoURL) || '';
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', tipPh ? 'p' + tipPh.length : 'i:' + (((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || ''))].join('|');
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', tipPh ? 'p' + tipPh.length : 'i:' + (((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '')), cMin].join('|');
     const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
     /* AUTH-434 · LA MÁQUINA DE TRES ESTADOS EN LA
        PÍLDORA — la misma de la tarjeta, leída del mismo
@@ -39191,6 +39213,7 @@ function sessPillSync(run) {
     pillFaces = flowSt === 'closing' && flowHasData(curChk);
     const flameLeft = pct <= 8 ? '13px' : (pct >= 92 ? 'calc(100% - 13px)' : pct + '%');
     html = `<div class="sp-main"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot${flowSt === 'paused' ? ' is-paused' : (curChk ? '' : ' is-todo')}" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}${flowSt === 'paused' ? `<span class="sp-pause-tag">${esc(t('train.flow.pausedTag'))}</span>` : ''}</div>`
+      + sessCardioLineHTML('sp-cardio', cMin)
       + `<div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div>`
       + `<div class="sp-cur">${esc(curName)}</div>${chipLine}<div class="sp-btnrow">${btn}${chip}</div></div>`
       + (st.nxt != null ? `<div class="sp-sep" aria-hidden="true"></div><div class="sp-next"><span class="sp-next-lab">${esc(t('sess.pillNext'))}</span><span class="sp-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sp-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '')
@@ -39228,7 +39251,7 @@ function sessPillSync(run) {
      del flujo de AUTH-434/449/451 no cambian. En la cara
      de cierre no hay pastilla y su tiempo no se lee
      aquí: ya está bancado. */
-  if (tEl) tEl.textContent = sessFmtClock(Date.now() - run.start);
+  if (tEl) tEl.textContent = sessFmtClock(Date.now() - run.start + Math.round(cMin * 60000));   /* AUTH-482: vivo + cardio incluido */
   const cEls = pill.querySelectorAll('.sess-pill-exclock');
   if (st && cEls.length) {
     const exTxt = '⏱ ' + sessFmtExClock(flowClockMs(st.di + ':' + st.cur));
@@ -39577,15 +39600,16 @@ function sessFullSync(run) {
   let st = null; try { st = trainBarState(); } catch {}
   const msg = shareMsgRevealedFor(todayISO());
   const refl = sessReflOfDay();
+  const cMin = sessCardioMin(run);   /* AUTH-482: el mismo total que la píldora — vivo + cardio incluido */
   const head = `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}</div>`;
-  const clockBlk = `<div class="sf-clockrow"><span class="sf-clock" id="sess-full-time">00:00:00</span>${sessTotalTagHTML()}</div>`;
+  const clockBlk = `<div class="sf-clockrow"><span class="sf-clock" id="sess-full-time">00:00:00</span>${sessTotalTagHTML()}</div>` + sessCardioLineHTML('sf-cardio', cMin);
   const msgBlk = msg ? `<div class="sf-card"><div class="sf-card-lab">${esc(t('sess.dayMsg'))}</div><div class="sf-msg"><span class="sf-msg-ic" aria-hidden="true">${esc(msg.icon || '🌟')}</span><span class="sf-msg-text">${esc(msg.text)}</span></div></div>` : '';
   const minBtn = `<button type="button" class="sf-min" data-sess-view="bar">⌄ ${esc(t('sess.minimize'))}</button>`;
   let sig, html;
   if (!st) {
     /* Sin estado del día: reloj, día, mensaje y reflexión —
        ningún ejercicio inventado. */
-    sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO()].join('|');
+    sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin].join('|');
     html = `<div class="sf-col">${head}${clockBlk}${msgBlk}${sessReflHTML()}${minBtn}</div>`;
   } else {
     const ck = st.di + ':' + st.cur;
@@ -39616,7 +39640,7 @@ function sessFullSync(run) {
     const nxtBlk = (st.nxt != null && st.nxt !== st.cur)
       ? `<div class="sf-next"><span class="sf-next-lab">${esc(t('sess.pillNext'))}</span><span class="sf-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sf-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '';
     const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO()].join('|');
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin].join('|');
     html = `<div class="sf-col">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
@@ -39625,7 +39649,7 @@ function sessFullSync(run) {
     full.setAttribute('aria-label', t('sess.fullLabel'));
   }
   const tEl = $('sess-full-time');
-  if (tEl) tEl.textContent = sessFmtClock(Date.now() - run.start);
+  if (tEl) tEl.textContent = sessFmtClock(Date.now() - run.start + Math.round(cMin * 60000));   /* AUTH-482: vivo + cardio incluido */
   if (st) {
     const cEls = full.querySelectorAll('.sess-full-exclock');
     if (cEls.length) {
@@ -43369,6 +43393,11 @@ function trainCardio2San(v) {
   const posI = x => { const n = posN(x); return n == null ? null : Math.floor(n); };
   const out = { machine: meta ? meta.id : null, minutes: posN(v.minutes), kcal: posI(v.kcal),
     dist: posN(v.dist), hr: posI(v.hr), spec: {}, photo: null, folded: v.folded === true };
+  /* AUTH-482: el sello de ventana del cuadrito (win: ¿el
+     cronómetro de la sesión ya corría cuando esta entrada
+     contó por primera vez?) sobrevive al saneado; sin él,
+     la entrada se lee como de antes de este paquete. */
+  if (v.win === 0 || v.win === 1) out.win = v.win;
   if (meta) for (const s of meta.spec) {
     const raw = (v.spec && typeof v.spec === 'object') ? Number(v.spec[s]) : NaN;
     if (isFinite(raw) && raw > 0) out.spec[s] = Math.min(raw, TRAIN_CARDIO2_SPECS[s].max);
@@ -43414,6 +43443,19 @@ function trainCardio2Write(planId, doc, iso) {
     if (doc == null) localStorage.removeItem(trainCardio2Key(planId, iso));
     else {
       const s = trainCardio2SanDoc(doc);
+      /* AUTH-482 · EL SELLO DE VENTANA (la regla
+         anti-doble-conteo del cuadrito): la primera vez que
+         una entrada CUENTA — el calentamiento con máquina y
+         minutos; el añadido completo, con sus calorías — el
+         borrador guarda si el cronómetro de la sesión YA
+         corría al registrarla (win = 1: ese tiempo ya lo
+         abarca el reloj vivo) o aún no (win = 0). El sello
+         nace una sola vez y no se mueve: editar la entrada
+         después no lo cambia. La línea «Cardio hoy» no lo
+         usa; es solo del cuadrito (trainCardio2PillMin). */
+      const running = !!trainChronoRead(planId);
+      if (s.warm && s.warm.win == null && trainCardio2ViewOf(s.warm)) s.warm.win = running ? 1 : 0;
+      s.extras.forEach(e => { if (e.win == null && trainCardio2ExtraValid(e)) e.win = running ? 1 : 0; });
       if (!s.warm && !s.extras.length) localStorage.removeItem(trainCardio2Key(planId, iso));
       else localStorage.setItem(trainCardio2Key(planId, iso), JSON.stringify(s));
     }
@@ -43448,6 +43490,24 @@ function trainCardio2Totals(planId, iso) {
   if (w) { min += w.minutes; if (w.kcal) kcal += w.kcal; }
   doc.extras.forEach(e => { const v = trainCardio2ExtraValid(e); if (v) { min += v.minutes; kcal += v.kcal; } });
   return { min, kcal };
+}
+/* AUTH-482 · LOS MINUTOS QUE EL CUADRITO SUMA A SU TOTAL:
+   la misma suma de arriba (las mismas vistas, la misma
+   validez) MENOS los puntos sellados dentro de la ventana
+   de la sesión (win = 1): sus minutos ya los abarca el
+   reloj vivo del cronómetro y sumarlos otra vez contaría
+   dos veces el mismo tiempo — p. ej., el calentamiento
+   hecho como punto 1 de la ruta con la sesión corriendo y
+   registrado entonces. Sin sello o con win = 0, el punto
+   suma entero. La línea «Cardio hoy» sigue usando la suma
+   completa: el sello es solo de esta exhibición. */
+function trainCardio2PillMin(planId, iso) {
+  const doc = trainCardio2Read(planId, iso);
+  let min = 0;
+  const w = trainCardio2ViewOf(doc.warm);
+  if (w && !(doc.warm && doc.warm.win === 1)) min += w.minutes;
+  doc.extras.forEach(e => { const v = trainCardio2ExtraValid(e); if (v && e.win !== 1) min += v.minutes; });
+  return min;
 }
 /* La proyección del calentamiento al bloque legado de
    AUTH-426: modalidad equivalente, distancia en su unidad,
@@ -62094,7 +62154,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261116-calentamiento-cardio';
+const PWA_SW_VERSION = '20261116-cuadrito-cardio';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
