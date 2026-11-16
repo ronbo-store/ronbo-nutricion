@@ -4543,7 +4543,54 @@ en: {
   'planau.cookOptNoRep': 'No repeats within the week',
   'planau.cookOptRepOk': 'Repeating is fine, simpler',
   'planau.cookSave': 'Save and build my week',
-  'planau.cookNeed': 'Answer both questions so I can build your week',
+  'planau.cookNeed': 'Answer the questions so I can build your week',
+  'planau.cookQ3': 'What food feels like home to you?',
+  'planau.cookCui.latina': 'Latin',
+  'planau.cookCui.mediterranea': 'Mediterranean',
+  'planau.cookCui.asiatica': 'Asian',
+  'planau.cookCui.americana': 'American',
+  'planau.cookCui.europea': 'European',
+  'planau.cookCui.todo': 'A bit of everything',
+  'planau.cookQ4': 'How much time do you have to cook on weekdays?',
+  'planau.cookTime15': '15 minutes',
+  'planau.cookTime30': '30 minutes',
+  'planau.cookTime45': '45 minutes',
+  'planau.cookTimeFree': 'No rush',
+  'planau.cookQ5': 'How do you get on in the kitchen?',
+  'planau.cookLvl.empezando': 'I am just starting',
+  'planau.cookLvl.defiende': 'I can hold my own',
+  'planau.cookLvl.encanta': 'I love cooking',
+  'planau.mech.sencilla': 'Simple',
+  'planau.mech.normal': 'Normal',
+  'planau.mech.elaborada': 'Elaborate',
+  'planau.mechIngs': '{n} ingredients',
+  'planau.whyCui': 'Picked for you: from the food you grew up with',
+  'planau.whySimple': 'Picked for you: simple, with few ingredients',
+  'planau.whyTime': 'Picked for you: it fits your {n}-minute cooking time',
+  'planau.whyShared': 'Picked for you: it shares ingredients with your week',
+  'planau.mechRefine': 'Fine-tune my planner · 3 quick questions',
+  'planau.dishMenu': 'Manage this dish',
+  'planau.dishChange': 'Swap this dish',
+  'planau.dishAdjust': 'Adjust the amount',
+  'planau.dishAdjustSave': 'Save the adjustment',
+  'planau.dishRemove': 'Remove this dish',
+  'planau.dishAdd': 'Add a dish',
+  'planau.addSlotTitle': 'Add a dish to which meal?',
+  'planau.addFull': 'This day already has every meal',
+  'planau.pickSearch': 'Search a recipe…',
+  'planau.pickEmpty': 'No recipe fits here with your filters',
+  'planau.fixAskShort': 'Do you want to keep this planning?',
+  'planau.fixKeep': 'Keep it',
+  'planau.fixAsk': 'Do you want to keep this planning permanently? Your next weeks will start from it, adjusted to your goals each day. You can go back to automatic whenever you want.',
+  'planau.fixYes': 'Yes, keep it permanently',
+  'planau.fixNo': 'Not now',
+  'planau.fixOn': 'Fixed planning is on',
+  'planau.fixOff': 'Back to automatic',
+  'planau.fixSet': 'Your planning is now fixed',
+  'planau.fixUnset': 'Back to automatic planning',
+  'planau.fixEmpty': 'This week has no dishes to keep yet',
+  'planau.srcFixed': 'Fixed planning',
+  'planau.manualTag': 'Edited by you',
   'planau.sessionSun': 'Cooked on Sunday',
   'planau.sessionWed': 'Cooked on Wednesday',
   'planau.aisleProtein': 'Meat, fish & plant protein',
@@ -9753,7 +9800,54 @@ es: {
   'planau.cookOptNoRep': 'Que no se repitan en la semana',
   'planau.cookOptRepOk': 'Repetir está bien, más simple',
   'planau.cookSave': 'Guardar y armar mi semana',
-  'planau.cookNeed': 'Contesta las dos preguntas para armar tu semana',
+  'planau.cookNeed': 'Contesta las preguntas para armar tu semana',
+  'planau.cookQ3': '¿Qué comida te es familiar?',
+  'planau.cookCui.latina': 'Latina',
+  'planau.cookCui.mediterranea': 'Mediterránea',
+  'planau.cookCui.asiatica': 'Asiática',
+  'planau.cookCui.americana': 'Americana',
+  'planau.cookCui.europea': 'Europea',
+  'planau.cookCui.todo': 'De todo un poco',
+  'planau.cookQ4': '¿Cuánto tiempo tienes para cocinar entre semana?',
+  'planau.cookTime15': '15 minutos',
+  'planau.cookTime30': '30 minutos',
+  'planau.cookTime45': '45 minutos',
+  'planau.cookTimeFree': 'Sin apuro',
+  'planau.cookQ5': '¿Cómo te va en la cocina?',
+  'planau.cookLvl.empezando': 'Estoy empezando',
+  'planau.cookLvl.defiende': 'Me defiendo',
+  'planau.cookLvl.encanta': 'Me encanta cocinar',
+  'planau.mech.sencilla': 'Sencilla',
+  'planau.mech.normal': 'Normal',
+  'planau.mech.elaborada': 'Elaborada',
+  'planau.mechIngs': '{n} ingredientes',
+  'planau.whyCui': 'Elegida para ti: de tu comida familiar',
+  'planau.whySimple': 'Elegida para ti: sencilla, con pocos ingredientes',
+  'planau.whyTime': 'Elegida para ti: cabe en tus {n} minutos para cocinar',
+  'planau.whyShared': 'Elegida para ti: comparte ingredientes con tu semana',
+  'planau.mechRefine': 'Afina tu planificador · 3 preguntas rápidas',
+  'planau.dishMenu': 'Gestionar este plato',
+  'planau.dishChange': 'Cambiar este plato',
+  'planau.dishAdjust': 'Ajustar la cantidad',
+  'planau.dishAdjustSave': 'Guardar el ajuste',
+  'planau.dishRemove': 'Quitar este plato',
+  'planau.dishAdd': 'Agregar un plato',
+  'planau.addSlotTitle': '¿Agregar un plato a qué comida?',
+  'planau.addFull': 'Este día ya tiene todas las comidas',
+  'planau.pickSearch': 'Busca una receta…',
+  'planau.pickEmpty': 'Ninguna receta encaja aquí con tus filtros',
+  'planau.fixAskShort': '¿Quieres conservar esta planificación?',
+  'planau.fixKeep': 'Conservarla',
+  'planau.fixAsk': '¿Quieres conservar esta planificación permanentemente? Tus próximas semanas nacerán de ella, ajustadas a tus metas de cada día. Puedes volver a automático cuando quieras.',
+  'planau.fixYes': 'Sí, conservarla permanentemente',
+  'planau.fixNo': 'Ahora no',
+  'planau.fixOn': 'Planificación fija activa',
+  'planau.fixOff': 'Volver a automático',
+  'planau.fixSet': 'Tu planificación quedó fija',
+  'planau.fixUnset': 'Volviste al armado automático',
+  'planau.fixEmpty': 'Esta semana aún no tiene platos para conservar',
+  'planau.srcFixed': 'Planificación fija',
+  'planau.manualTag': 'Tocada por ti',
   'planau.sessionSun': 'Se cocina el domingo',
   'planau.sessionWed': 'Se cocina el miércoles',
   'planau.aisleProtein': 'Carnes, pescados y proteínas vegetales',
@@ -61440,7 +61534,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261115-sinonimos';
+const PWA_SW_VERSION = '20261115-mecanismo-medida';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -66633,12 +66727,22 @@ function planSheetHTML() {
   const structure = sc.structure || null;
   const baseGoals = structure && structure.days && structure.days.base ? structure.days.base.goals : null;
   let h = planTabsHTML();
+  /* AUTH-479: quien ya respondió la cocina pero no las tres
+     preguntas del mecanismo ve UNA línea plegada que las abre;
+     al responder, desaparece para siempre (la puerta de cambio
+     sigue siendo la del pie de Semana, la misma hoja). */
+  if (SCHED_PREFS && SCHED_PREFS.cookPattern && (!SCHED_PREFS.cookCuisine || !SCHED_PREFS.cookLevel || SCHED_PREFS.cookTimeMin == null)) {
+    h += `<button type="button" class="plan-mech-refine" id="plan-mech-refine">✨ ${esc(t('planau.mechRefine'))}</button>`;
+  }
   h += `<div class="plan-wk-head"><button type="button" class="plan-wk-nav" id="plan-wk-prev" aria-label="‹">‹</button><div class="plan-wk-title">${esc(t('planwk.weekOf', { range: planWeekRange(wk) }))}</div><button type="button" class="plan-wk-nav" id="plan-wk-next" aria-label="›">›</button></div>`;
   if (PLANWK.view === 'mes') return h + planMonthHTML(wk, menus);
   if (PLANWK.view === 'plan') return h + planPlanHTML(wk);
   if (isAuto) {
     h += `<p class="plan-sub">${esc(t('planau.subAuto'))}</p>`;
-    h += `<p class="progress-hint">${esc(t('menu.status.' + (auto.status || 'vigente')))} · ${esc(t('planau.srcAuto'))}</p>`;
+    /* AUTH-479: la línea de estado dice la verdad de la semana:
+       automática, de planificación fija o tocada a mano. */
+    const srcTxt = (auto.auto && auto.auto.fixed) ? t('planau.srcFixed') : t('planau.srcAuto');
+    h += `<p class="progress-hint">${esc(t('menu.status.' + (auto.status || 'vigente')))} · ${esc(srcTxt)}${auto.manual ? ' · ' + esc(t('planau.manualTag')) : ''}</p>`;
   } else if (baseGoals && baseGoals.kcal) {
     h += `<p class="plan-sub">${esc(t('planwk.sub', { kcal: Math.round(baseGoals.kcal) }))}</p>`;
   }
@@ -66703,7 +66807,13 @@ function planPaintSheet() {
   on('plan-open-proposal', () => planOpenEditor());
   on('plan-regen', () => planAutoRegen());
   on('plan-cook-change', () => { planCloseSheet(); planCookOpen(true); });
+  on('plan-mech-refine', () => { planCloseSheet(); planCookOpen(true); });
+  on('plan-fix-ask', () => planFixAskOpen());
+  on('plan-fix-off', () => planFixOff());
   on('plan-list-open', () => { PLANWK.listOpen = !PLANWK.listOpen; planPaintSheet(); });
+  body.querySelectorAll('[data-plan-dish]').forEach(b => { b.onclick = () => planDishOpen(b.getAttribute('data-plan-dish')); });
+  body.querySelectorAll('[data-plan-add]').forEach(b => { b.onclick = () => planPickOpen(b.getAttribute('data-plan-add'), null); });
+  body.querySelectorAll('[data-plan-addnew]').forEach(b => { b.onclick = () => planAddSlotOpen(b.getAttribute('data-plan-addnew')); });
   body.querySelectorAll('[data-plan-day]').forEach(b => { b.onclick = () => { const d = b.getAttribute('data-plan-day'); PLANWK.openDay = PLANWK.openDay === d ? null : d; planPaintSheet(); }; });
   body.querySelectorAll('[data-plan-src]').forEach(b => { b.onclick = () => { PLANWK.showing = b.getAttribute('data-plan-src'); planPaintSheet(); }; });
   body.querySelectorAll('[data-plan-view]').forEach(b => { b.onclick = () => { PLANWK.view = b.getAttribute('data-plan-view'); if (PLANWK.view === 'hoy') { const hoy = todayISO(); if (hoy >= PLANWK.weekStart && hoy <= planISOAddDays(PLANWK.weekStart, 6)) PLANWK.openDay = hoy; } planPaintSheet(); }; });
@@ -66892,6 +67002,120 @@ function planAutoFactorTxt(f) {
   if (f == null) return '';
   return (Math.round(f * 100) / 100).toString().replace('.', ',');
 }
+/* ═══ AUTH-479 · «EL MECANISMO A TU MEDIDA» (decisiones de
+   Ronald, 2026-11-15: «las recetas son muy rebuscadas» + cultura/
+   región, edad y tiempo para cocinar). El filtro duro y la
+   distancia a metas NO se tocan: el mecanismo REORDENA las
+   candidatas con un bonus declarado (ver planMechBonus).
+   Los datos salen del documento ligero de la receta: ingredientes
+   y pasos viven en él; cocina, dificultad y tiempo activo viajan
+   en el campo compacto `mech` (lo escribe la migración desde la
+   ficha; sin `mech`, esos factores son NEUTROS, jamás inventados).
+   Los nombres de ingredientes se leen SOLO del documento ligero
+   (nunca de ingredientsDetail, que llega tarde y por sesión):
+   así la app y el puerto del Worker puntúan idéntico siempre.
+   Este bloque es ESPEJO del puerto en el Worker (AUTH-475):
+   cualquier cambio aquí exige el mismo texto allí. ═══ */
+const PLANMECH_FAMILIES = {
+  latina: ['Mexicana', 'Latinoamericana', 'Caribeña', 'Brasileña', 'Española', 'Portuguesa'],
+  mediterranea: ['Mediterránea', 'Italiana', 'Griega', 'Turca', 'Medio Oriente'],
+  asiatica: ['Japonesa', 'China', 'Coreana', 'Tailandesa', 'India', 'Asiática'],
+  americana: ['Estadounidense', 'Británica'],
+  europea: ['Francesa', 'Europea', 'Escandinava', 'Europa del Este']
+};
+function planMechFamily(cui) {
+  if (!cui) return null;
+  for (const k of Object.keys(PLANMECH_FAMILIES)) if (PLANMECH_FAMILIES[k].includes(cui)) return k;
+  return null;
+}
+function planMechIngNames(r) {
+  const src = ((r && r.ingredients) && (r.ingredients.es || r.ingredients.en)) || (r && r.ings) || [];
+  const out = [];
+  for (const d of (src || [])) {
+    const nm = typeof d === 'string' ? d : (d && d.name) || '';
+    const n = acNorm(nm);
+    if (n) out.push(n);
+  }
+  return out;
+}
+function planMechProfile(r) {
+  const names = planMechIngNames(r);
+  const nIng = names.length;
+  const st = (r && r.steps) || {};
+  const nSteps = ((st.es || st.en) || []).length;
+  const mech = (r && r.mech) || null;
+  let actMin = null;
+  if (mech && mech.act != null && Number(mech.act) > 0) actMin = Number(mech.act);
+  else if (r && r.timeMin != null && Number(r.timeMin) > 0) actMin = Number(r.timeMin);
+  const dif = mech && typeof mech.dif === 'string' ? mech.dif : null;
+  const cui = mech && typeof mech.cui === 'string' ? mech.cui : null;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  let sum = 0, wsum = 0;
+  if (nIng > 0) { sum += 0.40 * clamp01((nIng - 4) / 16); wsum += 0.40; }
+  if (actMin != null) { sum += 0.30 * clamp01((actMin - 10) / 50); wsum += 0.30; }
+  if (nSteps > 0) { sum += 0.15 * clamp01((nSteps - 5) / 4); wsum += 0.15; }
+  const dm = { 'Fácil': 0, 'Media': 0.55, 'Avanzada': 1 };
+  if (dif != null && dm[dif] != null) { sum += 0.15 * dm[dif]; wsum += 0.15; }
+  const cx = wsum > 0 ? sum / wsum : null;
+  const label = cx == null ? null : (cx <= 0.30 ? 'sencilla' : (cx <= 0.60 ? 'normal' : 'elaborada'));
+  return { nIng, nSteps, actMin, dif, cui, cx, label, names };
+}
+function planMechAgeMult(birthYear, nowYear) {
+  const by = parseInt(birthYear, 10);
+  if (!Number.isInteger(by) || by < 1900 || by > nowYear) return 1;
+  const age = nowYear - by;
+  if (age < 40) return 1;
+  if (age < 55) return 1.15;
+  if (age < 70) return 1.3;
+  return 1.5;
+}
+function planMechWeekday(iso) {
+  const p = String(iso || '').split('-');
+  if (p.length < 3) return 1;
+  return new Date(Date.UTC(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10))).getUTCDay();
+}
+/* El bonus EXACTO del mecanismo (PLAN-479 §4): la sencillez pesa
+   más con la edad (preferencia, jamás freno); la cocina familiar
+   y el nivel empujan; lo compartido acorta la lista de compras;
+   el tope de tiempo SOLO penaliza (blando, máx. 0,5) en día de
+   trabajo cuando la receta se pasa del tiempo declarado. */
+function planMechBonus(r, mctx, weekNames) {
+  const prof = planMechProfile(r);
+  let simp = 0, cuiB = 0, difB = 0, shared = 0, timePen = 0;
+  if (prof.cx != null) simp = (1 - prof.cx);
+  if (mctx && mctx.family && prof.cui && planMechFamily(prof.cui) === mctx.family) cuiB = 1;
+  const difTab = { empezando: { 'Fácil': 1, 'Media': 0.3, 'Avanzada': 0 }, defiende: { 'Fácil': 0.6, 'Media': 1, 'Avanzada': 0.3 } };
+  if (mctx && difTab[mctx.level] && prof.dif != null && difTab[mctx.level][prof.dif] != null) difB = difTab[mctx.level][prof.dif];
+  if (weekNames && prof.names.length) {
+    let hit = 0;
+    for (const n of prof.names) if (weekNames.has(n)) hit++;
+    shared = hit / prof.names.length;
+  }
+  if (mctx && mctx.isWorkday && mctx.capMin != null && prof.actMin != null && prof.actMin > mctx.capMin) timePen = Math.min(0.5, (prof.actMin - mctx.capMin) / 60);
+  const total = 0.35 * ((mctx && mctx.ageMult) || 1) * simp + 0.30 * cuiB + 0.20 * difB + 0.15 * shared - timePen;
+  return { total, prof };
+}
+/* La plantilla fija vive en schedprefs; este saneamiento es la
+   ÚNICA forma válida: días 0–6, los 5 huecos canónicos y un
+   recipeId por hueco. Lo demás se descarta en silencio. */
+function planFixSanitize(tpl) {
+  if (!tpl || typeof tpl !== 'object' || !tpl.days || typeof tpl.days !== 'object') return null;
+  const days = {};
+  for (const wd of Object.keys(tpl.days)) {
+    if (!['0', '1', '2', '3', '4', '5', '6'].includes(wd)) continue;
+    const slots = tpl.days[wd];
+    if (!slots || typeof slots !== 'object') continue;
+    const out = {};
+    for (const sn of Object.keys(slots)) {
+      if (!['Desayuno', 'Almuerzo', 'Cena', 'Merienda', 'Snack'].includes(sn)) continue;
+      const rid = slots[sn] && typeof slots[sn].recipeId === 'string' ? slots[sn].recipeId : null;
+      if (rid) out[sn] = { recipeId: rid };
+    }
+    if (Object.keys(out).length) days[wd] = out;
+  }
+  if (!Object.keys(days).length) return null;
+  return { v: 1, setAt: Number(tpl.setAt) || 0, days };
+}
 function planAutoEmptyMeal() {
   return { recipeId: null, title: null, photoUrl: null, factor: null,
     values: { kcal: 0, prot: null, carb: null, azuc: null, gras: null, fiber: null },
@@ -66959,12 +67183,17 @@ function planAutoDayTotals(day) {
     sugar: nulls.sugar ? null : r1(s.sugar), fat: nulls.fat ? null : r1(s.fat),
     fiber: nulls.fiber ? null : r1(s.fiber) };
 }
-function planAutoPick(pool, target, di, used, repeatPref, rng) {
+function planAutoPick(pool, target, di, used, repeatPref, rng, mctx, weekNames) {
   if (!pool.length || !(target.kcal > 0)) return planAutoEmptyMeal();
   /* Distancia combinada en logaritmos: cercanía calórica al
      objetivo del ámbito + cercanía de la proteína ya escalada a
      su objetivo (una dieta alta en proteína no se sirve con
-     recetas de baja densidad proteica aunque calcen en kcal). */
+     recetas de baja densidad proteica aunque calcen en kcal).
+     AUTH-479: a esa distancia se le resta el bonus del mecanismo
+     «a tu medida» (sencillez · cocina familiar · nivel · lo
+     compartido · tope de tiempo en día de trabajo): la distancia
+     sigue mandando de lejos; el mecanismo ordena entre las
+     candidatas que ajustan. */
   const cands = pool.map(r => {
     const v = recipeValues(r);
     let score = Math.abs(Math.log((v.kcal || 1) / target.kcal));
@@ -66976,6 +67205,7 @@ function planAutoPick(pool, target, di, used, repeatPref, rng) {
         score += Math.abs(Math.log(Math.max(1, (v.prot || 0) * f) / target.prot));
       }
     }
+    score -= planMechBonus(r, mctx, weekNames).total;
     return { r, v, score };
   });
   let ordered = (repeatPref === 'norep') ? cands.filter(c => !used.has(c.r.id)) : cands.slice();
@@ -66994,7 +67224,7 @@ function planAutoPick(pool, target, di, used, repeatPref, rng) {
   used.set(pick.r.id, di);
   return planAutoMealFromRecipe(pick.r, pick.v, factor);
 }
-function planAutoProteinPass(meals, dc, di, used, inp, poolFor) {
+function planAutoProteinPass(meals, dc, di, used, inp, poolFor, fixedKeys) {
   const tgt = dc.goals.prot;
   if (!(tgt > 0)) return;
   let sum = 0;
@@ -67003,6 +67233,7 @@ function planAutoProteinPass(meals, dc, di, used, inp, poolFor) {
   for (const slotName of ['Almuerzo', 'Cena', 'Desayuno', 'Merienda', 'Snack']) {
     const ix = meals.findIndex(m => m.name === slotName && m.recipeId);
     if (ix < 0) continue;
+    if (fixedKeys && fixedKeys.has(di + ':' + slotName)) continue;   /* AUTH-479: un plato de la plantilla fija jamás lo reemplaza el pase */
     const cur = meals[ix];
     const curDens = (cur.values.kcal > 0) ? (cur.values.prot || 0) / cur.values.kcal : 0;
     let best = null;
@@ -67043,16 +67274,54 @@ function planAutoBuildWeek(inp, gen) {
     pools[slot] = arr;
     return arr;
   };
+  /* AUTH-479: el conjunto de ingredientes de la semana (para el
+     bonus de compartidos), las claves de plantilla que el pase de
+     proteína no puede tocar y el índice del catálogo. */
+  const weekNames = new Set();
+  const fixedKeys = new Set();
+  const catById = {};
+  for (const r of (inp.catalog || [])) catById[r.id] = r;
+  const builtDays = [];
   const days = inp.days.map((dc, di) => {
     const shareSet = inp.shares[dc.dayType] || inp.shares.base || [];
+    const wd = planMechWeekday(dc.date);
+    const mctx = { family: inp.mechFamily || null, ageMult: inp.ageMult || 1, level: inp.cookLevel || null,
+      capMin: (typeof inp.cookTimeMin === 'number') ? inp.cookTimeMin : null,
+      isWorkday: (inp.workdays || []).includes(wd) };
     const meals = shareSet.map(sh => {
       const target = { kcal: dc.goals.kcal * sh.kcal, prot: dc.goals.prot * sh.prot, carb: dc.goals.carb * sh.carb, azuc: dc.goals.azuc * sh.azuc, gras: dc.goals.gras * sh.gras };
-      const picked = planAutoPick(poolFor(sh.name), target, di, used, inp.cookRepeat, rng);
+      /* AUTH-479 · planificación fija: el plato de la plantilla
+         entra primero, con el factor reajustado al objetivo de
+         ESTE día; si la receta ya no existe, está bloqueada por
+         el filtro duro o no tiene kcal, el hueco lo rellena el
+         mecanismo como siempre. */
+      const tpl = (inp.fixed && inp.fixed.days && inp.fixed.days[String(wd)]) ? inp.fixed.days[String(wd)][sh.name] : null;
+      if (tpl && tpl.recipeId && catById[tpl.recipeId]) {
+        const r = catById[tpl.recipeId];
+        const v = recipeValues(r);
+        if (v.kcal > 0 && !recipeBlockedFor(r, inp.wishes)) {
+          const meal = planAutoMealFromRecipe(r, v, planAutoFactor(target.kcal, v));
+          used.set(r.id, di);
+          for (const n of planMechProfile(r).names) weekNames.add(n);
+          fixedKeys.add(di + ':' + sh.name);
+          return { name: sh.name, time: inp.times[sh.name] || MM_DEFAULT_TIMES[sh.name] || '', target, ...meal };
+        }
+      }
+      const picked = planAutoPick(poolFor(sh.name), target, di, used, inp.cookRepeat, rng, mctx, weekNames);
+      if (picked && picked.recipeId && catById[picked.recipeId]) for (const n of planMechProfile(catById[picked.recipeId]).names) weekNames.add(n);
       return { name: sh.name, time: inp.times[sh.name] || MM_DEFAULT_TIMES[sh.name] || '', target, ...picked };
     });
-    planAutoProteinPass(meals, dc, di, used, inp, poolFor);
-    return { date: dc.date, dayType: dc.dayType, goals: dc.goals,
+    planAutoProteinPass(meals, dc, di, used, inp, poolFor, fixedKeys);
+    const dayOut = { date: dc.date, dayType: dc.dayType, goals: dc.goals,
       meals: meals.map(m => { const { target, ...rest } = m; return rest; }) };
+    builtDays.push(dayOut);
+    /* Tras el pase de proteína el conjunto de la semana se
+       recalcula desde lo elegido de verdad, para el día siguiente. */
+    weekNames.clear();
+    for (const bd of builtDays) for (const m of bd.meals) {
+      if (m.recipeId && catById[m.recipeId]) for (const n of planMechProfile(catById[m.recipeId]).names) weekNames.add(n);
+    }
+    return dayOut;
   });
   return { days };
 }
@@ -67095,8 +67364,23 @@ function planAutoInputs(uid, wk, wishes, pendCfg, catalog) {
   const times = {};
   for (const m of ((pendCfg && pendCfg.meals) || [])) if (m && m.name && m.time) times[m.name] = m.time;
   const wSig = [((w.allergies) || []).slice().sort().join(','), ((w.dislikes) || []).slice().sort().join(','), acNorm(w.allergyText || ''), mealsPerDay].join('|');
-  const hash = planAutoHash([uid, wk, JSON.stringify(days), JSON.stringify(shares), wSig, SCHED_PREFS.cookPattern, SCHED_PREFS.cookRepeat, planAutoCatalogSig(catalog)].join('~'));
-  return { uid, weekStart: wk, days, shares, times, mealsPerDay, cookPattern: SCHED_PREFS.cookPattern, cookRepeat: SCHED_PREFS.cookRepeat, wishes: w, catalog, hash };
+  /* AUTH-479: los insumos del mecanismo — las tres respuestas
+     (saneadas como en schedLoadOwn), los días de trabajo, el
+     multiplicador de sencillez por edad (del año de nacimiento
+     de assessment/current; sin año, 1) y la plantilla fija —
+     entran en la firma: cambiar cualquiera rearma la PRÓXIMA
+     generación, nunca pisa una semana tocada (§ garantiza). */
+  const cookCuisine = ['latina', 'mediterranea', 'asiatica', 'americana', 'europea', 'todo'].includes(SCHED_PREFS.cookCuisine) ? SCHED_PREFS.cookCuisine : null;
+  const cookTimeMin = [15, 30, 45, 60].includes(SCHED_PREFS.cookTimeMin) ? SCHED_PREFS.cookTimeMin : (SCHED_PREFS.cookTimeMin === 'libre' ? 'libre' : null);
+  const cookLevel = ['empezando', 'defiende', 'encanta'].includes(SCHED_PREFS.cookLevel) ? SCHED_PREFS.cookLevel : null;
+  const workdays = Array.isArray(SCHED_PREFS.workdays) ? SCHED_PREFS.workdays.filter(x => Number.isInteger(x) && x >= 0 && x <= 6) : [1, 2, 3, 4, 5];
+  const birthYear = (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc && MY_ASMT.doc.birthYear) || null;
+  const ageMult = planMechAgeMult(birthYear, new Date().getFullYear());
+  const fixed = planFixSanitize(SCHED_PREFS.fixedTemplate);
+  const tplSig = fixed ? planAutoHash(JSON.stringify(fixed.days)) : 'notpl';
+  const hash = planAutoHash([uid, wk, JSON.stringify(days), JSON.stringify(shares), wSig, SCHED_PREFS.cookPattern, SCHED_PREFS.cookRepeat, planAutoCatalogSig(catalog), cookCuisine || 'nocui', String(cookTimeMin), cookLevel || 'nolvl', String(ageMult), workdays.join(','), tplSig].join('~'));
+  return { uid, weekStart: wk, days, shares, times, mealsPerDay, cookPattern: SCHED_PREFS.cookPattern, cookRepeat: SCHED_PREFS.cookRepeat, wishes: w, catalog, hash,
+    mechFamily: (cookCuisine && cookCuisine !== 'todo') ? cookCuisine : null, cookTimeMin, cookLevel, workdays, ageMult, fixed };
 }
 /* AUTH-473: el detalle de una receta (su ficha y sus
    ingredientes con gramos) ya no viaja en el documento ligero:
@@ -67157,8 +67441,17 @@ async function planAutoEnsure(force) {
   if (!catalog || !catalog.length) return found;
   let pendCfg = null;
   try { pendCfg = await schedLoadPendCfg(); } catch {}
+  /* AUTH-479: el año de nacimiento (para el peso de la
+     sencillez) sale de la misma carga de la evaluación que usa
+     el resto de la app; si aún está cargando, se espera aquí. */
+  if (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.state === 'loading') { try { await loadMyEnergy(); } catch {} }
   const inp = planAutoInputs(me, wk, wishes, pendCfg, catalog);
   if (!inp) return found;
+  /* AUTH-479: una semana TOCADA A MANO jamás la pisa el rearmado
+     por cambio de insumos — el cambio aplica desde la siguiente
+     semana sin tocar. «Otra semana» (force) es el gesto
+     explícito de la persona y sí regenera, limpiando la marca. */
+  if (found && found.manual && !force) return found;
   if (!force && found && found.auto && found.auto.inputsHash === inp.hash) return found;
   const gen = force ? (((found && found.auto && found.auto.gen) || 0) + 1) : ((found && found.auto && found.auto.gen) || 0);
   const built = planAutoBuildWeek(inp, gen);
@@ -67179,7 +67472,7 @@ async function planAutoEnsure(force) {
     status: 'vigente', basedOnPlanId: null, weekStart: wk, days: built.days,
     wishesSnapshot: { allergies: wishes.allergies || [], allergyText: wishes.allergyText || '', dislikes: wishes.dislikes || [] },
     changeRequest: null,
-    auto: { v: 1, gen, inputsHash: inp.hash, cookPattern: inp.cookPattern, cookRepeat: inp.cookRepeat, generatedAt: Date.now() },
+    auto: { v: 1, gen, inputsHash: inp.hash, cookPattern: inp.cookPattern, cookRepeat: inp.cookRepeat, generatedAt: Date.now(), fixed: !!inp.fixed },
     updatedAt: serverTimestamp() };
   if (!found) payload.createdAt = serverTimestamp();
   try {
@@ -67204,20 +67497,64 @@ function planAutoMacroTxt(meal, field) {
   if (meal.nulls && meal.nulls[field]) return '—';
   return acNum(meal.values ? meal.values[field] : null) + ' g';
 }
-function planAutoMealHTML(meal) {
+/* AUTH-479 · la transparencia del mecanismo al pintar: píldoras
+   (etiqueta de sencillez · minutos · nº de ingredientes · la
+   cocina cuando ganó por familia) y UNA línea «Elegida para ti»
+   con el primer motivo que se cumple de verdad, en el orden
+   declarado (cocina → sencilla → cabe en tu tiempo → comparte
+   con la semana). Si ninguno se cumple, no hay línea: no se
+   inventa un motivo. Todo se calcula al pintar desde el catálogo
+   en memoria y el propio documento; el documento no guarda nada
+   de esto (la identidad app↔Worker no se entera). */
+function planMechPaintFor(meal, day) {
+  if (!meal || !meal.recipeId) return '';
+  const r = (PLANWK.catalog || []).find(x => x.id === meal.recipeId);
+  if (!r) return '';
+  const prof = planMechProfile(r);
+  const prefs = (typeof SCHED_PREFS !== 'undefined' && SCHED_PREFS) || {};
+  const fam = (prefs.cookCuisine && prefs.cookCuisine !== 'todo') ? prefs.cookCuisine : null;
+  const cuiMatch = !!(fam && prof.cui && planMechFamily(prof.cui) === fam);
+  const pills = [];
+  if (prof.label) pills.push(`<span class="plan-mech-pill ${prof.label}">${esc(t('planau.mech.' + prof.label))}</span>`);
+  if (prof.actMin != null) pills.push(`<span class="plan-mech-pill">${Math.round(prof.actMin)} min</span>`);
+  if (prof.nIng > 0) pills.push(`<span class="plan-mech-pill">${esc(t('planau.mechIngs', { n: prof.nIng }))}</span>`);
+  if (cuiMatch) pills.push(`<span class="plan-mech-pill cui">${esc(prof.cui)}</span>`);
+  let why = '';
+  if (cuiMatch) why = t('planau.whyCui');
+  else if (prof.label === 'sencilla') why = t('planau.whySimple');
+  else {
+    const cap = (typeof prefs.cookTimeMin === 'number') ? prefs.cookTimeMin : null;
+    const isWd = Array.isArray(prefs.workdays) && prefs.workdays.includes(planMechWeekday(day && day.date));
+    if (isWd && cap != null && prof.actMin != null && prof.actMin <= cap) why = t('planau.whyTime', { n: cap });
+    else if (prof.names.length) {
+      const others = new Set();
+      for (const m of ((day && day.meals) || [])) {
+        if (m === meal) continue;
+        for (const g of (m.ings || [])) { const n = acNorm(g.name || ''); if (n) others.add(n); }
+      }
+      let hit = 0;
+      for (const n of prof.names) if (others.has(n)) hit++;
+      if (hit / prof.names.length >= 1 / 3) why = t('planau.whyShared');
+    }
+  }
+  if (!pills.length && !why) return '';
+  return (pills.length ? `<div class="plan-mech-pills">${pills.join('')}</div>` : '') + (why ? `<div class="plan-mech-why">✨ ${esc(why)}</div>` : '');
+}
+function planAutoMealHTML(meal, day, ix) {
+  const key = (day && day.date ? day.date : '') + ':' + ix;
   if (!meal.recipeId) {
-    return `<div class="plan-meal plan-auto-meal"><div class="plan-meal-top"><span class="plan-meal-time">${esc(meal.time || '')}</span><span class="plan-meal-name">${esc(mealName(meal.name))}</span></div><p class="progress-hint">${esc(t('planau.noRecipe'))}</p></div>`;
+    return `<div class="plan-meal plan-auto-meal"><div class="plan-meal-top"><span class="plan-meal-time">${esc(meal.time || '')}</span><span class="plan-meal-name">${esc(mealName(meal.name))}</span></div><p class="progress-hint">${esc(t('planau.noRecipe'))}</p><button type="button" class="plan-add-btn" data-plan-add="${esc(key)}">+ ${esc(t('planau.dishAdd'))}</button></div>`;
   }
   const v = meal.values || {};
   const mac = `${esc(t('th.protShort'))} ${planAutoMacroTxt(meal, 'prot')} · ${esc(t('th.carbShort'))} ${planAutoMacroTxt(meal, 'carb')} · ${esc(t('th.fatShort'))} ${planAutoMacroTxt(meal, 'gras')}`;
   const ings = (meal.ings || []).map(g => `<div class="plan-item"><span>${esc(g.name || '')}</span><span class="plan-item-g">${g.grams != null ? Math.round(g.grams) + ' g' : (g.qty != null ? esc(String(g.qty)) + (g.unit ? ' ' + esc(g.unit) : '') : '')}</span></div>`).join('');
   const title = (meal.title && (meal.title[LANG] || meal.title.es || meal.title.en)) || '';
-  return `<div class="plan-meal plan-auto-meal"><div class="plan-meal-top">${meal.photoUrl ? `<img class="plan-auto-thumb" src="${esc(meal.photoUrl)}" alt="">` : ''}<span class="plan-meal-time">${esc(meal.time || '')}</span><span class="plan-meal-name">${esc(mealName(meal.name))}</span><span class="plan-meal-kcal">${Math.round(v.kcal || 0)} kcal</span></div><div class="plan-auto-title">${esc(title)} <span class="plan-auto-factor">${esc(t('planau.factor', { f: planAutoFactorTxt(meal.factor) }))}</span></div>${ings}<div class="plan-meal-mac">${mac}</div></div>`;
+  return `<div class="plan-meal plan-auto-meal"><div class="plan-meal-top">${meal.photoUrl ? `<img class="plan-auto-thumb" src="${esc(meal.photoUrl)}" alt="">` : ''}<span class="plan-meal-time">${esc(meal.time || '')}</span><span class="plan-meal-name">${esc(mealName(meal.name))}</span><span class="plan-meal-kcal">${Math.round(v.kcal || 0)} kcal</span><button type="button" class="plan-dish-btn" data-plan-dish="${esc(key)}" aria-label="${esc(t('planau.dishMenu'))}">⋮</button></div><div class="plan-auto-title">${esc(title)} <span class="plan-auto-factor">${esc(t('planau.factor', { f: planAutoFactorTxt(meal.factor) }))}</span></div>${planMechPaintFor(meal, day)}${ings}<div class="plan-meal-mac">${mac}</div></div>`;
 }
 function planAutoDayMealsHTML(day) {
   const meals = (day && day.meals) || [];
   if (!meals.length) return `<p class="progress-hint">${esc(t('planwk.dayEmpty'))}</p>`;
-  return meals.map(planAutoMealHTML).join('');
+  return meals.map((m, ix) => planAutoMealHTML(m, day, ix)).join('') + `<button type="button" class="plan-add-line" data-plan-addnew="${esc(day.date || '')}">+ ${esc(t('planau.dishAdd'))}</button>`;
 }
 function planAutoShopSections(days) {
   const agg = new Map();
@@ -67282,8 +67619,301 @@ function planAutoFootHTML() {
   const a = (PLANWK.auto && PLANWK.auto.auto) || {};
   const pat = a.cookPattern || (SCHED_PREFS && SCHED_PREFS.cookPattern) || 'semana';
   const rep = a.cookRepeat || (SCHED_PREFS && SCHED_PREFS.cookRepeat) || 'norep';
-  return `<div class="plan-auto-foot"><span>${esc(t('planau.cookLine', { pattern: t('planau.cookPat.' + pat), repeat: t('planau.cookRep.' + rep) }))}</span><button type="button" class="btn-ghost btn-sm" id="plan-cook-change">${esc(t('planau.change'))}</button></div><button type="button" class="btn-primary plan-edit-btn" id="plan-regen" ${PLANWK.busy ? 'disabled' : ''}>🔄 ${esc(t(PLANWK.busy ? 'planau.regenBusy' : 'planau.regen'))}</button>`;
+  /* AUTH-479 · la fila de la planificación fija: sin plantilla,
+     la puerta para conservar ESTA planificación; con plantilla,
+     su estado y la vuelta a automático. Una sola fila, un solo
+     sitio (el pie de Semana). */
+  const tpl = (typeof SCHED_PREFS !== 'undefined' && SCHED_PREFS && SCHED_PREFS.fixedTemplate) || null;
+  const fix = tpl
+    ? `<div class="plan-auto-foot"><span>📌 ${esc(t('planau.fixOn'))}</span><button type="button" class="btn-ghost btn-sm" id="plan-fix-off">${esc(t('planau.fixOff'))}</button></div>`
+    : `<div class="plan-auto-foot"><span>${esc(t('planau.fixAskShort'))}</span><button type="button" class="btn-ghost btn-sm" id="plan-fix-ask">${esc(t('planau.fixKeep'))}</button></div>`;
+  return `<div class="plan-auto-foot"><span>${esc(t('planau.cookLine', { pattern: t('planau.cookPat.' + pat), repeat: t('planau.cookRep.' + rep) }))}</span><button type="button" class="btn-ghost btn-sm" id="plan-cook-change">${esc(t('planau.change'))}</button></div>${fix}<button type="button" class="btn-primary plan-edit-btn" id="plan-regen" ${PLANWK.busy ? 'disabled' : ''}>🔄 ${esc(t(PLANWK.busy ? 'planau.regenBusy' : 'planau.regen'))}</button>`;
 }
+/* ═══ AUTH-479 · GESTIÓN DE PLATOS DE SU SEMANA (ampliación de
+   Ronald, 2026-11-15: «eliminar, agregar, editar… que no afecte
+   la biblioteca sino su propia organización»). Todo vive SOLO
+   en el documento de menú de la persona: quitar, cambiar (con el
+   filtro duro de siempre y el ajuste al hueco que deja el plato
+   saliente), ajustar su factor y agregar a un hueco. Cada toque
+   marca el documento (manual + manualLog) y esa marca lo blinda
+   del rearmado automático (planAutoEnsure / dlEnsureWeek). ═══ */
+const PLANDISH = { date: null, ix: -1, factor: 1, addSlot: null };
+let PLAN_FIX_ASKED = false;
+function planDishCtx() {
+  const auto = PLANWK.auto;
+  if (!auto) return null;
+  const day = (auto.days || []).find(d => d.date === PLANDISH.date);
+  if (!day) return null;
+  return { auto, day, meal: (day.meals || [])[PLANDISH.ix] || null };
+}
+function planDishOpen(key) {
+  const parts = String(key || '').split(':');
+  PLANDISH.date = parts[0]; PLANDISH.ix = parseInt(parts[1], 10);
+  PLANDISH.addSlot = null;
+  const ctx = planDishCtx();
+  if (!ctx || !ctx.meal || !ctx.meal.recipeId) return;
+  PLANDISH.factor = ctx.meal.factor || 1;
+  const bd = $('plandish-backdrop'), f = $('plandish-float');
+  if (!bd || !f) return;
+  bd.style.display = ''; f.style.display = '';
+  planDishPaint();
+  try { coverSync(); } catch {}
+}
+function planDishClose() {
+  const bd = $('plandish-backdrop'), f = $('plandish-float');
+  if (bd) bd.style.display = 'none';
+  if (f) f.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+function planDishPaint() {
+  const body = $('plandish-body');
+  if (!body) return;
+  const ctx = planDishCtx();
+  if (!ctx || !ctx.meal || !ctx.meal.recipeId) { planDishClose(); return; }
+  const meal = ctx.meal;
+  const title = (meal.title && (meal.title[LANG] || meal.title.es || meal.title.en)) || '';
+  const inCat = (PLANWK.catalog || []).some(r => r.id === meal.recipeId);
+  const kcalNow = Math.round((meal.values && meal.values.kcal) || 0);
+  const kcalAdj = Math.round(kcalNow / (meal.factor || 1) * PLANDISH.factor);
+  body.innerHTML = `
+    <div class="plandish-title">${esc(title)}</div>
+    <p class="progress-hint">${esc(mealName(meal.name))} · ${kcalNow} kcal</p>
+    <button type="button" class="plan-cook-opt" id="plandish-change"><span class="plan-cook-emoji">🔄</span><span>${esc(t('planau.dishChange'))}</span></button>
+    ${inCat ? `<div class="plan-cook-q">${esc(t('planau.dishAdjust'))}</div>
+    <div class="plandish-step">
+      <button type="button" class="plandish-step-btn" id="plandish-minus" aria-label="−">−</button>
+      <div class="plandish-step-val">× ${esc(planAutoFactorTxt(PLANDISH.factor))}<span>${kcalAdj} kcal</span></div>
+      <button type="button" class="plandish-step-btn" id="plandish-plus" aria-label="+">+</button>
+    </div>
+    <button type="button" class="btn-primary plan-cook-save" id="plandish-adjsave">${esc(t('planau.dishAdjustSave'))}</button>` : ''}
+    <button type="button" class="plan-cook-opt danger" id="plandish-remove"><span class="plan-cook-emoji">🗑️</span><span>${esc(t('planau.dishRemove'))}</span></button>`;
+  const on = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
+  on('plandish-change', () => { const k = PLANDISH.date + ':' + PLANDISH.ix; planDishClose(); planPickOpen(k, null); });
+  on('plandish-remove', async () => { if (await planDishApply('remove', null)) planDishClose(); });
+  on('plandish-minus', () => { PLANDISH.factor = Math.max(0.5, Math.round((PLANDISH.factor - 0.05) * 20) / 20); planDishPaint(); });
+  on('plandish-plus', () => { PLANDISH.factor = Math.min(2, Math.round((PLANDISH.factor + 0.05) * 20) / 20); planDishPaint(); });
+  on('plandish-adjsave', async () => { if (await planDishApply('adjust', null)) planDishClose(); });
+}
+/* Agregar a un hueco NUEVO: la hoja del plato se convierte en el
+   selector de hueco (solo los tiempos que ese día no tiene). */
+function planAddSlotOpen(date) {
+  const auto = PLANWK.auto;
+  if (!auto) return;
+  const day = (auto.days || []).find(d => d.date === date);
+  if (!day) return;
+  const present = new Set((day.meals || []).map(m => m.name));
+  const missing = ['Desayuno', 'Almuerzo', 'Cena', 'Merienda', 'Snack'].filter(s => !present.has(s));
+  if (!missing.length) { toast(t('planau.addFull'), true); return; }
+  PLANDISH.date = date; PLANDISH.ix = -1;
+  const bd = $('plandish-backdrop'), f = $('plandish-float');
+  if (!bd || !f) return;
+  bd.style.display = ''; f.style.display = '';
+  const body = $('plandish-body');
+  if (body) {
+    body.innerHTML = `<div class="plandish-title">${esc(t('planau.addSlotTitle'))}</div>` +
+      missing.map(s => `<button type="button" class="plan-cook-opt" data-addslot="${esc(s)}"><span class="plan-cook-emoji">➕</span><span>${esc(mealName(s))}</span></button>`).join('');
+    body.querySelectorAll('[data-addslot]').forEach(b => { b.onclick = () => { const s = b.getAttribute('data-addslot'); planDishClose(); planPickOpen(null, s); }; });
+  }
+  try { coverSync(); } catch {}
+}
+/* El guardado de una edición: reescribe SOLO el documento de la
+   persona, campo a campo desde su copia en memoria (se conserva
+   todo lo que el documento ya traía), con la marca manual y el
+   registro del toque (máx. 20). Nada toca la biblioteca. */
+async function planDishApply(kind, recipe) {
+  const ctx0 = planDishCtx();
+  const auto = PLANWK.auto;
+  if (!auto || !ctx0) return false;
+  const me = auth.currentUser && auth.currentUser.uid;
+  const days = JSON.parse(JSON.stringify(auto.days || []));
+  const day = days.find(d => d.date === PLANDISH.date);
+  if (!day) return false;
+  let meal = (day.meals || [])[PLANDISH.ix] || null;
+  if (kind !== 'add' && !meal) return false;
+  if (kind === 'add' && !PLANDISH.addSlot && !meal) return false;
+  const from = meal && meal.recipeId ? meal.recipeId : null;
+  let to = from;
+  if (kind === 'remove') {
+    day.meals[PLANDISH.ix] = { name: meal.name, time: meal.time || '', ...planAutoEmptyMeal() };
+    to = null;
+  } else if (kind === 'change' || kind === 'add') {
+    if (!recipe) return false;
+    await planAutoLoadDetails([recipe.id]);
+    const full = (PLANWK.catalog || []).find(r => r.id === recipe.id) || recipe;
+    const v = recipeValues(full);
+    if (!(v.kcal > 0)) return false;
+    let target;
+    if (kind === 'change') target = (meal.values && meal.values.kcal) || 0;   /* el hueco que deja el saliente */
+    else { const tot = planAutoDayTotals(day); target = Math.max(100, Math.round(((day.goals && day.goals.kcal) || 0) - tot.kcal)); }
+    const built = planAutoMealFromRecipe(full, v, planAutoFactor(target, v));
+    if (kind === 'add' && PLANDISH.addSlot) {
+      day.meals.push({ name: PLANDISH.addSlot, time: MM_DEFAULT_TIMES[PLANDISH.addSlot] || '', ...built });
+      meal = { name: PLANDISH.addSlot };
+    } else {
+      day.meals[PLANDISH.ix] = { name: meal.name, time: meal.time || '', ...built };
+    }
+    to = recipe.id;
+  } else if (kind === 'adjust') {
+    const full = (PLANWK.catalog || []).find(r => r.id === meal.recipeId);
+    if (!full) return false;
+    await planAutoLoadDetails([full.id]);
+    const built = planAutoMealFromRecipe(full, recipeValues(full), PLANDISH.factor);
+    day.meals[PLANDISH.ix] = { name: meal.name, time: meal.time || '', ...built };
+    to = meal.recipeId;
+  } else return false;
+  const manualLog = [...(Array.isArray(auto.manualLog) ? auto.manualLog : []),
+    { at: Date.now(), act: kind, date: PLANDISH.date, slot: meal.name, from, to }].slice(-20);
+  const payload = {};
+  for (const k of ['studentUid', 'nutritionistUid', 'authorRole', 'authorUid', 'status', 'basedOnPlanId', 'weekStart', 'wishesSnapshot', 'changeRequest', 'auto', 'createdAt']) {
+    if (auto[k] !== undefined) payload[k] = auto[k];
+  }
+  payload.days = days;
+  payload.manual = true;
+  payload.manualLog = manualLog;
+  payload.updatedAt = serverTimestamp();
+  try {
+    await setDoc(doc(db, 'nutrition_menus', planAutoDocId(auto.studentUid || me, auto.weekStart)), payload);
+  } catch { toast(t('sched.saveError'), true); return false; }
+  const saved = { ...auto, days, manual: true, manualLog, updatedAt: null };
+  const ixM = (NUTRI.myMenus || []).findIndex(m => m.id === saved.id || (m.weekStart === saved.weekStart && mmIsAutoMenu(m)));
+  if (ixM >= 0) NUTRI.myMenus[ixM] = saved; else (NUTRI.myMenus = NUTRI.myMenus || []).push(saved);
+  PLANWK.auto = saved;
+  planPaintSheet();
+  planDishMaybeAskFix();
+  return true;
+}
+/* El selector de recetas para cambiar/agregar: el catálogo con
+   el filtro duro aplicado y los huecos de siempre; cada fila
+   dice su ajuste y su sencillez. Máximo 60 filas por búsqueda. */
+const PLANPICK = { q: '' };
+function planPickOpen(key, addSlot) {
+  if (key) { const parts = String(key).split(':'); PLANDISH.date = parts[0]; PLANDISH.ix = parseInt(parts[1], 10); }
+  PLANDISH.addSlot = addSlot || null;
+  PLANPICK.q = '';
+  const bd = $('planpick-backdrop'), f = $('planpick-float');
+  if (!bd || !f) return;
+  bd.style.display = ''; f.style.display = '';
+  planPickPaint();
+  try { coverSync(); } catch {}
+}
+function planPickClose() {
+  const bd = $('planpick-backdrop'), f = $('planpick-float');
+  if (bd) bd.style.display = 'none';
+  if (f) f.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+function planPickPaint() {
+  const body = $('planpick-body');
+  if (!body) return;
+  const ctx = planDishCtx();
+  const slot = PLANDISH.addSlot || (ctx && ctx.meal ? ctx.meal.name : '');
+  const wishes = (typeof NUTRI !== 'undefined' && NUTRI.myWishes) || {};
+  const q = acNorm(PLANPICK.q || '');
+  const list = (PLANWK.catalog || []).filter(r => {
+    const v = recipeValues(r);
+    if (!(v.kcal > 0)) return false;
+    if (!planAutoSlots(r).includes(slot)) return false;
+    if (recipeBlockedFor(r, wishes)) return false;   /* filtro DURO: lo bloqueado jamás se ofrece */
+    if (q) { const tx = acNorm(((r.title || {}).es || '') + ' ' + ((r.title || {}).en || '')); if (!tx.includes(q)) return false; }
+    return true;
+  }).slice(0, 60);
+  body.innerHTML = `<input type="search" id="planpick-q" class="planpick-q" placeholder="${esc(t('planau.pickSearch'))}" value="${esc(PLANPICK.q || '')}" aria-label="${esc(t('planau.pickSearch'))}">
+  <div class="planpick-list">${list.length ? list.map(r => {
+    const v = recipeValues(r);
+    const prof = planMechProfile(r);
+    const title = (r.title && (r.title[LANG] || r.title.es || r.title.en)) || '';
+    return `<button type="button" class="planpick-row" data-planpick="${esc(r.id)}">${r.photoUrl ? `<img class="plan-auto-thumb" src="${esc(r.photoUrl)}" alt="">` : ''}<span class="planpick-main"><span class="planpick-title">${esc(title)}</span><span class="planpick-sub">${Math.round(v.kcal)} kcal${prof.label ? ' · ' + esc(t('planau.mech.' + prof.label)) : ''}${prof.actMin != null ? ' · ' + Math.round(prof.actMin) + ' min' : ''}${prof.nIng > 0 ? ' · ' + esc(t('planau.mechIngs', { n: prof.nIng })) : ''}</span></span></button>`;
+  }).join('') : `<p class="progress-hint">${esc(t('planau.pickEmpty'))}</p>`}</div>`;
+  const inp = $('planpick-q');
+  if (inp) inp.oninput = () => { PLANPICK.q = inp.value; const pos = inp.selectionStart; planPickPaint(); const n = $('planpick-q'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch {} } };
+  body.querySelectorAll('[data-planpick]').forEach(b => { b.onclick = async () => {
+    const r = (PLANWK.catalog || []).find(x => x.id === b.getAttribute('data-planpick'));
+    if (!r) return;
+    const c2 = planDishCtx();
+    const kind = PLANDISH.addSlot ? 'add' : ((c2 && c2.meal && c2.meal.recipeId) ? 'change' : 'add');
+    planPickClose();
+    await planDishApply(kind, r);
+  }; });
+}
+/* ── La planificación fija ────────────────────────────────────
+   Pregunta tras la primera edición de la sesión (si no hay
+   plantilla) y puertas permanentes en el pie de Semana. */
+function planDishMaybeAskFix() {
+  if (PLAN_FIX_ASKED) return;
+  if (typeof SCHED_PREFS !== 'undefined' && SCHED_PREFS && SCHED_PREFS.fixedTemplate) return;
+  PLAN_FIX_ASKED = true;
+  planFixAskOpen();
+}
+function planFixAskOpen() {
+  const bd = $('planfix-backdrop'), f = $('planfix-float');
+  if (!bd || !f) return;
+  bd.style.display = ''; f.style.display = '';
+  const body = $('planfix-body');
+  if (body) {
+    body.innerHTML = `<p class="plan-cook-sub">${esc(t('planau.fixAsk'))}</p>
+    <button type="button" class="btn-primary plan-cook-save" id="planfix-yes">${esc(t('planau.fixYes'))}</button>
+    <button type="button" class="plan-cook-opt" id="planfix-no"><span>${esc(t('planau.fixNo'))}</span></button>`;
+    const y = $('planfix-yes'); if (y) y.onclick = planFixSet;
+    const n = $('planfix-no'); if (n) n.onclick = planFixClose;
+  }
+  try { coverSync(); } catch {}
+}
+function planFixClose() {
+  const bd = $('planfix-backdrop'), f = $('planfix-float');
+  if (bd) bd.style.display = 'none';
+  if (f) f.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+/* Conservar: la semana que se está viendo se vuelve la plantilla
+   (día de semana → hueco → receta; los factores se recalculan
+   contra las metas de cada día al armar, no se guardan). */
+async function planFixSet() {
+  const auto = PLANWK.auto;
+  if (!auto) { planFixClose(); return; }
+  const days = {};
+  for (const d of (auto.days || [])) {
+    const wd = String(planMechWeekday(d.date));
+    for (const m of (d.meals || [])) {
+      if (!m.recipeId) continue;
+      (days[wd] = days[wd] || {})[m.name] = { recipeId: m.recipeId };
+    }
+  }
+  if (!Object.keys(days).length) { toast(t('planau.fixEmpty'), true); return; }
+  if (!SCHED_PREFS) { try { await schedLoadOwn(); } catch {} }
+  if (!SCHED_PREFS) SCHED_PREFS = schedPrefsDefaults();
+  SCHED_PREFS.fixedTemplate = { v: 1, setAt: Date.now(), days };
+  const ok = await schedPersist(schedSavePrefs);
+  if (!ok) { toast(t('sched.saveError'), true); return; }
+  planFixClose();
+  toast(t('planau.fixSet'));
+  planPaintSheet();
+}
+async function planFixOff() {
+  if (!SCHED_PREFS) { try { await schedLoadOwn(); } catch {} }
+  if (!SCHED_PREFS) return;
+  SCHED_PREFS.fixedTemplate = null;
+  const ok = await schedPersist(schedSavePrefs);
+  if (!ok) { toast(t('sched.saveError'), true); return; }
+  toast(t('planau.fixUnset'));
+  planPaintSheet();
+}
+(function planDishWire() {
+  const wire = (btnId, bdId, close) => {
+    const c = $(btnId); if (c) c.onclick = close;
+    const bd = $(bdId); if (bd) bd.onclick = close;
+  };
+  wire('btn-plandish-close', 'plandish-backdrop', planDishClose);
+  wire('btn-planpick-close', 'planpick-backdrop', planPickClose);
+  wire('btn-planfix-close', 'planfix-backdrop', planFixClose);
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    for (const [fId, close] of [['planpick-float', planPickClose], ['plandish-float', planDishClose], ['planfix-float', planFixClose]]) {
+      const f = $(fId);
+      if (f && f.style.display !== 'none') { close(); return; }
+    }
+  });
+})();
+
 function planTabsHTML() {
   const v = PLANWK.view || 'hoy';
   const tab = (id, key) => `<button type="button" class="plan-tab${v === id ? ' on' : ''}" data-plan-view="${id}">${esc(t(key))}</button>`;
@@ -67322,10 +67952,15 @@ function planPlanHTML(wk) {
 /* La pregunta de cocina: hoja de estreno (una sola vez) y de
    cambio; la respuesta vive en schedprefs (cookPattern /
    cookRepeat) y la usa el armado. */
-const PLANCOOK = { pattern: null, repeat: null, fromChange: false };
+const PLANCOOK = { pattern: null, repeat: null, fromChange: false, cuisine: null, time: null, level: null };
 function planCookOpen(fromChange) {
   PLANCOOK.pattern = (SCHED_PREFS && SCHED_PREFS.cookPattern) || null;
   PLANCOOK.repeat = (SCHED_PREFS && SCHED_PREFS.cookRepeat) || null;
+  /* AUTH-479: las tres respuestas del mecanismo vienen
+     precargadas con lo guardado, como las de cocina. */
+  PLANCOOK.cuisine = (SCHED_PREFS && SCHED_PREFS.cookCuisine) || null;
+  PLANCOOK.time = (SCHED_PREFS && SCHED_PREFS.cookTimeMin != null) ? String(SCHED_PREFS.cookTimeMin) : null;
+  PLANCOOK.level = (SCHED_PREFS && SCHED_PREFS.cookLevel) || null;
   PLANCOOK.fromChange = !!fromChange;
   const bd = $('plancook-backdrop'), f = $('plancook-float');
   if (!bd || !f) return;
@@ -67352,17 +67987,38 @@ function planCookPaint() {
     <div class="plan-cook-q">${esc(t('planau.cookQ2'))}</div>
     ${opt('repeat', 'norep', 'planau.cookOptNoRep', '🎲')}
     ${opt('repeat', 'repok', 'planau.cookOptRepOk', '👍')}
-    <button type="button" class="btn-primary plan-cook-save" id="plan-cook-save" ${PLANCOOK.pattern && PLANCOOK.repeat ? '' : 'disabled'}>${esc(t('planau.cookSave'))}</button>`;
+    <div class="plan-cook-q">${esc(t('planau.cookQ3'))}</div>
+    ${opt('cuisine', 'latina', 'planau.cookCui.latina', '🌎')}
+    ${opt('cuisine', 'mediterranea', 'planau.cookCui.mediterranea', '🫒')}
+    ${opt('cuisine', 'asiatica', 'planau.cookCui.asiatica', '🥢')}
+    ${opt('cuisine', 'americana', 'planau.cookCui.americana', '🍔')}
+    ${opt('cuisine', 'europea', 'planau.cookCui.europea', '🥖')}
+    ${opt('cuisine', 'todo', 'planau.cookCui.todo', '🍽️')}
+    <div class="plan-cook-q">${esc(t('planau.cookQ4'))}</div>
+    ${opt('time', '15', 'planau.cookTime15', '⏱️')}
+    ${opt('time', '30', 'planau.cookTime30', '⏱️')}
+    ${opt('time', '45', 'planau.cookTime45', '⏱️')}
+    ${opt('time', 'libre', 'planau.cookTimeFree', '😌')}
+    <div class="plan-cook-q">${esc(t('planau.cookQ5'))}</div>
+    ${opt('level', 'empezando', 'planau.cookLvl.empezando', '🌱')}
+    ${opt('level', 'defiende', 'planau.cookLvl.defiende', '👍')}
+    ${opt('level', 'encanta', 'planau.cookLvl.encanta', '👨‍🍳')}
+    <button type="button" class="btn-primary plan-cook-save" id="plan-cook-save" ${PLANCOOK.pattern && PLANCOOK.repeat && PLANCOOK.cuisine && PLANCOOK.time && PLANCOOK.level ? '' : 'disabled'}>${esc(t('planau.cookSave'))}</button>`;
   body.querySelectorAll('[data-cook]').forEach(b => { b.onclick = () => { const parts = b.getAttribute('data-cook').split(':'); PLANCOOK[parts[0]] = parts[1]; planCookPaint(); }; });
   const sv = $('plan-cook-save');
   if (sv) sv.onclick = planCookSave;
 }
 async function planCookSave() {
-  if (!PLANCOOK.pattern || !PLANCOOK.repeat) { toast(t('planau.cookNeed'), true); return; }
+  if (!PLANCOOK.pattern || !PLANCOOK.repeat || !PLANCOOK.cuisine || !PLANCOOK.time || !PLANCOOK.level) { toast(t('planau.cookNeed'), true); return; }
   if (!SCHED_PREFS) { try { await schedLoadOwn(); } catch {} }
   if (!SCHED_PREFS) SCHED_PREFS = schedPrefsDefaults();
   SCHED_PREFS.cookPattern = PLANCOOK.pattern;
   SCHED_PREFS.cookRepeat = PLANCOOK.repeat;
+  /* AUTH-479: las tres respuestas del mecanismo se guardan en
+     el mismo documento y el mismo guardado de siempre. */
+  SCHED_PREFS.cookCuisine = PLANCOOK.cuisine;
+  SCHED_PREFS.cookTimeMin = PLANCOOK.time === 'libre' ? 'libre' : parseInt(PLANCOOK.time, 10);
+  SCHED_PREFS.cookLevel = PLANCOOK.level;
   const ok = await schedPersist(schedSavePrefs);
   if (!ok) { toast(t('sched.saveError'), true); return; }
   planCookClose();
@@ -67618,7 +68274,11 @@ function schedPrefsDefaults() {
   return { v: 1, workdays: [1, 2, 3, 4, 5], tolerance: '', remindersOn: false,
     breaksStrict: false, sleepMarginMin: 45,
     routine: { work: { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] }, free: { wake: '', sleep: '' }, we: { wake: '', sleep: '', workFrom: '', workTo: '', breaks: [] } },
-    trainTimes: {}, fasting: null, trainGoalMin: null, cookPattern: null, cookRepeat: null };
+    trainTimes: {}, fasting: null, trainGoalMin: null, cookPattern: null, cookRepeat: null,
+    /* AUTH-479: respuestas del mecanismo «a tu medida» y la
+       planificación fija; mismo documento, sin delta de reglas
+       (la rama del dueño no enumera campos). */
+    cookCuisine: null, cookTimeMin: null, cookLevel: null, fixedTemplate: null };
 }
 /* ── AUTH-359 · Meta de tiempo por entrenamiento ─────────────────
    Campo de primer nivel de schedPrefs: trainGoalMin (entero de
@@ -68180,6 +68840,10 @@ async function schedLoadOwn() {
   SCHED_PREFS.trainGoalMin = schedGoalNorm(SCHED_PREFS.trainGoalMin);   /* AUTH-359: solo en memoria, sin reescritura */
   SCHED_PREFS.cookPattern = ['semana', 'diario', 'varias'].includes(SCHED_PREFS.cookPattern) ? SCHED_PREFS.cookPattern : null;   /* AUTH-468: pregunta de cocina del planificador; solo en memoria, sin reescritura */
   SCHED_PREFS.cookRepeat = ['norep', 'repok'].includes(SCHED_PREFS.cookRepeat) ? SCHED_PREFS.cookRepeat : null;
+  SCHED_PREFS.cookCuisine = ['latina', 'mediterranea', 'asiatica', 'americana', 'europea', 'todo'].includes(SCHED_PREFS.cookCuisine) ? SCHED_PREFS.cookCuisine : null;   /* AUTH-479: mecanismo a tu medida; solo en memoria, sin reescritura */
+  SCHED_PREFS.cookTimeMin = [15, 30, 45, 60].includes(SCHED_PREFS.cookTimeMin) ? SCHED_PREFS.cookTimeMin : (SCHED_PREFS.cookTimeMin === 'libre' ? 'libre' : null);
+  SCHED_PREFS.cookLevel = ['empezando', 'defiende', 'encanta'].includes(SCHED_PREFS.cookLevel) ? SCHED_PREFS.cookLevel : null;
+  SCHED_PREFS.fixedTemplate = planFixSanitize(SCHED_PREFS.fixedTemplate);
   SCHED_STATE = Object.assign(schedStateDefaults(), ss.exists() ? ss.data() : {});
   if (!SCHED_STATE.days) SCHED_STATE.days = {};
   if (!SCHED_STATE.adjust) SCHED_STATE.adjust = { preGapDeltaMin: 0, rangeWidenMin: 0 };

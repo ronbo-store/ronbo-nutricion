@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261115-sinonimos">
+<link rel="stylesheet" href="styles.css?v=20261115-mecanismo-medida">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1259,6 +1259,40 @@
       <button type="button" class="pend-close" id="btn-plancook-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="plancook-body"></div>
+  </div>
+
+  <!-- AUTH-479 · Gestión de platos de SU semana automática:
+       tres hojas hermanas de #plan-float en la familia
+       .act-float, con velo propio. La del plato (cambiar ·
+       ajustar · quitar, y el selector de hueco al agregar), la
+       del selector de recetas (con el filtro duro aplicado) y la
+       de la pregunta de planificación fija. Sus cuerpos los
+       pinta app.js (planDishPaint / planPickPaint /
+       planFixAskOpen) SOLO con datos del propio usuario; todo
+       escribe únicamente en su documento de menú. -->
+  <div id="plandish-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="plandish-float" style="display:none" role="dialog" aria-modal="true" aria-label="Manage this dish" data-i18n-aria="planau.dishMenu">
+    <div class="pend-head">
+      <h2>🍽️ <span data-i18n="planau.dishMenu">Manage this dish</span></h2>
+      <button type="button" class="pend-close" id="btn-plandish-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="plandish-body"></div>
+  </div>
+  <div id="planpick-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="planpick-float" style="display:none" role="dialog" aria-modal="true" aria-label="Pick a recipe" data-i18n-aria="planau.dishChange">
+    <div class="pend-head">
+      <h2>🔄 <span data-i18n="planau.dishChange">Swap this dish</span></h2>
+      <button type="button" class="pend-close" id="btn-planpick-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="planpick-body"></div>
+  </div>
+  <div id="planfix-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="planfix-float" style="display:none" role="dialog" aria-modal="true" aria-label="Keep this planning?" data-i18n-aria="planau.fixKeep">
+    <div class="pend-head">
+      <h2>📌 <span data-i18n="planau.fixKeep">Keep it</span></h2>
+      <button type="button" class="pend-close" id="btn-planfix-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="planfix-body"></div>
   </div>
 
   <!-- «Progreso en este plan» y «Revisar propuestas» del detalle
@@ -2505,6 +2539,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261115-sinonimos"></script>
+<script type="module" src="app.js?v=20261115-mecanismo-medida"></script>
 </body>
 </html>
