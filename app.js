@@ -6495,6 +6495,7 @@ en: {
   'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel', 'sess.barFinish': 'Finish',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.cardioIncl': 'includes {min} min of cardio',
+  'sess.setsOf': '{n} of {m} sets', 'sess.setsTap': 'tap a circle as you finish',
   'sess.pillSub': 'It only stops when you finish, in Training',
   'sess.kicker': 'QUICK SURVEY', 'sess.title': 'Workout finished!',
   'sess.dur': 'Duration: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -11773,6 +11774,7 @@ es: {
   'sess.barLabel': 'Barra de la sesión', 'sess.fullLabel': 'Panel de la sesión', 'sess.barFinish': 'Finalizar',
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
   'sess.cardioIncl': 'incluye {min} min de cardio',
+  'sess.setsOf': '{n} de {m} series', 'sess.setsTap': 'toca un círculo al terminar',
   'sess.pillSub': 'Solo se detiene al finalizar, en Entrenamiento',
   'sess.kicker': 'ENCUESTA RÁPIDA', 'sess.title': '¡Entrenamiento finalizado!',
   'sess.dur': 'Duración: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -34658,6 +34660,14 @@ function trainChecksRead(planId) {
              marcas de AUTH-097 (sug/clr) conservan su saneado de
              siempre (no viajan en la restauración). */
           ...(s.pend === true ? { pend: true } : {}),
+          /* AUTH-485 · LA MARCA DEL CÍRCULO (dot) sobrevive a la
+             restauración del borrador como la de pendiente: es la
+             declaración «hecha según el plan» de esa serie desde
+             el cuadrito; sin ella, una recarga a mitad de sesión
+             desharía en silencio las series ya marcadas con el
+             dedo. El escritor del cierre NO la copia (como sug/clr:
+             vive solo en el borrador). */
+          ...(s.dot === true ? { dot: true } : {}),
           /* HORA DE MARCA (paquete tarjeta semanal): la hora de
              cada serie SÍ sobrevive a la restauración del
              borrador, saneada como número positivo; sin ella los
@@ -39808,6 +39818,96 @@ function sessArticleClose() {
    botones grandes y la puerta a su ficha, el SIGUE y el
    MINIMIZAR grande que baja DIRECTO a la barra (D2). Sin
    ✕: minimizar es su única salida. No se abre sola. ── */
+/* ═══ AUTH-485 · LOS CÍRCULOS DE SERIES EN EL CUADRITO
+   (decisión de Ronald, 2026-11-16: de las cuatro maquetas de
+   «las series hechas y por hacer» eligió la C — círculos): en
+   la vista completa, bajo el ejercicio en curso, una fila de
+   círculos grandes — uno por serie de la marca de ese
+   ejercicio: hecha = verde con ✓, la que sigue = borde verde,
+   por hacer = gris, y el rótulo «N de M series · toca un
+   círculo al terminar». La fila ENVUELVE sin encoger los
+   círculos (44 px de toque siempre) si las series son muchas.
+   LA RECONCILIACIÓN CON EL MODELO: la marca de la serie es
+   `dot` en la MISMA entrada de TRAIN_CHECKS, con la doctrina
+   de la puerta honesta «según el plan» (AUTH-344/406) llevada
+   a la serie — el círculo DECLARA la serie hecha sin inventar
+   cifra alguna:
+   – se pinta hecha si no es `pend` y (trae `dot` ‖ trae datos
+     con su hora de marca sellada por un gesto deliberado en
+     la tarjeta — tecleo, rueda o cronómetro de serie, los
+     únicos que sellan vía trainSetStamp —): lo solo SUGERIDO
+     (sug/sugR/sugL, sin sello) aún no es hecho, como manda la
+     disciplina de la precarga desde AUTH-097/371;
+   – marcar adopta lo que la serie ya es: fuera `pend` (la
+     adopción de los handlers de tecleo y del cronómetro),
+     fuera las marcas de sugerido (el asentado de la rueda:
+     los valores que la serie YA enseña quedan de la persona,
+     sin escribir ningún número nuevo), y si su cronómetro por
+     tiempo corre, se banca con la cuenta de trainTimerToggle;
+   – NO se escribe repsDone/loadVal/secDone nuevo ni se sella
+     hora: repsPlanned es un rango («10-15») o un texto de
+     tiempo — no hay un número único honesto que escribir, y
+     fabricar unas reps hechas en el registro es lo que la
+     puerta honesta se niega a hacer. Al cerrar el día la
+     serie marcada sin números viaja como { repsPlanned } (su
+     historia con «—»), byte a byte la forma que el flujo ya
+     produce por esa puerta; la que tenía valores adoptados
+     viaja con ellos. El escritor del cierre no copia `dot`
+     (vive en el borrador, como sug/clr);
+   – desmarcar retira SOLO el `dot` propio: los datos
+     tecleados por la persona jamás se borran desde el
+     círculo (una serie hecha por sus números se corrige en
+     su tarjeta, como hoy), y su círculo sigue verde por su
+     sello.
+   La frontera (las hechas consecutivas desde la serie 1)
+   manda en el toque: tocar más allá marca hasta esa; tocar
+   una marcada baja la frontera hasta la anterior. Al
+   completarlas todas, el ejercicio queda listo para
+   «Finalizar ejercicio» como hoy — el hecho `done` sigue
+   naciendo solo de Finalizar/«✓ Marcar hecho» (AUTH-406/458):
+   los círculos no sellan ejercicios. ═══ */
+function sessSetDone(s) {
+  return !!s && s.pend !== true && (s.dot === true
+    || (trainSetHasData(s) && typeof s.markedAt === 'number' && s.markedAt > 0));
+}
+function sessSetsFrontier(chk) {
+  if (!chk || !Array.isArray(chk.sets)) return 0;
+  let n = 0;
+  while (n < chk.sets.length && sessSetDone(chk.sets[n])) n++;
+  return n;
+}
+function sessDotMark(s) {
+  if (!s) return;
+  if (s.pend) { delete s.pend; s.sug = false; }
+  s.sug = false; s.sugR = false; s.sugL = false;
+  if (typeof s.secT0 === 'number' && s.secT0 > 0) {
+    const el = trainTimerElapsedOf(s);
+    delete s.secT0;
+    if (el > 0) s.secDone = el; else delete s.secDone;
+  }
+  s.dot = true;
+}
+function sessDotTap(plan, key, si) {
+  const chk = TRAIN_CHECKS[key];
+  if (!chk || !Array.isArray(chk.sets) || !chk.sets[si]) return;
+  const fr = sessSetsFrontier(chk);
+  if (si >= fr) { for (let j = fr; j <= si; j++) sessDotMark(chk.sets[j]); }
+  else { for (let j = si; j < fr; j++) { const s = chk.sets[j]; if (s && s.dot === true) delete s.dot; } }
+  trainChecksPersist(plan.id);
+}
+function sessDotsHTML(curChk, ck, flowSt) {
+  if (!curChk || !Array.isArray(curChk.sets) || !curChk.sets.length) return '';
+  if (curChk.done === true || (flowSt !== 'open' && flowSt !== 'paused')) return '';
+  const sets = curChk.sets;
+  const flags = sets.map(s => sessSetDone(s));
+  const doneN2 = flags.filter(Boolean).length;
+  const nextI = flags.indexOf(false);
+  const dots = sets.map((s, si2) => {
+    const cls = flags[si2] ? 'ok' : (si2 === nextI ? 'next' : 'todo');
+    return `<button type="button" class="sf-dot ${cls}" data-sess-dot="${ck}:${si2}" aria-label="${esc(t('train.d.set'))} ${si2 + 1}">${flags[si2] ? '✓' : String(si2 + 1)}</button>`;
+  }).join('');
+  return `<div class="sf-dots">${dots}<span class="sf-dots-lab">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(t('sess.setsTap'))}</span></div>`;
+}
 function sessFullSync(run) {
   const full = $('sess-full'); if (!full) return;
   let st = null; try { st = trainBarState(); } catch {}
@@ -39846,14 +39946,16 @@ function sessFullSync(run) {
     const exState = flowSt === 'paused'
       ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-paused">${esc(t('sess.exPaused'))}</span>`
       : (curChk && flowSt !== 'closing' ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-running">${esc(t('sess.exRunning'))}</span>` : '');
+    const dotsBlk = sessDotsHTML(curChk, ck, flowSt);   /* AUTH-485: los círculos de series del ejercicio en curso */
     const nowBlk = `<div class="sf-now"><div class="sf-now-lab">${esc(t('sess.nowLab'))} · ${esc(pos)}</div><div class="sf-name">${esc(curName)}</div>`
       + (exState ? `<div class="sf-exrow">${exState}</div>` : '')
+      + dotsBlk
       + `<button type="button" class="sf-how" data-sess-ficha="1"><span class="sf-how-play" aria-hidden="true">▶</span><span class="sf-how-tx"><b>${esc(t('sess.seeHow'))}</b><small>${esc(t('sess.seeHowSub'))}</small></span></button>`
       + acts + `</div>`;
     const nxtBlk = (st.nxt != null && st.nxt !== st.cur)
       ? `<div class="sf-next"><span class="sf-next-lab">${esc(t('sess.pillNext'))}</span><span class="sf-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sf-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '';
     const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin].join('|');
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : ''].join('|');
     html = `<div class="sf-col">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
@@ -39908,6 +40010,19 @@ function sessPanelWire(el, surface) {
       if (planF && TRAIN_CHECKS_CTX === planF.id + '|' + todayISO()) {
         const partsF = String(fac.dataset.pillFace).split(':');
         flowResolveClosing(planF, partsF[0] + ':' + partsF[1], Number(partsF[2]));
+      }
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const dot = ev.target.closest ? ev.target.closest('[data-sess-dot]') : null;
+    if (dot) {
+      /* AUTH-485: el toque en un círculo marca/desmarca series
+         EN EL SITIO, con la misma guarda de contexto de las
+         caras y del Finalizar de este panel. */
+      const planD = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (planD && TRAIN_CHECKS_CTX === planD.id + '|' + todayISO()) {
+        const partsD = String(dot.dataset.sessDot).split(':');
+        sessDotTap(planD, partsD[0] + ':' + partsD[1], Number(partsD[2]));
       }
       try { sessPillTick(); } catch {}
       return;
@@ -62392,7 +62507,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261116-botones-iniciar';
+const PWA_SW_VERSION = '20261116-circulos-series';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
