@@ -6392,6 +6392,7 @@ en: {
   'train.custom.restore': 'Restore',
   'train.remove.today': 'Remove from today\'s session',
   'train.remove.confirm': '{name} will leave today\'s session. The sets you already recorded today for it will NOT be saved in today\'s log. Your plan and your previous days are not touched. Remove it?',
+  'train.remove.askPlain': '{name} will leave today\'s list. Your plan is not changed.',
   'train.remove.done': 'Removed from today\'s session.',
   'train.remove.doneDate': 'Removed from that day\'s session.',
   'train.repeat.reqWeekBtn': '🔁 Ask to repeat week',
@@ -6471,6 +6472,7 @@ en: {
   'train.flow.asPlan': 'done as planned: {spec}',
   'train.flow.asPlanShort': 'as planned',
   'train.flow.removeToday': 'Remove from today',
+  'train.flow.removeShort': 'Remove',
   'train.flow.removedToday': 'Removed today: {name}',
   'train.flow.beginDay': '▶ Start the workout',
   'train.flow.beginNote': 'Tap it: the timer starts and the focus lands on stop 1. There is no mode to turn on — the day is born this way.',
@@ -11668,6 +11670,7 @@ es: {
   'train.custom.restore': 'Restaurar',
   'train.remove.today': 'Quitar de la sesión de hoy',
   'train.remove.confirm': '«{name}» saldrá de tu sesión de hoy. Las series que ya registraste hoy de este ejercicio NO se guardarán en el registro de hoy. Tu plan y tus días anteriores no se tocan. ¿Quitarlo?',
+  'train.remove.askPlain': '«{name}» saldrá de tu lista de hoy. Tu plan no se toca.',
   'train.remove.done': 'Quitado de la sesión de hoy.',
   'train.remove.doneDate': 'Quitado de la sesión de ese día.',
   'train.repeat.reqWeekBtn': '🔁 Pedir repetir la semana',
@@ -11747,6 +11750,7 @@ es: {
   'train.flow.asPlan': 'hecho según el plan: {spec}',
   'train.flow.asPlanShort': 'según el plan',
   'train.flow.removeToday': 'Quitar de hoy',
+  'train.flow.removeShort': 'Quitar',
   'train.flow.removedToday': 'Quitado hoy: {name}',
   'train.flow.beginDay': '▶ Comenzar el entrenamiento',
   'train.flow.beginNote': 'Al tocarlo arranca el cronómetro y el foco cae en la parada 1. No hay ningún modo que encender: el día nace así.',
@@ -36852,7 +36856,7 @@ function trainChecksShiftUp(plan, di, effIdx) {
   TRAIN_CHECKS = shifted;
   trainChecksPersist(plan.id);
 }
-function trainSessionRemoveAt(plan, di, effIdx, iso) {
+function trainSessionRemoveAt(plan, di, effIdx, iso, skipConfirm) {
   if (!plan) return;
   const viewIso = iso || todayISO();
   const isTodayView = viewIso === todayISO();
@@ -36865,7 +36869,7 @@ function trainSessionRemoveAt(plan, di, effIdx, iso) {
        confirmación que el ejercicio del plan (la rama de abajo):
        antes se quitaba en silencio y su registro de hoy se perdía
        en el remapeo, sin aviso. Sin marcas, se quita como siempre. */
-    if (isTodayView && TRAIN_CHECKS[di + ':' + effIdx] && !confirm(t('train.remove.confirm', { name }))) return;
+    if (isTodayView && !skipConfirm && TRAIN_CHECKS[di + ':' + effIdx] && !confirm(t('train.remove.confirm', { name }))) return;
     /* La ruta de siempre para agregados: splice de `added` +
        remapeo de marcas (la misma mecánica que data-tcu-unadd).
        El remapeo de marcas SOLO corre para hoy: las marcas son
@@ -36877,7 +36881,7 @@ function trainSessionRemoveAt(plan, di, effIdx, iso) {
     trainEditsWrite(plan.id, ed, viewIso);
     if (isTodayView) trainChecksDropShift(plan, di, effIdx);
   } else {
-    if (isTodayView && TRAIN_CHECKS[di + ':' + effIdx] && !confirm(t('train.remove.confirm', { name }))) return;
+    if (isTodayView && !skipConfirm && TRAIN_CHECKS[di + ':' + effIdx] && !confirm(t('train.remove.confirm', { name }))) return;
     const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [], removed: [] };
     if (!Array.isArray(ed.removed)) ed.removed = [];
     if (!ed.removed.includes(it.slot)) ed.removed.push(it.slot);
@@ -36915,6 +36919,61 @@ function trainSessionRestoreSlot(plan, di, slot, iso) {
      hoy: son del día en curso; otro día no tiene marcas. */
   if (viewIso === todayISO()) trainChecksShiftUp(plan, di, effIdx);
   loadMyTraining();
+}
+
+/* ═══ AUTH-484 · LA HOJA DE CONFIRMACIÓN DE «QUITAR»
+   (orden de Ronald, 2026-11-16): el «Quitar» de la línea
+   de arranque de la ficha no ejecuta a la primera — abre
+   esta hoja flotante de la casa (el patrón .swap-sheet de
+   «Traer un día») con la consecuencia escrita en claro y
+   dos botones grandes. Con marcas de hoy, el texto es el
+   de siempre (train.remove.confirm: esas series NO se
+   guardarán en el registro de hoy y el plan no se toca);
+   sin marcas, el texto corto (train.remove.askPlain).
+   Solo al confirmar se llama al motor de siempre,
+   trainSessionRemoveAt, con su quinto parámetro
+   (skipConfirm): la pregunta ya la hizo la hoja y el
+   confirm() nativo no se repite. Cancelar — o la ✕ —
+   cierra sin tocar nada: ni edición, ni marcas, ni lista.
+   La semántica no cambia: SOLO HOY, la del motor. ═══ */
+let TRAIN_REMOVE_ASK = null;   // { plan, di, ei } — solo pantalla
+function trainRemoveAskOpen(plan, di, ei) {
+  TRAIN_REMOVE_ASK = { plan, di, ei };
+  trainRemoveAskSync();
+}
+function trainRemoveAskClose() {
+  TRAIN_REMOVE_ASK = null;
+  trainRemoveAskSync();
+}
+function trainRemoveAskSync() {
+  let sheet = document.getElementById('remove-sheet');
+  const A = TRAIN_REMOVE_ASK;
+  if (!A) {
+    if (sheet) sheet.remove();
+    document.body.classList.remove('swap-sheet-open');
+    return;
+  }
+  const it = trainEffectiveList(A.plan, A.di)[A.ei];
+  if (!it) { trainRemoveAskClose(); return; }
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'remove-sheet';
+    sheet.className = 'swap-sheet remove-sheet';
+    document.body.appendChild(sheet);
+  }
+  document.body.classList.add('swap-sheet-open');
+  const name = trainExName(it.ex) || it.ex.name || '';
+  const hasMarks = !!TRAIN_CHECKS[A.di + ':' + A.ei];
+  const text = hasMarks ? t('train.remove.confirm', { name }) : t('train.remove.askPlain', { name });
+  sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('train.flow.removeToday'))}</span><button type="button" class="swap-sheet-x" data-remove-ask-close="1" aria-label="✕">✕</button></div><p class="remove-ask-text">${esc(text)}</p><div class="remove-ask-row"><button type="button" class="remove-ask-btn" data-remove-ask-close="1">${esc(t('form.cancel'))}</button><button type="button" class="remove-ask-btn is-yes" data-remove-ask-yes="1">${esc(t('train.flow.removeToday'))}</button></div>`;
+  sheet.querySelectorAll('[data-remove-ask-close]').forEach(b => b.onclick = () => trainRemoveAskClose());
+  const yes = sheet.querySelector('[data-remove-ask-yes]');
+  if (yes) yes.onclick = () => {
+    const plan = A.plan, di = A.di, ei = A.ei;
+    trainRemoveAskClose();
+    delete TRAIN_FLOW[di + ':' + ei];
+    trainSessionRemoveAt(plan, di, ei, undefined, true);   /* la hoja ya preguntó: sin confirm() nativo */
+  };
 }
 
 /* === SELECTOR «CAMBIAR EJERCICIO» (paquete 2026-10-30; diseño
@@ -41243,7 +41302,23 @@ function trainFlowHTML(ex, di, ei) {
      maqueta aprobada): el «Finalizar» atenuado que
      acompañaba al Iniciar sale de esta fila —
      finalizar se alcanza ahora desde la pausa. */
-  return `<div class="flow-row"><button type="button" class="flow-btn is-start" data-flow-start="${key}">▶ ${chk ? t('train.flow.resume') : t('train.flow.start')}</button></div>`;
+  /* AUTH-484 · LA LÍNEA DE ARRANQUE LLEVA TAMBIÉN
+     «CAMBIAR» Y «QUITAR» (orden de Ronald, 2026-11-16,
+     con su captura de la ficha sin empezar): la misma
+     línea horizontal de la franja verde pasa a tres
+     botones — «Cambiar» a la izquierda con el MISMO
+     data-flow-swap del pie del flujo (su guarda
+     AUTH-398 y el selector de siempre, sin duplicar
+     flujo), «Iniciar» en el centro con su franja verde
+     y el doble de ancho, y «Quitar» a la derecha con
+     puerta nueva (data-flow-remove-ask): la hoja de
+     confirmación de la casa, no el confirm() nativo
+     que vive dentro del motor. En este estado la ficha
+     no enseñaba ninguna de las dos acciones (el pie
+     .flow-foot solo nace en curso y en pausa, donde
+     las dos siguen viviendo una sola vez): aquí nacen
+     en su única casa de este estado. */
+  return `<div class="flow-row flow-row-start"><button type="button" class="flow-btn is-swap" data-flow-swap="${key}">${t('train.custom.swap')}</button><button type="button" class="flow-btn is-start" data-flow-start="${key}">▶ ${chk ? t('train.flow.resume') : t('train.flow.start')}</button><button type="button" class="flow-btn is-remove" data-flow-remove-ask="${key}">${t('train.flow.removeShort')}</button></div>`;
 }
 /* LA LÍNEA DE QUITADOS (punto 5 = A, 2026-11-11): al final de la
    lista del día y de la ruta, una línea recogida por ejercicio
@@ -41635,6 +41710,15 @@ function trainFlowWire(box, plan) {
     const [diF, eiF] = String(b.dataset.flowRemove).split(':').map(Number);
     delete TRAIN_FLOW[diF + ':' + eiF];
     trainSessionRemoveAt(plan, diF, eiF);   /* su confirmación AUTH-398 vive dentro */
+  });
+  /* AUTH-484: el «Quitar» de la línea de arranque no va
+     directo al motor — abre la hoja de confirmación de
+     la casa (trainRemoveAskOpen), que pregunta en una
+     hoja flotante y solo al confirmar llama al motor
+     con la confirmación ya hecha. */
+  box.querySelectorAll('[data-flow-remove-ask]').forEach(b => b.onclick = () => {
+    const [diF, eiF] = String(b.dataset.flowRemoveAsk).split(':').map(Number);
+    trainRemoveAskOpen(plan, diF, eiF);
   });
   box.querySelectorAll('[data-flow-swap]').forEach(b => b.onclick = () => {
     const [diF, eiF] = String(b.dataset.flowSwap).split(':').map(Number);
@@ -62308,7 +62392,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261116-voz-escuchar';
+const PWA_SW_VERSION = '20261116-botones-iniciar';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

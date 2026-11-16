@@ -5476,6 +5476,23 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .flow-btn.is-finish { background:#b3261e; border-color:#b3261e; color:#fff; }
 .flow-btn.is-finish[disabled] { background:transparent; border-color:rgba(255,255,255,.35); color:inherit; opacity:.45; cursor:default; }
 .flow-btn.is-done { background:#22c55e; border-color:#15803d; color:#fff; }
+/* AUTH-484 · LA LÍNEA DE ARRANQUE A TRES BOTONES: Cambiar ·
+   Iniciar · Quitar en la misma línea y a la misma altura
+   (los 48 px de .flow-btn); la franja verde conserva el
+   protagonismo con el doble de peso y «Quitar» se viste
+   con el rojo suave del «Quitar» del pie del flujo. */
+.flow-row-start { align-items:stretch; }
+.flow-row-start .flow-btn.is-swap { flex-grow:1.1; }
+.flow-row-start .flow-btn.is-start { flex-grow:2; }
+.flow-row-start .flow-btn.is-remove { flex-grow:1; }
+.flow-btn.is-remove { color:#fca5a5; border-color:rgba(252,165,165,.55); }
+/* AUTH-484 · LA HOJA DE CONFIRMACIÓN DE «QUITAR»: su texto
+   de consecuencias y sus dos botones grandes (52 px); el
+   de confirmar, en el rojo de «Finalizar». */
+.remove-ask-text { font-size:16px; line-height:1.5; margin:12px 0 18px; }
+.remove-ask-row { display:flex; gap:8px; }
+.remove-ask-btn { flex:1; min-height:52px; border-radius:12px; border:2px solid #cbd5e1; background:#fff; color:#0f172a; font-size:16px; font-weight:800; padding:10px 8px; cursor:pointer; }
+.remove-ask-btn.is-yes { background:#b3261e; border-color:#b3261e; color:#fff; }
 .flow-incourse { flex:1; font-size:14.5px; font-weight:800; color:#fbbf24; }
 .flow-foot { display:flex; gap:8px; margin-top:8px; }
 .flow-mini { flex:1; min-height:44px; border-radius:10px; border:1.5px solid rgba(255,255,255,.45); background:transparent; color:inherit; font-size:14px; font-weight:700; padding:7px 6px; cursor:pointer; }
