@@ -39064,10 +39064,15 @@ let SESS_PILL_TIMER = null;
    visible de la sesión ('pill' | 'bar' | 'full') vive SOLO
    en memoria, como los demás estados de pantalla de la
    casa: la sesión nace en la píldora y al terminar la
-   sesión el estado vuelve a ella. ═══ */
+   sesión el estado vuelve a ella.
+   ENMIENDA AUTH-482 (orden de Ronald, 2026-11-16, con su
+   captura de la vista «Completa»): «Debe nacer
+   maximizado» — el nacimiento pasa a ser el estado
+   COMPLETO; lo demás de AUTH-464 no cambia. ═══ */
 let SESS_VIEW = 'pill';
 let SESS_BAR_SIG = '';
 let SESS_FULL_SIG = '';
+let SESS_BORN_FULL = false;   /* AUTH-482: ¿esta aparición de la sesión ya nació maximizada? */
 function sessViewSet(v) {
   if (v !== 'bar' && v !== 'full') v = 'pill';
   SESS_VIEW = v;
@@ -39077,7 +39082,16 @@ function sessViewSet(v) {
 function sessPillTick() {
   const pill = $('sess-pill'); if (!pill) return;
   const run = sessRunning();
-  if (!run) { pill.style.display = 'none'; const b0 = $('sess-bar'); if (b0) b0.style.display = 'none'; const f0 = $('sess-full'); if (f0) f0.style.display = 'none'; document.body.classList.remove('sess-on', 'sess-view-pill', 'sess-view-bar', 'sess-view-full'); SESS_VIEW = 'pill'; SESS_BAR_SIG = ''; SESS_FULL_SIG = ''; try { moveTick(null); } catch {} SESS_PILL_SIG = ''; return; }
+  if (!run) { pill.style.display = 'none'; const b0 = $('sess-bar'); if (b0) b0.style.display = 'none'; const f0 = $('sess-full'); if (f0) f0.style.display = 'none'; document.body.classList.remove('sess-on', 'sess-view-pill', 'sess-view-bar', 'sess-view-full'); SESS_VIEW = 'pill'; SESS_BORN_FULL = false; SESS_BAR_SIG = ''; SESS_FULL_SIG = ''; try { moveTick(null); } catch {} SESS_PILL_SIG = ''; return; }
+  /* AUTH-482 (orden de Ronald, 2026-11-16): EL CUADRITO
+     NACE MAXIMIZADO — la primera vez que el latido ve una
+     sesión viva (el arranque del cronómetro, o la vuelta a
+     la página con la sesión ya corriendo), la vista nace en
+     su estado completo, mande lo que mande el estado que
+     hubiera en memoria. Los controles para reducirlo
+     («Barra», la píldora y sus puertas) quedan como están:
+     esto fija solo el nacimiento, una vez por aparición. */
+  if (!SESS_BORN_FULL) { SESS_BORN_FULL = true; SESS_VIEW = 'full'; }
   document.body.classList.add('sess-on');
   document.body.classList.toggle('sess-view-pill', SESS_VIEW === 'pill');
   document.body.classList.toggle('sess-view-bar', SESS_VIEW === 'bar');
