@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261116-circulos-series">
+<link rel="stylesheet" href="styles.css?v=20261116-comidas-asignadas">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1055,6 +1055,18 @@
         <span class="act-chip-ico" aria-hidden="true">📖</span>
         <span class="act-chip-lab" data-i18n="food.recipes">Recipe book</span>
       </button>
+      <!-- COMIDAS ASIGNADAS (AUTH-486, orden de Ronald 2026-11-16):
+           tercera vía a todo el ancho, bajo la del recetario y en su
+           misma familia. No registra comida: es la puerta al
+           planificador semanal — abre la hoja #plan-float con el
+           atributo data-plan-open de siempre. Es la ÚNICA puerta al
+           planificador en esta ventana: la tarjeta «Mi planificador
+           de la semana» conserva su información y pierde su botón,
+           cuyo nombre viejo quedó condenado. -->
+      <button type="button" class="act-chip scan-wide" id="btn-food-assigned" data-plan-open>
+        <span class="act-chip-ico" aria-hidden="true">📅</span>
+        <span class="act-chip-lab" data-i18n="food.assigned">See my assigned meals</span>
+      </button>
     </div>
     <p class="progress-hint aiusage-line aiusage-meal-line" id="aiusage-meal-float" style="display:none"></p>
     <!-- APARTADO ÚNICO DE COMIDA (AUTH-2026-10-31-115; diseño
@@ -1076,11 +1088,12 @@
       <button type="button" class="food-subtab active" id="food-tab-resumen" role="tab" aria-selected="true" data-i18n="food.tabSummary">Summary</button>
       <button type="button" class="food-subtab" id="food-tab-consumido" role="tab" aria-selected="false" data-i18n="food.tabLogged">Logged</button>
     </div>
-    <!-- PUERTA AL PLANIFICADOR SEMANAL (variante C aprobada por
+    <!-- TARJETA DEL PLANIFICADOR SEMANAL (variante C aprobada por
          Ronald, 2026-11-09 00:15 CST): la tarjeta vive aquí, sobre
          las dos sub-vistas, y la pinta renderPlanCard (app.js) con
-         la semana construida de verdad; su botón abre la hoja
-         #plan-float, la casa del planificador. -->
+         la semana construida de verdad. Desde AUTH-486 es solo
+         información (sin botón): la puerta a la hoja #plan-float es
+         el chip «Ver mis comidas asignadas» de arriba. -->
     <div id="plan-card" style="display:none"></div>
     <div id="sched-card" style="display:none"></div>
     <div id="food-view-resumen">
@@ -2543,6 +2556,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261116-circulos-series"></script>
+<script type="module" src="app.js?v=20261116-comidas-asignadas"></script>
 </body>
 </html>

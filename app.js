@@ -4489,7 +4489,6 @@ en: {
   'menu.srcMeal': 'Prepared meal',
   'planwk.title': 'My weekly planner',
   'planwk.sheetTitle': 'My planner',
-  'planwk.cardBtn': 'See my planned week',
   'planwk.cardLine': 'Week of {range} · today: {kcal} of {goal} kcal planned',
   'planwk.cardLineNoGoal': 'Week of {range} · today: {kcal} kcal planned',
   'planwk.cardLineEmpty': 'Week of {range} · no menu yet',
@@ -5900,6 +5899,7 @@ en: {
   'scan.badCode': 'That code looks incomplete — check the digits.',
   'scan.failed': 'The lookup failed right now. Try again, or log the food by hand.',
   'food.recipes': 'Recipe book',
+  'food.assigned': 'See my assigned meals',
   'recipes.title': 'Recipe book',
   'recipes.hint': 'Real recipes. The house ones calculate their values from the house USDA food table; the ones that come from a book bring their book values — each card says where its values come from. The number shown is the real size of the catalog.',
   'recipes.bookFilter': 'Book',
@@ -9768,7 +9768,6 @@ es: {
   'menu.srcMeal': 'Comida preparada',
   'planwk.title': 'Mi planificador de la semana',
   'planwk.sheetTitle': 'Mi planificador',
-  'planwk.cardBtn': 'Ver mi semana planificada',
   'planwk.cardLine': 'Semana del {range} · hoy: {kcal} de {goal} kcal planificadas',
   'planwk.cardLineNoGoal': 'Semana del {range} · hoy: {kcal} kcal planificadas',
   'planwk.cardLineEmpty': 'Semana del {range} · todavía no hay menú',
@@ -11179,6 +11178,7 @@ es: {
   'scan.badCode': 'Ese código parece incompleto — revisa los dígitos.',
   'scan.failed': 'La búsqueda falló en este momento. Inténtalo de nuevo o registra la comida a mano.',
   'food.recipes': 'Recetario',
+  'food.assigned': 'Ver mis comidas asignadas',
   'recipes.title': 'Recetario',
   'recipes.hint': 'Recetas reales. Las de la casa calculan sus valores desde la tabla de alimentos USDA de la casa; las que vienen de un libro traen los valores de su libro — cada tarjeta dice de dónde salen sus valores. La cifra mostrada es el tamaño real del catálogo.',
   'recipes.bookFilter': 'Libro',
@@ -62507,7 +62507,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261116-circulos-series';
+const PWA_SW_VERSION = '20261116-comidas-asignadas';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -69006,8 +69006,9 @@ async function planCookSave() {
     if (f && f.style.display !== 'none') planCookClose();
   });
 })();
-/* Las dos puertas a la hoja — la tarjeta de Comida y el botón
-   grande del coach — comparten el atributo data-plan-open. */
+/* Las dos puertas a la hoja — el chip «Ver mis comidas asignadas»
+   de Comida (AUTH-486) y el botón grande del coach — comparten el
+   atributo data-plan-open. */
 document.addEventListener('click', e => {
   const b = e.target && e.target.closest ? e.target.closest('[data-plan-open]') : null;
   if (b) planOpenSheet();
@@ -70838,9 +70839,12 @@ document.addEventListener('click', e => {
   });
 })();
 
-/* La tarjeta-puerta de la ventana de Comida: la semana en curso y
-   lo planificado para HOY contra su meta, desde los mismos
-   documentos; sin menú, el estado honesto y la misma puerta. */
+/* La tarjeta informativa de la ventana de Comida: la semana en
+   curso y lo planificado para HOY contra su meta, desde los mismos
+   documentos; sin menú, el estado honesto. Desde AUTH-486 la tarjeta
+   ya no lleva botón (su nombre viejo quedó condenado por Ronald):
+   la única puerta al planificador en esta ventana es el chip «Ver
+   mis comidas asignadas», junto a los botones de registrar comida. */
 function planCardHTML() {
   const me = auth.currentUser && auth.currentUser.uid;
   const wk = mmMondayOf(todayISO());
@@ -70861,7 +70865,7 @@ function planCardHTML() {
   } else {
     line = t('planwk.cardLineEmpty', { range });
   }
-  return `<div class="plan-card-in"><div class="plan-card-txt"><b>📅 ${esc(t('planwk.title'))}</b><span>${esc(line)}</span></div>${chip}<button type="button" class="btn-primary plan-card-btn" data-plan-open>${esc(t('planwk.cardBtn'))}</button></div>`;
+  return `<div class="plan-card-in"><div class="plan-card-txt"><b>📅 ${esc(t('planwk.title'))}</b><span>${esc(line)}</span></div>${chip}</div>`;
 }
 function renderPlanCard() {
   const slot = $('plan-card'); if (!slot) return;
