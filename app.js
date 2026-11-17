@@ -6495,7 +6495,7 @@ en: {
   'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel', 'sess.barFinish': 'Finish',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.cardioIncl': 'includes {min} min of cardio',
-  'sess.setsOf': '{n} of {m} sets', 'sess.setsTap': 'tap a circle as you finish',
+  'sess.setsOf': '{n} of {m} sets', 'sess.setsTap': 'tap a circle as you finish', 'sess.edit': 'Edit',
   'sess.pillSub': 'It only stops when you finish, in Training',
   'sess.kicker': 'QUICK SURVEY', 'sess.title': 'Workout finished!',
   'sess.dur': 'Duration: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -11776,7 +11776,7 @@ es: {
   'sess.barLabel': 'Barra de la sesión', 'sess.fullLabel': 'Panel de la sesión', 'sess.barFinish': 'Finalizar',
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
   'sess.cardioIncl': 'incluye {min} min de cardio',
-  'sess.setsOf': '{n} de {m} series', 'sess.setsTap': 'toca un círculo al terminar',
+  'sess.setsOf': '{n} de {m} series', 'sess.setsTap': 'toca un círculo al terminar', 'sess.edit': 'Editar',
   'sess.pillSub': 'Solo se detiene al finalizar, en Entrenamiento',
   'sess.kicker': 'ENCUESTA RÁPIDA', 'sess.title': '¡Entrenamiento finalizado!',
   'sess.dur': 'Duración: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -39964,7 +39964,15 @@ function sessDotsHTML(curChk, ck, flowSt) {
     const cls = flags[si2] ? 'ok' : (si2 === nextI ? 'next' : 'todo');
     return `<button type="button" class="sf-dot ${cls}" data-sess-dot="${ck}:${si2}" aria-label="${esc(t('train.d.set'))} ${si2 + 1}">${flags[si2] ? '✓' : String(si2 + 1)}</button>`;
   }).join('');
-  return `<div class="sf-dots">${dots}<span class="sf-dots-lab">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(t('sess.setsTap'))}</span></div>`;
+  /* AUTH-489 · EL BOTONCITO «EDITAR» DE LA LÍNEA (orden de
+     Ronald, 2026-11-17, con su captura de la completa): al
+     lado del texto de las series, la puerta a la tarjeta del
+     ejercicio en Entrenamiento, donde se modifican las
+     repeticiones y el peso. Nace y muere con esta línea: sin
+     entrada (o sin flujo en curso/pausa) no hay línea ni
+     botón, como manda el pintor. Su cableado vive en
+     sessPanelWire ([data-sess-edit] → sessPanelEditGo). */
+  return `<div class="sf-dots">${dots}<span class="sf-dots-lab">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(t('sess.setsTap'))}</span><button type="button" class="sf-edit" data-sess-edit="${ck}">${esc(t('sess.edit'))}</button></div>`;
 }
 function sessFullSync(run) {
   const full = $('sess-full'); if (!full) return;
@@ -40073,6 +40081,44 @@ function sessPanelRepaint(plan) {
   if (TRAIN_CHECKS_CTX !== plan.id + '|' + todayISO()) return;
   try { loadMyTraining(); } catch {}
 }
+/* ═══ AUTH-489 · «EDITAR» LLEVA AL EJERCICIO (orden de
+   Ronald, 2026-11-17): el botoncito de la línea de círculos
+   de la completa no abre ninguna pantalla nueva — cierra el
+   panel (vuelve a la píldora, su estado de reposo) y deja a
+   la persona FRENTE a la tarjeta de ESE ejercicio en
+   Entrenamiento, con su zona de series desplegada y editable
+   tal como la tarjeta ya la pinta en curso o en pausa. La
+   cola de navegación es la de la píldora chica (TRAIN_VIEW a
+   hoy + navOpenPage + loadMyTraining); el foco del guiado
+   se fija con su pin de siempre cuando la preferencia es
+   guiada, y en la lista el desplazamiento busca la tarjeta
+   por su data-train-row pre-sellado — el mismo ancla sirve
+   a las dos vistas, porque la tarjeta en foco del guiado
+   también lo lleva. El desplazamiento espera al pintado con
+   el patrón de reintentos de la casa. Sin el contexto de
+   marcas cargado, el gesto degrada a solo navegar, como los
+   demás gestos de este panel. ═══ */
+function sessPanelEditGo(key) {
+  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  const partsE = String(key || '').split(':').map(Number);
+  const diE = partsE[0], eiE = partsE[1];
+  const ctxOk = !!plan && Number.isInteger(diE) && Number.isInteger(eiE)
+    && TRAIN_CHECKS_CTX === plan.id + '|' + todayISO();
+  if (ctxOk) {
+    if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = eiE;
+    try { TRAIN_VIEW = { planId: plan.id, sel: todayISO() }; } catch {}
+  }
+  sessViewSet('pill');
+  navOpenPage('train');
+  try { loadMyTraining(); } catch {}
+  if (!ctxOk) return;
+  let triesE = 0;
+  const ivE = setInterval(() => {
+    triesE++;
+    const rowE = document.querySelector('#my-training [data-train-row="' + diE + ':' + eiE + ':edit"]');
+    if (rowE || triesE >= 50) { if (rowE) { try { rowE.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } clearInterval(ivE); }
+  }, 120);
+}
 function sessPanelWire(el, surface) {
   if (!el || el.dataset.panelWired) return;
   el.dataset.panelWired = '1';
@@ -40105,6 +40151,8 @@ function sessPanelWire(el, surface) {
       try { sessPillTick(); } catch {}
       return;
     }
+    const edt = ev.target.closest ? ev.target.closest('[data-sess-edit]') : null;
+    if (edt) { try { sessPanelEditGo(edt.dataset.sessEdit); } catch {} return; }
     const fin = ev.target.closest ? ev.target.closest('[data-pill-finish]') : null;
     const ini = !fin && ev.target.closest ? ev.target.closest('[data-pill-start]') : null;
     const pau = !fin && !ini && ev.target.closest ? ev.target.closest('[data-pill-pause]') : null;
@@ -62684,7 +62732,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261117-inicio-unico';
+const PWA_SW_VERSION = '20261117-editar-panel';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
