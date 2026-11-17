@@ -6080,7 +6080,7 @@ en: {
   'manage.swapLogged': 'You already recorded sets for “{name}” — swapping it here would mix that record into the new exercise. Remove it instead (you will be asked first) and add the new one.',
   'train.custom.titleDate': 'Customize the assignments for {date}',
   'train.custom.sessionTitle': 'Today\'s session',
-  'train.custom.move': 'Move', 'train.custom.moveUp': 'Move up', 'train.custom.moveDown': 'Move down',
+  'train.custom.move': 'Move', 'train.custom.moveUp': 'Move up', 'train.custom.moveDown': 'Move down', 'train.move.spot': 'spot',
   'train.custom.sessionTitleDate': 'Session for {date}',
   'train.custom.swap': 'Change', 'train.custom.add': '+ Add exercise',
   'train.custom.undoSwap': 'Undo change', 'train.custom.removeAdded': 'Remove',
@@ -11361,7 +11361,7 @@ es: {
   'manage.swapLogged': 'Ya registraste series de «{name}»: cambiarlo aquí mezclaría ese registro con el ejercicio nuevo. Quítalo — se te pide confirmación — y añade el nuevo.',
   'train.custom.titleDate': 'Personaliza tus asignaciones del {date}',
   'train.custom.sessionTitle': 'Sesión de hoy',
-  'train.custom.move': 'Mover', 'train.custom.moveUp': 'Subir', 'train.custom.moveDown': 'Bajar',
+  'train.custom.move': 'Mover', 'train.custom.moveUp': 'Subir', 'train.custom.moveDown': 'Bajar', 'train.move.spot': 'puesto',
   'train.custom.sessionTitleDate': 'Sesión del {date}',
   'train.custom.swap': 'Cambiar', 'train.custom.add': '+ Agregar ejercicio',
   'train.custom.undoSwap': 'Deshacer cambio', 'train.custom.removeAdded': 'Quitar',
@@ -36206,6 +36206,117 @@ function trainSessionReorder(plan, di, from, to, iso) {
   }
   return true;
 }
+/* ═══ AUTH-490 · EL AGREGADO NACE AL FRENTE DE LOS PENDIENTES
+   Y EL DÍA ATERRIZA EN SU LISTA (órdenes de Ronald, 2026-11-17
+   12:33 y 12:37 CST): agregar un ejercicio a la sesión lo
+   dejaba AL FINAL de la lista efectiva — invisible entre los
+   que faltan, cuando la razón de agregarlo a media sesión
+   suele ser hacerlo enseguida — y la vista volvía al foco
+   guiado sin enseñar dónde había caído. Esta puerta es la
+   ÚNICA que llaman las cuatro vías de agregado al escribir
+   (el selector y su gemela de formas, el dictado y la foto de
+   máquina): mueve lo recién agregado al frente de los
+   pendientes POR EL MOTOR DE SIEMPRE (trainSessionReorder —
+   el orden vive en la edición del día, las marcas se remapean
+   y el plan no se toca) y deja la orden de aterrizaje en la
+   lista (TRAIN_ADD_LAND). El destino se calcula sobre la
+   lista efectiva YA escrita, donde lo nuevo ocupa las últimas
+   `count` posiciones: (a) con un ejercicio en curso (flujo
+   open/paused/closing — solo hoy tiene flujo), justo DETRÁS
+   de él: su índice no se mueve y el movimiento es seguro por
+   construcción, porque el motor no remapea el flujo y el
+   tramo movido [destino, final) nunca incluye al en curso;
+   (b) sin en curso, delante del primer ejercicio sin hecho —
+   el agregado queda como el siguiente a ejecutar; (c) en
+   otra fecha no hay marcas ni flujo: todo es pendiente y el
+   agregado abre el día. Con varios agregados de una vez (el
+   dictado), el bloque se mueve ítem a ítem conservando su
+   orden interno. Si lo nuevo ya está en su sitio, el motor no
+   escribe nada. ═══ */
+let TRAIN_ADD_LAND = null;   // { planId, di, ei, scrolled } — el aterrizaje en la lista tras agregar; solo memoria
+function trainAddPlaceFront(plan, di, iso, count) {
+  if (!plan || !Number.isInteger(count) || count < 1) return;
+  const viewIso = iso || todayISO();
+  const eff = trainEffectiveList(plan, di, viewIso);
+  const n = eff.length;
+  if (!n) return;
+  const from0 = n - count;   /* lo recién agregado ocupa las últimas `count` posiciones de la lista efectiva */
+  if (from0 < 0) return;
+  let target = 0;   /* otra fecha: el agregado abre el día */
+  if (viewIso === todayISO()) {
+    target = -1;
+    for (let i = 0; i < n; i++) {
+      const fs = TRAIN_FLOW[di + ':' + i];
+      if (fs && (fs.st === 'open' || fs.st === 'paused' || fs.st === 'closing')) { target = i + 1; break; }
+    }
+    if (target < 0) for (let i = 0; i < n; i++) {
+      const c = TRAIN_CHECKS[di + ':' + i];
+      if (!c || c.done !== true) { target = i; break; }
+    }
+    if (target < 0) target = from0;   /* todo hecho menos lo nuevo: ya está donde debe */
+  }
+  if (target > from0) target = from0;   /* el en curso es el último antes del bloque: ya nace detrás de él */
+  for (let j = 0; j < count; j++) {
+    if (target + j >= from0 + j) break;
+    trainSessionReorder(plan, di, from0 + j, target + j, viewIso);
+  }
+  if (viewIso === todayISO())
+    TRAIN_ADD_LAND = { planId: plan.id, di, ei: target, scrolled: false };
+}
+/* ¿La tarjeta de hoy de este plan+día debe pintarse como
+   LISTA por un aterrizaje vivo? Lo consulta dressedTodayCard:
+   la preferencia guardada no se toca — la orden manda solo
+   mientras vive y el contexto es esa tarjeta. */
+function trainAddLandActive(planId, di) {
+  return !!(TRAIN_ADD_LAND && TRAIN_ADD_LAND.planId === planId && TRAIN_ADD_LAND.di === di);
+}
+/* El consumo del aterrizaje, al final de loadMyTraining: si
+   el contexto pintado ya no es la tarjeta de hoy de ese plan,
+   la orden caduca; si lo es, la primera pintura desplaza
+   hasta la tarjeta del agregado (su data-train-row de la
+   lista, el ancla de AUTH-489) con el patrón de reintentos de
+   la casa, una sola vez. Si la tarjeta editable no aparece
+   (el día se cerró), la orden caduca en silencio. La orden
+   vive hasta que la persona elige vista con la puerta de
+   siempre (trainGuideApplyMode la olvida) o cambia de fecha. */
+function trainAddLandAfterPaint(planId, selIso) {
+  const L = TRAIN_ADD_LAND;
+  if (!L) return;
+  if (L.planId !== planId || selIso !== todayISO()) { TRAIN_ADD_LAND = null; return; }
+  if (L.scrolled) return;
+  L.scrolled = true;
+  let triesL = 0;
+  const ivL = setInterval(() => {
+    if (TRAIN_ADD_LAND !== L) { clearInterval(ivL); return; }
+    triesL++;
+    const rowL = document.querySelector('#my-training [data-train-row="' + L.di + ':' + L.ei + ':edit"]');
+    if (rowL || triesL >= 50) {
+      if (rowL) { try { rowL.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} }
+      TRAIN_ADD_LAND = null;   /* el aterrizaje se consume al entregarse (o al rendirse): la siguiente pintura vuelve a la preferencia */
+      clearInterval(ivL);
+    }
+  }, 120);
+}
+/* ¿El movimiento [from, to] por el motor tocaría un ejercicio
+   con flujo vivo (open/paused/closing) de ese día? El motor
+   remapea las MARCAS pero no el flujo, que vive por índice
+   efectivo con su reloj: mover el ejercicio en curso — o
+   cruzarlo — despegaría su flujo de sus marcas. Lo comparten
+   el pintor de la franja (atenúa la flecha) y su cableado
+   (segundo candado). Con la ruta viva no aplica: el
+   movimiento es dentro de TRAIN_GUIDE.order y ningún índice
+   efectivo cambia. */
+function trainMoveFlowHits(di, from, to) {
+  const lo = Math.min(from, to), hi = Math.max(from, to);
+  return Object.keys(TRAIN_FLOW || {}).some(k => {
+    const p = k.split(':');
+    if (Number(p[0]) !== di) return false;
+    const fs = TRAIN_FLOW[k];
+    if (!fs || (fs.st !== 'open' && fs.st !== 'paused' && fs.st !== 'closing')) return false;
+    const n = Number(p[1]);
+    return n >= lo && n <= hi;
+  });
+}
 let TRAIN_ROW_DRAG = null;   // arrastre de una fila del día en curso (solo memoria)
 /* GESTO DEL ARRASTRE (AUTH-405): la lógica de orden y guardado
    NO se toca (trainSessionReorder, byte a byte); lo que aquí se
@@ -37428,8 +37539,10 @@ function swapSheetApply(plan, di, entry, iso) {
      todas las vías de cierre (✕, «Listo», gesto del dock) pasan
      por loadMyTraining. */
   const effIds = new Set(trainEffectiveList(plan, di, iso).map(it => it && it.ex && it.ex.exerciseId).filter(Boolean));
-  if (!effIds.has(entry.id)) ed.added.push({ exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' });
+  const addedNew = !effIds.has(entry.id);
+  if (addedNew) ed.added.push({ exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' });
   trainEditsWrite(plan.id, ed, iso);
+  if (addedNew) trainAddPlaceFront(plan, di, iso, 1);   /* AUTH-490: el agregado nace al frente de los pendientes */
   swapSheetRepaintResults(plan, di, iso);
 }
 function swapSheetApplyVariant(plan, di, entry, vi, iso) {
@@ -37474,12 +37587,14 @@ function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
   if (TRAIN_PICK.kind === 'add') {
     const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
     const effIds = new Set(trainEffectiveList(plan, di, iso).map(it => it && it.ex && it.ex.exerciseId).filter(Boolean));
-    if (!effIds.has(entry.id)) {
+    const addedNewV = !effIds.has(entry.id);
+    if (addedNewV) {
       const rec = { exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' };
       if (withVar) rec.variantIndex = vi;
       ed.added.push(rec);
     }
     trainEditsWrite(plan.id, ed, iso);
+    if (addedNewV) trainAddPlaceFront(plan, di, iso, 1);   /* AUTH-490: el agregado nace al frente de los pendientes */
     SWAP_ADD_FORMS_ID = null;
     swapSheetRepaintResults(plan, di, iso);
     return;
@@ -38016,6 +38131,7 @@ function dictSheetApply() {
     ed.added.push(rec);
   }
   trainEditsWrite(D.plan.id, ed, D.iso);
+  trainAddPlaceFront(D.plan, D.di, D.iso, okRows.length);   /* AUTH-490: el bloque dictado nace al frente de los pendientes */
   dictSheetClose();
   loadMyTraining();
 }
@@ -38415,6 +38531,7 @@ function mphPushAdded(D, rec0) {
   if (typeof rec0.load === 'number' && rec0.load > 0) { rec.load = rec0.load; rec.loadUnit = rec0.loadUnit === 'lb' ? 'lb' : 'kg'; }
   ed.added.push(rec);
   trainEditsWrite(D.plan.id, ed, D.iso);
+  trainAddPlaceFront(D.plan, D.di, D.iso, 1);   /* AUTH-490: el agregado nace al frente de los pendientes */
 }
 
 async function mphSheetApply() {
@@ -38842,6 +38959,7 @@ function trainGuideApplyMode(mode) {
     if (TRAIN_CUSTOM_OPEN_STASH !== null) { TRAIN_CUSTOM_OPEN = TRAIN_CUSTOM_OPEN_STASH; TRAIN_CUSTOM_OPEN_STASH = null; }
   }
   trainGuidePrefSet(mode);
+  TRAIN_ADD_LAND = null;   /* AUTH-490: la puerta de vista manda sobre el aterrizaje tras agregar — su gesto lo olvida */
 }
 function guideRestSec(ex) {
   const raw = String((ex && (LANG === 'es' ? (ex.rest || ex.rest_en) : (ex.rest_en || ex.rest))) || '').trim().toLowerCase();
@@ -42116,6 +42234,18 @@ function trainExCompactHTML(ex, di, ei, mode, de, mv) {
   const spec = [ex.sets, ex.reps].filter(Boolean).join(' × ');
   const photo = trainExPhoto(ex);
   const thumb = !photo ? ytThumbOf(trainExVideo(ex)) : '';
+  /* AUTH-490 · LAS FLECHAS DE LA FRANJA NACEN ATENUADAS cuando
+     su movimiento rompería el estado en curso: sin la ruta
+     viva, mover por el motor (trainSessionReorder) remapea las
+     marcas pero no el flujo, que vive por índice efectivo — la
+     flecha que movería un ejercicio con flujo vivo, o lo
+     cruzaría, se pinta deshabilitada (trainMoveFlowHits, la
+     misma comprobación del cableado). Con la ruta viva el
+     movimiento es dentro de TRAIN_GUIDE.order, ningún índice
+     cambia y las flechas van siempre activas. */
+  const mvRouteLive = (mode === 'edit' && mv) ? (() => { try { const pM = (typeof MY_PLAN !== 'undefined' && MY_PLAN) ? MY_PLAN : null; return pM ? guideRouteLive(pM, di) : false; } catch { return false; } })() : false;
+  const mvUpOff = !!(mode === 'edit' && mv && (mv.first || (!mvRouteLive && trainMoveFlowHits(di, ei - 1, ei))));
+  const mvDownOff = !!(mode === 'edit' && mv && (mv.last || (!mvRouteLive && trainMoveFlowHits(di, ei, ei + 1))));
   /* PLANTILLA ÚNICA (2026-11-09 — reporte de Ronald 00:38 CST: el
      nombre estrangulado en una columna con las palabras partidas,
      la cabecera de cifras flotando a mitad de tarjeta y «Hecho» en
@@ -42144,7 +42274,7 @@ function trainExCompactHTML(ex, di, ei, mode, de, mv) {
     ${figs}
     ${trainLastTimeCardHTML(ex, mode)}
     ${mode === 'edit' ? trainFlowHTML(ex, di, ei) : ''}
-    ${mode === 'edit' && mv ? `<div class="train-ex-move"><button type="button" class="train-ex-grip" data-train-grip="${ei}" aria-label="${esc(t('train.custom.move'))}">⠿</button></div>` : ''}
+    ${mode === 'edit' && mv && !(chk && chk.done === true) ? `<div class="train-ex-move"><span class="train-ex-pos">${(Number.isInteger(mv.pos) ? mv.pos : ei) + 1}</span><span class="train-ex-poslab">${esc(t('train.move.spot'))}</span><span class="train-ex-arrows"><button type="button" class="train-ex-arrow" data-train-move="${di}:${ei}:-1" aria-label="${esc(t('train.custom.moveUp'))}"${mvUpOff ? ' disabled' : ''}>↑</button><button type="button" class="train-ex-arrow" data-train-move="${di}:${ei}:1" aria-label="${esc(t('train.custom.moveDown'))}"${mvDownOff ? ' disabled' : ''}>↓</button></span><button type="button" class="train-ex-grip" data-train-grip="${ei}" aria-label="${esc(t('train.custom.move'))}">⠿</button></div>` : ''}
   </div>`;
 }
 function trainDayCompactHistHTML(day, log, di) {
@@ -46504,9 +46634,9 @@ async function loadMyTraining() {
          al ejercicio, no a la posición. Ni el plan ni la
          edición del día se escriben por pintar. */
       const ordL = guideListOrder(plan, di);
-      if (ordL) exHtml = ordL.map((ei, pos) => trainExCompactHTML(effL[ei].ex, di, ei, 'edit', null, canMv && effL.length > 1 ? { first: pos === 0, last: pos === effL.length - 1 } : null)
+      if (ordL) exHtml = ordL.map((ei, pos) => trainExCompactHTML(effL[ei].ex, di, ei, 'edit', null, canMv && effL.length > 1 ? { first: pos === 0, last: pos === effL.length - 1, pos } : null)
         .replace('<div class="train-ex-card', `<div data-train-row="${di}:${ei}:edit" style="--stripe:${SHARE_W_PALETTE[ei % SHARE_W_PALETTE.length]}" class="train-ex-card`)).join('');
-      else exHtml = effL.map((it, ei) => trainExCompactHTML(it.ex, di, ei, 'edit', null, canMv && effL.length > 1 ? { first: ei === 0, last: ei === effL.length - 1 } : null)).join(''); }
+      else exHtml = effL.map((it, ei) => trainExCompactHTML(it.ex, di, ei, 'edit', null, canMv && effL.length > 1 ? { first: ei === 0, last: ei === effL.length - 1, pos: ei } : null)).join(''); }
     else if (mode === 'ficha') exHtml = (day.exercises || []).map((ex, ei) => trainExCompactHTML(ex, di, ei, 'ficha', null)).join('');
     else exHtml = trainDayCompactHistHTML(day, log, di);
     let tail = tailHTML;
@@ -46637,7 +46767,7 @@ async function loadMyTraining() {
     if (sel === today && done) {
       const lgD = logByDay[di]; if (lgD && trainLogStatus(lgD) === 'partial') TRAIN_MANAGE_DOOR = { plan, di, log: lgD };
     }
-    if (!done && sel === today && trainGuidePref() === 'guided')
+    if (!done && sel === today && trainGuidePref() === 'guided' && !trainAddLandActive(plan.id, di))
       return trainDressedCardHTML(plan, logs, di, sel, restructureInject(trainGuidedHTML(plan, day, di), plan, di, sel, false), '');
     const inner0 = dayCompactHTML(day, di, done ? 'done' : 'edit', logByDay[di] || null, null);
     return trainDressedCardHTML(plan, logs, di, sel, restructureInject(dressExRows(inner0, di, done ? 'read' : 'edit'), plan, di, sel, done), '');
@@ -47070,6 +47200,36 @@ async function loadMyTraining() {
     trainRowDragArm(TRAIN_ROW_DRAG, g, e);
     row.classList.add('train-ex-dragging');
   }));
+  /* AUTH-490 · LAS FLECHAS DE LA FRANJA (la maqueta combinada
+     aprobada por Ronald el 2026-11-17: número, flechas y asa en
+     la franja fina): un toque mueve UN puesto en el orden que
+     la persona está viendo, el gesto hermano del arrastre. Con
+     la ruta viva, el movimiento es dentro de TRAIN_GUIDE.order
+     por posición de pintado — como el arrastre en ese mundo:
+     ni las marcas ni el flujo se tocan, porque van por índice
+     efectivo y el índice no cambia. Sin ruta, entra por el
+     motor de la sesión (trainSessionReorder), que guarda el
+     orden en la edición del día y remapea las marcas. Segundo
+     candado del estado en curso: sin ruta, el motor no
+     remapea el flujo — si el movimiento movería un ejercicio
+     con flujo vivo o lo cruzaría (trainMoveFlowHits, la misma
+     comprobación que atenúa la flecha en el pintor), el toque
+     no mueve nada. */
+  box.querySelectorAll('[data-train-move]').forEach(b => b.onclick = () => {
+    const [diV, eiV, dirV] = String(b.dataset.trainMove).split(':').map(Number);
+    if (!Number.isInteger(diV) || !Number.isInteger(eiV) || (dirV !== -1 && dirV !== 1)) return;
+    if (guideRouteLive(plan, diV)) {
+      const posV = TRAIN_GUIDE.order.indexOf(eiV);
+      const toV = posV + dirV;
+      if (posV < 0 || toV < 0 || toV >= TRAIN_GUIDE.order.length) return;
+      const mvV = TRAIN_GUIDE.order.splice(posV, 1)[0];
+      TRAIN_GUIDE.order.splice(toV, 0, mvV);
+      loadMyTraining();
+      return;
+    }
+    if (trainMoveFlowHits(diV, eiV, eiV + dirV)) return;
+    if (trainSessionReorder(plan, diV, eiV, eiV + dirV)) loadMyTraining();
+  });
   /* AUTH-413 · El asa discreta de las paradas del recorrido
      al nacer: el gesto se arma sobre el asa con las mismas
      guardas del de la lista (un solo arrastre a la vez entre
@@ -47574,6 +47734,7 @@ async function loadMyTraining() {
      viven dentro del flujo de «+ Agregar» (swapPresetRowHTML en
      la hoja del selector, el mismo SWAP_PRESET_GROUP). */
   trainAlignRender();
+  trainAddLandAfterPaint(plan.id, sel);   /* AUTH-490: consume el aterrizaje en la lista tras agregar (desplaza a la tarjeta nueva) */
   /* Biblioteca (una sola lectura con caché por sesión de página): al
      llegar, se re-pinta UNA vez por plan/día para resolver nombres y
      fotos por idioma; si no se puede leer, la vista queda con los
@@ -62732,7 +62893,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261117-editar-panel';
+const PWA_SW_VERSION = '20261117-agregar-mover';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

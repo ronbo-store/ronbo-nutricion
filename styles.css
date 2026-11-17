@@ -4200,6 +4200,17 @@ body.sess-on #pend-back-chip { bottom: calc(env(safe-area-inset-bottom, 0px) + 2
 .train-day-dressed .train-ex-compact { flex-wrap: wrap; }
 .train-ex-move { flex-basis: 100%; display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .train-ex-grip { flex: 0 0 auto; width: 72px; height: 46px; padding: 0; border: 1px solid rgba(125, 211, 252, .45); border-radius: 10px; background: rgba(2, 6, 23, .35); color: #e0f2fe; font-size: 19px; line-height: 1; cursor: grab; touch-action: none; }
+/* AUTH-490 · LA FRANJA COMBINADA (número · flechas · asa): el
+   número de puesto en su circulito discreto y la palabrita, las
+   flechas centradas con el dibujo pequeño y el toque en el
+   suelo de la casa (44 px), y el asa de siempre a la derecha.
+   El alto de la franja lo sigue mandando el asa (46 px): la
+   página no crece. */
+.train-ex-pos { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; background: #0f766e; color: #fff; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.train-ex-poslab { flex: 0 0 auto; font-size: 11px; font-weight: 700; color: rgba(224, 242, 254, .6); }
+.train-ex-arrows { flex: 1 1 auto; display: flex; justify-content: center; gap: 26px; }
+.train-ex-arrow { flex: 0 0 auto; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: rgba(125, 211, 252, .9); font-size: 17px; font-weight: 800; line-height: 1; cursor: pointer; }
+.train-ex-arrow:disabled { opacity: .35; cursor: default; }
 .train-ex-move-btn { flex: 1 1 0; min-height: 46px; font-size: 14px; font-weight: 800; }
 .train-ex-move-btn:disabled { opacity: .35; }
 .train-ex-dragging { opacity: .55; }
