@@ -6558,8 +6558,8 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 /* AUTH-464 · LA PANTALLA COMPLETA DEL PANEL: tapa de pantalla
    entera (doctrina AUTH-338) con la columna topada a 640 px
    centrada en bandas anchas (precedente AUTH-420). */
-#sess-full { position: fixed; inset: 0; z-index: 48; background: #1b2a4a; color: #fff; overflow-y: auto; overscroll-behavior: contain; font-family: inherit; }
-.sf-col { max-width: 430px; margin: 0 auto; min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: calc(env(safe-area-inset-top, 0px) + 18px) 18px calc(env(safe-area-inset-bottom, 0px) + 20px); }
+#sess-full { position: fixed; inset: 0; z-index: 48; background: #1b2a4a; color: #fff; overflow: hidden; overscroll-behavior: contain; font-family: inherit; display: flex; flex-direction: column; }
+.sf-col { max-width: 430px; margin: 0 auto; width: 100%; flex: 1; min-height: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: calc(env(safe-area-inset-top, 0px) + 18px) 18px calc(env(safe-area-inset-bottom, 0px) + 20px); }
 @media (min-width: 720px) { .sf-col { max-width: 640px; } }
 .sf-head { display: flex; align-items: center; gap: 8px; }
 .sf-training { font-size: 12px; font-weight: 800; letter-spacing: .14em; color: #C6FF4A; }
@@ -6606,7 +6606,7 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sf-how-tx b { display: block; font-size: 16.5px; }
 .sf-how-tx small { display: block; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.65); margin-top: 1px; }
 .sf-btnrow { display: flex; gap: 10px; margin-top: 12px; }
-.sf-btn { flex: 1 1 0; height: 56px; border: none; border-radius: 14px; font-size: 16.5px; font-weight: 800; color: #fff; cursor: pointer; font-family: inherit; }
+.sf-btn { flex: 1 1 0; height: 52px; border: none; border-radius: 14px; font-size: 16.5px; font-weight: 800; color: #fff; cursor: pointer; font-family: inherit; }
 .sf-btn.ini { background: linear-gradient(180deg, #22c55e, #16a34a); }
 .sf-btn.stop { background: linear-gradient(180deg, #f59e0b, #d97706); }
 .sf-btn.fin { background: #b3261e; }
@@ -6618,8 +6618,27 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sf-next-lab { font-size: 11px; font-weight: 800; letter-spacing: .12em; color: rgba(255,255,255,.6); }
 .sf-next-name { font-size: 16.5px; font-weight: 700; }
 .sf-next-pos { font-size: 13px; color: rgba(255,255,255,.65); font-weight: 600; }
-.sf-min { width: 100%; height: 68px; margin-top: auto; border: none; border-radius: 16px; background: #fff; color: #1b2a4a; font-size: 19px; font-weight: 800; letter-spacing: .12em; cursor: pointer; font-family: inherit; }
+.sf-min { width: 100%; height: 68px; flex: none; border: none; border-radius: 16px; background: #fff; color: #1b2a4a; font-size: 19px; font-weight: 800; letter-spacing: .12em; cursor: pointer; font-family: inherit; }
 .sf-min:active { background: #e2e8f0; }
+/* AUTH-491 · EL CUERPO DEL CUADRO Y LAS TARJETAS PLEGADAS: todo el contenido de la completa vive en .sf-body (flex:1 con min-height:0 — solo desplaza él si una pantalla muy baja no pudiera con todo) y el MINIMIZAR queda como pie fijo fuera del cuerpo, visible siempre sin hacer scroll. Las tarjetas plegadas (el Mensaje y la Reflexión) son una fila de una línea de 50 px: icono, rótulo, texto con elipsis y su puerta (› o la línea de leer/escuchar); desplegadas, su cabecera-botón de 44 px replega. El «Quitar» de la completa (AUTH-491) comparte la fila del Iniciar (2/3 y 1/3) y es la tercera pieza breve de la fila en curso o en pausa, sin añadir líneas. */
+.sf-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 8px; }
+.sf-foldcard { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 50px; padding: 10px 16px; box-sizing: border-box; font: inherit; color: #fff; text-align: left; cursor: pointer; }
+.sf-fold-ic { font-size: 17px; line-height: 1; flex: none; }
+.sf-fold-lab { font-size: 10.5px; font-weight: 800; letter-spacing: .12em; color: #C6FF4A; flex: none; }
+.sf-fold-txt { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14.5px; font-weight: 600; }
+.sf-fold-chev { font-size: 18px; font-weight: 700; color: #8fd0ff; flex: none; }
+.sf-fold-link { font-size: 13px; font-weight: 700; color: #5eead4; white-space: nowrap; flex: none; }
+.sf-fold-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; padding: 0; background: none; border: none; font: inherit; color: #fff; text-align: left; cursor: pointer; }
+.sf-fold-head .sf-card-lab { margin-bottom: 0; }
+.sf-btn.quit { background: rgba(255,255,255,.08); color: #ffb4a8; border: 1.6px solid rgba(255,120,100,.55); }
+.sf-row2 .sf-btn.ini { flex: 2 1 0; }
+.sf-row2 .sf-btn.quit { flex: 1 1 0; font-size: 15.5px; }
+.sf-row3 .sf-btn.fin { flex: 1.25 1 0; }
+.sf-row3 .sf-btn.quit { flex: .62 1 0; font-size: 13.5px; }
+/* AUTH-491 · el aire entre piezas del AHORA se aprieta (12→8 px) para que el cuadro entero quepa también en pantallas bajas (~740 px) sin tocar ningún tamaño de toque. */
+.sf-now .sf-dots { margin-top: 8px; }
+.sf-now .sf-how { margin-top: 8px; }
+.sf-now .sf-btnrow { margin-top: 8px; }
 
 /* AUTH-464 · LA HOJA DEL ARTÍCULO y la ficha pintan sobre el
    panel completo (z-48) cuando salen de él: z-49 solo en
