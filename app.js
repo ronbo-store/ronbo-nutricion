@@ -40055,6 +40055,24 @@ function sessFullFichaOpen() {
    EN EL SITIO — sin la cola de navegación de la píldora
    (AUTH-454): estas dos superficies existen para controlar
    la sesión sin ir a ninguna parte. ── */
+/* ═══ AUTH-488 · EL PANEL TAMBIÉN REPINTA LA TARJETA: los
+   gestos de la barra y de la pantalla completa escriben el
+   MISMO estado que pinta la vista de Entrenamiento, pero
+   terminaban solo con sessPillTick() — la tarjeta quedaba con
+   la foto vieja (reporte de Ronald, 2026-11-17: inició desde
+   el cuadro azul y la tarjeta seguía en «Sin empezar», con su
+   «Iniciar» aún vivo sobre un ejercicio ya en curso). Ahora
+   cada gesto del panel que escribe estado, si la página
+   activa es Entrenamiento y el contexto es el de siempre (el
+   plan del dueño y hoy), repinta la vista con loadMyTraining()
+   antes del tick — el mismo cierre que la píldora chica ya
+   hace al navegar. Sin navegación nueva: fuera de
+   Entrenamiento no se repinta nada. ═══ */
+function sessPanelRepaint(plan) {
+  if (!plan || NAV_PAGE !== 'train') return;
+  if (TRAIN_CHECKS_CTX !== plan.id + '|' + todayISO()) return;
+  try { loadMyTraining(); } catch {}
+}
 function sessPanelWire(el, surface) {
   if (!el || el.dataset.panelWired) return;
   el.dataset.panelWired = '1';
@@ -40069,6 +40087,7 @@ function sessPanelWire(el, surface) {
         const partsF = String(fac.dataset.pillFace).split(':');
         flowResolveClosing(planF, partsF[0] + ':' + partsF[1], Number(partsF[2]));
       }
+      sessPanelRepaint(planF);   /* AUTH-488: la cara resuelve el cierre — la tarjeta se repinta */
       try { sessPillTick(); } catch {}
       return;
     }
@@ -40082,6 +40101,7 @@ function sessPanelWire(el, surface) {
         const partsD = String(dot.dataset.sessDot).split(':');
         sessDotTap(planD, partsD[0] + ':' + partsD[1], Number(partsD[2]));
       }
+      sessPanelRepaint(planD);   /* AUTH-488: el círculo escribe la marca — la tarjeta se repinta */
       try { sessPillTick(); } catch {}
       return;
     }
@@ -40133,11 +40153,13 @@ function sessPanelWire(el, surface) {
       if (surface === 'bar' && fin) {
         const key2 = fin.dataset.pillFinish;
         if (TRAIN_FLOW[key2] && TRAIN_FLOW[key2].st === 'closing' && TRAIN_CHECKS[key2] && flowHasData(TRAIN_CHECKS[key2])) {
+          sessPanelRepaint(plan);   /* AUTH-488: el hecho ya se selló — la tarjeta se repinta antes de subir a la píldora */
           sessViewSet('pill');
           return;
         }
       }
     }
+    sessPanelRepaint(plan);   /* AUTH-488: ini/res/pau/fin escriben estado — la tarjeta se repinta */
     try { sessPillTick(); } catch {}
   });
 }
@@ -40241,6 +40263,78 @@ function trainBarState() {
   if (cur == null) cur = pend[0];
   const nxt = pend.find(ei => ei > cur);
   return { run, plan, di, checks, eff, cur, nxt: (nxt === undefined ? null : nxt) };
+}
+
+/* ═══ AUTH-488 · UN SOLO «INICIAR» (variante B de la maqueta,
+   aprobada por Ronald el 2026-11-17): el «Iniciar» del DÍA
+   arranca TODO a la vez. Hasta este paquete ese gesto solo
+   despertaba el cronómetro de la sesión y ningún ejercicio
+   quedaba iniciado en el sistema: la pastilla corría nombrando
+   «de ahora» al primer pendiente mientras su tarjeta seguía
+   en «Sin empezar», y quien entraba a las series lo encontraba
+   sin iniciar — dos inicios que no se enteraban el uno del
+   otro. Ahora el mismo gesto, tras el cronómetro de siempre,
+   inicia TAMBIÉN el ejercicio «de ahora» de ese día por el
+   camino de la tarjeta (su entrada, la reconciliación y su
+   reloj), para que tarjeta, panel y series digan lo mismo
+   desde el primer toque. El «de ahora» se resuelve con la
+   cascada de trainBarState (foco fijado → en curso → en pausa
+   → cierre vivo → primer pendiente con entrada → primer
+   pendiente), leída sobre el estado en memoria de esta vista.
+   NO PISAR: si el de ahora ya corre ('open'), su reloj y su
+   estado no se tocan — el gesto vale solo el cronómetro, como
+   antes; si está en pausa, se reanuda por el camino de
+   «Seguir»; si su cierre vive o ya está hecho, no se fuerza
+   nada. La llamita no se toca: la primera marca sigue
+   valiendo como arranque implícito, byte a byte como siempre. */
+function trainDayStartNow(plan, di) {
+  if (!plan || !Number.isInteger(di)) return;
+  const eff = trainEffectiveList(plan, di);
+  if (!eff.length) return;
+  const pend = [], closingDone = [];
+  eff.forEach((it, ei) => {
+    const c = TRAIN_CHECKS[di + ':' + ei];
+    const f = TRAIN_FLOW[di + ':' + ei];
+    if (!c || c.done !== true) pend.push(ei);
+    else if (f && f.st === 'closing' && flowHasData(c)) closingDone.push(ei);
+  });
+  if (!pend.length && !closingDone.length) return;
+  let cur = null;
+  try {
+    if (trainGuidePref() === 'guided' && Number.isInteger(TRAIN_GUIDE.pin) && (pend.includes(TRAIN_GUIDE.pin) || closingDone.includes(TRAIN_GUIDE.pin))) cur = TRAIN_GUIDE.pin;
+  } catch {}
+  if (cur == null) { for (const ei of pend) { const fsB = TRAIN_FLOW[di + ':' + ei]; if (fsB && fsB.st === 'open') { cur = ei; break; } } }
+  if (cur == null) { for (const ei of pend) { const fsB = TRAIN_FLOW[di + ':' + ei]; if (fsB && fsB.st === 'paused') { cur = ei; break; } } }
+  if (cur == null) { for (const ei of closingDone) { cur = ei; break; } }
+  if (cur == null) { for (const ei of pend) { if (TRAIN_CHECKS[di + ':' + ei]) { cur = ei; break; } } }
+  if (cur == null) cur = pend[0];
+  const key = di + ':' + cur;
+  const chk = TRAIN_CHECKS[key] || null;
+  if (chk && chk.done === true) return;         /* hecho o en su cierre: no se fuerza */
+  const fs = TRAIN_FLOW[key] || null;
+  if (fs && fs.st === 'open') return;           /* ya corre: su reloj no se toca */
+  if (fs && fs.st === 'closing') return;        /* cierre vivo sin hecho: tampoco */
+  if (fs && fs.st === 'paused') {
+    /* Reanudar por el camino de «Seguir» de la tarjeta: la
+       reconciliación de siempre y un tramo nuevo desde lo
+       bancado en la marca. */
+    flowStartReconcile(plan, key);
+    fs.st = 'open';
+    fs.since = Date.now();
+    return;
+  }
+  const it = eff[cur];
+  if (!it) return;
+  /* El inicio completo de la tarjeta (su data-flow-start),
+     por esta puerta compartida: la entrada en curso, la
+     reconciliación que finaliza al otro en curso y fija el
+     foco, el toque del cronómetro (ya despierto por el gesto)
+     y el reloj abierto desde lo bancado. */
+  if (!TRAIN_CHECKS[key]) TRAIN_CHECKS[key] = { rpe: null, sets: trainDefaultSets(it.ex) };
+  flowStartReconcile(plan, key);
+  trainChronoTouch(plan.id, trainDayLabelOf(plan, di));
+  trainChecksPersist(plan.id);
+  TRAIN_FLOW[key] = { st: 'open', face: Number.isInteger(TRAIN_CHECKS[key].face) ? TRAIN_CHECKS[key].face : null, acc: (typeof TRAIN_CHECKS[key].activeSec === 'number' && TRAIN_CHECKS[key].activeSec > 0) ? TRAIN_CHECKS[key].activeSec * 1000 : 0, since: Date.now() };
 }
 
 
@@ -41755,6 +41849,14 @@ function trainFlowWire(box, plan) {
     const [diF, eiF] = key.split(':').map(Number);
     const itF = trainEffectiveList(plan, diF)[eiF];
     if (!itF) return;
+    /* AUTH-488 · LA GUARDA DEL RELOJ: si este ejercicio YA
+       corre ('open'), este botón solo puede venir de una foto
+       vieja de la tarjeta (el ejercicio se inició desde el
+       panel y esta vista aún no se había repintado): reescribir
+       su estado pondría su reloj en cero, perdiendo el tramo
+       vivo. El gesto se reduce a reconciliar el foco y
+       repintar — su acc y su since quedan intactos. */
+    if (TRAIN_FLOW[key] && TRAIN_FLOW[key].st === 'open') { flowStartReconcile(plan, key); loadMyTraining(); return; }
     /* INICIAR: crea la entrada EN CURSO de ESE ejercicio (sin
        marca de hecho) y despliega sus series — es además quien
        despierta el cronómetro, como la marca de siempre. */
@@ -46968,7 +47070,13 @@ async function loadMyTraining() {
     loadMyTraining();
   });
   box.querySelectorAll('[data-train-start]').forEach(b => b.onclick = () => {
-    trainChronoStart(plan.id, trainDayLabelOf(plan, Number(b.dataset.trainStart)));
+    const diS = Number(b.dataset.trainStart);
+    trainChronoStart(plan.id, trainDayLabelOf(plan, diS));
+    /* AUTH-488 · UN SOLO GESTO: el «Iniciar» del día inicia
+       también el ejercicio de ahora de ese día
+       (trainDayStartNow), por el camino de la tarjeta — los
+       tres sitios de este botón comparten este cableado. */
+    trainDayStartNow(plan, diS);
     sessPillTick();
     loadMyTraining();
   });
@@ -62576,7 +62684,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261117-saltar-dia';
+const PWA_SW_VERSION = '20261117-inicio-unico';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
