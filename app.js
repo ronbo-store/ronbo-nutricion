@@ -18945,8 +18945,6 @@ async function nudgeSend() {
   }
   if (res.ok) {
     await mailRecordNudge(ctx.uid, ctx.sub);
-    nudgeMsg(t('nudge.sentOk'));
-    if (sb) sb.style.display = 'none';
     /* Repintado suave de la superficie que quede detrás: la
        pasada en memoria ya trae el registro (mailRecordNudge). */
     try { if (typeof renderStudentsBody === 'function' && typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST) renderStudentsBody(); } catch {}
@@ -18958,6 +18956,16 @@ async function nudgeSend() {
     /* Punto 130: y el bloque «✉ Recordarle sus métricas» de la
        ficha, si es la que está abierta, pasa a mostrar su sello. */
     try { if (typeof fichaMetRefresh === 'function') fichaMetRefresh(ctx.uid); } catch {}
+    /* AUTH-492 (orden de Ronald, 2026-11-17): enviado el aviso,
+       la hoja se CIERRA sola — ya no se queda abierta esperando
+       la X — y el «enviado» queda donde él lo ve: las filas y
+       los bloques repintados arriba muestran «✉ Avisado el
+       {fecha}» con el sello recién registrado
+       (notices.nudge.<sub>), y el toast lleva el mismo texto de
+       confirmación de siempre. Si el envío falla, la hoja NO
+       se cierra y no se registra nada (las ramas de abajo). */
+    nudgeClose();
+    toast(t('nudge.sentOk'));
   } else if (res.status === 429 || res.error === 'nudge-capped') {
     nudgeMsg(t('nudge.capped'));
     if (sb) sb.style.display = 'none';
@@ -18993,91 +19001,14 @@ async function nudgeSend() {
    una subclave más del mismo mapa de sellos: enviar el combinado
    NO quema los «Avisar» individuales ni al revés. El propietario
    envía sin tope, como en toda la familia. ================================================================ */
-const PENDLIST_MAIL = {
-  en: {
-    subject: 'RONBO FIT — Your pending steps, each with its direct link',
-    body: `Hi {name},
-
-Your trainer {trainer} is keeping track of how you are doing. These are the steps still pending in your RONBO FIT account — each one with the direct link that takes you straight to where it is done:
-
-{items}
-
-Finish one and it leaves your list on its own. Thank you for keeping your record up to date: it is how your trainer can look after you with real numbers.
-
-Thank you,
-RONBO FIT`,
-    items: {
-      eval: 'Your starting information (weight, height, birth year, activity level and your private datum)',
-      cns: 'Your health consent — the decision is yours alone',
-      parq: 'Finish your health declaration',
-      goal: 'Define your goals (objective and focus)',
-      meal: 'Start logging your meals — send your request',
-      pes: 'Log your weight',
-      per: 'Your progress evaluation (photos and measurements)',
-      bod: 'The consent for your body-type analysis'
-    }
-  },
-  es: {
-    subject: 'RONBO FIT — Tus pendientes, cada uno con su enlace directo',
-    body: `Hola {name}:
-
-Tu entrenador {trainer} está pendiente de tu avance. Estos son los pasos que aún tienes pendientes en tu cuenta de RONBO FIT — cada uno con el enlace directo que te lleva justo a donde se hace:
-
-{items}
-
-Termina uno y sale de tu lista solo. Gracias por mantener tu registro al día: así tu entrenador puede cuidarte con números reales.
-
-Gracias,
-RONBO FIT`,
-    items: {
-      eval: 'Tu información inicial (peso, talla, año de nacimiento, nivel de actividad y tu dato privado)',
-      cns: 'Tu consentimiento de salud — la decisión es solo tuya',
-      parq: 'Completa tu declaración de salud',
-      goal: 'Define tus metas (objetivo y enfoque)',
-      meal: 'Empieza a registrar tus comidas — envía tu solicitud',
-      pes: 'Registra tu peso',
-      per: 'Tu evaluación de progreso (fotos y medidas)',
-      bod: 'El consentimiento de tu análisis de tipo corporal'
-    }
-  }
-};
-/* El enlace de cada tipo, ESPEJO del mapa del Worker: evaluación
-   y metas viajan por la maquinaria que ya existía (?base= del
-   aviso D5, con el paso de la primera pieza que falta; ?fotos=1
-   de AUTH-188 para la evaluación de progreso); el resto estrena
-   la ruta cerrada ?ir= de este paquete, que aterriza en la MISMA
-   superficie que el «Ir a» del pendiente del propio alumno. */
-function pendListLinkFor(sub, step) {
-  const B = 'https://fit.ronbo.store';
-  if (sub === 'eval' || sub === 'goal') return step ? B + '/?base=' + step : B;
-  if (sub === 'cns') return B + '/?ir=perms-spec';
-  if (sub === 'parq') return B + '/?ir=perms';
-  if (sub === 'bod') return B + '/?ir=perms-bt';
-  if (sub === 'meal') return B + '/?ir=mytrainer';
-  if (sub === 'pes') return B + '/?ir=weight';
-  if (sub === 'per') return B + '/?fotos=1';
-  return B;
-}
-/* El paso de la base al que apunta el enlace de evaluación/
-   metas: el de la PRIMERA pieza que falta, con el mismo mapeo
-   de baseMailBtnFor que elige el botón del correo D5. */
-function pendListStepFor(st) {
-  if (!st || !Array.isArray(st.missing) || !st.missing.length) return null;
-  const first = BASE_MAIL_ORDER.filter(x => st.missing.includes(x))[0];
-  if (!first) return null;
-  return baseMailBtnFor(first)[1];
-}
-/* Compone {subject, body} EXACTAMENTE como el Worker (la batería
-   exige igualdad carácter a carácter entre esta vista previa y
-   el correo que el Worker compone con los mismos datos). */
-function pendListCompose(subs, lang, name, trainer, step) {
-  const P = PENDLIST_MAIL[lang] || PENDLIST_MAIL.en;
-  const items = subs.map(s => '• ' + ((P.items || {})[s] || s) + '\n' + pendListLinkFor(s, step)).join('\n\n');
-  return {
-    subject: P.subject.split('{name}').join(name).split('{trainer}').join(trainer),
-    body: P.body.split('{name}').join(name).split('{trainer}').join(trainer).split('{items}').join(items)
-  };
-}
+/* AUTH-492: el espejo local de la plantilla (PENDLIST_MAIL,
+   pendListCompose y su mapa de enlaces) se RETIRA: la hoja
+   del combinado pinta la vista previa REAL que compone el
+   Worker (pendListRenderPreview pide preview, como la hoja
+   de avisos desde AUTH-436), así que la plantilla vive en
+   UN SOLO SITIO y la previa ya no puede divergir del correo
+   que llega al buzón — ni verse como texto plano sin el
+   diseño de marca (la captura de Ronald de hoy). */
 /* Los tipos combinables de una lista de ítems de la unión, en el
    orden en que la vista los pinta y sin duplicar: los que tienen
    plantilla de aviso y no son automáticos. */
@@ -19147,15 +19078,29 @@ function pendListBasePrime() {
     if (!PENDLIST_CTX || PENDLIST_CTX.uid !== uid) return;
     PENDLIST_CTX.baseState = st;
     pendListRenderPreview();
-  }).catch(() => {});
+  }).catch(() => {
+    /* AUTH-492: sin lectura posible, la vista previa sigue SIN
+       payload (el Worker compone con sus rutas de siempre, el
+       mismo caer honesto del envío) — la hoja no se queda en
+       «cargando» para siempre. */
+    if (!PENDLIST_CTX || PENDLIST_CTX.uid !== uid) return;
+    if (PENDLIST_CTX.baseState === undefined) { PENDLIST_CTX.baseState = null; pendListRenderPreview(); }
+  });
 }
+/* AUTH-492: la vista previa es la REAL y la compone el Worker,
+   como la de la hoja de avisos desde AUTH-436: la hoja pide la
+   composición al mismo embudo del envío (/mail/send con
+   preview, que la ruta ya honra también para «pendinglist») y
+   pinta el asunto y la parte HTML con su diseño de marca, tal
+   como llegará al buzón; si el correo saliera solo en texto,
+   pinta su texto. Si el Worker no puede componer, la hoja lo
+   dice — nunca pinta un texto local como si fuera el correo
+   (el espejo de solo texto se retiró con este paquete). */
 function pendListRenderPreview() {
   const ctx = PENDLIST_CTX; if (!ctx) return;
   const box = $('pendlist-preview-box'); if (!box) return;
   const u = nudgeStudentDoc(ctx.uid) || { id: ctx.uid };
   const lang = nudgeMailLangOf(u);
-  const nm = u.name || (u.email ? String(u.email).split('@')[0] : '');
-  const tr = nudgeTrainerNameFor(u);
   const sb = $('pendlist-send');
   if (!ctx.subs.length) {
     box.innerHTML = `<p class="nudge-body">${esc(t('pendlist.none'))}</p>`;
@@ -19169,9 +19114,41 @@ function pendListRenderPreview() {
     if (sb) sb.style.display = 'none';
     return;
   }
-  const step = pendListStepFor(ctx.baseState);
-  const c = pendListCompose(ctx.subs, lang, nm, tr, step);
-  box.innerHTML = `<p class="nudge-subj">${esc(c.subject)}</p><p class="nudge-body">${esc(c.body)}</p>`;
+  /* Con evaluación o metas en la lista, la composición lleva el
+     payload vivo de la base (su enlace ?base= apunta a la primera
+     pieza que falta, como al enviar): se espera a su lectura. */
+  if ((ctx.subs.includes('eval') || ctx.subs.includes('goal')) && ctx.baseState === undefined) {
+    box.innerHTML = `<p class="nudge-body">${esc(t('nudge.previewLoading'))}</p>`;
+    pendListBasePrime();
+    return;
+  }
+  const seq = (ctx.previewSeq = (ctx.previewSeq || 0) + 1);
+  box.innerHTML = `<p class="nudge-body">${esc(t('nudge.previewLoading'))}</p>`;
+  const extra = { preview: true, pends: ctx.subs.slice() };
+  if ((ctx.subs.includes('eval') || ctx.subs.includes('goal')) && ctx.baseState) extra.base = baseMailPayload(ctx.baseState);
+  mailSend(ctx.uid, 'pendinglist', lang, extra).then(res => {
+    if (!PENDLIST_CTX || PENDLIST_CTX !== ctx || ctx.previewSeq !== seq) return;
+    const bx = $('pendlist-preview-box'); if (!bx) return;
+    if (res && res.ok && res.preview) {
+      let h = `<p class="nudge-subj">${esc(res.subject || '')}</p>`;
+      if (res.html) h += `<div class="nudge-mail-html">${res.html}</div>`;
+      else h += `<p class="nudge-body">${esc(res.text || '')}</p>`;
+      bx.innerHTML = h;
+      return;
+    }
+    /* El estado honesto del envío, en la vista previa igual que
+       al enviar: si la base ya quedó completa, la lista quedó
+       resuelta (422 pends-resolved) y la hoja lo dice sin botón. */
+    if (res && res.error === 'pends-resolved') {
+      bx.innerHTML = `<p class="nudge-body">${esc(t('pendlist.gone'))}</p>`;
+      const b2 = $('pendlist-send'); if (b2) b2.style.display = 'none';
+      return;
+    }
+    bx.innerHTML = `<p class="nudge-body">${esc(t('nudge.previewError'))}</p>`;
+  }).catch(() => {
+    if (!PENDLIST_CTX || PENDLIST_CTX !== ctx || ctx.previewSeq !== seq) return;
+    const bx = $('pendlist-preview-box'); if (bx) bx.innerHTML = `<p class="nudge-body">${esc(t('nudge.previewError'))}</p>`;
+  });
 }
 function pendListMsg(txt) { const m = $('pendlist-msg'); if (m) { m.textContent = txt; m.hidden = false; } }
 function pendListClose() {
@@ -19240,10 +19217,18 @@ async function pendListSend() {
   }
   if (res.ok) {
     await mailRecordNudgeAll(ctx.uid);
-    pendListMsg(t('pendlist.sentOk'));
-    if (sb) sb.style.display = 'none';
     try { if (typeof renderStudentsBody === 'function' && typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST) renderStudentsBody(); } catch {}
     try { if (typeof FICHA_MODE !== 'undefined' && FICHA_MODE && typeof fichaRenderBody === 'function') fichaRenderBody(); } catch {}
+    /* AUTH-492 (orden de Ronald, 2026-11-17): enviado el
+       recordatorio, la hoja se CIERRA sola — ya no se queda
+       abierta esperando la X — y el «enviado» queda donde él
+       lo ve: la barra del alumno, repintada arriba, muestra
+       «enviado el {fecha}» con el sello recién registrado
+       (notices.nudge.all), y el toast lleva el mismo texto de
+       confirmación de siempre. Si el envío falla, la hoja NO
+       se cierra y no se registra nada (las ramas de abajo). */
+    pendListClose();
+    toast(t('pendlist.sentOk'));
   } else if (res.status === 429 || res.error === 'nudge-capped') {
     pendListMsg(t('pendlist.capped'));
     if (sb) sb.style.display = 'none';
@@ -62975,7 +62960,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261117-panel-sin-scroll';
+const PWA_SW_VERSION = '20261117-plantillas-correo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
