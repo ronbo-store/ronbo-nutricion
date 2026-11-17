@@ -1490,7 +1490,7 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
    texto completo. Finalizado e ▶ Iniciar viven en la pareja del
    cronómetro (.train-chrono-pair, bajo la fila); Cardio · Core ·
    Estirar, dentro del flujo de «+ Agregar» (.swap-preset-btn). */
-.train-actions-strip { display: flex; align-items: stretch; gap: 6px; margin-top: 8px; }
+.train-actions-strip { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; margin-top: 8px; }
 .train-actions-btn { flex: 1 1 0; min-width: 0; height: 48px; padding: 0 8px; border: 1px solid rgba(15, 61, 56, .18); border-radius: 999px; background: rgba(15, 61, 56, .08); color: #0f3d38; font-size: 15px; font-weight: 700; line-height: 1.1; white-space: nowrap; cursor: pointer; }
 .train-day-dressed .train-actions-btn { background: rgba(255, 255, 255, .16); border-color: rgba(255, 255, 255, .35); color: #fff; }
 .train-actions-btn.is-dim { background: rgba(15, 61, 56, .04); color: rgba(15, 61, 56, .55); }
@@ -5493,6 +5493,14 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .remove-ask-row { display:flex; gap:8px; }
 .remove-ask-btn { flex:1; min-height:52px; border-radius:12px; border:2px solid #cbd5e1; background:#fff; color:#0f172a; font-size:16px; font-weight:800; padding:10px 8px; cursor:pointer; }
 .remove-ask-btn.is-yes { background:#b3261e; border-color:#b3261e; color:#fff; }
+/* AUTH-487 · LA HOJA DE CONFIRMACIÓN DE «SALTAR ESTE DÍA»:
+   espejo de la de «Quitar» — su texto de consecuencias y
+   sus dos botones grandes (52 px); el de confirmar, en el
+   rojo de «Finalizar». */
+.skip-ask-text { font-size:16px; line-height:1.5; margin:12px 0 18px; }
+.skip-ask-row { display:flex; gap:8px; }
+.skip-ask-btn { flex:1; min-height:52px; border-radius:12px; border:2px solid #cbd5e1; background:#fff; color:#0f172a; font-size:16px; font-weight:800; padding:10px 8px; cursor:pointer; }
+.skip-ask-btn.is-yes { background:#b3261e; border-color:#b3261e; color:#fff; }
 .flow-incourse { flex:1; font-size:14.5px; font-weight:800; color:#fbbf24; }
 .flow-foot { display:flex; gap:8px; margin-top:8px; }
 .flow-mini { flex:1; min-height:44px; border-radius:10px; border:1.5px solid rgba(255,255,255,.45); background:transparent; color:inherit; font-size:14px; font-weight:700; padding:7px 6px; cursor:pointer; }
@@ -5962,6 +5970,14 @@ body.swap-sheet-open .asst-fab { display: none !important; }
    algo menor para que «+ Agregar» no se trunque (medido: −4/−7 px a
    360 con 15 px). El área de toque NO cambia: 48 px de alto. */
 @media (max-width: 480px) { .train-actions-btn { font-size: 13.5px; padding: 0 5px; } }
+/* AUTH-487 · «SALTAR ESTE DÍA» EN SU PROPIA LÍNEA: el botón
+   de saltar el día de la fila de la tarjeta ocupa el ancho
+   completo bajo la fila de tres — el rótulo claro no cabe
+   en un cuarto de fila (≈72 px a 360) y no se recorta.
+   La tira gana flex-wrap solo para él: ningún otro botón
+   de la tira tiene base 100 %. El área de toque no cambia:
+   los 48 px de .train-actions-btn. */
+.train-actions-btn.is-skipday { flex: 1 1 100%; }
 .train-finish-btn { display: block; width: 100%; min-height: 52px; padding: 0 18px; border: 1px solid #b3261e; border-radius: 999px; background: #b3261e; color: #fff; font-size: 17px; font-weight: 800; line-height: 1.1; cursor: pointer; font-family: inherit; }
 
 /* ── AUTH-2026-11-10-379 · Ayuda «¿Cómo elijo?» del nivel de actividad ──

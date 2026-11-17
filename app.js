@@ -6410,7 +6410,7 @@ en: {
   'train.chronoStart': '▶ Start workout',
   'train.chronoStartBtn': '▶ Start',
 
-  'train.strip.doneToday': 'Done today', 'train.strip.skip': 'Skip', 'train.strip.add': '+ Add', 'train.strip.finish': 'Finish', 'train.closeFinish': 'Finish & save',
+  'train.strip.doneToday': 'Done today', 'train.strip.add': '+ Add', 'train.strip.finish': 'Finish', 'train.closeFinish': 'Finish & save',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Stretch',
   'train.chronoRunning': '⏱ Session in progress: {min} min',
   /* META DE TIEMPO POR ENTRENAMIENTO (AUTH-359): solo informativa. */
@@ -6520,7 +6520,9 @@ en: {
   'train.ld.kindSaved': 'Your choice is remembered on this device, for this exercise.', 'train.ld.headTotal': 'total load', 'train.ld.headPlates': 'plates per side',
   'train.d.statusDone': 'Done', 'train.d.statusPartial': 'Partial', 'train.d.statusSkipped': 'Skipped', 'train.d.statusNone': 'Not logged',
   'train.d.skipDay': 'Skip this day',
-  'train.d.skipConfirm': 'Mark this day as skipped? It will be recorded as skipped (you can undo it afterwards).',
+  'train.d.skipAskTitle': 'Skip this whole day?',
+  'train.d.skipAskText': 'This skips ALL of today’s training. The day will be recorded as skipped, and you can undo it later with the day’s «Undo» button.',
+  'train.d.skipAskYes': 'Yes, skip this day',
   'train.dumpFail': 'Your workout was saved, but the activity day could not be updated.',
   'train.d.needCheck': 'Check at least one exercise as done, or use “Skip this day”. Nothing was saved.',
   'train.d.weekTitle': 'This week', 'train.d.weekSummary': 'Done {d} · Partial {p} · Skipped {s}',
@@ -11689,7 +11691,7 @@ es: {
   'train.chronoStart': '▶ Iniciar entrenamiento',
   'train.chronoStartBtn': '▶ Iniciar',
 
-  'train.strip.doneToday': 'Hecho hoy', 'train.strip.skip': 'Saltar', 'train.strip.add': '+ Agregar', 'train.strip.finish': 'Terminar', 'train.closeFinish': 'Terminar y guardar',
+  'train.strip.doneToday': 'Hecho hoy', 'train.strip.add': '+ Agregar', 'train.strip.finish': 'Terminar', 'train.closeFinish': 'Terminar y guardar',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Estirar',
   'train.chronoRunning': '⏱ Sesión en curso: {min} min',
   /* META DE TIEMPO POR ENTRENAMIENTO (AUTH-359): solo informativa. */
@@ -11799,7 +11801,9 @@ es: {
   'train.ld.kindSaved': 'Tu elección se recuerda en este aparato, para este ejercicio.', 'train.ld.headTotal': 'carga total', 'train.ld.headPlates': 'discos por lado',
   'train.d.statusDone': 'Hecho', 'train.d.statusPartial': 'Parcial', 'train.d.statusSkipped': 'Saltado', 'train.d.statusNone': 'Sin registrar',
   'train.d.skipDay': 'Saltar este día',
-  'train.d.skipConfirm': '¿Marcar este día como saltado? Quedará registrado como saltado (podrás deshacerlo después).',
+  'train.d.skipAskTitle': '¿Saltar este día completo?',
+  'train.d.skipAskText': 'Se salta TODO el entrenamiento de hoy. El día quedará registrado como saltado y podrás deshacerlo después con el botón «Deshacer» del día.',
+  'train.d.skipAskYes': 'Sí, saltar este día',
   'train.dumpFail': 'Tu entrenamiento se guardó, pero el día de actividad no pudo actualizarse.',
   'train.d.needCheck': 'Marca al menos un ejercicio como hecho, o usa «Saltar este día». No se guardó nada.',
   'train.d.weekTitle': 'Esta semana', 'train.d.weekSummary': 'Hechos {d} · Parciales {p} · Saltados {s}',
@@ -36986,6 +36990,56 @@ function trainRemoveAskSync() {
   };
 }
 
+/* ═══ AUTH-487 · LA HOJA DE CONFIRMACIÓN DE «SALTAR ESTE DÍA»
+   (orden de Ronald, 2026-11-17): él mismo tocó el botón de
+   saltar el DÍA creyendo que saltaba un ejercicio — el rótulo
+   corto «Saltar» se confundía con el «Saltar este» del guiado.
+   El rótulo ya dice «Saltar este día» entero en las dos
+   superficies (train.d.skipDay) y tocarlo ya NO ejecuta a la
+   primera ni pasa por el confirm() nativo: abre esta hoja
+   flotante de la casa (el patrón .swap-sheet de AUTH-484) con
+   la consecuencia escrita para que la confusión sea
+   imposible — se salta TODO el entrenamiento de hoy, queda
+   registrado como saltado y se deshace con el «Deshacer» del
+   día. Solo al confirmar corre, por la clausura que trae el
+   estado, el cuerpo de siempre del cableado [data-train-skip]
+   (el registro skipped con su skippedExplicit, el
+   cronómetro apagado y los borradores retirados, byte a
+   byte). Cancelar — o la ✕ — cierra sin tocar nada. ═══ */
+let TRAIN_SKIP_ASK = null;   // { plan, di, run } — solo pantalla; run es el cuerpo de siempre, capturado por el cableado
+function trainSkipAskOpen(plan, di, run) {
+  TRAIN_SKIP_ASK = { plan, di, run };
+  trainSkipAskSync();
+}
+function trainSkipAskClose() {
+  TRAIN_SKIP_ASK = null;
+  trainSkipAskSync();
+}
+function trainSkipAskSync() {
+  let sheet = document.getElementById('skip-sheet');
+  const A = TRAIN_SKIP_ASK;
+  if (!A) {
+    if (sheet) sheet.remove();
+    document.body.classList.remove('swap-sheet-open');
+    return;
+  }
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'skip-sheet';
+    sheet.className = 'swap-sheet skip-sheet';
+    document.body.appendChild(sheet);
+  }
+  document.body.classList.add('swap-sheet-open');
+  sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('train.d.skipAskTitle'))}</span><button type="button" class="swap-sheet-x" data-skip-ask-close="1" aria-label="✕">✕</button></div><p class="skip-ask-text">${esc(t('train.d.skipAskText'))}</p><div class="skip-ask-row"><button type="button" class="skip-ask-btn" data-skip-ask-close="1">${esc(t('form.cancel'))}</button><button type="button" class="skip-ask-btn is-yes" data-skip-ask-yes="1">${esc(t('train.d.skipAskYes'))}</button></div>`;
+  sheet.querySelectorAll('[data-skip-ask-close]').forEach(b => b.onclick = () => trainSkipAskClose());
+  const yes = sheet.querySelector('[data-skip-ask-yes]');
+  if (yes) yes.onclick = () => {
+    const run = A.run;
+    trainSkipAskClose();
+    run();   /* la hoja ya preguntó: sin confirm() nativo */
+  };
+}
+
 /* === SELECTOR «CAMBIAR EJERCICIO» (paquete 2026-10-30; diseño
    PROPUESTA-SELECTOR-CAMBIO-EJERCICIO-2026-10-30.md; criterio de
    Ronald: «las opciones deben ser asociadas al ejercicio que ya no se
@@ -39014,9 +39068,13 @@ function trainGuidedHTML(plan, day, di) {
    ya cablea estos data-* en la lista y en el guiado en
    curso. Coste declarado: 56 px (la franja de 48 + su
    margen de 8), solo en el estado sin empezar. */
+/* AUTH-487: el botón de esta cola salta el DÍA entero y su
+   rótulo lo dice entero — «Saltar este día» (train.d.skipDay),
+   no el «Saltar» corto que Ronald confundió con el «Saltar
+   este» de un ejercicio (orden suya, 2026-11-17). */
 function trainGuidePreTailHTML(di) {
   return `<div class="train-actions-strip">`
-    + `<button type="button" class="train-actions-btn" data-train-skip="${di}">${t('train.strip.skip')}</button>`
+    + `<button type="button" class="train-actions-btn" data-train-skip="${di}">${t('train.d.skipDay')}</button>`
     + `<button type="button" class="train-actions-btn" data-train-add-open="1">${t('train.strip.add')}</button>`
     + `</div>`;
 }
@@ -40311,11 +40369,17 @@ function trainEditTailHTML(planId, di) {
      11:36 CST) — Iniciar primero (a la izquierda, .is-start) y
      Terminar al final (a la derecha, .is-finish, con su rojo). La
      pieza es una sola y la comparten la lista y la ruta guiada. */
+  /* AUTH-487: el botón de saltar el DÍA dice «Saltar este
+     día» entero (train.d.skipDay) y gana su PROPIA LÍNEA a
+     ancho completo bajo la fila de tres (.is-skipday): a
+     360 px un cuarto de fila (≈72 px) no cabe el rótulo
+     claro (≈120 px a 13,5 px/700 con nowrap) y la claridad
+     no se sacrifica. Coste declarado: +54 px (48 + hueco). */
   return `<div class="train-actions-strip">`
     + `<button type="button" class="train-actions-btn is-start" data-train-start="${di}">${t('train.chronoStartBtn')}</button>`
-    + `<button type="button" class="train-actions-btn" data-train-skip="${di}">${t('train.strip.skip')}</button>`
     + `<button type="button" class="train-actions-btn" data-train-add-open="1">${t('train.strip.add')}</button>`
     + `<button type="button" class="train-actions-btn is-finish" data-train-done="${di}">${t('train.strip.finish')}</button>`
+    + `<button type="button" class="train-actions-btn is-skipday" data-train-skip="${di}">${t('train.d.skipDay')}</button>`
     + `</div>` + trainChronoHTML(planId, di, true);
 }
 /* El volcado de la sesión en el día de actividad: UNA sola entrada
@@ -47160,10 +47224,14 @@ async function loadMyTraining() {
     if (chronoC) { sessSurveyOpen(elapsedSec, finishClose); return; }
     await finishClose(null);
   });
-  box.querySelectorAll('[data-train-skip]').forEach(b => b.onclick = async () => {
+  box.querySelectorAll('[data-train-skip]').forEach(b => b.onclick = () => {
     const di = Number(b.dataset.trainSkip);
+    /* AUTH-487: la puerta es la hoja de la casa
+       (trainSkipAskOpen) — el confirm() nativo ya no frena
+       este flujo; el cuerpo de siempre corre solo si la hoja
+       confirma, capturado aquí con su ámbito intacto. */
+    trainSkipAskOpen(plan, di, async () => {
     const day = (plan.days || [])[di] || {};
-    if (!confirm(t('train.d.skipConfirm'))) return;
     /* MÓDULO D (D-3): saltar es EXPLÍCITO — queda quién y cuándo;
        done:false con status 'skipped' (invariante intacta). */
     const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: di === -1 ? t('train.trained.label') : (day.label || ''),
@@ -47185,6 +47253,7 @@ async function loadMyTraining() {
     Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
     trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: saltar también cierra el día — el borrador de marcas se retira */
     loadMyTraining();
+    });
   });
   box.querySelectorAll('[data-train-undo]').forEach(b => b.onclick = async () => {
     const diU = Number(b.dataset.trainUndo);
@@ -62507,7 +62576,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261116-comidas-asignadas';
+const PWA_SW_VERSION = '20261117-saltar-dia';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
