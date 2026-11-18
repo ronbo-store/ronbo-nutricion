@@ -33140,6 +33140,9 @@ function navOpenPage(page) {
      repintados dentro de la página y las aperturas de la app
      NO cuentan. */
   if (page === 'train') { try { fdCamNoteEntry(); } catch {} }
+  /* AUTH-497: si la sesión avanzó desde el último pintado, la
+     lista se recarga ANTES de enseñarse (sessTrainRepaintIfAdvanced). */
+  if (page === 'train') { try { sessTrainRepaintIfAdvanced(); } catch {} }
   navRender();
   navRestoreScroll(page);
 }
@@ -34659,6 +34662,8 @@ function trainExercisesHTML(day) {
    los días del plan y su configuración de pendientes. */
 let TRAIN_CHECKS = {};         // "di:ei" -> { rpe: n|null, sets: [...] } — estado en curso del día; vive en memoria Y en su borrador local (abajo)
 let TRAIN_CHECKS_CTX = '';     // planId|fecha a la que pertenecen las marcas
+let TRAIN_CHECKS_EPOCH = 0;    // AUTH-497: «la sesión avanzó» — sube en cada guardado del borrador de marcas (trainChecksPersist)
+let TRAIN_PAINT_EPOCH = 0;     // AUTH-497: la época con la que la vista de Entrenamiento pintó por última vez (loadMyTraining)
 let TRAIN_CLOSE_DI = null;     // día con el panel de cierre abierto (solo memoria)
 
 /* --- MARCAS QUE SOBREVIVEN (aprobado por Ronald, chat 2026-10-27
@@ -34801,6 +34806,7 @@ function trainChecksPersist(planId) {
     if (TRAIN_CHECKS && Object.keys(TRAIN_CHECKS).length)
       localStorage.setItem(trainChecksKey(planId), JSON.stringify(TRAIN_CHECKS));
     else { localStorage.removeItem(trainChecksKey(planId)); trainFlowDrop(planId); }   /* AUTH-451: si el borrador de marcas muere (día cerrado o vacío), el del flujo muere con él */
+    TRAIN_CHECKS_EPOCH++;   /* AUTH-497: todo guardado del borrador — gesto del panel o de la tarjeta, sellado, cierre del día — es un avance de la sesión */
   } catch {}
 }
 /* ═══ AUTH-451 · EL ESTADO DEL FLUJO TAMBIÉN ES BORRADOR
@@ -40418,6 +40424,31 @@ function sessFullFichaOpen() {
 function sessPanelRepaint(plan) {
   if (!plan || NAV_PAGE !== 'train') return;
   if (TRAIN_CHECKS_CTX !== plan.id + '|' + todayISO()) return;
+  try { loadMyTraining(); } catch {}
+}
+/* ═══ AUTH-497 · LA LISTA NACE FRESCA AL ABRIRLA (auditoría
+   de finalización del 2026-11-18, defecto 1): AUTH-488
+   repintaba la tarjeta tras los gestos del panel SOLO con la
+   página de Entrenamiento activa; entrenando desde el panel
+   sobre otra página, la lista conservaba su último pintado
+   sin límite — Ronald terminó la Plancha desde el panel y la
+   lista le enseñó «○ Sin empezar» con sus botones vivos sobre
+   un ejercicio ya sellado. El dato nunca estuvo viejo (el
+   borrador y el registro cerraron bien): la que mentía era la
+   foto. El arreglo NO repinta el DOM oculto en cada gesto —
+   cada loadMyTraining relee planes y registros, y multiplicar
+   esa lectura por gesto, con la página ni visible, es el
+   patrón que agotó la cuota de lecturas en el incidente de la
+   validación de AUTH-493 —: cada guardado del borrador sube
+   la época de la sesión (trainChecksPersist) y cada pintado
+   de la vista anota la suya (loadMyTraining); al ABRIR
+   Entrenamiento — el único embudo, navOpenPage —, si la
+   sesión avanzó desde el último pintado, la vista se recarga
+   antes de enseñarse. Sin avance no se recarga nada: abrir la
+   página no paga lecturas que no debe. Con la página activa
+   manda lo de AUTH-488, intacto. ═══ */
+function sessTrainRepaintIfAdvanced() {
+  if (TRAIN_CHECKS_EPOCH === TRAIN_PAINT_EPOCH) return;
   try { loadMyTraining(); } catch {}
 }
 /* ═══ AUTH-489 · «EDITAR» LLEVA AL EJERCICIO (orden de
@@ -47378,6 +47409,7 @@ async function loadMyTraining() {
          de arriba. La lista completa que aquí se renderizaba
          alargaba la página y era además la superficie donde las
          filas de series aplastaban la columna del nombre. -->`;
+  TRAIN_PAINT_EPOCH = TRAIN_CHECKS_EPOCH;   /* AUTH-497: este pintado ya refleja el borrador hasta esta época — un gesto posterior vuelve a separarlas */
   if (isLoose) trainNoneNamedRender(box);
   /* AUTH-493: sin plan activo y con autogestión, la puerta de la
      IA vive bajo el mensaje de «sin plan» (la tarjeta y sus dos
@@ -63734,7 +63766,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261118-circulos-marca';
+const PWA_SW_VERSION = '20261118-repintado-lista';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
