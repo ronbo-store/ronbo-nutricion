@@ -40193,9 +40193,29 @@ function sessArticleClose() {
    «Finalizar ejercicio» como hoy — el hecho `done` sigue
    naciendo solo de Finalizar/«✓ Marcar hecho» (AUTH-406/458):
    los círculos no sellan ejercicios. ═══ */
+/* ═══ AUTH-496 · ENMIENDA A LA RECONCILIACIÓN DE AUTH-485
+   (órdenes de Ronald del 2026-11-18, entrenando, con su
+   captura de «Curl con barra» nacido con el círculo 1 en
+   verde y «1 de 4 series»): la puerta «dato con su hora
+   sellada» queda REVOCADA para los círculos. La hora la
+   sellan los gestos de CARGA de la tarjeta — y en un
+   ejercicio de barra la pastilla de carga abre la
+   calculadora de discos, cuyo «Aplicar» sella la serie
+   aunque el total no cambie (la excepción declarada de
+   AUTH-422) —, así que cargar o preparar la primera serie
+   la pintaba hecha sin haberla hecho ni tocado su círculo.
+   Desde aquí el círculo cuenta SOLO la marca del checklist
+   (dot): la serie está hecha cuando él la marca al
+   terminarla. El dato cargado sigue siendo dato — se ve en
+   la tarjeta, cuenta en «Series hoy» y viaja al cierre por
+   sus reglas de siempre (flowHasData, el sello de
+   flowSealDone y el escritor del cierre no se tocan; la
+   hora de marca sigue alimentando los descansos) — pero ya
+   no pinta el círculo ni mueve su contador: todo ejercicio
+   nace con los círculos sin marcar y «0 de N series», y las
+   marcas que él ponga persisten como siempre. ═══ */
 function sessSetDone(s) {
-  return !!s && s.pend !== true && (s.dot === true
-    || (trainSetHasData(s) && typeof s.markedAt === 'number' && s.markedAt > 0));
+  return !!s && s.pend !== true && s.dot === true;
 }
 function sessSetsFrontier(chk) {
   if (!chk || !Array.isArray(chk.sets)) return 0;
@@ -40221,6 +40241,35 @@ function sessDotTap(plan, key, si) {
   if (si >= fr) { for (let j = fr; j <= si; j++) sessDotMark(chk.sets[j]); }
   else { for (let j = si; j < fr; j++) { const s = chk.sets[j]; if (s && s.dot === true) delete s.dot; } }
   trainChecksPersist(plan.id);
+  /* ═══ AUTH-496 · EL ÚLTIMO CÍRCULO FINALIZA EL EJERCICIO
+     (orden de Ronald del 2026-11-18 12:27 CST: «cuando ya se
+     cumplan las cuatro checklists o los tres o lo que sea
+     que hoy programado previamente de las repeticiones de
+     las series entonces inmediatamente el ejercicio
+     finaliza»): si este toque — el que MARCA, nunca el que
+     desmarca — deja TODOS los círculos del ejercicio con su
+     marca y el ejercicio está en curso o en pausa, se
+     ejecuta en el acto el MISMO camino del «Finalizar
+     ejercicio» del panel, en su mismo orden: bancar el
+     tiempo activo, guardar, sellar el hecho
+     (flowSealDone) y entrar a su cierre (flowEnterClosing
+     — con sus caras si hay datos, por la puerta honesta si
+     no los hay), con el pin del guiado si su cierre vive.
+     El disparo vive SOLO en este gesto: ningún pintado ni
+     ninguna restauración finaliza un ejercicio por abrirse
+     con las marcas ya puestas. «Todos los círculos» son
+     todas las series que la fila enseña: una añadida y aún
+     sin marcar también espera su marca. ═══ */
+  if (si >= fr && chk.done !== true && chk.sets.length && chk.sets.every(s => s && s.dot === true)) {
+    const fsA = TRAIN_FLOW[key] || null;
+    if (fsA && (fsA.st === 'open' || fsA.st === 'paused')) {
+      flowClockBank(key);
+      trainChecksPersist(plan.id);
+      flowSealDone(plan, key);
+      flowEnterClosing(plan, key);
+      if (trainGuidePref() === 'guided' && TRAIN_FLOW[key] && TRAIN_FLOW[key].st === 'closing') TRAIN_GUIDE.pin = Number(key.split(':')[1]);
+    }
+  }
 }
 function sessDotsHTML(curChk, ck, flowSt) {
   if (!curChk || !Array.isArray(curChk.sets) || !curChk.sets.length) return '';
@@ -63685,7 +63734,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261118-boton-listo';
+const PWA_SW_VERSION = '20261118-circulos-marca';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
