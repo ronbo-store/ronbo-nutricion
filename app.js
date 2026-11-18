@@ -40277,6 +40277,23 @@ function sessDotTap(plan, key, si) {
     }
   }
 }
+/* AUTH-499 · LA PUERTA DE LA PASTILLA «EDITAR» (decisión de
+   Ronald, 2026-11-18 12:45 CST): la pastilla de la línea de
+   círculos se ve SOLO si el usuario NO tiene entrenador, o
+   si es el dueño (isOwner), que la ve siempre. «Tiene
+   entrenador» es el dato que la app ya usa para esa
+   relación: gmHasTrainer() (MY_REL.trainerUid, la relación
+   cargada o derivada del espejo, o el espejo
+   UDATA.trainerUid) — el mismo predicado de las compuertas
+   del motor de metas. Quien tiene entrenador no la ve: la
+   carga de datos de su plan es de su entrenador. Esta es LA
+   puerta de la familia: el futuro botón de voz de la misma
+   línea seguirá esta misma regla. Si el predicado fallara,
+   degrada a visible (el comportamiento de siempre). */
+function sessEditVisible() {
+  if (typeof IS_OWNER !== 'undefined' && IS_OWNER === true) return true;
+  try { return !gmHasTrainer(); } catch { return true; }
+}
 function sessDotsHTML(curChk, ck, flowSt) {
   if (!curChk || !Array.isArray(curChk.sets) || !curChk.sets.length) return '';
   if (curChk.done === true || (flowSt !== 'open' && flowSt !== 'paused')) return '';
@@ -40296,7 +40313,11 @@ function sessDotsHTML(curChk, ck, flowSt) {
      entrada (o sin flujo en curso/pausa) no hay línea ni
      botón, como manda el pintor. Su cableado vive en
      sessPanelWire ([data-sess-edit] → sessPanelEditGo). */
-  return `<div class="sf-dots">${dots}<span class="sf-dots-lab">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(t('sess.setsTap'))}</span><button type="button" class="sf-edit" data-sess-edit="${ck}">${esc(t('sess.edit'))}</button></div>`;
+  /* AUTH-499: la pastilla solo nace tras su puerta
+     (sessEditVisible); sin ella, la línea queda como antes
+     de AUTH-489. */
+  const editBtn = sessEditVisible() ? `<button type="button" class="sf-edit" data-sess-edit="${ck}">${esc(t('sess.edit'))}</button>` : '';
+  return `<div class="sf-dots">${dots}<span class="sf-dots-lab">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(t('sess.setsTap'))}</span>${editBtn}</div>`;
 }
 /* AUTH-491 · EL MENSAJE DEL DÍA, PLEGADO EN LA COMPLETA:
    plegado es una fila-botón de una línea — el icono del
@@ -40366,7 +40387,7 @@ function sessFullSync(run) {
     const nxtBlk = (st.nxt != null && st.nxt !== st.cur)
       ? `<div class="sf-next"><span class="sf-next-lab">${esc(t('sess.pillNext'))}</span><span class="sf-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sf-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '';
     const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l'].join('|');
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e'].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece */
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
@@ -63766,7 +63787,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261118-alarma-sonora';
+const PWA_SW_VERSION = '20261118-editar-puerta';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
