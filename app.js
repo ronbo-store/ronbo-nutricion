@@ -6558,9 +6558,48 @@ en: {
   'train.daysCount': '{n} days', 'train.exCount': '{n} exercises',
   'train.gate.checking': 'Checking this client’s health declaration status…',
   'train.gate.ok': '🏥 Health declaration: this client has a valid declaration on file.',
-  'train.gate.blockFirst': 'This client’s first plan cannot be saved yet: they do not have a valid health declaration on file, or their specific consent is not active. Ask them to complete their health declaration in their app first. (No declaration content is shown here.)',
-  'train.gate.warnLater': '⚠️ This client has no valid health declaration on file. This plan can still be saved; you can ask them to complete it in their app.',
-  'train.gate.savedWithWarning': 'Plan saved. Note: this client still has no valid health declaration on file.',
+  'train.gate.holdLine': '🏥 Waiting on this client’s health declaration. You can save the plan now: it stays hidden from the client and only turns on when their declaration and specific consent are complete. (No declaration content is shown here.)',
+  'train.gate.holdLineSelf': '🏥 Your health declaration is still pending. You can save this plan now: it stays off and only turns on when your declaration and specific consent are complete.',
+  'train.gate.autoOn': 'Turn it on automatically when the declaration is completed',
+  'train.gate.remind': '📩 Send reminder to the client',
+  'train.gate.savedHold': 'Plan saved on hold — hidden from the client until their health declaration is complete.',
+  'train.gate.savedHoldSelf': 'Plan saved on hold — it turns on when your health declaration is complete.',
+  'train.hold.badge': '⏳ On hold — waiting for health declaration',
+  'train.hold.notVisible': 'Not visible to the client yet.',
+  'train.hold.notVisibleSelf': 'It turns on when you complete your health declaration.',
+  'train.hold.reminderSent': 'Reminder sent {d}',
+  'train.hold.remindAgain': '📩 Send reminder again',
+  'train.hold.autoOnLine': '✓ Turned on automatically on {d}, when the health declaration was completed.',
+  'train.hold.autoToast': '✅ “{title}” turned on automatically — the health declaration is now complete.',
+  'train.hold.cantActivate': 'This plan is on hold: it can only turn on when the health declaration and specific consent are complete.',
+  'train.steps.1': '1 · Start', 'train.steps.2': '2 · Days', 'train.steps.3': '3 · Save',
+  'train.start.here': 'Start here 👇', 'train.start.blank': '✏️ Start blank',
+  'train.tpl.avail': '· {n} available',
+  'planai.kicker': 'AI PLAN PROPOSAL', 'planai.title': 'A plan proposed for you',
+  'planai.doorTitle': '✨ Have AI propose a plan from my goals',
+  'planai.doorDesc': 'Built from your goal, your activity level and your assessment measurements. You review it, approve it and edit it — nothing is imposed.',
+  'planai.doorBtn': '✨ Propose my plan',
+  'planai.tplFold': '📋 Start from a template',
+  'planai.selfFold': '✏️ Build it myself',
+  'planai.healthTitle': 'One step before you train',
+  'planai.healthBody': 'Approving and editing are free. To start training with a plan, complete your health declaration — it takes a minute.',
+  'planai.healthBtn': '🏥 Complete my declaration',
+  'planai.working': 'Building your proposal…',
+  'planai.propName': 'My proposed plan ({n} days)',
+  'planai.why': 'Why this plan: your goal is {goal}, your activity is “{act}” and your level is {level} — {n} days a week, built from your assessment.',
+  'planai.whyNoGoal': 'Why this plan: your level is {level} and your activity is “{act}” — {n} days a week, built from your assessment. You have not set a goal yet, so it is a general plan.',
+  'planai.whyTpl': 'Why this plan: it comes from the factory template “{name}”, matched to your goal, your level ({level}) and {n} days a week.',
+  'planai.srcAi': 'Proposed by AI from your goals and metrics',
+  'planai.srcTpl': 'Template proposal — the AI did not answer this time',
+  'planai.capNote': 'The AI reached its daily limit, so this proposal comes from the house template instead.',
+  'planai.approve': '✓ Approve & use',
+  'planai.editFirst': '✏️ Edit first',
+  'planai.day': 'Day {n}',
+  'planai.exLine': '{n} exercises · sets & reps included',
+  'planai.errNone': 'No proposal could be built right now. You can start from a template or build your plan yourself.',
+  'planai.saved': '✓ Your plan is saved and active.',
+  'planai.savedHold': '✓ Your plan is saved. It turns on when you complete your health declaration.',
+  'planai.dupEditor': 'The proposal repeats an exercise in one day, so it opened in the editor for you to fix it before saving.',
   'train.lib.unavailable': '📚 The exercise library is unavailable right now (it may be empty or could not be loaded). You can keep typing exercises as free text — plans save normally.',
   'train.lib.photo': 'Photo', 'train.lib.video': 'Video',
   'train.video.noembed': 'This video can’t be played inside the app.',
@@ -11839,9 +11878,48 @@ es: {
   'train.daysCount': '{n} días', 'train.exCount': '{n} ejercicios',
   'train.gate.checking': 'Comprobando el estado de la declaración de salud de este cliente…',
   'train.gate.ok': '🏥 Declaración de salud: este cliente tiene una declaración vigente registrada.',
-  'train.gate.blockFirst': 'El primer plan de este cliente aún no se puede guardar: no tiene una declaración de salud vigente registrada, o su consentimiento específico no está activo. Pídele que complete su declaración de salud en su app primero. (Aquí no se muestra ningún contenido de la declaración.)',
-  'train.gate.warnLater': '⚠️ Este cliente no tiene una declaración de salud vigente registrada. Este plan sí se puede guardar; puedes pedirle que la complete en su app.',
-  'train.gate.savedWithWarning': 'Plan guardado. Nota: este cliente sigue sin una declaración de salud vigente registrada.',
+  'train.gate.holdLine': '🏥 En espera de la declaración de salud de este cliente. Puedes guardar el plan ahora: queda oculto para el cliente y solo se activa cuando su declaración y su consentimiento específico estén completos. (Aquí no se muestra ningún contenido de la declaración.)',
+  'train.gate.holdLineSelf': '🏥 Tu declaración de salud aún está pendiente. Puedes guardar este plan ahora: queda apagado y solo se activa cuando tu declaración y tu consentimiento específico estén completos.',
+  'train.gate.autoOn': 'Activarlo automáticamente cuando complete su declaración',
+  'train.gate.remind': '📩 Enviar recordatorio al cliente',
+  'train.gate.savedHold': 'Plan guardado en espera — oculto para el cliente hasta que complete su declaración de salud.',
+  'train.gate.savedHoldSelf': 'Plan guardado en espera — se activa cuando completes tu declaración de salud.',
+  'train.hold.badge': '⏳ En espera — falta la declaración de salud',
+  'train.hold.notVisible': 'Aún no visible para el cliente.',
+  'train.hold.notVisibleSelf': 'Se activa cuando completes tu declaración de salud.',
+  'train.hold.reminderSent': 'Recordatorio enviado el {d}',
+  'train.hold.remindAgain': '📩 Enviar el recordatorio otra vez',
+  'train.hold.autoOnLine': '✓ Activado automáticamente el {d}, al completarse la declaración de salud.',
+  'train.hold.autoToast': '✅ «{title}» se activó solo — la declaración de salud ya está completa.',
+  'train.hold.cantActivate': 'Este plan está en espera: solo puede activarse cuando la declaración de salud y el consentimiento específico estén completos.',
+  'train.steps.1': '1 · Comienzo', 'train.steps.2': '2 · Días', 'train.steps.3': '3 · Guardar',
+  'train.start.here': 'Empieza aquí 👇', 'train.start.blank': '✏️ Empezar en blanco',
+  'train.tpl.avail': '· {n} disponibles',
+  'planai.kicker': 'PROPUESTA DE PLAN CON IA', 'planai.title': 'Un plan propuesto para ti',
+  'planai.doorTitle': '✨ Que la IA me proponga un plan según mis metas',
+  'planai.doorDesc': 'Se arma desde tu objetivo, tu nivel de actividad y las medidas de tu evaluación. Tú lo revisas, lo apruebas y lo editas: nada se impone.',
+  'planai.doorBtn': '✨ Proponerme un plan',
+  'planai.tplFold': '📋 Empezar desde una plantilla',
+  'planai.selfFold': '✏️ Construirlo yo mismo',
+  'planai.healthTitle': 'Un paso antes de entrenar',
+  'planai.healthBody': 'Aprobar y editar es libre. Para empezar a entrenar con el plan, completa tu declaración de salud: toma un minuto.',
+  'planai.healthBtn': '🏥 Completar mi declaración',
+  'planai.working': 'Armando tu propuesta…',
+  'planai.propName': 'Mi plan propuesto ({n} días)',
+  'planai.why': 'Por qué este plan: tu objetivo es {goal}, tu actividad es «{act}» y tu nivel es {level} — {n} días por semana, armado desde tu evaluación.',
+  'planai.whyNoGoal': 'Por qué este plan: tu nivel es {level} y tu actividad es «{act}» — {n} días por semana, armado desde tu evaluación. Aún no fijaste un objetivo, así que es un plan general.',
+  'planai.whyTpl': 'Por qué este plan: viene de la plantilla de fábrica «{name}», elegida por tu objetivo, tu nivel ({level}) y {n} días por semana.',
+  'planai.srcAi': 'Propuesto por la IA desde tus metas y métricas',
+  'planai.srcTpl': 'Propuesta de plantilla — la IA no respondió esta vez',
+  'planai.capNote': 'La IA llegó a su límite de hoy, así que esta propuesta viene de la plantilla de la casa.',
+  'planai.approve': '✓ Aprobar y usar',
+  'planai.editFirst': '✏️ Editar primero',
+  'planai.day': 'Día {n}',
+  'planai.exLine': '{n} ejercicios · con series y repeticiones',
+  'planai.errNone': 'No se pudo armar una propuesta ahora. Puedes empezar desde una plantilla o construir tu plan tú mismo.',
+  'planai.saved': '✓ Tu plan quedó guardado y activo.',
+  'planai.savedHold': '✓ Tu plan quedó guardado. Se activa cuando completes tu declaración de salud.',
+  'planai.dupEditor': 'La propuesta repite un ejercicio en un día, así que se abrió en el editor para que lo corrijas antes de guardar.',
   'train.lib.unavailable': '📚 La biblioteca de ejercicios no está disponible ahora (puede estar vacía o no pudo cargarse). Puedes seguir escribiendo los ejercicios como texto libre: los planes se guardan con normalidad.',
   'train.lib.photo': 'Foto', 'train.lib.video': 'Video',
   'train.video.noembed': 'Este video no se puede reproducir dentro de la app.',
@@ -18965,6 +19043,13 @@ async function nudgeSend() {
        confirmación de siempre. Si el envío falla, la hoja NO
        se cierra y no se registra nada (las ramas de abajo). */
     nudgeClose();
+    /* AUTH-493 (único toque en esta función): si el aviso nació de
+       una superficie de PLAN en espera, el plan anota cuándo salió
+       el recordatorio, para enseñar «Recordatorio enviado el …». */
+    if (ctx.sub === 'parq' && planHoldNudgeCtx && planHoldNudgeCtx.planId) {
+      const holdPid = planHoldNudgeCtx.planId; planHoldNudgeCtx = null;
+      try { await setDoc(doc(db, 'training_plans', holdPid), { holdReminderAt: serverTimestamp() }, { merge: true }); } catch {}
+    } else planHoldNudgeCtx = null;
     toast(t('nudge.sentOk'));
   } else if (res.status === 429 || res.error === 'nudge-capped') {
     nudgeMsg(t('nudge.capped'));
@@ -19888,6 +19973,11 @@ async function stuTrayOpen(uid) {
   stuTrayPaintGoals(uid);
 }
 async function loadStudentPlans(uid) {
+  /* AUTH-493: el detalle del alumno es también punto de
+     evaluación de la espera; si algo se activó, la caché de
+     planes se invalida para repintar con el estado fresco. */
+  const holdActStu = await planHoldEvaluate(uid).catch(() => []);
+  if (holdActStu.length && STU_PLANS.uid === uid) { STU_PLANS.plans = null; planHoldNotifyActivated(holdActStu); }
   if (STU_PLANS.uid === uid && STU_PLANS.plans) { stuPlansWireCurrent(uid); return; }
   if (STU_PLANS.loadingFor === uid) return;
   STU_PLANS.loadingFor = uid;
@@ -33812,6 +33902,10 @@ async function grantSpec(isRenew) {
     toast(isRenew ? t('health.renewedSpec') : t('health.specGranted'));
     renderHealthPanel();
     pendRefreshAfterSave();
+    /* AUTH-493: si la declaración ya existía, aceptar el
+       consentimiento completa los dos hechos — sus planes
+       propios en espera se evalúan en este mismo momento. */
+    planHoldEvaluate(uid, { soloPropios: true }).catch(() => []);
   } catch (e) { failToast(e); }
 }
 async function withdrawSpec() {
@@ -34404,6 +34498,10 @@ async function saveDeclaration() {
       renderHealthPanel();
       try { await goalsEngineRun('health'); } catch {}
       pendRefreshAfterSave();
+      /* AUTH-493: completar su paso evalúa SUS planes en espera de
+         autoría propia — si los dos hechos ya se cumplen, se
+         activan solos (los del entrenador, en su sesión). */
+      planHoldEvaluate(uid, { soloPropios: true }).catch(() => []);
       return;
     }
     if (act) {
@@ -34428,6 +34526,10 @@ async function saveDeclaration() {
     renderHealthPanel();
     try { await goalsEngineRun('health'); } catch {}
     pendRefreshAfterSave();
+    /* AUTH-493: completar su paso evalúa SUS planes en espera de
+       autoría propia — si los dos hechos ya se cumplen, se
+       activan solos (los del entrenador, en su sesión). */
+    planHoldEvaluate(uid, { soloPropios: true }).catch(() => []);
   } catch (e) { failToast(e); }
 }
 /* Frente 1 (D5 + N-2): la respuesta a la pregunta suave de síntomas
@@ -46610,6 +46712,12 @@ async function loadMyTraining() {
   const uid = auth.currentUser.uid;
   await painLoadMine();   /* AUTH-439: los dolores propios, para las marquitas del día */
   await trainGoalLoad();   /* AUTH-359: la meta de tiempo del propio usuario (solo lectura de su schedprefs) */
+  /* AUTH-493: abrir su entrenamiento evalúa SUS planes en espera
+     de autoría propia — si su declaración ya se completó, se
+     activan solos antes de esta lectura y la vista los pinta ya
+     activos. Los planes de su entrenador se activan en los
+     puntos del entrenador (esta sesión no puede escribirlos). */
+  await planHoldEvaluate(uid, { soloPropios: true }).catch(() => []);
   const plans = await fetchPlans(uid);
   let plan = plans.find(p => p.active === true) || null;
   /* SESIÓN SUELTA SIN PLAN (2026-11-08, decisión D5): sin plan
@@ -47049,7 +47157,7 @@ async function loadMyTraining() {
   const myPlanLineHTML = canSelfManage ? `<div class="my-plans-line"><span aria-hidden="true">📋</span><span class="my-plans-line-tx"><b>${t('train.planLabel')}:</b> ${mpActive ? esc(mpActive.title || '') : t('train.noActivePlan')}</span>${mpActive ? `<span class="my-plans-pill">● ${t('train.activeBadge')}</span>` : ''}</div>` : '';
   const myPlansHTML = canSelfManage ? `<div class="my-plans-block" id="my-plans-box">
     <div class="my-plans-sub"><b>${t('train.myPlans')}</b><small>${t('train.myPlansSub')}</small></div>
-    ${planRowsHTML(plans)}
+    ${planRowsHTML(plans, true)}
     <div class="my-plans-new"><button type="button" class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>
   </div>` : '';
   const trainTodayHTML = `<div class="train-today">
@@ -47077,7 +47185,7 @@ async function loadMyTraining() {
      vive y se edita solo en el editor del plan; el dato guardado
      no se toca — esto es solo de pintado. */
   box.innerHTML = `
-    ${isLoose ? `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div>` : `<h3 class="history-title">${esc(plan.title || '')}</h3>
+    ${isLoose ? `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div><div id="plan-ai-door"></div>` : `<h3 class="history-title">${esc(plan.title || '')}</h3>
     
     ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
     <p class="progress-hint">${t('train.planFreq', { n: (plan.days || []).length })}</p>
@@ -47106,6 +47214,10 @@ async function loadMyTraining() {
          alargaba la página y era además la superficie donde las
          filas de series aplastaban la columna del nombre. -->`;
   if (isLoose) trainNoneNamedRender(box);
+  /* AUTH-493: sin plan activo y con autogestión, la puerta de la
+     IA vive bajo el mensaje de «sin plan» (la tarjeta y sus dos
+     pliegues de la maqueta aprobada). */
+  if (isLoose && canSelfManage) planAiDoorRender(box);
   /* AUTH-411: el bloque «Mis planes» se pinta y se cablea en
      su nueva casa, #train-custom-plans (index.html, dentro de
      «Personaliza tus asignaciones de hoy»); la línea del flujo ya
@@ -48167,7 +48279,42 @@ function propTrayCardHTML(p) {
    extraído TAL CUAL de loadClientTraining para que el detalle de
    «Mis alumnos» pinte las MISMAS tarjetas (fuente única: las dos
    superficies nunca se contradicen). */
-function planRowsHTML(plans) {
+/* AUTH-493: la fecha corta de los sellos de la espera (acepta el
+   Timestamp de Firestore, un Date o milisegundos). */
+function planHoldDateLabel(ts) {
+  try {
+    const ms = ts && typeof ts === 'object' && typeof ts.seconds === 'number' ? ts.seconds * 1000
+      : ts instanceof Date ? ts.getTime() : Number(ts);
+    if (!isFinite(ms) || !ms) return '';
+    return new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(ms));
+  } catch { return ''; }
+}
+/* AUTH-493: las líneas de la espera de salud bajo la fila del
+   plan. En la vista del ENTRENADOR: insignia de espera, «aún no
+   visible», el sello del recordatorio si salió y el botón de
+   recordarlo otra vez (por el aviso existente). En la vista
+   PROPIA (selfView): la misma insignia y la línea que apunta a
+   su propio paso, sin botón de recordatorio. Cuando la espera
+   terminó sola, la línea verde de holdAutoOnAt queda como
+   constancia. La fila sigue siendo UNA línea fina: estas líneas
+   solo existen en planes en espera o recién activados solos. */
+function planHoldExtrasHTML(p, selfView) {
+  if (!p) return '';
+  if (p.healthHold === true && p.active !== true) {
+    let h = `<div class="plan-hold-line"><span class="hold-badge">${esc(t('train.hold.badge'))}</span> ${esc(t(selfView ? 'train.hold.notVisibleSelf' : 'train.hold.notVisible'))}`;
+    const rd = p.holdReminderAt ? planHoldDateLabel(p.holdReminderAt) : '';
+    if (rd) h += `<br>${esc(t('train.hold.reminderSent', { d: rd }))}`;
+    h += `</div>`;
+    if (!selfView) h += `<button type="button" class="btn-ghost btn-sm plan-hold-remind" data-plan-hold-remind="${p.id}">${esc(t('train.hold.remindAgain'))}</button>`;
+    return h;
+  }
+  if (p.holdAutoOnAt) {
+    const d = planHoldDateLabel(p.holdAutoOnAt);
+    if (d) return `<div class="plan-autoon-line">${esc(t('train.hold.autoOnLine', { d }))}</div>`;
+  }
+  return '';
+}
+function planRowsHTML(plans, selfView) {
   /* AUTH-346 — presentación COMPACTA, y sigue siendo la pieza
      ÚNICA de las tres superficies que pintan planes (la ficha del
      alumno, el detalle de «Mis alumnos» de AUTH-341 y el bloque
@@ -48175,9 +48322,12 @@ function planRowsHTML(plans) {
      meta corta (días · ejercicios · periodo) e insignia «Activo»
      si aplica — y un solo botón «⋮» (zona táctil ≥44 px) que abre
      la hoja de acciones de ESE plan (wirePlanActions). Los cinco
-     botones ya no se apilan en la superficie. */
+     botones ya no se apilan en la superficie.
+     AUTH-493: bajo la fila, SOLO cuando aplica, las líneas de la
+     espera de salud (planHoldExtrasHTML) — la fila de los planes
+     ordinarios no cambia ni un píxel. */
   return plans.length ? plans.map(p => `
-    <div class="plan-row-c"><div class="plan-row-c-main"><b>${esc(p.title || '')}</b>${p.active === true ? ` <span class="ok-badge">${t('train.activeBadge')}</span>` : ''}${p.active === true && planIsExpired(p) ? ` <span class="exp-badge">${t('train.dates.expired')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}${planPeriodText(p) ? ' · ' + esc(planPeriodText(p)) : ''}</span></div>
+    <div class="plan-row-c"><div class="plan-row-c-main"><b>${esc(p.title || '')}</b>${p.active === true ? ` <span class="ok-badge">${t('train.activeBadge')}</span>` : ''}${p.active === true && planIsExpired(p) ? ` <span class="exp-badge">${t('train.dates.expired')}</span>` : ''}<br><span class="muted">${t('train.daysCount', { n: (p.days || []).length })} · ${t('train.exCount', { n: (p.days || []).reduce((n, d) => n + (d.exercises || []).length, 0) })}${planPeriodText(p) ? ' · ' + esc(planPeriodText(p)) : ''}</span>${planHoldExtrasHTML(p, selfView)}</div>
     <button type="button" class="plan-dots" data-plan-menu="${p.id}" aria-label="${esc(t('train.planMenu'))}">⋮</button></div><div class="plan-history" id="ph-${p.id}" style="display:none"></div>`).join('') : `<div class="wempty">${t('train.noPlan')}</div>`;
 }
 /* REPETIR DÍA desde la hoja de acciones (⋮) de un plan: la hoja del
@@ -48253,12 +48403,26 @@ function wirePlanActionButtons(box, root, uid, plans, reload) {
     if (p.active === true) {
       await setDoc(doc(db, 'training_plans', p.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
     } else {
+      /* AUTH-493: activar A MANO un plan EN ESPERA exige la puerta
+         válida en este instante; sin ella no se escribe nada y se
+         avisa con la línea tranquila. Con ella, la activación
+         limpia la espera (fue manual: no lleva holdAutoOnAt). */
+      if (p.healthHold === true) {
+        const gs = await planGateState(uid);
+        if (gs !== 'valid') { toast(t('train.hold.cantActivate'), true); return; }
+      }
       for (const o of plans) if (o.id !== p.id && o.active === true)
         await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
-      await setDoc(doc(db, 'training_plans', p.id), { active: true, updatedAt: serverTimestamp() }, { merge: true });
+      const patch = { active: true, updatedAt: serverTimestamp() };
+      if (p.healthHold === true) { patch.healthHold = false; patch.holdAuto = false; }
+      await setDoc(doc(db, 'training_plans', p.id), patch, { merge: true });
     }
     reload();
   });
+  /* AUTH-493: el recordatorio de la tarjeta de un plan en espera
+     sale por el aviso existente, con su contexto de plan para el
+     sello holdReminderAt. */
+  root.querySelectorAll('[data-plan-hold-remind]').forEach(b => b.onclick = () => planHoldRemindFor(uid, b.dataset.planHoldRemind));
   root.querySelectorAll('[data-plan-del]').forEach(b => b.onclick = async () => {
     if (!confirm(t('train.deleteConfirm'))) return;
     await deleteDoc(doc(db, 'training_plans', b.dataset.planDel));
@@ -48292,7 +48456,14 @@ function wirePlanActionButtons(box, root, uid, plans, reload) {
 async function loadClientTraining(uid) {
   const box = $('client-training');
   if (!box) return;
+  /* AUTH-493: cargar al cliente es un punto declarado de la
+     evaluación de la espera — si sus dos hechos ya se cumplieron,
+     sus planes con activación automática se encienden ANTES de
+     esta lectura, la ficha los pinta ya activos y el entrenador
+     recibe el aviso dentro de la app. */
+  const holdActivated = await planHoldEvaluate(uid).catch(() => []);
   const plans = await fetchPlans(uid);
+  if (holdActivated.length) planHoldNotifyActivated(holdActivated);
   const logs = await fetchLogs(uid);
   const actByDate = await fetchClientActLogs(uid);
   const planRows = planRowsHTML(plans);
@@ -48368,30 +48539,31 @@ async function loadClientTraining(uid) {
 }
 
 /* ================= PUERTA PAR-Q (§4.5) — guarda de INTERFAZ =================
-   Cambio de comportamiento de seguridad decidido por el propietario
-   (2026-10-22; pregunta 5 de OBSERVACIONES-ENTRENAMIENTO-2026-10-22 y
-   §2(b) de ese documento): al guardar el PRIMER plan de un cliente
-   (el cliente no tiene ningún plan previo) se exige que exista una
-   declaración de salud activa válida de ese cliente, legible por la
-   vía del propietario (fetchClientHealth: solo la declaración activa
-   y solo con el consentimiento específico aceptado — la misma lectura
-   condicionada de la ficha del cliente, reglas 356-362).
-   - FALLO CERRADO: si no se puede comprobar una declaración válida
-     (no existe, o el consentimiento específico está retirado o nunca
-     se otorgó, o la lectura falla), el primer plan NO se guarda y no
-     se escribe nada. Coherente con la Decisión 6.
-   - La puerta comprueba SOLO existencia/estado: usa
-     fetchClientHealth(...).available y DESCARTA el contenido; el
-     contenido de la declaración NUNCA se renderiza en el editor.
-   - En guardados posteriores (el cliente ya tiene ≥1 plan) NO
-     bloquea: el editor muestra un aviso visible si falta la
-     declaración, y el guardado la recuerda en su confirmación.
+   Historia: el cambio de 2026-10-22 exigía la declaración válida
+   para guardar el PRIMER plan (bloqueo duro, cero escrituras).
+   AUTH-493 (decisión de Ronald, 2026-11-17, sobre la maqueta
+   aprobada): LA PUERTA SE MUEVE DEL GUARDADO A LA ACTIVACIÓN.
+   - Guardar SIEMPRE se puede. Sin consentimiento específico activo
+     + declaración activa legible (fetchClientHealth(...).available,
+     la misma lectura condicionada de la ficha, reglas 356-362), el
+     plan nace NO activo e INVISIBLE para el cliente, con la marca
+     de espera (healthHold) si hubo intención de activación.
+   - La cautela legal queda intacta, solo se mueve: sin declaración
+     válida el plan jamás se activa ni se ve. La evaluación
+     (planHoldEvaluate) activa los planes en espera con holdAuto
+     cuando los dos hechos se cumplen, desde las sesiones que ya
+     escriben planes hoy (la del cliente para los suyos; la del
+     entrenador al cargar al cliente o abrir el editor).
+   - La puerta comprueba SOLO existencia/estado y DESCARTA el
+     contenido; el contenido de la declaración NUNCA se renderiza.
+   - FALLO CERRADO en la ACTIVACIÓN: si no se puede comprobar una
+     declaración válida (no existe, consentimiento retirado o nunca
+     otorgado, o la lectura falla), nada se activa.
    - ES UNA GUARDA DE INTERFAZ, NO una barrera de servidor: las reglas
-     no atan planes a declaraciones y el único escritor de planes es
-     el propio entrenador. El hallazgo S-1 sigue ABIERTO: esta puerta
-     ni lo cierra ni lo agrava — lee ESTADO por la vía del propietario
-     (reglas 356-362), no la rama de actualización de la declaración
-     activa señalada por S-1. */
+     no atan planes a declaraciones. El hallazgo S-1 sigue ABIERTO:
+     esta puerta ni lo cierra ni lo agrava — lee ESTADO por la vía
+     del propietario (reglas 356-362), no la rama de actualización
+     de la declaración activa señalada por S-1. */
 async function planGateState(clientUid) {
   /* Devuelve 'valid' | 'missing'. Cualquier fallo de lectura cuenta
      como 'missing' (fallo cerrado). Nunca devuelve contenido. */
@@ -48406,24 +48578,427 @@ async function planGateState(clientUid) {
     return ch && ch.available ? 'valid' : 'missing';
   } catch { return 'missing'; }
 }
-function planGateRender(state, isFirst) {
+function planGateRender(state) {
   const box = $('pl-gate');
   if (!box) return;
   if (state === 'checking') { box.className = 'pl-gate'; box.textContent = t('train.gate.checking'); return; }
   if (state === 'valid') { box.className = 'pl-gate ok'; box.textContent = t('train.gate.ok'); return; }
-  box.className = 'pl-gate ' + (isFirst ? 'block' : 'warn');
-  box.textContent = isFirst ? t('train.gate.blockFirst') : t('train.gate.warnLater');
+  /* AUTH-493: el muro rojo desaparece. En su sitio, UNA línea
+     tranquila con el estado; en el editor del entrenador, además,
+     la casilla de activación automática (marcada por defecto) y
+     el botón grande del recordatorio por el aviso existente. En
+     el editor PROPIO (el cliente es uno mismo) no hay casilla ni
+     botón: la activación automática es el camino natural y el
+     recordatorio no tiene destinatario. */
+  const self = !!(planCtx && auth.currentUser && planCtx.clientUid === auth.currentUser.uid);
+  /* La casilla nace marcada, salvo que el plan abierto ya viva
+     con holdAuto:false o esta misma sesión del editor la haya
+     guardado desmarcada: repintar la puerta no debe «rebotarla».
+     Y manda siempre la casilla VIVA si ya está pintada: la
+     comprobación asíncrona de la puerta puede resolverse DESPUÉS
+     de que el entrenador la desmarque, y ese repintado tardío no
+     puede volver a marcarla a sus espaldas. */
+  const liveBox = $('pl-autoact');
+  const autoChecked = liveBox ? !!liveBox.checked
+    : planCtx && planCtx.holdAutoSaved != null ? planCtx.holdAutoSaved
+    : !(planCtx && planCtx.planData && planCtx.planData.holdAuto === false);
+  box.className = 'pl-gate warn';
+  box.innerHTML = `<div>${esc(t(self ? 'train.gate.holdLineSelf' : 'train.gate.holdLine'))}</div>` +
+    (self ? '' : `<label class="check-row pl-hold-row"><input type="checkbox" id="pl-autoact"${autoChecked ? ' checked' : ''}> <span>${esc(t('train.gate.autoOn'))}</span></label><button type="button" class="btn-primary pl-remind-btn" id="pl-remind">${esc(t('train.gate.remind'))}</button>`);
+  const rb = $('pl-remind');
+  if (rb) rb.onclick = () => planHoldRemind();
 }
 let planGateSeq = 0;
 async function planGateRefresh() {
   if (!planCtx) return;
   const seq = ++planGateSeq;
   const cuid = planCtx.clientUid;
-  planGateRender('checking', !planCtx.planId);
-  const existing = await fetchPlans(cuid);
+  planGateRender('checking');
   const state = await planGateState(cuid);
   if (seq !== planGateSeq || !planCtx || planCtx.clientUid !== cuid) return;
-  planGateRender(state, !planCtx.planId && existing.length === 0);
+  planGateRender(state);
+  /* AUTH-493: con la puerta ya válida, los OTROS planes en espera
+     de este cliente (no el que se está editando) se evalúan aquí
+     también: abrir el editor es uno de los puntos declarados de
+     la activación automática. En silencio: las superficies de
+     lista enseñan el resultado y avisan. */
+  if (state === 'valid') { try { await planHoldEvaluate(cuid, { excludePlanId: planCtx.planId || null }); } catch {} }
+}
+
+/* ================= ESPERA DE SALUD (AUTH-493) =================
+   El plan guardado sin los dos hechos vive con healthHold:true y
+   active:false — invisible para el cliente (su entrenamiento solo
+   usa el plan activo) — hasta que la puerta sale válida.
+   planHoldEvaluate es el ÚNICO camino de activación automática:
+   - Lee la puerta; si no es válida, no toca nada (fallo cerrado).
+   - Solo activa planes con healthHold && holdAuto && !active.
+   - Cada activación replica la semántica del guardado: ese plan
+     activo y con holdAutoOnAt, los demás planes activos del
+     cliente apagados. Cada escritura va en su propio try: si las
+     reglas la deniegan (el plan es de otro escritor), se salta en
+     silencio — la cautela no depende de esta función.
+   - opts.soloPropios: en la sesión del cliente solo se intentan
+     los planes de SU autoría (createdBy === su uid); los del
+     entrenador se activan en el siguiente punto del entrenador.
+   Devuelve la lista de planes activados (para el aviso). */
+async function planHoldEvaluate(clientUid, opts) {
+  const o = opts || {};
+  if (!clientUid) return [];
+  const state = await planGateState(clientUid);
+  if (state !== 'valid') return [];
+  const plans = await fetchPlans(clientUid);
+  const holds = plans.filter(p => p && p.healthHold === true && p.holdAuto === true && p.active !== true
+    && p.id !== o.excludePlanId
+    && (!o.soloPropios || p.createdBy === auth.currentUser.uid));
+  const activated = [];
+  for (const p of holds) {
+    try {
+      await setDoc(doc(db, 'training_plans', p.id), { active: true, healthHold: false, holdAuto: false, holdAutoOnAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+      for (const other of plans) {
+        if (other.id !== p.id && other.active === true) {
+          try { await setDoc(doc(db, 'training_plans', other.id), { active: false, updatedAt: serverTimestamp() }, { merge: true }); } catch {}
+        }
+      }
+      activated.push(p);
+    } catch {}
+  }
+  return activated;
+}
+/* Aviso al entrenador DENTRO de la app cuando una evaluación suya
+   activa planes: un toast por plan (la línea verde persistente la
+   pinta la tarjeta del plan desde holdAutoOnAt). */
+function planHoldNotifyActivated(activated) {
+  for (const p of (activated || [])) toast(t('train.hold.autoToast', { title: p.title || '' }));
+}
+/* El recordatorio del editor y de la tarjeta del plan: reutiliza
+   la hoja de avisos existente (AUTH-492: la vista previa es el
+   correo real del Worker y el envío anota notices.nudge.parq en
+   el documento del cliente). Sin maquinaria de correo nueva.
+   Cuando el aviso nace de una superficie de PLAN, el éxito anota
+   además holdReminderAt en ese plan (el gancho onSent de
+   nudgeSend, una línea) para que la tarjeta enseñe «Recordatorio
+   enviado el …». */
+let planHoldNudgeCtx = null;
+function planHoldRemind(planId) {
+  if (!planCtx && !planId) return;
+  const cuid = planCtx ? planCtx.clientUid : null;
+  planHoldRemindFor(cuid, planId || (planCtx ? planCtx.planId : null));
+}
+function planHoldRemindFor(clientUid, planId) {
+  if (!clientUid) return;
+  planHoldNudgeCtx = planId ? { planId } : null;
+  nudgeOpen(clientUid, 'parq', t('train.hold.badge'));
+}
+
+/* ================= PROPUESTA DE PLAN CON IA (AUTH-493) =================
+   La pieza central del diseño aprobado: el usuario SIN entrenador
+   (autogestión) encuentra en su «Mi plan» vacío la puerta «✨ Que
+   la IA me proponga un plan según mis metas y métricas».
+   - El generador combina su evaluación (objetivo del motor de
+     metas, categoría de actividad y la ecuación en
+     assessment/current — de la ecuación solo viaja la categoría
+     de actividad, ningún dato corporal) + su nivel (el inferido
+     de la casa; sin historial, principiante) con un catálogo de
+     candidatas de la biblioteca (solo nivel ≤ el suyo, ≤64,
+     ordenadas por id) y la ruta NUEVA del Worker /plan-propose,
+     con contrato de salida estricto (ids del catálogo, rangos
+     sanos). El conteo: la ruta cobra 1 uso del pool general SOLO
+     al completar con propuesta válida (doctrina F-05 del Worker).
+   - La salida se REVALIDA en la app contra la biblioteca cargada
+     antes de enseñarse (planAiValidate). Si la IA falla, devuelve
+     algo inválido o el tope diario cortó la llamada (ai-cap), la
+     propuesta cae al RESPALDO DETERMINISTA: la plantilla de
+     fábrica que corresponde por la puntuación declarada en
+     planAiPickTemplate, volcada con el mismo mapeo de tplApply.
+   - La propuesta aterriza como BORRADOR en una hoja propia:
+     [Aprobar y usar] lo escribe con la forma e invariantes del
+     guardado del editor (duplicados vedados incluidos) y
+     [Editar primero] lo vuelca en el editor de siempre. Recibir
+     y editar es libre; APROBAR sigue la espera de salud: sin su
+     declaración + consentimiento, el plan aprobado nace en
+     espera (healthHold + holdAuto) y se activa solo al
+     completarla, por la evaluación de la casa.
+   - La propuesta NO recibe datos de salud: la declaración manda
+     en la activación, igual que con las plantillas de fábrica. */
+let PLANAI_CTX = null;
+function planAiDoorRender(box) {
+  const host = box.querySelector('#plan-ai-door');
+  if (!host || !auth.currentUser) return;
+  const uid = auth.currentUser.uid;
+  host.innerHTML = `
+    <div class="plan-ai-card">
+      <div class="pa-t">${esc(t('planai.doorTitle'))}</div>
+      <div class="pa-d">${esc(t('planai.doorDesc'))}</div>
+      <button type="button" class="btn-primary pa-btn" id="plan-ai-open">${esc(t('planai.doorBtn'))}</button>
+    </div>
+    <div class="plan-ai-folds">
+      <button type="button" class="pl-fold" id="plan-ai-tpl"><span>${esc(t('planai.tplFold'))}</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+      <button type="button" class="pl-fold" id="plan-ai-self"><span>${esc(t('planai.selfFold'))}</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+    </div>
+    <div id="plan-ai-health"></div>`;
+  host.querySelector('#plan-ai-open').onclick = () => planAiOpen();
+  host.querySelector('#plan-ai-tpl').onclick = () => openPlanEditor(uid, null);
+  host.querySelector('#plan-ai-self').onclick = () => openPlanEditor(uid, null);
+  planAiDoorHealth(host);
+}
+/* La línea tranquila de salud de la puerta: solo si a la PROPIA
+   persona le falta su declaración/consentimiento, con el botón
+   que lleva a su paso pendiente (la misma ruta interna que el
+   enlace ?ir=perms de sus pendientes). */
+async function planAiDoorHealth(host) {
+  const state = await planGateState(auth.currentUser.uid).catch(() => 'missing');
+  if (state === 'valid') return;
+  const h = host.querySelector('#plan-ai-health');
+  if (!h || !document.body.contains(h)) return;
+  h.innerHTML = `<div class="plan-ai-health"><span aria-hidden="true">🏥</span><div style="flex:1"><b>${esc(t('planai.healthTitle'))}</b><br>${esc(t('planai.healthBody'))}<button type="button" class="btn-primary pa-hb" id="plan-ai-godecl">${esc(t('planai.healthBtn'))}</button></div></div>`;
+  const gb = h.querySelector('#plan-ai-godecl');
+  if (gb) gb.onclick = () => planAiGoDeclaration();
+}
+function planAiGoDeclaration() {
+  switchTab('admin');
+  const pb = $('btn-perms'); if (pb && !permsOpen) pb.click();
+  const hs = $('health-section'); if (hs) { try { hs.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+}
+/* El perfil de la propuesta [parámetros declarados en el PLAN]:
+   días/semana por nivel (principiante 3 · intermedio 4 ·
+   avanzado 5 — la frecuencia de la casa, anclada en Schoenfeld,
+   Ogborn & Krieger 2016 y en las divisiones del motor §7.1);
+   nivel inferido del historial o principiante (arranque
+   conservador, ACSM 2009); objetivo el del motor de metas. */
+async function planAiProfile(uid) {
+  let assess = null;
+  try { const s = await getDoc(doc(db, 'users', uid, 'assessment', 'current')); if (s.exists()) assess = s.data(); } catch {}
+  const logs = await fetchLogs(uid).catch(() => []);
+  const levelInf = autoInferLevel(logs);
+  const level = levelInf ? levelInf.level : 'principiante';
+  const eff = gmFocusEffective(UDATA || {});
+  const objective = ['bajar', 'mantener', 'ganar'].includes(eff.objective) ? eff.objective : '';
+  const daysPerWeek = level === 'avanzado' ? 5 : level === 'intermedio' ? 4 : 3;
+  const actRaw = assess ? parseInt(assess.activityCategoryId, 10) : NaN;
+  const activityCat = Number.isInteger(actRaw) && actRaw >= 1 && actRaw <= 6 ? actRaw : null;
+  return { objective, level, daysPerWeek, activityCat };
+}
+/* Las candidatas que viajan al Worker: SOLO biblioteca, solo
+   nivel ≤ el de la persona, orden estable por id, ≤64. */
+function planAiCatalog(level) {
+  const rank = { principiante: 1, intermedio: 2, avanzado: 3 };
+  const mine = rank[level] || 1;
+  return (LIB || []).filter(e => e && e.id)
+    .filter(e => (rank[autoLevelOf(e)] || 1) <= mine)
+    .sort((a, b) => a.id < b.id ? -1 : 1)
+    .slice(0, 64)
+    .map(e => ({ id: e.id, name: libNameOf(e) || e.id, group: libField(e, 'grupo_muscular') || '', level: autoLevelOf(e) || 'principiante' }));
+}
+/* La REVALIDACIÓN en la app (segunda capa del contrato): todo id
+   existe en la biblioteca cargada; días 1..6; por día 2..8
+   ejercicios sin repetir; series 1..6; repeticiones «N» o «N-M»
+   dentro de 1..30. Devuelve los días en la forma del editor o
+   null — una salida que no pasa NO se enseña jamás. */
+function planAiValidate(out) {
+  if (!out || !Array.isArray(out.days) || out.days.length < 1 || out.days.length > 6) return null;
+  const days = [];
+  for (const d of out.days) {
+    if (!d || !Array.isArray(d.exercises) || d.exercises.length < 2 || d.exercises.length > 8) return null;
+    const seen = new Set(); const exs = [];
+    for (const e of d.exercises) {
+      const entry = e && LIB_BY_ID[e.id];
+      if (!entry || seen.has(e.id)) return null;
+      seen.add(e.id);
+      const sets = Math.floor(Number(e.sets));
+      if (!isFinite(sets) || sets < 1 || sets > 6) return null;
+      const reps = typeof e.reps === 'string' ? e.reps.trim() : '';
+      const m = /^(\d{1,2})(?:-(\d{1,2}))?$/.exec(reps);
+      if (!m || Number(m[1]) < 1 || (m[2] != null && (Number(m[2]) > 30 || Number(m[2]) < Number(m[1])))) return null;
+      exs.push({ name: libNameOf(entry) || e.id, sets: String(sets), reps, note: '', exerciseId: e.id, photoUrl: entry.foto_url || '', videoUrl: entry.video_youtube_url || '' });
+    }
+    days.push({ label: (typeof d.label === 'string' && d.label.trim()) ? d.label.trim().slice(0, 40) : '', exercises: exs });
+  }
+  return days;
+}
+/* EL RESPALDO DETERMINISTA — la correspondencia declarada en el
+   PLAN: sobre las plantillas legibles de FÁBRICA (visibility
+   'factory' o las legadas R01–R08):
+   días/semana == los pedidos +3 · nivel de la plantilla == el de
+   la persona +2 · palabra clave de su objetivo en el texto de
+   objetivo de la plantilla +1 · empate → el id menor. */
+function planAiPickTemplate(objective, level, daysN) {
+  if (TPL_STATE !== 'ok' || !TPL) return null;
+  const kw = {
+    ganar: ['ganar', 'fuerza', 'musculo', 'muscle', 'strength', 'gain', 'hipertrof'],
+    bajar: ['bajar', 'perder', 'grasa', 'lose', 'fat', 'peso'],
+    mantener: ['mantener', 'salud', 'general', 'maintain', 'health']
+  }[objective] || [];
+  const lvlWords = level === 'principiante' ? ['principiante', 'beginner']
+    : level === 'intermedio' ? ['intermedio', 'intermediate'] : ['avanzado', 'advanced'];
+  const scored = [];
+  for (const tpl of TPL) {
+    if (!tplCanRead(tpl)) continue;
+    if (tplVisibility(tpl) !== 'factory' && !/^R0[1-8]$/.test(tpl.id || '')) continue;
+    let score = 0;
+    if (Number(tpl.dias_por_semana) === daysN) score += 3;
+    const lvlTxt = libNorm((tpl.nivel_es || '') + ' ' + (tpl.nivel_en || ''));
+    if (lvlWords.some(w => lvlTxt.includes(w))) score += 2;
+    const objTxt = libNorm((tpl.objetivo_es || '') + ' ' + (tpl.objetivo_en || ''));
+    if (kw.some(k => objTxt.includes(libNorm(k)))) score += 1;
+    scored.push({ tpl, score });
+  }
+  scored.sort((a, b) => (b.score - a.score) || (a.tpl.id < b.tpl.id ? -1 : 1));
+  return scored.length ? scored[0].tpl : null;
+}
+/* El volcado de una plantilla a días del editor SIN tocar el
+   DOM: el mismo mapeo de tplApply (nombre resuelto por la
+   biblioteca, descansos y aproximaciones bilingües, días libres
+   conservados). */
+function planAiTplDays(tpl) {
+  const days = [];
+  for (const d of (tpl.days || [])) {
+    if (d.libre === true) { days.push({ label: tplField(d, 'dia_nombre') || '', exercises: [], freeDay: true }); continue; }
+    const exercises = [];
+    for (const te of (d.exercises || [])) {
+      if (te.exerciseId && LIB_BY_ID[te.exerciseId]) {
+        const e2 = LIB_BY_ID[te.exerciseId];
+        const ex = { name: libField(e2, 'nombre') || te.exerciseId, sets: String(te.series != null ? te.series : ''), reps: String(te.repeticiones != null ? te.repeticiones : ''), note: '', exerciseId: te.exerciseId, photoUrl: e2.foto_url || '', videoUrl: e2.video_youtube_url || '' };
+        const rest = LANG === 'es' ? (te.descanso_es || te.descanso_en || '') : (te.descanso_en || te.descanso_es || '');
+        if (rest) { if (LANG === 'es') ex.rest = rest; else ex.rest_en = rest; }
+        const warm = LANG === 'es' ? (te.aproximacion_es || te.aproximacion_en || '') : (te.aproximacion_en || te.aproximacion_es || '');
+        if (warm) { if (LANG === 'es') ex.warmup = warm; else ex.warmup_en = warm; }
+        exercises.push(ex);
+      } else if (te.nombre_libre) {
+        exercises.push({ name: te.nombre_libre, sets: String(te.series != null ? te.series : ''), reps: String(te.repeticiones != null ? te.repeticiones : ''), note: '' });
+      }
+    }
+    if (exercises.length) days.push({ label: tplField(d, 'dia_nombre') || '', exercises });
+  }
+  return days;
+}
+async function planAiOpen() {
+  const fl = $('plan-ai-float'), bd = $('plan-ai-body');
+  if (!fl || !bd || !auth.currentUser) return;
+  fl.style.display = '';
+  bd.innerHTML = `<p class="progress-hint">${esc(t('planai.working'))}</p>`;
+  const x = $('plan-ai-x'); if (x) x.onclick = () => planAiClose();
+  const uid = auth.currentUser.uid;
+  PLANAI_CTX = { uid, days: null, source: null, profile: null, tpl: null, capNote: false, title: '' };
+  try { await libEnsure(); } catch {}
+  try { await tplEnsure(); } catch {}
+  const profile = await planAiProfile(uid);
+  PLANAI_CTX.profile = profile;
+  let days = null, capNote = false;
+  try {
+    const out = await aiCall('/plan-propose', {
+      lang: LANG,
+      profile: { objective: profile.objective, level: profile.level, daysPerWeek: profile.daysPerWeek, activityCat: profile.activityCat },
+      catalog: planAiCatalog(profile.level)
+    });
+    days = planAiValidate(out);
+    if (days) PLANAI_CTX.source = 'ai';
+  } catch (e) {
+    if (e && e.message === 'ai-cap') capNote = true;
+    days = null;
+  }
+  if (!days) {
+    const tpl = planAiPickTemplate(profile.objective, profile.level, profile.daysPerWeek);
+    if (tpl) {
+      const td = planAiTplDays(tpl);
+      if (td.length) { days = td; PLANAI_CTX.source = 'tpl'; PLANAI_CTX.tpl = tpl; }
+    }
+  }
+  PLANAI_CTX.capNote = capNote;
+  PLANAI_CTX.days = days;
+  PLANAI_CTX.title = days
+    ? (PLANAI_CTX.source === 'tpl' ? (tplField(PLANAI_CTX.tpl, 'nombre') || t('planai.propName', { n: days.length })) : t('planai.propName', { n: days.length }))
+    : '';
+  planAiRenderSheet();
+}
+function planAiRenderSheet() {
+  const bd = $('plan-ai-body'); if (!bd || !PLANAI_CTX) return;
+  const c = PLANAI_CTX;
+  if (!c.days) {
+    bd.innerHTML = `<p class="progress-hint">${esc(t('planai.errNone'))}</p><div class="pend-actions"><button type="button" class="btn-ghost" id="plan-ai-cancel">${esc(t('pend.cancel'))}</button></div>`;
+    const cb = $('plan-ai-cancel'); if (cb) cb.onclick = () => planAiClose();
+    return;
+  }
+  const prof = c.profile || {};
+  const actTxt = prof.activityCat ? t('fa.act' + prof.activityCat) : '—';
+  const lvlTxt = t('train.auto.lvl.' + (prof.level || 'principiante'));
+  const why = c.source === 'tpl'
+    ? t('planai.whyTpl', { name: tplField(c.tpl, 'nombre') || '', level: lvlTxt, n: c.days.length })
+    : (prof.objective
+      ? t('planai.why', { goal: t('train.auto.obj.' + prof.objective), act: actTxt, level: lvlTxt, n: c.days.length })
+      : t('planai.whyNoGoal', { act: actTxt, level: lvlTxt, n: c.days.length }));
+  bd.innerHTML = `
+    <span class="plan-ai-src">${esc(t(c.source === 'tpl' ? 'planai.srcTpl' : 'planai.srcAi'))}</span>
+    ${c.capNote ? `<div class="plan-ai-why">${esc(t('planai.capNote'))}</div>` : ''}
+    <div class="plan-ai-why">${esc(why)}</div>
+    ${c.days.map((d, di) => `
+      <div class="plan-ai-day">
+        <button type="button" class="pl-fold" data-planai-day="${di}" aria-expanded="false"><span>${esc(d.label || t('planai.day', { n: di + 1 }))}</span><span class="pl-fold-n">${esc(t('planai.exLine', { n: d.exercises.length }))}</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+        <div class="plan-ai-day-body" data-planai-day-body="${di}" style="display:none">${d.exercises.map(e => `<div>${esc(e.name)} · ${esc(String(e.sets))} × ${esc(String(e.reps))}</div>`).join('')}</div>
+      </div>`).join('')}
+    <div class="plan-ai-actions">
+      <button type="button" class="btn-primary" id="plan-ai-approve">${esc(t('planai.approve'))}</button>
+      <button type="button" class="btn-ghost" id="plan-ai-edit">${esc(t('planai.editFirst'))}</button>
+    </div>`;
+  bd.querySelectorAll('[data-planai-day]').forEach(b => b.onclick = () => {
+    const body = bd.querySelector(`[data-planai-day-body="${b.dataset.planaiDay}"]`);
+    if (!body) return;
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : '';
+    b.setAttribute('aria-expanded', open ? 'false' : 'true');
+  });
+  const ab = $('plan-ai-approve'); if (ab) ab.onclick = () => planAiApprove();
+  const eb = $('plan-ai-edit'); if (eb) eb.onclick = () => planAiEditFirst();
+}
+function planAiClose() { const fl = $('plan-ai-float'); if (fl) fl.style.display = 'none'; }
+/* [Aprobar y usar]: un escritor dedicado que replica la forma e
+   invariantes del guardado del editor (título, días, duplicados
+   vedados, procedencia) con intención de activación: puerta
+   propia válida → nace activo y apaga los demás; sin ella →
+   nace EN ESPERA con activación automática, y su línea tranquila
+   lo dice. Un duplicado por día no se escribe: la propuesta se
+   abre en el editor para corregirla, declarado en la hoja. */
+async function planAiApprove() {
+  const c = PLANAI_CTX; if (!c || !c.days) return;
+  const uid = c.uid;
+  if (planDupInDays(c.days)) { planAiEditFirst(); toast(t('planai.dupEditor'), true); return; }
+  const gate = await planGateState(uid);
+  const active = gate === 'valid';
+  const data = {
+    clientUid: uid, title: c.title, notes: '', days: c.days,
+    active, startsAt: todayISO(), endsAt: null, durationPreset: null,
+    createdBy: uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    healthHold: !active, holdAuto: !active,
+    genSource: { kind: 'ai-plan', source: c.source, version: 'auth493', objective: (c.profile || {}).objective || '', level: (c.profile || {}).level || '', daysPerWeek: c.days.length }
+  };
+  if (!active) data.holdSince = serverTimestamp();
+  if (c.source === 'tpl' && c.tpl) data.sourceRoutineId = c.tpl.id;
+  try {
+    const ref = await addDoc(collection(db, 'training_plans'), data);
+    if (active) {
+      const others = await fetchPlans(uid);
+      for (const o of others) if (o.id !== ref.id && o.active === true)
+        await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
+    }
+  } catch { toast(t('train.saveError'), true); return; }
+  planAiClose();
+  toast(t(active ? 'planai.saved' : 'planai.savedHold'), !active);
+  loadMyTraining();
+}
+/* [Editar primero]: el borrador se vuelca en el editor de
+   siempre con el patrón de tplApply (días con planDayRow, título
+   y procedencia en planCtx); guardar ahí sigue el camino
+   ordinario, con su espera de salud si aplica. */
+function planAiEditFirst() {
+  const c = PLANAI_CTX; if (!c || !c.days) return;
+  planAiClose();
+  openPlanEditor(c.uid, null);
+  const daysBox = $('pl-days');
+  daysBox.innerHTML = '';
+  c.days.forEach(d => daysBox.appendChild(planDayRow(d)));
+  $('pl-title').value = c.title;
+  planCtx.genSource = { kind: 'ai-plan', source: c.source, version: 'auth493', objective: (c.profile || {}).objective || '', level: (c.profile || {}).level || '', daysPerWeek: c.days.length };
+  if (c.source === 'tpl' && c.tpl) planCtx.tplSource = { id: c.tpl.id, version: c.tpl.version };
+  planTouched = true;
 }
 
 /* ================= BIBLIOTECA EN EL EDITOR (§4.1) =================
@@ -50519,14 +51094,29 @@ function tplRenderNotice() {
   if (!box) return;
   box.textContent = TPL_STATE === 'unavailable' ? t('train.tpl.unavailable') : '';
 }
+/* AUTH-493 · EL PLIEGUE DE LAS PLANTILLAS: la sección nace
+   recogida en su línea («📋 Plantillas de rutina · N disponibles
+   ›», la regla de crecimiento) y se despliega con un toque. El
+   conteo es el mismo filtro de lectura del rol que pinta la
+   lista (tplCanRead), así la línea nunca promete de más. */
+function tplFoldSet(open) {
+  const body = $('pl-tpl-foldbody'), btn = $('pl-tpl-fold');
+  if (body) body.style.display = open ? '' : 'none';
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function tplFoldCount(vis) {
+  const el = $('pl-tpl-count');
+  if (el) el.textContent = (vis && vis.length) ? t('train.tpl.avail', { n: vis.length }) : '';
+}
 function tplRenderList() {
   const box = $('pl-tpl-list');
   if (!box) return;
-  if (TPL_STATE !== 'ok' || !TPL) { box.innerHTML = ''; return; }
+  if (TPL_STATE !== 'ok' || !TPL) { box.innerHTML = ''; tplFoldCount(null); return; }
   /* N-09: el editor solo lista las plantillas que este rol puede LEER
      (las de fábrica para todos; las de entrenador, solo su autor y el
      administrador; las privadas, solo su dueño y el administrador). */
   const vis = TPL.filter(tplCanRead);
+  tplFoldCount(vis);
   box.innerHTML = vis.map(tpl => {
     const can = tplCanEdit(tpl);
     return `
@@ -51154,6 +51744,11 @@ function tplOnEditorOpen() {
   tplAlignState = { tpl: null, dismissed: false, aligned: false };
   const start = $('pl-tpl-start');
   if (start) start.value = '';
+  /* AUTH-493: la sección de plantillas nace PLEGADA en cada
+     apertura y su línea se cablea una sola vez. */
+  tplFoldSet(false);
+  const fb = $('pl-tpl-fold');
+  if (fb && !fb.dataset.wired) { fb.dataset.wired = '1'; fb.onclick = () => { const bd = $('pl-tpl-foldbody'); tplFoldSet(!!bd && bd.style.display === 'none'); }; }
   tplRenderAlign();
   tplRenderTplUI();
   tplEnsure();
@@ -51681,6 +52276,10 @@ function openPlanEditor(clientUid, plan) {
   days.forEach(d => daysBox.appendChild(planDayRow(d)));
   $('plan-modal').style.display = '';
   planGateRefresh();
+  /* AUTH-493: «Empezar en blanco» de la caja de comienzo — baja al
+     título y lo enfoca; el editor queda como siempre, vacío. */
+  const sbBlank = $('pl-start-blank');
+  if (sbBlank && !sbBlank.dataset.wired) { sbBlank.dataset.wired = '1'; sbBlank.onclick = () => { const ti = $('pl-title'); if (ti) { try { ti.scrollIntoView({ block: 'center' }); } catch {} ti.focus(); } }; }
   /* BIBLIOTECA (§4.1): una sola lectura por sesión de página, en
      segundo plano; al llegar, las filas abiertas se resuelven. Si la
      biblioteca no está disponible, el aviso queda visible y el
@@ -51718,7 +52317,7 @@ function planSignature() {
     const dl = dEl.querySelector('.pl-day-label');
     days.push([(dl ? dl.value : ''), (dEl._sessionBlocks || []).length].join('#') + ':' + exs.join(';'));
   });
-  return JSON.stringify([v('pl-title'), v('pl-notes'), v('pl-active'), v('pl-start'), v('pl-end'), v('pl-preset'), planCtx && planCtx.tplSource ? planCtx.tplSource.id : '', days.join('~')]);
+  return JSON.stringify([v('pl-title'), v('pl-notes'), v('pl-active'), v('pl-autoact'), v('pl-start'), v('pl-end'), v('pl-preset'), planCtx && planCtx.tplSource ? planCtx.tplSource.id : '', days.join('~')]);
 }
 let planBaseline = null;
 /* «Tocado» = el entrenador ya escribió/cambió algo en el formulario
@@ -51837,20 +52436,13 @@ $('form-plan').addEventListener('submit', async e => {
   if (dupDay348) { toast(t('train.nodup.saveBlock', { name: dupDay348.name || '' }), true); saveDone(); return; }
   const title = $('pl-title').value.trim();
   if (!title || !days.length) { toast(t('train.err'), true); saveDone(); return; }
-  /* PUERTA PAR-Q: la comprobación corre ANTES de cualquier escritura.
-     Primer plan (sin planId y sin planes previos del cliente) sin
-     declaración válida comprobable → bloqueo duro y CERO escrituras
-     (el modal queda abierto y planCtx intacto). Guardados posteriores
-     no se bloquean: se completan y dejan el aviso en la confirmación. */
-  const gateExisting = planCtx.planId ? null : await fetchPlans(planCtx.clientUid);
-  const isFirstSave = !planCtx.planId && gateExisting.length === 0;
+  /* PUERTA PAR-Q (AUTH-493): la comprobación sigue corriendo
+     ANTES de cualquier escritura, pero ya NO bloquea el guardado:
+     sin los dos hechos el plan nace NO activo y en espera (el
+     cálculo va con `data`, abajo). La cautela se mueve a la
+     activación, que es donde el cliente empezaría a verlo. */
   const gateState = await planGateState(planCtx.clientUid);
-  if (isFirstSave && gateState !== 'valid') {
-    planGateRender('missing', true);
-    toast(t('train.gate.blockFirst'), true);
-    saveDone();
-    return;
-  }
+  if (gateState !== 'valid') planGateRender('missing');
   /* PROGRAMA AUTOMÁTICO (§8 del diseño): si el borrador nació del
      motor para un alumno con dolor de pecho declarado, el guardado
      exige la confirmación de revisión completa del panel. */
@@ -51859,9 +52451,23 @@ $('form-plan').addEventListener('submit', async e => {
     saveDone();
     return;
   }
-  const gateWarnAfter = !isFirstSave && gateState !== 'valid';
-  const active = $('pl-active').checked;
+  /* AUTH-493: sin puerta válida el plan NUNCA nace activo. La
+     espera (healthHold) nace solo con intención de activación:
+     la casilla «Plan activo» marcada o la de activación
+     automática marcada (en el editor propio no hay casilla y la
+     automática es el camino: wantAuto queda true). Sin ninguna
+     de las dos es un plan inactivo ordinario, sin insignia. Con
+     puerta válida, el guardado limpia cualquier espera previa. */
+  const wantActive = $('pl-active').checked;
+  const autoActEl = $('pl-autoact');
+  const wantAuto = autoActEl ? autoActEl.checked : true;
+  const onHold = gateState !== 'valid' && (wantActive || wantAuto);
+  const active = gateState === 'valid' ? wantActive : false;
   const data = { clientUid: planCtx.clientUid, title, notes: $('pl-notes').value.trim(), days, active, updatedAt: serverTimestamp() };
+  data.healthHold = onHold;
+  data.holdAuto = onHold ? wantAuto : false;
+  if (onHold) data.holdSince = serverTimestamp();
+  planCtx.holdAutoSaved = wantAuto;
   /* EDITOR-PLAN (2026-10-24): fechas de la rutina. Sin fecha elegida
      se escribe null — todos los lectores tratan null y ausente
      igual — para que una fecha BORRADA al editar desaparezca de
@@ -51912,10 +52518,9 @@ $('form-plan').addEventListener('submit', async e => {
       /* VERSIONADO (§6.4, pregunta 13 aceptada): antes de sobrescribir
          un plan existente, su versión ANTERIOR se conserva como
          instantánea en la misma colección — copia fiel marcada
-         (isSnapshot, sourcePlanId, snapshotAt) y jamás activa. La
-         instantánea se escribe SOLO tras pasar la puerta PAR-Q: un
-         guardado bloqueado no escribe nada, como siempre. Crear un
-         plan nuevo no genera instantánea (no hay versión anterior). */
+         (isSnapshot, sourcePlanId, snapshotAt) y jamás activa.
+         Crear un plan nuevo no genera instantánea (no hay versión
+         anterior). */
       const prevSnap = await getDoc(doc(db, 'training_plans', planId));
       if (prevSnap.exists()) {
         await addDoc(collection(db, 'training_plans'), { ...prevSnap.data(), isSnapshot: true, sourcePlanId: planId, snapshotAt: serverTimestamp(), active: false });
@@ -51952,7 +52557,11 @@ $('form-plan').addEventListener('submit', async e => {
   planTouched = false;
   planBaseline = planSignature();
   const svn = $('pl-saved-note'); if (svn) { svn.textContent = t('train.savedStay'); svn.style.display = ''; }
-  toast(gateWarnAfter ? t('train.gate.savedWithWarning') : t('train.saved'), gateWarnAfter);
+  toast(onHold ? t(cuid === auth.currentUser.uid ? 'train.gate.savedHoldSelf' : 'train.gate.savedHold') : t('train.saved'), onHold);
+  /* AUTH-493: la línea de la puerta se repinta con el estado ya
+     guardado (en espera se queda su línea tranquila con la
+     casilla y el recordatorio). */
+  planGateRefresh();
   /* GUARDADO VISIBLE: con la confirmación ya visible, el botón
      vuelve a «Guardar plan» y queda listo para otro guardado. */
   saveDone();
@@ -62960,7 +63569,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261117-plantillas-correo';
+const PWA_SW_VERSION = '20261117-plan-ia-espera';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

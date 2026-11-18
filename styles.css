@@ -6805,3 +6805,49 @@ textarea.gest-in { resize: none; }
 .rcpf-txt { line-height: 1.55; margin: 6px 0; }
 .rcpf-ingsec { list-style: none; margin: 8px 0 2px -22px; font-weight: 800; }
 .rcpf-steptime { font-weight: 700; white-space: nowrap; }
+
+/* ═══ AUTH-493 · PLAN SIN MURO: comienzo claro, espera de salud
+   e IA sin entrenador ═══
+   La tira de pasos y la caja «Empieza aquí» del editor, la línea
+   de pliegue de las plantillas (la sección nace recogida en una
+   línea, regla de crecimiento), la línea tranquila de la puerta
+   de salud con su casilla y su botón, la insignia de espera en
+   las filas de plan y la puerta/hoja de la propuesta de IA. */
+/* — tira de 3 pasos — */
+.pl-steps { display: flex; gap: 6px; margin: 4px 0 12px; }
+.pl-step { flex: 1; text-align: center; font-size: 12px; font-weight: 700; padding: 8px 2px; border-radius: 999px; background: #eef4f2; color: #47605a; border: 1px solid #d7e3df; }
+.pl-step.on { background: #0d9488; border-color: #0d9488; color: #fff; }
+/* — caja «Empieza aquí» — */
+.pl-startbox { background: #f2faf8; border: 1.5px solid #0d9488; border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+.pl-startbox-t { font-weight: 800; font-size: 15px; margin-bottom: 8px; }
+.pl-startbox .pl-tpl { margin: 0 0 10px; }
+.pl-startbox #pl-start-blank { width: 100%; min-height: 48px; }
+/* — línea de pliegue (plantillas y puerta de la IA) — */
+.pl-fold { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 52px; background: #fff; border: 1px solid #d7e3df; border-radius: 12px; padding: 10px 12px; font-size: 15px; font-weight: 600; color: #10201f; text-align: left; cursor: pointer; }
+.pl-fold-n { color: #47605a; font-weight: 500; font-size: 13px; }
+.pl-fold-chev { margin-left: auto; color: #0d9488; font-size: 20px; font-weight: 800; transition: transform .15s ease; }
+.pl-fold[aria-expanded="true"] .pl-fold-chev { transform: rotate(90deg); }
+/* — puerta de salud: línea tranquila + casilla + recordatorio — */
+.pl-gate .pl-hold-row { margin-top: 10px; }
+.pl-gate .pl-remind-btn { width: 100%; min-height: 52px; margin-top: 10px; font-size: 16px; }
+/* — insignia de espera y línea de activación automática — */
+.hold-badge { background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 700; border-radius: 20px; padding: 2px 10px; vertical-align: middle; }
+.plan-hold-line { font-size: 12px; color: #92400e; margin-top: 3px; }
+.plan-autoon-line { font-size: 12px; color: #065f46; margin-top: 3px; }
+.plan-hold-remind { margin-top: 8px; min-height: 44px; }
+/* — puerta de la IA en «Mi plan» vacío — */
+.plan-ai-card { border: 2px solid #0d9488; background: #f2faf8; border-radius: 16px; padding: 14px; margin: 10px 0; }
+.plan-ai-card .pa-t { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+.plan-ai-card .pa-d { font-size: 13.5px; color: #334155; line-height: 1.5; }
+.plan-ai-card .pa-btn { width: 100%; min-height: 52px; margin-top: 10px; font-size: 16px; }
+.plan-ai-folds { margin: 10px 0; }
+.plan-ai-folds .pl-fold { margin-bottom: 8px; }
+.plan-ai-health { display: flex; gap: 10px; align-items: flex-start; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 12px; margin: 10px 0; font-size: 14px; line-height: 1.45; }
+.plan-ai-health .pa-hb { width: 100%; min-height: 52px; margin-top: 10px; font-size: 16px; }
+/* — hoja de la propuesta — */
+.plan-ai-why { background: #f8fafc; border: 1px solid #d7e3df; border-radius: 10px; padding: 10px 12px; font-size: 13.5px; line-height: 1.5; margin: 10px 0; }
+.plan-ai-src { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 4px 10px; background: #e0f2f1; color: #0b6e63; margin-bottom: 8px; }
+.plan-ai-day { margin-bottom: 8px; }
+.plan-ai-day-body { border: 1px dashed #9db8b1; border-radius: 10px; padding: 8px 12px; margin: 6px 0 10px; font-size: 14px; line-height: 1.55; background: #fbfdfd; }
+.plan-ai-actions { margin-top: 12px; }
+.plan-ai-actions .btn-primary, .plan-ai-actions .btn-ghost { width: 100%; min-height: 52px; font-size: 16px; margin-top: 8px; }
