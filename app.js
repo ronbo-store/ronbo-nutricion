@@ -40707,6 +40707,25 @@ function sessMsgHTML(msg) {
   if (!SESS_MSG_OPEN) return `<button type="button" class="sf-card sf-foldcard" data-sess-fold="msg"><span class="sf-fold-ic" aria-hidden="true">${esc(msg.icon || '🌟')}</span><span class="sf-fold-lab">${esc(t('sess.dayMsg'))}</span><span class="sf-fold-txt">${esc(msg.text)}</span><span class="sf-fold-chev" aria-hidden="true">›</span></button>`;
   return `<div class="sf-card"><button type="button" class="sf-fold-head" data-sess-fold="msg"><span class="sf-card-lab">${esc(t('sess.dayMsg'))}</span><span class="sf-fold-chev" aria-hidden="true">⌃</span></button><div class="sf-msg"><span class="sf-msg-ic" aria-hidden="true">${esc(msg.icon || '🌟')}</span><span class="sf-msg-text">${esc(msg.text)}</span></div></div>`;
 }
+/* AUTH-501 · LA FILA «VER CÓMO SE HACE» CON LA IMAGEN DE LA
+   FICHA (diseño aprobado por Ronald el 2026-11-18): el botón de
+   siempre — mismo HTML, mismo gesto data-sess-ficha, misma
+   ficha al abrir — y, cuando el ejercicio tiene foto, la imagen
+   a su DERECHA en la misma línea de 58 px. La foto sale de
+   trainExPhoto (la máquina de la casa): la de la entrada del
+   plan, la de la VARIANTE elegida si va en una forma con foto
+   propia, o la foto_url de la ficha — donde esa foto es un GIF
+   (9 fichas) se mueve sola en el <img>; la fila no usa el video.
+   Sin foto, la fila queda como hoy: el botón solo, sin hueco.
+   Si la dirección fallara al cargar, la imagen se retira sola
+   (onerror) y el botón recupera todo el ancho. La imagen no es
+   un botón aparte: no lleva gesto propio. */
+function sessHowRowHTML(ex) {
+  const btn = `<button type="button" class="sf-how" data-sess-ficha="1"><span class="sf-how-play" aria-hidden="true">▶</span><span class="sf-how-tx"><b>${esc(t('sess.seeHow'))}</b><small>${esc(t('sess.seeHowSub'))}</small></span></button>`;
+  const photo = trainExPhoto(ex);
+  if (!photo) return btn;
+  return `<div class="sf-howrow">${btn}<img class="sf-howimg" src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()"></div>`;
+}
 function sessFullSync(run) {
   const full = $('sess-full'); if (!full) return;
   sessFoldDaySync();   /* AUTH-491/494: cada día el Mensaje nace plegado y la Reflexión nace abierta */
@@ -40759,12 +40778,12 @@ function sessFullSync(run) {
       + (exState ? `<div class="sf-exrow">${exState}</div>` : '')
       + dotsBlk
       + sessVoiceNoteHTML(ck)   /* AUTH-500: el recibo y los avisos de la voz, bajo la línea — fuera de ella, para que el recibo se siga viendo si el dictado finalizó el ejercicio y nacen las caras */
-      + `<button type="button" class="sf-how" data-sess-ficha="1"><span class="sf-how-play" aria-hidden="true">▶</span><span class="sf-how-tx"><b>${esc(t('sess.seeHow'))}</b><small>${esc(t('sess.seeHowSub'))}</small></span></button>`
+      + sessHowRowHTML(st.eff[st.cur].ex)   /* AUTH-501: la fila «Ver cómo se hace» — el botón de siempre y, si la ficha tiene foto, su imagen a la derecha en la misma línea */
       + acts + `</div>`;
     const nxtBlk = (st.nxt != null && st.nxt !== st.cur)
       ? `<div class="sf-next"><span class="sf-next-lab">${esc(t('sess.pillNext'))}</span><span class="sf-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sf-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '';
     const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez */
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex)].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace */
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
@@ -64180,7 +64199,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261118-voz-series';
+const PWA_SW_VERSION = '20261118-imagen-fila';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

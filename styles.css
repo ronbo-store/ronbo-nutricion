@@ -6695,6 +6695,11 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sf-now .sf-dots { margin-top: 8px; }
 .sf-now .sf-how { margin-top: 8px; }
 .sf-now .sf-btnrow { margin-top: 8px; }
+/* AUTH-501 · LA IMAGEN DE LA FILA «VER CÓMO SE HACE» (diseño aprobado el 2026-11-18): la fila pasa a ser un flex — el botón de siempre, flexible y más corto, y la foto de la ficha a la derecha en la MISMA línea. La imagen mide 58×58 y el botón manda el alto con su min-height de 58: la fila sigue en 58 px (costo 0 px). Con la columna real del panel (18 px por lado): a 360 el útil es 324 = botón 256 + hueco 10 + imagen 58; a 430, 394 = 326 + 10 + 58. Sin foto no hay envoltura: el botón solo, como hoy. */
+.sf-howrow { display: flex; gap: 10px; align-items: stretch; margin-top: 12px; }
+.sf-now .sf-howrow { margin-top: 8px; }
+.sf-howrow .sf-how { flex: 1 1 auto; min-width: 0; width: auto; margin-top: 0; }
+.sf-howimg { width: 58px; height: 58px; flex: none; box-sizing: border-box; object-fit: cover; border-radius: 14px; border: 1.5px solid rgba(255,255,255,.35); background: #0e1e3a; }
 
 /* AUTH-464 · LA HOJA DEL ARTÍCULO y la ficha pintan sobre el
    panel completo (z-48) cuando salen de él: z-49 solo en
