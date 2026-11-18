@@ -63766,7 +63766,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261118-repintado-lista';
+const PWA_SW_VERSION = '20261118-alarma-sonora';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -65056,6 +65056,56 @@ function swAlertAudio() {
     return SW_ACTX;
   } catch { return null; }
 }
+/* ═══ AUTH-498 · EL ARMADO DEL SONIDO (pieza compartida) ═══
+   El diagnóstico del reporte de Ronald del 2026-11-18 («da una
+   alarma visual… pero no da una alarma sonora»): el contexto
+   se creaba y se le pedía resume() en los gestos, pero NINGÚN
+   nodo de audio sonaba jamás dentro de un gesto — y en iOS un
+   contexto que nunca renderiza sonido queda a merced de la
+   suspensión automática del sistema: al llegar el múltiplo,
+   un minuto después del último gesto, el contexto ya no está
+   «running», el pitido no se programa y el aviso queda solo
+   visual. Armar es esto, y se hace DENTRO del gesto:
+   (1) suena un pulso inaudible a través del contexto (un
+   oscilador a ganancia 0.0001 durante 60 ms, la frecuencia
+   del propio pitido): el contexto renderiza audio de verdad
+   bajo el gesto y iOS lo da por desbloqueado;
+   (2) si el contexto aún no está «running», la entrega del
+   aviso pendiente ya no depende de comprobar el estado de
+   forma síncrona tras resume() (la transición es asíncrona y
+   la comprobación llegaba siempre tarde): se espera la
+   promesa de resume() y al completarse se llama a
+   swAlertPrime(), que entrega el pendiente si ya puede sonar.
+   PIEZA COMPARTIDA: este armado y el pitido de swAlertBeep
+   son EL mecanismo de alarma sonora de la app — el
+   cronómetro libre los usa hoy vía swAlertPrime (que se llama
+   desde abrir la herramienta, Iniciar, Seguir, Pausar y
+   elegir intervalo) y el cronómetro de los círculos del
+   cuadro de sesión los reutilizará tal cual para su alarma
+   de fin de cuenta. Límite honesto: sin gesto previo en la
+   herramienta no se promete sonido (la política de audio de
+   iOS lo impide) y ningún sonido web puede saltarse el
+   interruptor de silencio del iPhone. */
+function swAlertArm() {
+  const ctx = swAlertAudio();
+  if (!ctx) return null;
+  try {
+    const t0 = ctx.currentTime + 0.01;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = 988;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.05);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t0); o.stop(t0 + 0.06);
+  } catch {}
+  if (ctx.state !== 'running') {
+    try {
+      const p = ctx.resume();
+      if (p && typeof p.then === 'function') p.then(() => { swAlertPrime(); }, () => {});
+    } catch {}
+  }
+  return ctx;
+}
 /* Devuelve true SOLO si el pitido doble quedó efectivamente
    programado (contexto sonando y osciladores arrancados): quien
    llama decide qué hacer con un aviso que no pudo sonar. */
@@ -65087,7 +65137,7 @@ function swAlertBeep() {
    desde los gestos de la herramienta: abrirla, Iniciar, Seguir,
    Pausar y elegir intervalo. */
 function swAlertPrime() {
-  const ctx = swAlertAudio();
+  const ctx = swAlertArm();
   if (ctx && ctx.state === 'running' && STOPW.alertPend) {
     if (swAlertBeep()) STOPW.alertPend = 0;
   }
@@ -65101,6 +65151,10 @@ function swAlertPulse() {
 }
 function swAlertCheck() {
   if (!STOPW.running || !STOPW.alertMin) return;
+  /* AUTH-498: si un aviso quedó pendiente y el contexto ya
+     puede sonar (se recuperó tras el cruce), se entrega en el
+     propio latido, sin esperar a otro gesto. */
+  if (STOPW.alertPend && swAlertBeep()) STOPW.alertPend = 0;
   const k = Math.floor(swElapsed() / (STOPW.alertMin * 60000));
   if (k > STOPW.alertK) {
     STOPW.alertK = k;
