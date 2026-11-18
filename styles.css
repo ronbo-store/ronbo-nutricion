@@ -6591,15 +6591,71 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
    fila flexible que ENVUELVE sin encoger — el círculo es de
    44 px siempre (suelo de toque de la casa); con muchas series
    la fila baja a otra línea y el rótulo baja con ella. */
-.sf-dots { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+/* AUTH-500: la línea única — círculos + «Editar» compacta + botón de voz en UNA línea de 52 px; el rótulo vive en su propia línea (.sf-dots-lab). La envoltura solo sobrevive donde la letra aprobada (D1) no tiene forma física con toques de 44 px: 7+ series en banda estrecha y 8+ en la media — el toque no se encoge jamás (la envoltura de AUTH-485). */
+.sf-dots { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; height: 52px; margin-top: 2px; }
+.sf-dots.sfv-wrap { flex-wrap: wrap; height: auto; min-height: 52px; }
+@media (max-width: 400px) {
+  .sf-dots.sfv-n5, .sf-dots.sfv-n6 { gap: 2px; }
+  .sf-dots.sfv-n6 .sf-edit, .sf-dots.sfv-n7 .sf-edit, .sf-dots.sfv-n8 .sf-edit, .sf-dots.sfv-n9 .sf-edit, .sf-dots.sfv-n10 .sf-edit { display: none; }
+  .sf-dots.sfv-n7, .sf-dots.sfv-n8, .sf-dots.sfv-n9, .sf-dots.sfv-n10 { flex-wrap: wrap; height: auto; min-height: 52px; }
+}
+@media (min-width: 401px) and (max-width: 719px) {
+  .sf-dots.sfv-n6, .sf-dots.sfv-n7 { gap: 5px; }
+  .sf-dots.sfv-n7 .sf-edit, .sf-dots.sfv-n8 .sf-edit, .sf-dots.sfv-n9 .sf-edit, .sf-dots.sfv-n10 .sf-edit { display: none; }
+  .sf-dots.sfv-n8, .sf-dots.sfv-n9, .sf-dots.sfv-n10 { flex-wrap: wrap; height: auto; min-height: 52px; }
+}
 .sf-dot { width: 44px; height: 44px; flex: none; border-radius: 50%; border: 2.5px solid #6f87ab; background: none; color: #c9d8ec; font: inherit; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .sf-dot.ok { background: #57d93d; border-color: #57d93d; color: #0e1e3a; }
 .sf-dot.next { border-color: #57d93d; color: #fff; }
 .sf-dot:active { filter: brightness(1.2); }
-.sf-dots-lab { flex: 1 1 130px; font-size: 13.5px; color: #9fb4cc; line-height: 1.4; }
-/* AUTH-489: el botoncito «Editar» de la línea de círculos — se ve pequeño y discreto (letra de 13 px, el borde de los círculos), pero su alto es el suelo de toque de la casa: 44 px. */
-.sf-edit { flex: none; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 2px solid #6f87ab; background: none; color: #c9d8ec; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
-.sf-edit:active { filter: brightness(1.25); }
+.sf-dots-lab { display: block; margin-top: 12px; font-size: 13.5px; color: #9fb4cc; line-height: 1.4; }
+/* AUTH-500 (D1): con 6+ series en banda estrecha o media, la palabra «Editar» sube a la línea del contador — este botón solo se muestra en esas bandas (las reglas de arriba ocultan a la vez la «Editar» de la fila). */
+.sf-dots-lab .sf-lab-edit { display: none; align-items: center; min-height: 44px; padding: 0 6px; background: none; border: none; font: inherit; font-weight: 700; color: #c9d8ec; text-decoration: underline; cursor: pointer; }
+@media (max-width: 400px) {
+  .sf-dots-lab.up6 .sf-lab-edit, .sf-dots-lab.up7 .sf-lab-edit, .sf-dots-lab.up8 .sf-lab-edit { display: inline-flex; }
+}
+@media (min-width: 401px) and (max-width: 719px) {
+  .sf-dots-lab.up7 .sf-lab-edit, .sf-dots-lab.up8 .sf-lab-edit { display: inline-flex; }
+}
+/* AUTH-500 · «EDITAR» COMPACTA (diseño aprobado el 2026-11-18, sobre la pastilla de AUTH-489): se VE una pastilla de 58×34 pero se TOCA 64×44 — el botón es la zona de toque, transparente, y el span interior es lo visible. Con 5+ series (sfv-pencil) queda solo el lápiz: toque 44×44, visible 34×34. */
+.sf-edit { flex: none; width: 64px; height: 44px; padding: 0; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.sf-edit-vis { display: flex; align-items: center; justify-content: center; width: 58px; height: 34px; border-radius: 999px; border: 2px solid #6f87ab; color: #c9d8ec; font-size: 13px; font-weight: 700; box-sizing: border-box; }
+.sf-edit:active .sf-edit-vis { filter: brightness(1.25); }
+.sf-edit-pencil { display: none; font-size: 15px; }
+.sf-dots.sfv-pencil .sf-edit { width: 44px; }
+.sf-dots.sfv-pencil .sf-edit-vis { width: 34px; height: 34px; }
+.sf-dots.sfv-pencil .sf-edit-word { display: none; }
+.sf-dots.sfv-pencil .sf-edit-pencil { display: inline; }
+/* AUTH-500 · EL BOTÓN DE VOZ: solo el signo de la voz (corrección expresa de Ronald, 2026-11-18: sin la cara de la mascota). Se ve un círculo de 44×44 y se toca 48×48. */
+.sf-voice { flex: none; width: 48px; height: 48px; padding: 0; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.sf-voice-vis { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #2ec4a6; border: 2.5px solid #5fd4c4; box-sizing: border-box; }
+.sf-voice:active .sf-voice-vis { filter: brightness(1.15); }
+/* AUTH-500 · LA BANDA DE ESCUCHA: ocupa el lugar de la línea mientras la app escucha una sola frase. */
+.sf-listen { margin-top: 12px; background: #20365e; border: 1.5px solid #5fd4c4; border-radius: 18px; padding: 16px; text-align: center; }
+.sf-listen-waves { display: flex; gap: 4px; justify-content: center; align-items: flex-end; height: 26px; margin: 2px 0 8px; }
+.sf-listen-waves i { width: 5px; border-radius: 3px; background: #5fd4c4; animation: sfVoiceBar .9s ease-in-out infinite; }
+.sf-listen-waves i:nth-child(1) { height: 10px; }
+.sf-listen-waves i:nth-child(2) { height: 20px; animation-delay: .12s; }
+.sf-listen-waves i:nth-child(3) { height: 26px; animation-delay: .24s; }
+.sf-listen-waves i:nth-child(4) { height: 16px; animation-delay: .36s; }
+.sf-listen-waves i:nth-child(5) { height: 22px; animation-delay: .48s; }
+.sf-listen-waves i:nth-child(6) { height: 11px; animation-delay: .6s; }
+@keyframes sfVoiceBar { 0%, 100% { transform: scaleY(.55); } 50% { transform: scaleY(1.15); } }
+.sf-listen-t { font-size: 18.5px; font-weight: 800; }
+.sf-listen-ej { font-size: 15.5px; color: #dbe6f7; margin-top: 5px; }
+.sf-listen-row { display: flex; gap: 10px; margin-top: 14px; }
+.sf-listen-btn { flex: 1; height: 48px; border-radius: 14px; border: none; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+.sf-listen-btn.cancel { background: #2a3d63; color: #dbe6f7; }
+.sf-listen-btn.done { background: #57c93e; color: #fff; }
+/* AUTH-500 · EL RECIBO Y LOS AVISOS DE LA VOZ, bajo la línea (el aviso, en el ámbar de la casa). */
+.sf-voice-note { margin-top: 12px; border-radius: 16px; padding: 13px 15px; }
+.sf-voice-note.ok { background: #1e4634; border: 1.5px solid #57c93e; }
+.sf-voice-note.warn { background: #453a17; border: 1.5px solid #fbbf24; }
+.sf-voice-heard { font-size: 16.5px; font-weight: 800; }
+.sf-voice-det { color: #cdeeda; font-size: 14px; margin-top: 3px; line-height: 1.45; }
+.sf-voice-chip { display: inline-block; margin-top: 10px; background: #2a3d63; border-radius: 10px; padding: 7px 12px; font-size: 14px; color: #dbe6f7; }
+.sf-voice-chip b { color: #8be04a; }
+.sf-voice-fix { color: #9fd8ae; font-size: 13.5px; margin-top: 8px; }
 .sf-how { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 58px; margin-top: 12px; padding: 9px 14px; box-sizing: border-box; border-radius: 14px; border: 1.5px solid rgba(255,255,255,.35); background: rgba(255,255,255,.08); color: #fff; font: inherit; text-align: left; cursor: pointer; }
 .sf-how:active { background: rgba(255,255,255,.16); }
 .sf-how-play { width: 40px; height: 40px; flex: none; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 16px; }

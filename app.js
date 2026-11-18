@@ -6497,6 +6497,16 @@ en: {
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.cardioIncl': 'includes {min} min of cardio',
   'sess.setsOf': '{n} of {m} sets', 'sess.setsTap': 'tap a circle as you finish', 'sess.edit': 'Edit', 'sess.reflTag': 'REFLECTION', 'sess.listenShort': 'read it or listen',
+  'sess.voice.btn': 'Dictate the set by voice', 'sess.voice.hint': 'or dictate your set 🎙',
+  'sess.voice.listening': '🎙 Listening… dictate your set {n}', 'sess.voice.example': 'Say: “twelve reps, sixty-five pounds”', 'sess.voice.doneBtn': 'Done',
+  'sess.voice.heard': '🎙 I heard: {parts}', 'sess.voice.repsN': '{n} repetitions', 'sess.voice.rep1': '1 repetition', 'sess.voice.bodyweight': 'bodyweight',
+  'sess.voice.loaded': 'Set {n} loaded and checked ✓', 'sess.voice.fix': 'Did I get it wrong? Tap Edit and fix it as always', 'sess.voice.chipSet': 'Set {n}',
+  'sess.voice.allMarked': 'All sets are already checked; if you want to fix one, use Edit', 'sess.voice.notUnderstood': "I didn't catch that — try again or use Edit",
+  'sess.voice.denied': "The phone didn't let me listen. You can dictate to the keyboard instead: open Edit and tap your keyboard's microphone",
+  'sess.voice.speakSet': 'Set {set}: {parts}', 'sess.voice.speakReps': '{w} repetitions', 'sess.voice.speakRep1': 'one repetition',
+  'sess.voice.unitLbW': 'pounds', 'sess.voice.unitKgW': 'kilos',
+  'sess.voice.noMicTitle': 'Voice dictation', 'sess.voice.noMicBody': "This phone won't let me listen to you in here. You can still dictate to the keyboard: open Edit and tap your keyboard's little microphone to dictate the numbers — manual entry works as always.",
+  'sess.voice.openEdit': 'Open Edit', 'sess.voice.gotIt': 'Got it',
   'sess.pillSub': 'It only stops when you finish, in Training',
   'sess.kicker': 'QUICK SURVEY', 'sess.title': 'Workout finished!',
   'sess.dur': 'Duration: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -11818,6 +11828,16 @@ es: {
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
   'sess.cardioIncl': 'incluye {min} min de cardio',
   'sess.setsOf': '{n} de {m} series', 'sess.setsTap': 'toca un círculo al terminar', 'sess.edit': 'Editar', 'sess.reflTag': 'REFLEXIÓN', 'sess.listenShort': 'leerlo o escucharlo',
+  'sess.voice.btn': 'Dictar la serie por voz', 'sess.voice.hint': 'o dicta tu serie 🎙',
+  'sess.voice.listening': '🎙 Te escucho… dicta tu serie {n}', 'sess.voice.example': 'Di: «doce repeticiones, sesenta y cinco libras»', 'sess.voice.doneBtn': 'Listo',
+  'sess.voice.heard': '🎙 Escuché: {parts}', 'sess.voice.repsN': '{n} repeticiones', 'sess.voice.rep1': '1 repetición', 'sess.voice.bodyweight': 'peso corporal',
+  'sess.voice.loaded': 'Serie {n} cargada y marcada ✓', 'sess.voice.fix': '¿Lo entendí mal? Toca Editar y corrígelo como siempre', 'sess.voice.chipSet': 'Serie {n}',
+  'sess.voice.allMarked': 'Ya están todas marcadas; si quieres corregir una, usa Editar', 'sess.voice.notUnderstood': 'No te entendí — inténtalo otra vez o usa Editar',
+  'sess.voice.denied': 'El teléfono no me dejó escucharte. Sí puedes dictarle al teclado: abre Editar y toca el micrófono de tu teclado',
+  'sess.voice.speakSet': 'Serie {set}: {parts}', 'sess.voice.speakReps': '{w} repeticiones', 'sess.voice.speakRep1': 'una repetición',
+  'sess.voice.unitLbW': 'libras', 'sess.voice.unitKgW': 'kilos',
+  'sess.voice.noMicTitle': 'Dictado por voz', 'sess.voice.noMicBody': 'Este teléfono no me deja escucharte aquí dentro. Sí puedes dictarle al teclado: abre Editar y toca el micrófonito de tu teclado para dictar los números — la carga manual queda como siempre.',
+  'sess.voice.openEdit': 'Abrir Editar', 'sess.voice.gotIt': 'Entendido',
   'sess.pillSub': 'Solo se detiene al finalizar, en Entrenamiento',
   'sess.kicker': 'ENCUESTA RÁPIDA', 'sess.title': '¡Entrenamiento finalizado!',
   'sess.dur': 'Duración: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -40065,6 +40085,15 @@ function sessReflHeadline(r) {
 let SESS_MSG_OPEN = false;
 let SESS_REFL_OPEN = true;
 let SESS_REFL_LISTEN = false;
+/* AUTH-500 · EL ESTADO DEL BOTÓN DE VOZ: solo pantalla — la
+   escucha en curso (st/ck/si), su reconocimiento vivo, el
+   recibo o aviso nacido del último dictado (note, con la
+   foto de banderas y la fecha de su serie: muere en cuanto
+   una marca cambia o el día cambia) y la serie de la hoja
+   honesta (sheetCk). seq crece en cada transición: es el
+   término de la firma de sessFullSync. Nada de esto se
+   guarda: muere con el contexto, como FLOW_AREA_FOLD. */
+let SESS_VOICE = { st: 'idle', ck: '', si: -1, seq: 0, note: null, rec: null, cancelled: false, sheetCk: '', wired: false };
 let SESS_FOLD_DAY = '';
 function sessFoldDaySync() {
   const hoy = todayISO();
@@ -40301,6 +40330,12 @@ function sessDotsHTML(curChk, ck, flowSt) {
   const flags = sets.map(s => sessSetDone(s));
   const doneN2 = flags.filter(Boolean).length;
   const nextI = flags.indexOf(false);
+  /* AUTH-500 · ESCUCHANDO: mientras la app escucha la frase
+     del dictado, la banda de escucha ocupa el lugar de la
+     línea entera (rótulo y fila), como la maqueta aprobada. */
+  if (SESS_VOICE.st === 'listening' && SESS_VOICE.ck === ck) {
+    return `<div class="sf-listen"><div class="sf-listen-waves" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="sf-listen-t">${esc(t('sess.voice.listening', { n: SESS_VOICE.si + 1 }))}</div><div class="sf-listen-ej">${esc(t('sess.voice.example'))}</div><div class="sf-listen-row"><button type="button" class="sf-listen-btn cancel" data-sess-voice-cancel="1">${esc(t('form.cancel'))}</button><button type="button" class="sf-listen-btn done" data-sess-voice-done="1">${esc(t('sess.voice.doneBtn'))}</button></div></div>`;
+  }
   const dots = sets.map((s, si2) => {
     const cls = flags[si2] ? 'ok' : (si2 === nextI ? 'next' : 'todo');
     return `<button type="button" class="sf-dot ${cls}" data-sess-dot="${ck}:${si2}" aria-label="${esc(t('train.d.set'))} ${si2 + 1}">${flags[si2] ? '✓' : String(si2 + 1)}</button>`;
@@ -40316,8 +40351,349 @@ function sessDotsHTML(curChk, ck, flowSt) {
   /* AUTH-499: la pastilla solo nace tras su puerta
      (sessEditVisible); sin ella, la línea queda como antes
      de AUTH-489. */
-  const editBtn = sessEditVisible() ? `<button type="button" class="sf-edit" data-sess-edit="${ck}">${esc(t('sess.edit'))}</button>` : '';
-  return `<div class="sf-dots">${dots}<span class="sf-dots-lab">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(t('sess.setsTap'))}</span>${editBtn}</div>`;
+  /* AUTH-500 · LA LÍNEA ÚNICA (diseño aprobado por Ronald el
+     2026-11-18): el rótulo del contador sube a su propia
+     línea y la fila guarda SOLO círculos + «Editar» compacta
+     + el botón de voz, en una línea de 52 px. «Editar» se ve
+     58×34 y se toca 64×44; con 5+ series queda solo el lápiz
+     (D1) y con 6+ su palabra sube además a la línea del
+     contador (el botón .sf-lab-edit, que las bandas estrecha
+     y media muestran ocultando el de la fila — styles.css).
+     El botón de voz lleva SOLO el signo de la voz (corrección
+     expresa de Ronald: sin la cara de la mascota) y sigue la
+     MISMA puerta que «Editar» (sessEditVisible): sin puerta
+     no hay ni «Editar» ni voz ni pista de dictado. */
+  const gate = sessEditVisible();
+  const nSets = sets.length;
+  const editBtn = gate ? `<button type="button" class="sf-edit" data-sess-edit="${ck}" aria-label="${esc(t('sess.edit'))}"><span class="sf-edit-vis"><span class="sf-edit-word">${esc(t('sess.edit'))}</span><span class="sf-edit-pencil" aria-hidden="true">✎</span></span></button>` : '';
+  const voiceBtn = gate ? `<button type="button" class="sf-voice" data-sess-voice="${ck}" aria-label="${esc(t('sess.voice.btn'))}"><span class="sf-voice-vis" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M4 10v4" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M9 7v10" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M14 4v16" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M19 8v8" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/></svg></span></button>` : '';
+  const labEdit = (gate && nSets >= 6) ? ` · <button type="button" class="sf-lab-edit" data-sess-edit="${ck}">${esc(t('sess.edit'))}</button>` : '';
+  const hint = gate ? ` — ${esc(t('sess.voice.hint'))}` : '';
+  const labCls = 'sf-dots-lab' + ((gate && nSets >= 6) ? ' up' + Math.min(nSets, 8) : '');
+  const rowCls = 'sf-dots' + (nSets >= 5 ? ' sfv-pencil' : '') + (nSets >= 5 ? ' sfv-n' + Math.min(nSets, 10) : '') + (nSets >= 11 ? ' sfv-wrap' : '');
+  return `<div class="${labCls}">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(t('sess.setsTap'))}${hint}${labEdit}</div><div class="${rowCls}">${dots}${editBtn}${voiceBtn}</div>`;
+}
+/* ═══ AUTH-500 · EL BOTÓN DE VOZ DE LA LÍNEA (diseño
+   aprobado por Ronald el 2026-11-18, con sus correcciones:
+   el botón lleva SOLO el signo de la voz — sin la cara de la
+   mascota — y sigue la puerta de «Editar» de AUTH-499).
+   Sirve para DECIR la serie hecha («doce repeticiones,
+   sesenta y cinco libras») y la app la escribe sola en la
+   primera serie sin marcar, AL INSTANTE (D3), con recibo
+   visible y hablado; corregir es la «Editar» de siempre.
+   La ruta es el dictado del SISTEMA/navegador
+   (SpeechRecognition): sin cuota de IA, sin guardar audio,
+   sin que el audio pase por RONBO. Si el aparato no puede
+   escuchar dentro de la app, la hoja honesta (sessVoiceSheet*)
+   ofrece el dictado del teclado desde «Editar» — jamás se
+   manda el audio a la IA en silencio como respaldo.
+   Con TODAS las series marcadas, el toque no escucha ni
+   escribe: avisa en el acto, visible y hablado (D2). ═══ */
+function sessVoiceCtor() {
+  try { return window.SpeechRecognition || window.webkitSpeechRecognition || null; } catch { return null; }
+}
+function sessVoiceFlags(ck) {
+  const chk = TRAIN_CHECKS[ck];
+  return (chk && Array.isArray(chk.sets)) ? chk.sets.map(s => sessSetDone(s) ? 1 : 0).join('') : '';
+}
+function sessVoiceSetNote(note) {
+  note.date = todayISO();
+  SESS_VOICE.note = note;
+  SESS_VOICE.seq++;
+}
+function sessVoiceStart(ck) {
+  const chk = TRAIN_CHECKS[ck];
+  if (!chk || !Array.isArray(chk.sets) || !chk.sets.length || chk.done === true) return;
+  const fsA = TRAIN_FLOW[ck];
+  if (!fsA || (fsA.st !== 'open' && fsA.st !== 'paused')) return;
+  const si = chk.sets.findIndex(s => !sessSetDone(s));
+  if (si < 0) {
+    /* D2: todo marcado — no se escucha ni se escribe nada;
+       el aviso nace con el toque, visible y hablado. */
+    sessVoiceSetNote({ kind: 'all', ck, flags: sessVoiceFlags(ck) });
+    try { asstSpeak(t('sess.voice.allMarked')); } catch {}
+    try { sessPillTick(); } catch {}
+    return;
+  }
+  const Ctor = sessVoiceCtor();
+  if (!Ctor) { sessVoiceSheetOpen(ck); return; }
+  let rec = null;
+  try { rec = new Ctor(); } catch { sessVoiceSheetOpen(ck); return; }
+  try { asstStopSpeak(); } catch {}
+  SESS_VOICE.st = 'listening'; SESS_VOICE.ck = ck; SESS_VOICE.si = si;
+  SESS_VOICE.rec = rec; SESS_VOICE.cancelled = false; SESS_VOICE.note = null; SESS_VOICE.seq++;
+  rec.lang = LANG === 'es' ? 'es-ES' : 'en-US';
+  rec.continuous = false; rec.interimResults = false; rec.maxAlternatives = 1;
+  rec.onresult = ev => {
+    try {
+      const res = ev && ev.results ? ev.results[ev.results.length - 1] : null;
+      sessVoiceApply(res && res[0] ? String(res[0].transcript || '') : '');
+    } catch {}
+  };
+  rec.onerror = ev => { try { sessVoiceError(ev && ev.error ? String(ev.error) : ''); } catch {} };
+  rec.onend = () => {
+    if (SESS_VOICE.st === 'listening') {
+      SESS_VOICE.st = 'idle'; SESS_VOICE.rec = null; SESS_VOICE.seq++;
+      try { sessPillTick(); } catch {}
+    }
+  };
+  sessVoiceArm();
+  try { rec.start(); } catch {
+    SESS_VOICE.st = 'idle'; SESS_VOICE.rec = null; SESS_VOICE.seq++;
+    sessVoiceSheetOpen(ck);
+    return;
+  }
+  try { sessPillTick(); } catch {}
+}
+/* El vigilante de la escucha: a los 30 s la detiene (el
+   resultado, si lo hay, se procesa igual) y si la página se
+   oculta la aborta — nadie queda escuchando en segundo
+   plano. Se arma una sola vez (bandera en el propio estado). */
+function sessVoiceArm() {
+  if (!SESS_VOICE.wired) {
+    SESS_VOICE.wired = true;
+    try { document.addEventListener('visibilitychange', () => { if (document.hidden && SESS_VOICE.st === 'listening') sessVoiceCancel(); }); } catch {}
+  }
+  setTimeout(() => { if (SESS_VOICE.st === 'listening' && SESS_VOICE.rec) { try { SESS_VOICE.rec.stop(); } catch {} } }, 30000);
+}
+function sessVoiceCancel() {
+  if (SESS_VOICE.st !== 'listening') return;
+  SESS_VOICE.cancelled = true;
+  const rec = SESS_VOICE.rec;
+  SESS_VOICE.st = 'idle'; SESS_VOICE.rec = null; SESS_VOICE.seq++;
+  if (rec) { try { rec.abort(); } catch {} }
+  try { sessPillTick(); } catch {}
+}
+function sessVoiceDone() {
+  if (SESS_VOICE.st !== 'listening' || !SESS_VOICE.rec) return;
+  try { SESS_VOICE.rec.stop(); } catch {}
+}
+function sessVoiceError(kind) {
+  if (SESS_VOICE.st !== 'listening') return;
+  const ck = SESS_VOICE.ck;
+  SESS_VOICE.st = 'idle'; SESS_VOICE.rec = null;
+  if (kind === 'aborted' || SESS_VOICE.cancelled) { SESS_VOICE.seq++; try { sessPillTick(); } catch {} return; }
+  if (kind === 'not-allowed' || kind === 'service-not-allowed') {
+    /* Sin permiso de micrófono: aviso visible con la salida
+       del teclado (sin voz: la acción que sigue es suya). */
+    sessVoiceSetNote({ kind: 'denied', ck, flags: sessVoiceFlags(ck) });
+  } else {
+    sessVoiceSetNote({ kind: 'bad', ck, flags: sessVoiceFlags(ck) });
+    try { asstSpeak(t('sess.voice.notUnderstood')); } catch {}
+  }
+  try { sessPillTick(); } catch {}
+}
+function sessVoiceApply(txt) {
+  if (SESS_VOICE.st !== 'listening') return;
+  const ck = SESS_VOICE.ck, si = SESS_VOICE.si;
+  const rec = SESS_VOICE.rec;
+  SESS_VOICE.st = 'idle'; SESS_VOICE.rec = null; SESS_VOICE.seq++;
+  if (rec) { try { rec.stop(); } catch {} }
+  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  /* Guarda de contexto, la de siempre: si el ejercicio en
+     curso ya no es este (o ya no está en curso/pausa, o la
+     serie ya quedó marcada por otro camino), el dictado se
+     descarta EN SILENCIO — jamás escribe sobre otro dato. */
+  let chk = null, fsA = null, curCk = '';
+  try {
+    const st = trainBarState();
+    curCk = st ? st.di + ':' + st.cur : '';
+  } catch {}
+  if (plan && TRAIN_CHECKS_CTX === plan.id + '|' + todayISO()) { chk = TRAIN_CHECKS[ck] || null; fsA = TRAIN_FLOW[ck] || null; }
+  if (!chk || !Array.isArray(chk.sets) || !chk.sets[si] || chk.done === true
+    || !fsA || (fsA.st !== 'open' && fsA.st !== 'paused') || curCk !== ck || sessSetDone(chk.sets[si])) {
+    try { sessPillTick(); } catch {}
+    return;
+  }
+  const p = sessVoiceParse(txt);
+  if (!p) {
+    sessVoiceSetNote({ kind: 'bad', ck, flags: sessVoiceFlags(ck) });
+    try { asstSpeak(t('sess.voice.notUnderstood')); } catch {}
+    try { sessPillTick(); } catch {}
+    return;
+  }
+  /* LA CARGA, AL INSTANTE: se escribe SOLO lo dictado sobre
+     la primera serie sin marcar (la otra parte queda como
+     estaba), con la disciplina del tecleo — la carga llana
+     se guarda en la unidad del usuario (convLoadDisplay) y
+     sin desglose, «sin peso» la vacía —, su hora se sella y
+     la marca entra por sessDotTap: el mismo camino del
+     toque, con su finalizar si era la última (AUTH-496). */
+  const s = chk.sets[si];
+  if (p.reps != null) s.repsDone = String(p.reps);
+  if (p.bw) { s.loadVal = ''; delete s.loadDetail; }
+  else if (p.load != null) { s.loadVal = convLoadDisplay(String(p.load), p.unit || UNIT_PREFS.mass, UNIT_PREFS.mass); delete s.loadDetail; }
+  trainSetStamp(s);
+  trainChecksPersist(plan.id);
+  sessDotTap(plan, ck, si);
+  const sNow = chk.sets[si];
+  sessVoiceSetNote({ kind: 'ok', ck, si, flags: sessVoiceFlags(ck), reps: p.reps, bw: !!p.bw, loadTxt: p.bw ? '' : String(sNow.loadVal == null ? '' : sNow.loadVal), unit: UNIT_PREFS.mass });
+  try { asstSpeak(sessVoiceSpoken(si, p, sNow)); } catch {}
+  sessPanelRepaint(plan);
+  try { sessPillTick(); } catch {}
+}
+/* LA INTERPRETACIÓN DE LA FRASE: números en palabra o en
+   cifra, en el idioma de la app, con orden libre. La unidad
+   manda («kilos» se guarda en kilos, «libras» en libras; sin
+   unidad, la del usuario la pone la carga); «sin peso» /
+   «peso corporal» / "bodyweight" / "no weight" = sin carga;
+   un número suelto son las repeticiones («hice quince»).
+   Sin ningún número entendible (y sin «sin peso»): null. */
+function sessVoiceParse(text) {
+  let s = ' ' + String(text == null ? '' : text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/-/g, ' ').replace(/[^a-z0-9., ]+/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+  let bw = false;
+  const BW_PH = [' sin peso ', ' peso corporal ', ' sin carga ', ' bodyweight ', ' body weight ', ' no weight ', ' without weight '];
+  for (const ph of BW_PH) if (s.includes(ph)) { bw = true; s = s.split(ph).join(' '); }
+  const ESW = { cero: 0, uno: 1, un: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14, quince: 15, dieciseis: 16, diecisiete: 17, dieciocho: 18, diecinueve: 19, veinte: 20, veintiuno: 21, veintidos: 22, veintitres: 23, veinticuatro: 24, veinticinco: 25, veintiseis: 26, veintisiete: 27, veintiocho: 28, veintinueve: 29, treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60, setenta: 70, ochenta: 80, noventa: 90, cien: 100, ciento: 100, doscientos: 200, trescientos: 300, cuatrocientos: 400, quinientos: 500, seiscientos: 600, setecientos: 700, ochocientos: 800, novecientos: 900 };
+  const ENW = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90, hundred: 100 };
+  const MAP = LANG === 'es' ? ESW : ENW;
+  const toks = s.trim().split(' ').filter(Boolean);
+  const items = [];
+  let cur = null;
+  const flush = () => { if (cur !== null) { items.push({ num: cur }); cur = null; } };
+  for (let i = 0; i < toks.length; i++) {
+    const tk = toks[i];
+    if (/^\d+([.,]\d+)?$/.test(tk)) { flush(); items.push({ num: parseFloat(tk.replace(',', '.')) }); continue; }
+    if ((tk === 'y' && LANG === 'es') || (tk === 'and' && LANG === 'en')) { if (cur !== null) continue; flush(); items.push({ word: tk }); continue; }
+    if ((tk === 'punto' || tk === 'point' || tk === 'coma') && cur !== null) {
+      const nx = toks[i + 1];
+      let fv = null;
+      if (nx != null && /^\d+$/.test(nx)) fv = nx;
+      else if (nx != null && MAP[nx] != null && MAP[nx] < 100) fv = String(MAP[nx]);
+      if (fv !== null) { cur = parseFloat(String(Math.floor(cur)) + '.' + fv); i++; }
+      continue;
+    }
+    if (MAP[tk] != null) {
+      const v = MAP[tk];
+      if (LANG === 'en' && v === 100 && cur !== null && cur > 0 && cur < 10) cur = cur * 100;
+      else cur = (cur === null ? v : cur + v);
+      continue;
+    }
+    flush();
+    items.push({ word: tk });
+  }
+  flush();
+  const LB = ['lb', 'lbs', 'libra', 'libras', 'pound', 'pounds'];
+  const KG = ['kg', 'kgs', 'kilo', 'kilos', 'kilogramo', 'kilogramos', 'kilogram', 'kilograms'];
+  const RP = ['rep', 'reps', 'repeticion', 'repeticiones', 'repetition', 'repetitions'];
+  let reps = null, load = null, unit = null;
+  const bare = [];
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].num == null) continue;
+    const nw = (items[i + 1] && items[i + 1].word) ? items[i + 1].word : '';
+    if (LB.includes(nw) || KG.includes(nw)) { if (load === null) { load = items[i].num; unit = LB.includes(nw) ? 'lb' : 'kg'; } continue; }
+    if (RP.includes(nw)) { if (reps === null) reps = items[i].num; continue; }
+    bare.push(items[i].num);
+  }
+  for (const b of bare) {
+    if (reps === null) reps = b;
+    else if (load === null) { load = b; unit = UNIT_PREFS.mass; }
+  }
+  if (reps !== null) { reps = Math.round(reps); if (!(reps >= 1)) reps = null; }
+  if (load !== null && !(load > 0)) load = null;
+  if (reps === null && load === null && !bw) return null;
+  return { reps, load, unit, bw };
+}
+/* LAS CIFRAS EN PALABRAS, para el recibo hablado (el perfil
+   de voz de AUTH-483 lee lo que aquí se compone): enteros
+   0–999 en el idioma de la app y decimales por «punto». */
+function sessVoiceIntWords(n) {
+  if (LANG === 'es') {
+    const U = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
+    const V = ['veinte', 'veintiuno', 'veintidós', 'veintitrés', 'veinticuatro', 'veinticinco', 'veintiséis', 'veintisiete', 'veintiocho', 'veintinueve'];
+    const T = ['', '', '', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+    const H = ['', 'cien', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+    if (n < 20) return U[n];
+    if (n < 30) return V[n - 20];
+    if (n < 100) { const d = Math.floor(n / 10), r = n % 10; return T[d] + (r ? ' y ' + U[r] : ''); }
+    const h = Math.floor(n / 100), r = n % 100;
+    return (h === 1 && r ? 'ciento' : H[h]) + (r ? ' ' + sessVoiceIntWords(r) : '');
+  }
+  const U = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+  const T = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+  if (n < 20) return U[n];
+  if (n < 100) { const d = Math.floor(n / 10), r = n % 10; return T[d] + (r ? '-' + U[r] : ''); }
+  const h = Math.floor(n / 100), r = n % 100;
+  return U[h] + ' hundred' + (r ? ' ' + sessVoiceIntWords(r) : '');
+}
+function sessVoiceWords(n) {
+  const num = Number(n);
+  if (!isFinite(num) || num < 0) return String(n);
+  const int = Math.floor(num);
+  let out = sessVoiceIntWords(int);
+  const frac = Math.round((num - int) * 100) / 100;
+  if (frac > 0) {
+    let digs = String(frac).slice(2);
+    while (digs.length > 1 && digs.endsWith('0')) digs = digs.slice(0, -1);
+    out += (LANG === 'es' ? ' punto ' : ' point ') + digs.split('').map(d => sessVoiceIntWords(Number(d))).join(' ');
+  }
+  return out;
+}
+/* El recibo HABLADO lee LO ESCRITO (la carga ya en la unidad
+   del usuario), como manda la nota: «Serie dos: doce
+   repeticiones, sesenta y cinco libras». */
+function sessVoiceSpoken(si, p, sNow) {
+  const parts = [];
+  if (p.reps != null) parts.push(p.reps === 1 ? t('sess.voice.speakRep1') : t('sess.voice.speakReps', { w: sessVoiceWords(p.reps) }));
+  if (p.bw) parts.push(t('sess.voice.bodyweight'));
+  else if (p.load != null) {
+    const lv = parseFloat(String(sNow.loadVal == null ? '' : sNow.loadVal).replace(',', '.'));
+    parts.push((isFinite(lv) ? sessVoiceWords(lv) : String(sNow.loadVal)) + ' ' + (UNIT_PREFS.mass === 'kg' ? t('sess.voice.unitKgW') : t('sess.voice.unitLbW')));
+  }
+  return t('sess.voice.speakSet', { set: sessVoiceWords(si + 1), parts: parts.join(', ') });
+}
+/* EL RECIBO VISIBLE Y LOS AVISOS: viven bajo la línea (su
+   ranura está en el bloque AHORA de sessFullSync, tras la
+   línea, así el recibo se sigue viendo si el dictado
+   finalizó el ejercicio y nacen las caras). Solo se pintan
+   mientras la foto de banderas de su serie y el día sigan
+   como al nacer: cualquier toque posterior los retira. */
+function sessVoiceNoteHTML(ck) {
+  const nt = SESS_VOICE.note;
+  if (!nt || nt.ck !== ck || nt.date !== todayISO()) return '';
+  if (sessVoiceFlags(ck) !== nt.flags) return '';
+  if (nt.kind === 'ok') {
+    const heardParts = [];
+    if (nt.reps != null) heardParts.push(nt.reps === 1 ? t('sess.voice.rep1') : t('sess.voice.repsN', { n: nt.reps }));
+    if (nt.bw) heardParts.push(t('sess.voice.bodyweight'));
+    else if (nt.loadTxt) heardParts.push(nt.loadTxt + ' ' + nt.unit);
+    let chip = esc(t('sess.voice.chipSet', { n: nt.si + 1 }));
+    if (nt.reps != null) chip += ` · <b>${nt.reps} reps</b>`;
+    if (nt.bw) chip += ` · <b>${esc(t('sess.voice.bodyweight'))}</b>`;
+    else if (nt.loadTxt) {
+      const other = nt.unit === 'lb' ? 'kg' : 'lb';
+      const equiv = convLoadDisplay(nt.loadTxt, nt.unit, other);
+      chip += ` · <b>${esc(nt.loadTxt)} ${esc(nt.unit)}</b>` + (equiv && equiv !== nt.loadTxt ? ` (≈ ${esc(equiv)} ${esc(other)})` : '');
+    }
+    return `<div class="sf-voice-note ok"><div class="sf-voice-heard">${esc(t('sess.voice.heard', { parts: heardParts.join(' · ') }))}</div><div class="sf-voice-det">${esc(t('sess.voice.loaded', { n: nt.si + 1 }))}</div><span class="sf-voice-chip">${chip}</span><div class="sf-voice-fix">${esc(t('sess.voice.fix'))}</div></div>`;
+  }
+  const txt = nt.kind === 'all' ? t('sess.voice.allMarked') : nt.kind === 'denied' ? t('sess.voice.denied') : t('sess.voice.notUnderstood');
+  return `<div class="sf-voice-note warn"><div class="sf-voice-heard">${esc(txt)}</div></div>`;
+}
+/* LA HOJA HONESTA (la casa .swap-sheet de AUTH-484/487):
+   este teléfono no deja escuchar dentro de la app — se dice
+   claro y se lleva al dictado del TECLADO desde «Editar»;
+   la carga manual queda intacta. */
+function sessVoiceSheetOpen(ck) { SESS_VOICE.sheetCk = ck; sessVoiceSheetSync(); }
+function sessVoiceSheetClose() { SESS_VOICE.sheetCk = ''; sessVoiceSheetSync(); }
+function sessVoiceSheetSync() {
+  let sheet = document.getElementById('voice-sheet');
+  if (!SESS_VOICE.sheetCk) {
+    if (sheet) sheet.remove();
+    document.body.classList.remove('swap-sheet-open');
+    return;
+  }
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'voice-sheet';
+    sheet.className = 'swap-sheet voice-sheet';
+    document.body.appendChild(sheet);
+  }
+  document.body.classList.add('swap-sheet-open');
+  sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('sess.voice.noMicTitle'))}</span><button type="button" class="swap-sheet-x" data-voice-sheet-close="1" aria-label="✕">✕</button></div><p class="remove-ask-text">${esc(t('sess.voice.noMicBody'))}</p><div class="remove-ask-row"><button type="button" class="remove-ask-btn" data-voice-sheet-close="1">${esc(t('sess.voice.gotIt'))}</button><button type="button" class="remove-ask-btn is-yes" data-voice-sheet-edit="1">${esc(t('sess.voice.openEdit'))}</button></div>`;
+  sheet.querySelectorAll('[data-voice-sheet-close]').forEach(b => b.onclick = () => sessVoiceSheetClose());
+  const eb = sheet.querySelector('[data-voice-sheet-edit]');
+  if (eb) eb.onclick = () => { const ck2 = SESS_VOICE.sheetCk; sessVoiceSheetClose(); try { sessPanelEditGo(ck2); } catch {} };
 }
 /* AUTH-491 · EL MENSAJE DEL DÍA, PLEGADO EN LA COMPLETA:
    plegado es una fila-botón de una línea — el icono del
@@ -40382,12 +40758,13 @@ function sessFullSync(run) {
     const nowBlk = `<div class="sf-now"><div class="sf-now-lab">${esc(t('sess.nowLab'))} · ${esc(pos)}</div><div class="sf-name">${esc(curName)}</div>`
       + (exState ? `<div class="sf-exrow">${exState}</div>` : '')
       + dotsBlk
+      + sessVoiceNoteHTML(ck)   /* AUTH-500: el recibo y los avisos de la voz, bajo la línea — fuera de ella, para que el recibo se siga viendo si el dictado finalizó el ejercicio y nacen las caras */
       + `<button type="button" class="sf-how" data-sess-ficha="1"><span class="sf-how-play" aria-hidden="true">▶</span><span class="sf-how-tx"><b>${esc(t('sess.seeHow'))}</b><small>${esc(t('sess.seeHowSub'))}</small></span></button>`
       + acts + `</div>`;
     const nxtBlk = (st.nxt != null && st.nxt !== st.cur)
       ? `<div class="sf-next"><span class="sf-next-lab">${esc(t('sess.pillNext'))}</span><span class="sf-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sf-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '';
     const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e'].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece */
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez */
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
@@ -40544,6 +40921,22 @@ function sessPanelWire(el, surface) {
     }
     const edt = ev.target.closest ? ev.target.closest('[data-sess-edit]') : null;
     if (edt) { try { sessPanelEditGo(edt.dataset.sessEdit); } catch {} return; }
+    const vce = ev.target.closest ? ev.target.closest('[data-sess-voice]') : null;
+    if (vce) {
+      /* AUTH-500: el botón de voz abre la escucha del dictado
+         (o su aviso, o la hoja honesta), con la misma guarda
+         de contexto de los círculos y de las caras. */
+      const planV = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (planV && TRAIN_CHECKS_CTX === planV.id + '|' + todayISO()) {
+        try { sessVoiceStart(vce.dataset.sessVoice); } catch {}
+      }
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const vcan = ev.target.closest ? ev.target.closest('[data-sess-voice-cancel]') : null;
+    if (vcan) { try { sessVoiceCancel(); } catch {} try { sessPillTick(); } catch {} return; }
+    const vdon = ev.target.closest ? ev.target.closest('[data-sess-voice-done]') : null;
+    if (vdon) { try { sessVoiceDone(); } catch {} try { sessPillTick(); } catch {} return; }
     const fld = ev.target.closest ? ev.target.closest('[data-sess-fold]') : null;
     if (fld) {
       /* AUTH-491: desplegar o replegar el Mensaje del día o
@@ -63787,7 +64180,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261118-editar-puerta';
+const PWA_SW_VERSION = '20261118-voz-series';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
