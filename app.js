@@ -6386,6 +6386,7 @@ en: {
   'shareW.aproxTag': 'WARM-UP SETS', 'shareW.aproxSets': '{n} warm-up sets', 'shareW.aproxSet1': '1 warm-up set',
   'shareW.aproxNote': 'not counted in the total',
   'train.sets.add': '+ Add set', 'train.sets.remove': 'Remove set',
+  'train.sets.workTitle': 'Work sets', 'train.sets.one': 'set', 'train.sets.many': 'sets',
   'train.sets.suggested': 'Suggested',
   'train.custom.removeToday': 'Remove from today', 'train.custom.removedTag': 'Removed today',
   'train.custom.removeDay': 'Remove from that day', 'train.custom.removedTagDate': 'Removed that day',
@@ -11706,6 +11707,7 @@ es: {
   'shareW.aproxTag': 'APROXIMACIÓN', 'shareW.aproxSets': '{n} series de acercamiento', 'shareW.aproxSet1': '1 serie de acercamiento',
   'shareW.aproxNote': 'no cuentan en el total',
   'train.sets.add': '+ Añadir serie', 'train.sets.remove': 'Quitar serie',
+  'train.sets.workTitle': 'Series de trabajo', 'train.sets.one': 'serie', 'train.sets.many': 'series',
   'train.sets.suggested': 'Sugerida',
   'train.custom.removeToday': 'Quitar de hoy', 'train.custom.removedTag': 'Quitado hoy',
   'train.custom.removeDay': 'Quitar de ese día', 'train.custom.removedTagDate': 'Quitado ese día',
@@ -41517,6 +41519,12 @@ function trainDayHistHTML(day, log) {
    activos, como las demás de la mascota (URL nueva por expresión;
    si una no carga, se retira sola y la banda sigue escrita). ═══ */
 let TRAIN_FLOW = {};        // "di:ei" -> { st: 'open'|'closing', face: 1..5|null } — solo pantalla
+/* AUTH-495 · EL PLIEGUE DE CADA ÁREA DE SERIES tras su botón
+   «Listo»: "warm:di:ei" | "sets:di:ei" -> true. Solo pantalla,
+   como el flujo: plegar no toca la marca (los gestos de la
+   tarjeta ya escriben y persisten al acto), y el estado muere
+   con el contexto del día, en el mismo punto que TRAIN_FLOW. */
+let FLOW_AREA_FOLD = {};
 const FLOW_FACE_RPE = [2, 4, 6, 8, 10];
 const FLOW_FACE_URLS = [1, 2, 3, 4, 5].map(n => 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/mascota-rpe-' + n + '.webp');
 function flowHasData(chk) {
@@ -41731,10 +41739,48 @@ function tfWarmExOf(ex, w) {
    sirven también a estas filas, leídas desde el ejercicio de
    la aproximación (su modo de carga manda, no el del
    principal). */
+/* ═══ AUTH-495 · EL BOTÓN «LISTO» DE CADA ÁREA DE SERIES
+   (orden de Ronald, 2026-11-18 12:03 CST, con su captura de
+   las «Series de aproximación» ya cargadas): al terminar de
+   cargar un área, su botón grande «Listo» la pliega al
+   instante en una línea de resumen (icono + dato clave + ›,
+   el patrón de la casa); tocar la línea la reabre con todo
+   lo cargado intacto. En la tarjeta NO hay estado sin
+   confirmar — cada gesto escribe sobre la marca y persiste
+   al acto (la rueda, el toggle, añadir y borrar series) —,
+   así que «Listo» no confirma nada: es un gesto puro de
+   plegado, con el estado solo de pantalla en FLOW_AREA_FOLD.
+   El resumen nombra el nº de series y el dato de la ÚLTIMA
+   serie con dato (su tiempo si es por tiempo; si no, sus
+   reps y su carga en la unidad a la vista). ═══ */
+function flowAreaDoneBtnHTML(area, key) {
+  return `<button type="button" class="flow-area-done" data-flow-fold-done="${area}:${key}">✓ ${esc(t('train.start.wheelDone'))}</button>`;
+}
+function flowAreaFoldLineHTML(area, key, icon, title, sets) {
+  const list = Array.isArray(sets) ? sets : [];
+  const n = list.length;
+  let last = null;
+  for (let i = list.length - 1; i >= 0; i--) { if (list[i] && trainSetHasData(list[i])) { last = list[i]; break; } }
+  let dato = '';
+  if (last) {
+    const hv = trainSetHistVal(last);
+    const bits = [];
+    if (hv) bits.push(hv);
+    else {
+      if (String(last.repsDone || '').trim() !== '') bits.push(`${last.repsDone} reps`);
+      if (String(last.loadVal || '').trim() !== '') bits.push(`${last.loadVal} ${UNIT_PREFS.mass}`);
+    }
+    if (bits.length) dato = ' · ' + bits.join(' · ');
+  }
+  return `<button type="button" class="flow-area-fold" data-flow-fold-open="${area}:${key}"><span class="faf-txt">${icon} ${esc(title)} · ${n} ${n === 1 ? t('train.sets.one') : t('train.sets.many')}${dato}</span><span class="faf-go" aria-hidden="true">›</span></button>`;
+}
 function trainFlowWarmCardHTML(ex, key, chk) {
   const w = (chk && chk.warmup && typeof chk.warmup === 'object' && !Array.isArray(chk.warmup)) ? chk.warmup : { on: false, sets: [] };
   const head = `<div class="tf-warm-head"><span class="tf-warm-title">${t('train.start.warmupTitle')}</span><button type="button" class="tf-warm-tog${w.on ? ' is-on' : ''}" data-flow-warm-tog="${key}" aria-pressed="${w.on ? 'true' : 'false'}">${w.on ? t('train.start.yes') : t('train.start.no')}</button></div>`;
   if (!w.on) return `<div class="tf-warm flow-warm">${head}</div>`;
+  /* AUTH-495: el área plegada tras su «Listo» es solo su
+     línea de resumen, dentro de su caja de siempre. */
+  if (FLOW_AREA_FOLD['warm:' + key]) return `<div class="tf-warm flow-warm">${flowAreaFoldLineHTML('warm', key, '🔥', t('train.start.warmupTitle'), w.sets)}</div>`;
   const wEx = tfWarmExOf(ex, w);
   const photo = wEx ? trainExPhoto(wEx) : '';
   const diff = !!(w.exerciseId && ex && w.exerciseId !== ex.exerciseId);
@@ -41744,7 +41790,8 @@ function trainFlowWarmCardHTML(ex, key, chk) {
       <span class="tf-chips" data-tf-chips="cardw:${key}:${wi}">${tfChipsHTML('cardw:' + key, wi, s, wEx)}</span>
       <button type="button" class="tf-warm-del" data-flow-warm-del="${key}:${wi}" aria-label="${t('train.start.warmupRemove')}">✕</button></div>`).join('')}</div>
     <button type="button" class="btn-ghost btn-sm" data-flow-warm-add="${key}">${t('train.start.warmupAdd')}</button>`;
-  return `<div class="tf-warm flow-warm">${head}${idLine}${rows}</div>`;
+  /* AUTH-495: el botón «Listo» cierra el área, tras «+ Añadir». */
+  return `<div class="tf-warm flow-warm">${head}${idLine}${rows}${flowAreaDoneBtnHTML('warm', key)}</div>`;
 }
 /* EL REFRESCO DE LAS PASTILLAS DE APROXIMACIÓN tras un toque
    de rueda (el gemelo de trainFlowChipsRefresh para el
@@ -41829,6 +41876,9 @@ function trainFlowWarmWire(box, plan) {
 }
 function trainFlowSetsHTML(ex, key, chk) {
   const sets = chk && Array.isArray(chk.sets) ? chk.sets : [];
+  /* AUTH-495: el área plegada tras su «Listo» es solo su
+     línea de resumen (sin la cabecera de unidad ni las filas). */
+  if (sets.length && FLOW_AREA_FOLD['sets:' + key]) return flowAreaFoldLineHTML('sets', key, '🏋', t('train.sets.workTitle'), sets);
   /* AUTH-417 · LA FILA POR TIEMPO EN LA TARJETA Y EL FOCO
      (re-derivada sobre AUTH-416, que movió la fila a las
      pastillas): las pastillas de cada serie las compone
@@ -41857,10 +41907,12 @@ function trainFlowSetsHTML(ex, key, chk) {
      el guardado al acto. */
   const addRowF = (chk && Array.isArray(chk.sets) && sets.length < 12)
     ? `<div class="tf-sets-actions"><button type="button" class="btn-ghost btn-sm" data-flow-set-add="${key}">${t('train.sets.add')}</button></div>` : '';
+  /* AUTH-495: el botón «Listo» cierra el área, tras «+ Añadir serie». */
+  const doneF = sets.length ? flowAreaDoneBtnHTML('sets', key) : '';
   return `${head}<div class="train-sets">${sets.map((s, si) => `
       <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
         <span class="tf-chips" data-tf-chips="card:${key}:${si}">${tfChipsHTML('card:' + key, si, s, ex)}</span></div>`).join('')}
-    </div>${addRowF}`;
+    </div>${addRowF}${doneF}`;
 }
 /* AUTH-458 · LA BANDA DE CIERRE, UNA SOLA PIEZA: la pinta
    el cierre de siempre (el ejercicio aún sin hecho) y el
@@ -42433,6 +42485,18 @@ function trainFlowWire(box, plan) {
   /* AUTH-428: el bloque de aproximación de la tarjeta
      se cablea con el resto del flujo. */
   trainFlowWarmWire(box, plan);
+  /* AUTH-495 · EL PLIEGUE DE CADA ÁREA: «Listo» pliega el
+     área en su línea y la línea la reabre; solo se voltea el
+     estado de pantalla y se repinta — la marca no se toca,
+     porque sus datos ya están guardados al acto. */
+  box.querySelectorAll('[data-flow-fold-done]').forEach(b => { b.onclick = () => {
+    FLOW_AREA_FOLD[b.dataset.flowFoldDone] = true;
+    loadMyTraining();
+  }; });
+  box.querySelectorAll('[data-flow-fold-open]').forEach(b => { b.onclick = () => {
+    delete FLOW_AREA_FOLD[b.dataset.flowFoldOpen];
+    loadMyTraining();
+  }; });
 }
 
 /* TARJETA COMPACTA (corrección de la reprueba de Ronald, chat
@@ -46811,6 +46875,7 @@ async function loadMyTraining() {
     TRAIN_CHECKS_CTX = ctx;
     trainChecksPruneStale(plan.id);
     TRAIN_FLOW = {};   /* AUTH-406: el estado del flujo muere con el contexto, como las marcas */
+    FLOW_AREA_FOLD = {};   /* AUTH-495: el pliegue de las áreas de series muere con el contexto, como el flujo */
     trainFlowRehydrate(plan.id);   /* AUTH-451: …y renace de su propio borrador, como las marcas */
   }
   const logByDay = {};
@@ -63620,7 +63685,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261118-reflexion-abierta';
+const PWA_SW_VERSION = '20261118-boton-listo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

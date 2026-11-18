@@ -6851,3 +6851,18 @@ textarea.gest-in { resize: none; }
 .plan-ai-day-body { border: 1px dashed #9db8b1; border-radius: 10px; padding: 8px 12px; margin: 6px 0 10px; font-size: 14px; line-height: 1.55; background: #fbfdfd; }
 .plan-ai-actions { margin-top: 12px; }
 .plan-ai-actions .btn-primary, .plan-ai-actions .btn-ghost { width: 100%; min-height: 52px; font-size: 16px; margin-top: 8px; }
+
+/* ═══ AUTH-495 · EL BOTÓN «LISTO» DE CADA ÁREA DE SERIES
+   (orden de Ronald, 2026-11-18): botón grande (52 px, por
+   encima del suelo de 48) al final de cada área abierta de
+   la tarjeta — verde de hecho sobre la tarjeta, turquesa de
+   la casa dentro de la caja clara de aproximación — y la
+   línea de resumen del área plegada: una sola línea, ancho
+   completo, con su › a la derecha; dentro de la caja de
+   aproximación la línea hereda su vestido (borde punteado y
+   fondo claro) y va sin borde propio. ═══ */
+.flow-area-done { display: block; width: 100%; min-height: 52px; margin-top: 10px; padding: 10px 12px; box-sizing: border-box; border: none; border-radius: 12px; background: #22c55e; color: #fff; font: inherit; font-size: 16.5px; font-weight: 800; cursor: pointer; }
+.tf-warm .flow-area-done { background: #0d9488; }
+.flow-area-fold { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 50px; margin: 10px 0 12px; padding: 8px 12px; box-sizing: border-box; border: 2px solid rgba(255, 255, 255, .5); border-radius: 12px; background: transparent; color: inherit; font: inherit; font-size: 15px; font-weight: 700; text-align: left; cursor: pointer; }
+.flow-area-fold .faf-go { margin-left: auto; font-weight: 800; }
+.tf-warm .flow-area-fold { min-height: 40px; margin: 0; padding: 2px 0; border: none; border-radius: 0; color: #065f46; }
