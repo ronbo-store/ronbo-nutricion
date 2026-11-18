@@ -40036,12 +40036,31 @@ function sessReflHeadline(r) {
    porque los dos estados entran en la firma de
    sessFullSync. Fuera de esta vista, las dos tarjetas se
    pintan como siempre. ═══ */
+/* ═══ AUTH-494 · LA REFLEXIÓN NACE ABIERTA (decisión de
+   Ronald, 2026-11-18, traspasada desde el chat
+   «Biblioteca»): en la completa, la «Reflexión de hoy» se
+   pinta EXPANDIDA desde el primer pintado de cada día —
+   la frase corta con su tarjeta entera en el sitio, y el
+   artículo con su tarjeta entera en el sitio (título,
+   texto completo, fuente y su escucha, sin abrir la hoja)
+   — tal como hoy se ve al abrirla. Ronald aceptó
+   expresamente que la página crezca hacia abajo: el
+   objetivo «sin scroll» de AUTH-491 cede SOLO para este
+   bloque; Minimizar sigue fijo como pie fuera del cuerpo
+   y el «Mensaje del día» NO cambia (sigue naciendo
+   plegado). Plegarla sigue siendo posible desde su
+   cabecera, y su línea plegada conserva el toque de
+   siempre (la frase se despliega en el sitio; el artículo
+   abre su hoja). La escucha en el sitio vive en
+   SESS_REFL_LISTEN y entra en la firma de sessFullSync,
+   como los dos estados de pliegue. ═══ */
 let SESS_MSG_OPEN = false;
-let SESS_REFL_OPEN = false;
+let SESS_REFL_OPEN = true;
+let SESS_REFL_LISTEN = false;
 let SESS_FOLD_DAY = '';
 function sessFoldDaySync() {
   const hoy = todayISO();
-  if (SESS_FOLD_DAY !== hoy) { SESS_FOLD_DAY = hoy; SESS_MSG_OPEN = false; SESS_REFL_OPEN = false; }
+  if (SESS_FOLD_DAY !== hoy) { SESS_FOLD_DAY = hoy; SESS_MSG_OPEN = false; SESS_REFL_OPEN = true; if (SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { asstStopSpeak(); } catch {} } }
 }
 function sessReflHTML() {
   const r = sessReflOfDay();
@@ -40053,20 +40072,33 @@ function sessReflHTML() {
     /* R4 + AUTH-491: artículo — la línea plegada lleva el
        titular y su «leerlo o escucharlo ›»; el toque abre
        la hoja del artículo COMO HOY (data-sess-art="open",
-       el oyente de documento de siempre) y el cuerpo sigue
-       sin viajar en el panel. La línea única no admite el
-       rótulo largo ni la línea de artículo entera: viajan
-       el rótulo corto (sess.reflTag) y la forma corta de la
-       línea (sess.listenShort). */
-    return `<button type="button" class="sf-card sf-foldcard" data-sess-art="open"><span class="sf-fold-ic" aria-hidden="true">📖</span><span class="sf-fold-lab">${esc(t('sess.reflTag'))}</span><span class="sf-fold-txt">${esc(sessReflHeadline(r))}</span><span class="sf-fold-link">${esc(t('sess.listenShort'))} ›</span></button>`;
+       el oyente de documento de siempre). La línea única no
+       admite el rótulo largo ni la línea de artículo
+       entera: viajan el rótulo corto (sess.reflTag) y la
+       forma corta de la línea (sess.listenShort).
+       AUTH-494: la línea plegada ya solo se alcanza si la
+       persona pliega la tarjeta abierta; nace ABIERTA, con
+       la tarjeta entera EN EL SITIO — su cabecera para
+       replegar, la familia, el título, el texto completo,
+       la fuente y su botón de escucha
+       (data-sess-art="listen-panel": la misma voz de la
+       hoja, sin abrir la hoja) — y el cuerpo SÍ viaja en
+       el panel desde este paquete, por la orden expresa
+       de Ronald de que la página crezca hacia abajo. */
+    if (!SESS_REFL_OPEN) return `<button type="button" class="sf-card sf-foldcard" data-sess-art="open"><span class="sf-fold-ic" aria-hidden="true">📖</span><span class="sf-fold-lab">${esc(t('sess.reflTag'))}</span><span class="sf-fold-txt">${esc(sessReflHeadline(r))}</span><span class="sf-fold-link">${esc(t('sess.listenShort'))} ›</span></button>`;
+    const titleA = moveTitleOf(r.e), bodyA = moveBodyOf(r.e);
+    const ttA = titleA[LANG] || titleA.en || titleA.es || '';
+    const txA = bodyA[LANG] || bodyA.en || bodyA.es || '';
+    return `<div class="sf-card"><button type="button" class="sf-fold-head" data-sess-fold="refl"><span class="sf-card-lab">📖 ${esc(t('sess.reflToday'))}</span><span class="sf-fold-chev" aria-hidden="true">⌃</span></button>${fam}${ttA ? `<div class="sf-art-title">${esc(ttA)}</div>` : ''}<div class="sf-art-text">${esc(txA)}</div>${r.e.src ? `<div class="sf-refl-src">${esc(r.e.src)}</div>` : ''}<button type="button" class="sf-art-listen" data-sess-art="listen-panel">${SESS_REFL_LISTEN ? '🔇 ' + esc(t('move.stopListen')) : '🔊 ' + esc(t('move.listen'))}</button></div>`;
   }
   /* R3: frase corta — entera, con su fuente, y SIN botón de
      escuchar: esa voz no es cercana ni reflexiva (palabra
      de Ronald, 2026-11-14). La escucha vive solo dentro de
-     la hoja del artículo. AUTH-491: nace plegada en una
-     línea y se despliega EN EL SITIO (no tiene hoja), con
-     su tarjeta de siempre entera — familia, texto y
-     fuente — y su cabecera para replegar. */
+     la hoja del artículo. AUTH-491: se despliega EN EL
+     SITIO (no tiene hoja), con su tarjeta de siempre
+     entera — familia, texto y fuente — y su cabecera para
+     replegar. AUTH-494: nace ABIERTA (SESS_REFL_OPEN nace
+     en true cada día); plegada, su línea es la de 491. */
   const full = moveCardText({ kind: 'bank', e: r.e });
   if (!SESS_REFL_OPEN) return `<button type="button" class="sf-card sf-foldcard" data-sess-fold="refl"><span class="sf-fold-ic" aria-hidden="true">📖</span><span class="sf-fold-lab">${esc(t('sess.reflTag'))}</span><span class="sf-fold-txt">${esc(full)}</span><span class="sf-fold-chev" aria-hidden="true">›</span></button>`;
   return `<div class="sf-card"><button type="button" class="sf-fold-head" data-sess-fold="refl"><span class="sf-card-lab">📖 ${esc(t('sess.reflToday'))}</span><span class="sf-fold-chev" aria-hidden="true">⌃</span></button>${fam}<div class="sf-refl-text">${esc(full)}</div>${r.e.src ? `<div class="sf-refl-src">${esc(r.e.src)}</div>` : ''}</div>`;
@@ -40223,7 +40255,7 @@ function sessMsgHTML(msg) {
 }
 function sessFullSync(run) {
   const full = $('sess-full'); if (!full) return;
-  sessFoldDaySync();   /* AUTH-491: los pliegues nacen cerrados cada día */
+  sessFoldDaySync();   /* AUTH-491/494: cada día el Mensaje nace plegado y la Reflexión nace abierta */
   let st = null; try { st = trainBarState(); } catch {}
   const msg = shareMsgRevealedFor(todayISO());
   const refl = sessReflOfDay();
@@ -40236,7 +40268,7 @@ function sessFullSync(run) {
   if (!st) {
     /* Sin estado del día: reloj, día, mensaje y reflexión —
        ningún ejercicio inventado. */
-    sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r'].join('|');
+    sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l'].join('|');
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${msgBlk}${sessReflHTML()}</div>${minBtn}</div>`;
   } else {
     const ck = st.di + ':' + st.cur;
@@ -40277,7 +40309,7 @@ function sessFullSync(run) {
     const nxtBlk = (st.nxt != null && st.nxt !== st.cur)
       ? `<div class="sf-next"><span class="sf-next-lab">${esc(t('sess.pillNext'))}</span><span class="sf-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sf-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '';
     const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r'].join('|');
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l'].join('|');
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
@@ -40412,12 +40444,14 @@ function sessPanelWire(el, surface) {
     const fld = ev.target.closest ? ev.target.closest('[data-sess-fold]') : null;
     if (fld) {
       /* AUTH-491: desplegar o replegar el Mensaje del día o
-         la Reflexión corta dentro de la completa — solo
+         la Reflexión dentro de la completa — solo
          pantalla: se voltea su estado y el latido repinta
          con la firma nueva. Sin guarda de contexto: no
-         escribe estado de entrenamiento alguno. */
+         escribe estado de entrenamiento alguno.
+         AUTH-494: al PLEGAR la Reflexión se detiene su
+         escucha en el sitio, si la hubiera. */
       if (fld.dataset.sessFold === 'msg') SESS_MSG_OPEN = !SESS_MSG_OPEN;
-      else if (fld.dataset.sessFold === 'refl') SESS_REFL_OPEN = !SESS_REFL_OPEN;
+      else if (fld.dataset.sessFold === 'refl') { SESS_REFL_OPEN = !SESS_REFL_OPEN; if (!SESS_REFL_OPEN && SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { asstStopSpeak(); } catch {} } }
       try { sessPillTick(); } catch {}
       return;
     }
@@ -40527,6 +40561,23 @@ document.addEventListener('click', ev => {
       try { asstSpeak(tx); } catch {}
     }
     try { sessArticlePaint(); } catch {}
+  }
+  else if (act === 'listen-panel') {
+    /* AUTH-494: la escucha de la Reflexión ABIERTA en el
+       panel — la misma voz de la hoja (asstSpeak sobre el
+       mismo texto) sin abrir la hoja. Su estado vive en
+       SESS_REFL_LISTEN y entra en la firma de sessFullSync:
+       el latido repinta el botón (Escuchar/Dejar de
+       escuchar) sin perderlo. */
+    const r = sessReflOfDay(); if (!r || !r.long) return;
+    if (SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { asstStopSpeak(); } catch {} }
+    else {
+      const body = moveBodyOf(r.e);
+      const tx = body[LANG] || body.en || body.es || '';
+      SESS_REFL_LISTEN = true;
+      try { asstSpeak(tx); } catch {}
+    }
+    try { sessPillTick(); } catch {}
   }
 });
 /* ═══ AUTH-425 · LA BARRA FINA DEL ENTRENO, RETIRADA
@@ -63569,7 +63620,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261117-plan-ia-espera';
+const PWA_SW_VERSION = '20261118-reflexion-abierta';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
