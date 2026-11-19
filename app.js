@@ -6551,8 +6551,8 @@ en: {
   'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel', 'sess.barFinish': 'Finish',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.cardioIncl': 'includes {min} min of cardio',
-  'sess.setsOf': '{n} of {m} sets', 'sess.setsTap': 'tap a circle as you finish', 'sess.edit': 'Edit', 'sess.reflTag': 'REFLECTION', 'sess.listenShort': 'read it or listen',
-  'sess.voice.btn': 'Dictate the set by voice', 'sess.voice.hint': 'or dictate your set', 'sess.warmSet': 'Warm-up set',
+  'sess.edit': 'Edit', 'sess.reflTag': 'REFLECTION', 'sess.listenShort': 'read it or listen',
+  'sess.voice.btn': 'Dictate the set by voice', 'sess.warmSet': 'Warm-up set',
   'sess.face.noLoad': 'Set {n} with no load — tap to choose the weight', 'sess.face.warmNoLoad': 'Warm-up set {n} with no load — tap to choose the weight', 'sess.face.secU': 'SEC', 'sess.face.secWord': 'seconds',
   'sess.voice.listening': '🎙 Listening… dictate your set {n}', 'sess.voice.example': 'Say: “twelve reps, sixty-five pounds”', 'sess.voice.doneBtn': 'Done',
   'sess.voice.heard': '🎙 I heard: {parts}', 'sess.voice.repsN': '{n} repetitions', 'sess.voice.rep1': '1 repetition', 'sess.voice.bodyweight': 'bodyweight',
@@ -6564,8 +6564,6 @@ en: {
   'sess.voice.noMicTitle': 'Voice dictation', 'sess.voice.noMicBody': "This phone won't let me listen to you in here. You can still dictate to the keyboard: open Edit and tap your keyboard's little microphone to dictate the numbers — manual entry works as always.",
   'sess.voice.openEdit': 'Open Edit', 'sess.voice.gotIt': 'Got it',
   'sess.cd.left30': 'You have thirty seconds left', 'sess.cd.left10': 'Ten seconds left',
-  'sess.cd.prepLab': 'Get ready…', 'sess.cd.countLab': 'Set {n} counting… the alarm sounds at zero', 'sess.cd.doneLab': 'Set {n} done!',
-  'sess.cd.tapHint': 'timed sets — tap a circle and the count runs inside',
   'sess.cd.ariaCount': 'Set {n} counting, {s} seconds left', 'sess.cd.ariaPrep': 'Set {n}, getting ready, {s} seconds',
   'sess.pillSub': 'It only stops when you finish, in Training',
   'sess.kicker': 'QUICK SURVEY', 'sess.title': 'Workout finished!',
@@ -11945,8 +11943,8 @@ es: {
   'sess.barLabel': 'Barra de la sesión', 'sess.fullLabel': 'Panel de la sesión', 'sess.barFinish': 'Finalizar',
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
   'sess.cardioIncl': 'incluye {min} min de cardio',
-  'sess.setsOf': '{n} de {m} series', 'sess.setsTap': 'toca un círculo al terminar', 'sess.edit': 'Editar', 'sess.reflTag': 'REFLEXIÓN', 'sess.listenShort': 'leerlo o escucharlo',
-  'sess.voice.btn': 'Dictar la serie por voz', 'sess.voice.hint': 'o dicta tu serie', 'sess.warmSet': 'Serie de aproximación',
+  'sess.edit': 'Editar', 'sess.reflTag': 'REFLEXIÓN', 'sess.listenShort': 'leerlo o escucharlo',
+  'sess.voice.btn': 'Dictar la serie por voz', 'sess.warmSet': 'Serie de aproximación',
   'sess.face.noLoad': 'Serie {n} sin carga — toca para elegir el peso', 'sess.face.warmNoLoad': 'Aproximación {n} sin carga — toca para elegir el peso', 'sess.face.secU': 'SEG', 'sess.face.secWord': 'segundos',
   'sess.voice.listening': '🎙 Te escucho… dicta tu serie {n}', 'sess.voice.example': 'Di: «doce repeticiones, sesenta y cinco libras»', 'sess.voice.doneBtn': 'Listo',
   'sess.voice.heard': '🎙 Escuché: {parts}', 'sess.voice.repsN': '{n} repeticiones', 'sess.voice.rep1': '1 repetición', 'sess.voice.bodyweight': 'peso corporal',
@@ -11958,8 +11956,6 @@ es: {
   'sess.voice.noMicTitle': 'Dictado por voz', 'sess.voice.noMicBody': 'Este teléfono no me deja escucharte aquí dentro. Sí puedes dictarle al teclado: abre Editar y toca el micrófonito de tu teclado para dictar los números — la carga manual queda como siempre.',
   'sess.voice.openEdit': 'Abrir Editar', 'sess.voice.gotIt': 'Entendido',
   'sess.cd.left30': 'Te quedan treinta segundos', 'sess.cd.left10': 'Te quedan diez segundos',
-  'sess.cd.prepLab': 'Prepárate…', 'sess.cd.countLab': 'Serie {n} contando… al llegar a cero suena la alarma', 'sess.cd.doneLab': '¡Serie {n} cumplida!',
-  'sess.cd.tapHint': 'series por tiempo — toca un círculo y la cuenta corre dentro',
   'sess.cd.ariaCount': 'Serie {n} contando, quedan {s} segundos', 'sess.cd.ariaPrep': 'Serie {n}, preparación, {s} segundos',
   'sess.pillSub': 'Solo se detiene al finalizar, en Entrenamiento',
   'sess.kicker': 'ENCUESTA RÁPIDA', 'sess.title': '¡Entrenamiento finalizado!',
@@ -40857,12 +40853,13 @@ function sessCdPaint(key, si) {
       btn.classList.toggle('prep', phase === 'prep');
     }
   }
-  const pk = key + ':' + si + ':' + phase;
-  if (SESS_CD_PAINT !== pk) {
-    SESS_CD_PAINT = pk;
-    const lab = document.querySelector('#sess-full .sf-dots-lab');
-    if (lab) lab.textContent = phase === 'prep' ? t('sess.cd.prepLab') : phase === 'run' ? t('sess.cd.countLab', { n: si + 1 }) : t('sess.cd.doneLab', { n: si + 1 });
-  }
+  /* AUTH-514 · FUERA LA LÍNEA SOBRE LOS CÍRCULOS (orden de
+     Ronald, 2026-11-19): la cola que escribía la fase en la
+     etiqueta (.sf-dots-lab) sale con la línea retirada — la
+     cuenta vive en el círculo (su número, su anillo y sus
+     colores, pintados arriba en esta misma función).
+     SESS_CD_PAINT queda como variable inerte: sus reseteos
+     en otras funciones no se tocan y ya no alimenta nada. */
 }
 /* AUTH-499 · LA PUERTA DE LA PASTILLA «EDITAR» (decisión de
    Ronald, 2026-11-18 12:45 CST): la pastilla de la línea de
@@ -40924,7 +40921,6 @@ function sessDotsHTML(curChk, ck, flowSt, ex) {
      marcas y la línea queda como siempre. */
   const wsets = (curChk.warmup && curChk.warmup.on === true && Array.isArray(curChk.warmup.sets)) ? curChk.warmup.sets : [];
   const flags = sets.map(s => sessSetDone(s));
-  const doneN2 = flags.filter(Boolean).length;
   const nextI = flags.indexOf(false);
   /* AUTH-500 · ESCUCHANDO: mientras la app escucha la frase
      del dictado, la banda de escucha ocupa el lugar de la
@@ -41019,32 +41015,37 @@ function sessDotsHTML(curChk, ck, flowSt, ex) {
     if (vW !== '') return `<button type="button" class="sf-dot sf-warm" data-sess-warm="${ck}:${wi2}" aria-label="${esc(t('sess.warmSet'))} ${wi2 + 1} · ${esc(vW)} ${esc(UNIT_PREFS.mass)}"><span class="sf-dot-n">${esc(vW)}</span><span class="sf-dot-u">${esc(String(UNIT_PREFS.mass).toUpperCase())}</span></button>`;
     return `<button type="button" class="sf-dot sf-warm q" data-sess-warmq="${ck}:${wi2}" aria-label="${esc(t('sess.face.warmNoLoad', { n: wi2 + 1 }))}"><span class="sf-dot-q">?</span></button>`;
   }).join('');
+  /* AUTH-514 · LA LÍNEA SOBRE LOS CÍRCULOS SE VA ENTERA
+     (orden de Ronald, 2026-11-19 13:22 CST, precisada por
+     su toque de las 13:24: también el conteo «2 de 4
+     series»): el rótulo que AUTH-500 subió a su propia
+     línea — conteo de series, instrucción, pista de
+     dictado y, con 6+ series, la palabra «Editar» — ya no
+     se pinta en ningún estado; la fila de círculos sigue
+     directamente al nombre y al reloj del ejercicio. Nada
+     se reubica: los círculos mismos enseñan el avance y la
+     línea de avance del día cuenta los ejercicios. La
+     palabra «Editar» vuelve a su botón de la fila en todas
+     las bandas (styles.css retira las reglas que lo
+     ocultaban en favor de la línea retirada). */
   const gate = sessEditVisible();
   const nSets = sets.length;
   const nTot = nSets + wsets.length;
   const editBtn = gate ? `<button type="button" class="sf-edit" data-sess-edit="${ck}" aria-label="${esc(t('sess.edit'))}"><span class="sf-edit-vis"><span class="sf-edit-word">${esc(t('sess.edit'))}</span><span class="sf-edit-pencil" aria-hidden="true">✎</span></span></button>` : '';
   const voiceBtn = gate ? `<button type="button" class="sf-voice" data-sess-voice="${ck}" aria-label="${esc(t('sess.voice.btn'))}"><span class="sf-voice-vis" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M4 10v4" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M9 7v10" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M14 4v16" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M19 8v8" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/></svg></span></button>` : '';
-  const labEdit = (gate && nTot >= 6) ? ` · <button type="button" class="sf-lab-edit" data-sess-edit="${ck}">${esc(t('sess.edit'))}</button>` : '';
-  const hint = gate ? ` — ${esc(t('sess.voice.hint'))}` : '';
-  const labCls = 'sf-dots-lab' + ((gate && nTot >= 6) ? ' up' + Math.min(nTot, 8) : '');
   const rowCls = 'sf-dots' + (nTot >= 5 ? ' sfv-pencil' : '') + (nTot >= 5 ? ' sfv-t' + Math.min(nTot, 12) : '');
-  /* AUTH-502 · LA ETIQUETA CON CUENTA VIVA es la del
-     mockup (preparación / contando / cumplida) y ocupa la
-     línea sola mientras la cuenta vive; sin cuenta, un
-     ejercicio por tiempo anuncia su pista («series por
-     tiempo — toca un círculo y la cuenta corre dentro»)
-     en vez de la instrucción genérica. Restaurar una
-     cuenta viva también rearma su tick desde aquí. */
+  /* AUTH-502 · LA ETIQUETA CON CUENTA VIVA era la del
+     mockup (preparación / contando / cumplida) y ocupaba la
+     línea sola mientras la cuenta vivía; sin cuenta, un
+     ejercicio por tiempo anunciaba su pista en vez de la
+     instrucción genérica. AUTH-514: esa etiqueta sale con
+     la línea retirada — la cuenta se sigue en el círculo
+     (número, anillo y colores) y en sus avisos de voz.
+     Restaurar una cuenta viva sigue rearmando su tick
+     desde aquí, como siempre. */
   const liveCd2 = sessCdOf(curChk);
-  if (liveCd2) {
-    sessCdArm();
-    const phL = sessCdPhase(liveCd2.cd);
-    const labCd = phL === 'prep' ? t('sess.cd.prepLab') : phL === 'run' ? t('sess.cd.countLab', { n: liveCd2.si + 1 }) : t('sess.cd.doneLab', { n: liveCd2.si + 1 });
-    return `<div class="${labCls}">${esc(labCd)}</div><div class="${rowCls}">${warmDots}${dots}${editBtn}${voiceBtn}</div>`;
-  }
-  const nextTimed = nextI >= 0 ? trainTimedOf(ex || null, sets[nextI]) : null;
-  const labTap = nextTimed ? t('sess.cd.tapHint') : t('sess.setsTap');
-  return `<div class="${labCls}">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(labTap)}${hint}${labEdit}</div><div class="${rowCls}">${warmDots}${dots}${editBtn}${voiceBtn}</div>`;
+  if (liveCd2) sessCdArm();
+  return `<div class="${rowCls}">${warmDots}${dots}${editBtn}${voiceBtn}</div>`;
 }
 /* ═══ AUTH-500 · EL BOTÓN DE VOZ DE LA LÍNEA (diseño
    aprobado por Ronald el 2026-11-18, con sus correcciones:
@@ -65987,7 +65988,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-terminar-edicion';
+const PWA_SW_VERSION = '20261119-linea-circulos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
