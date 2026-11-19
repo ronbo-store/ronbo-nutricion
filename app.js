@@ -46766,7 +46766,11 @@ function histShortDate(iso) {
    (fecha descendente), solo sesiones hechas o parciales, y una
    sesión cuenta solo si su entrada aporta ≥1 serie con dato
    (carga o reps hechas); las entradas v1 (sin series) cuentan
-   como línea «legado» honesta, sin cifras. Parada en 3. Devuelve
+   como línea «legado» honesta, sin cifras. EXTENSIÓN AUTH-509
+   (2026-11-19): la entrada hecha sin ninguna serie con dato
+   cuenta también como línea «legado» honesta — realizada, sin
+   detalle — con el activeSec de la entrada como su tiempo si
+   lo trae; jamás como «primera vez». Parada en 3. Devuelve
    filas {date, dateShort, legacy} o {date, dateShort, n, loadsStr,
    maxStr, repsStr} — texto listo para pintar; NUNCA escribe ni
    copia nada al día de hoy (es referencia, no plantilla). */
@@ -46862,16 +46866,39 @@ function trainHistBlockHTML(sum) {
     + `<div class="train-ex-hist-col"><span class="train-ex-hist-lab">${t('train.histRec.loadToday')}</span><span class="train-ex-hist-val">${sum && sum.maxLoad != null ? `${fmtMass(sum.maxLoad)} <span class="train-ex-hist-eq">${esc(massEqText(sum.maxLoad))}</span>` : dash}</span></div>`
     + `</div></div>`;
 }
+/* ═══ AUTH-509 · EL HISTORIAL NO DICE PRIMERA VEZ DE LO YA
+   HECHO (diagnóstico verificado del 2026-11-19, sobre el reporte
+   de Ronald «no me está trayendo el historial de peso de algunos
+   ejercicios que ya he realizado»): dos patrones del escaneo de
+   la casa y un solo arreglo en el escaneo y sus tres superficies
+   (la línea de la tarjeta, el bloque «Historial» y el detalle por
+   serie). (1) La sesión sellada sin números por serie era
+   invisible: el escaneo exigía una serie con dato y la sesión
+   hecha — la Plancha de ayer, con su tiempo en el activeSec de
+   la entrada — no existía; ahora cuenta como realizada en la
+   forma honesta del legado, con su tiempo si lo trae, y sin
+   inventar cargas. (2) El filtro de variantes partía el
+   historial en dos mitades ciegas (la Aducción enseñaba una
+   última vez desde su tarjeta y otra desde la base); ahora la
+   separación es solo entre dos variantes distintas y ambas
+   anotadas, las sesiones sin anotar cuentan para cualquier
+   vista y la vista base identifica las sesiones de variante
+   por su nombre. El escritor del cierre, el sellado, el modelo
+   de datos y el emparejamiento por exerciseId no se tocan. ═══ */
 function trainHistLoadsRows(ex, allLogs) {
   const id = ex && ex.exerciseId ? String(ex.exerciseId) : null;
   const name = ex && !id ? String(ex.name || '') : null;
   if (!id && !name) return [];
-  /* FUNCIÓN DE VARIANTES (2026-10-30): el historial de cargas se
-     filtra por variante cuando la ficha tiene variantes: la vista
-     de una variante NO estándar solo trae sus propias sesiones; la
-     vista base/estándar solo trae las sesiones sin variantIndex o
-     con el índice de la variante estándar. Sin variantes en la
-     ficha (o sin ficha), no hay filtro: idéntico a antes. */
+  /* FUNCIÓN DE VARIANTES (2026-10-30; reunida por AUTH-509 el
+     2026-11-19): el historial se filtra por variante cuando la
+     ficha tiene variantes, pero la separación es SOLO entre dos
+     variantes distintas y ambas anotadas: la forma estándar
+     nunca se guarda con variantIndex, así que una sesión sin
+     anotar ES de la forma estándar y cuenta para cualquier
+     vista de la ficha; la vista base/estándar trae también las
+     sesiones con variante, identificadas por su nombre en la
+     fila (varName). Sin variantes en la ficha (o sin ficha),
+     no hay filtro: idéntico a antes. */
   const entryH = id ? (LIB_BY_ID[id] || null) : null;
   const varsH = entryH && Array.isArray(entryH.variantes) && entryH.variantes.length ? entryH.variantes : null;
   const stdIdx = varsH ? varsH.findIndex(v => v && v.es_estandar) : -1;
@@ -46894,18 +46921,30 @@ function trainHistLoadsRows(ex, allLogs) {
       const match = id ? (e.exerciseId != null && String(e.exerciseId) === id)
         : (e.exerciseId == null && e.name != null && String(e.name) === name);
       if (!match) continue;
-      if (varsH) {
-        const ev = Number.isInteger(e.variantIndex) ? e.variantIndex : null;
-        if (viActive) { if (ev !== viEx) continue; }
-        else if (ev !== null && ev !== stdIdx) continue;
-      }
+      const ev = varsH ? (Number.isInteger(e.variantIndex) ? e.variantIndex : null) : null;
+      if (viActive && ev !== null && ev !== viEx) continue;
+      const varName = (varsH && ev !== null && !(viActive && ev === viEx)) ? (libField(varsH[ev], 'nombre') || null) : null;
       const sets = Array.isArray(e.sets) ? e.sets : null;
-      if (!sets) { out.push({ date: log.date, legacy: true }); continue; }
+      if (!sets) { out.push({ date: log.date, legacy: true, varName }); continue; }
       /* AUTH-417: una serie por tiempo con su tiempo hecho
          ES una serie con dato (sin esto, la sesión de la plancha
          sería invisible como «vez pasada»). */
       const withData = sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '') || (typeof s.secDone === 'number' && s.secDone > 0)));
-      if (!withData.length) continue;
+      if (!withData.length) {
+        /* AUTH-509 · LA SESIÓN REALIZADA SIN DETALLE NO ES UNA
+           PRIMERA VEZ (diagnóstico del 2026-11-19): la entrada
+           está hecha pero sus series solo traen lo planeado —
+           el trabajo real de un ejercicio por tiempo vive en el
+           activeSec de la entrada (la Plancha de ayer: 642 s sin
+           una sola serie con dato, y la app decía «primera
+           vez»). La sesión cuenta como realizada con la forma
+           honesta del legado y, si trae su tiempo activo, ese
+           tiempo ES su tiempo. Sin inventar cargas: donde no
+           se escribió peso, la fila no enseña peso. */
+        const aSec = (typeof e.activeSec === 'number' && isFinite(e.activeSec) && e.activeSec > 0) ? Math.floor(e.activeSec) : null;
+        out.push({ date: log.date, legacy: true, nodetail: true, totalSec: aSec, varName });
+        continue;
+      }
       /* TOTALES DE LA SESIÓN (2026-11-09, tarjeta del día): la suma
          de repeticiones de las series con dato — la fila de la ficha
          sigue pintando su detalle por serie; el total vive en la
@@ -46920,23 +46959,27 @@ function trainHistLoadsRows(ex, allLogs) {
       sets.forEach(s => { if (s && typeof s.loadKg === 'number' && s.loadKg > 0 && !loadsKg.includes(s.loadKg)) loadsKg.push(s.loadKg); });
       const reps = [];
       sets.forEach(s => { if (s && s.repsDone != null && s.repsDone !== '') reps.push(String(s.repsDone)); });
-      out.push({ date: log.date, legacy: false, n: withData.length, loadsKg, repsStr: reps.join('/'), totalReps, totalSec });
+      out.push({ date: log.date, legacy: false, n: withData.length, loadsKg, repsStr: reps.join('/'), totalReps, totalSec, varName });
     }
   }
   return out.map(r => r.legacy
-    ? { dateShort: histShortDate(r.date), legacy: true }
+    ? { dateShort: histShortDate(r.date), legacy: true, totalSec: r.totalSec != null ? r.totalSec : null, varName: r.varName || null }
     : { dateShort: histShortDate(r.date), legacy: false, n: r.n, repsStr: r.repsStr,
         totalReps: r.totalReps, totalSec: r.totalSec, maxKg: r.loadsKg.length ? Math.max(...r.loadsKg) : null,
         loadsStr: r.loadsKg.length ? r.loadsKg.map(fmtMassVal).join(' / ') + ' ' + UNIT_PREFS.mass : '',
-        maxStr: r.loadsKg.length ? fmtMassDual(Math.max(...r.loadsKg)) : '' });
+        maxStr: r.loadsKg.length ? fmtMassDual(Math.max(...r.loadsKg)) : '', varName: r.varName || null });
 }
 function trainHistLoadsHTML(ex, allLogs) {
   const rows = trainHistLoadsRows(ex, allLogs);
   if (!rows.length) return `<div class="excard-hist"><div class="excard-hist-title">${t('train.histLoads.title')}</div><p class="excard-empty">${t('train.histLoads.first')}</p></div>`;
   const lines = rows.map((r, i) => {
-    if (r.legacy) return `<div class="excard-hist-line muted">${t('train.histLoads.legacy', { date: r.dateShort })}</div>`;
-    if (r.loadsStr) return `<div class="excard-hist-line">${t('train.histLoads.line', { date: r.dateShort, n: r.n, loads: r.loadsStr, max: `<b>${r.maxStr}</b>` })}${i === 0 && r.repsStr ? t('train.histLoads.repsPart', { reps: r.repsStr }) : ''}</div>`;
-    return `<div class="excard-hist-line">${t('train.histLoads.bodyLine', { date: r.dateShort, n: r.n, reps: r.repsStr })}</div>`;
+    /* AUTH-509: la fila identifica su variante cuando la sesión
+       la trae anotada y la vista no es esa misma variante, y la
+       fila sin detalle enseña su tiempo si la entrada lo guardó. */
+    const varSuf = r.varName ? ' · ' + esc(r.varName) : '';
+    if (r.legacy) return `<div class="excard-hist-line muted">${t('train.histLoads.legacy', { date: r.dateShort })}${varSuf}${r.totalSec != null ? ' · ' + trainTimerFmt(r.totalSec) : ''}</div>`;
+    if (r.loadsStr) return `<div class="excard-hist-line">${t('train.histLoads.line', { date: r.dateShort, n: r.n, loads: r.loadsStr, max: `<b>${r.maxStr}</b>` })}${i === 0 && r.repsStr ? t('train.histLoads.repsPart', { reps: r.repsStr }) : ''}${varSuf}</div>`;
+    return `<div class="excard-hist-line">${t('train.histLoads.bodyLine', { date: r.dateShort, n: r.n, reps: r.repsStr })}${varSuf}</div>`;
   }).join('');
   return `<div class="excard-hist"><div class="excard-hist-title">${t('train.histLoads.title')}</div>${lines}</div>`;
 }/* LA ÚLTIMA VEZ EN LA TARJETA (2026-11-09 — reporte en vivo de
@@ -46966,13 +47009,28 @@ function trainLastTimeCardHTML(ex, mode) {
   const head = `<span class="train-ex-last-lab">${t('train.lastTime.card')}</span>`;
   if (!rows.length) return `<div class="train-ex-last">${head}: ${t('train.lastTime.first')}</div>`;
   const r = rows.find(x => !x.legacy);
-  if (!r) return `<div class="train-ex-last">${head} · ${esc(rows[0].dateShort)}: ${t('train.lastTime.legacy')}</div>`;
+  if (!r) {
+    /* AUTH-509: sin sesión con detalle, la última vez es la
+       sesión realizada más reciente en su forma honesta (sin
+       detalle), con su variante si la trae anotada y su tiempo
+       si la entrada lo guardó — jamás «primera vez» de lo que
+       ya se hizo. */
+    const r0 = rows[0];
+    let tail = t('train.lastTime.legacy');
+    if (r0.varName) tail += ' · ' + r0.varName;
+    if (r0.totalSec != null) tail += ' · ' + trainTimerFmt(r0.totalSec);
+    return `<div class="train-ex-last">${head} · ${esc(r0.dateShort)}: ${esc(tail)}</div>`;
+  }
   const segs = [`${r.n} ${t('train.histRec.sets').toLowerCase()}`];
   if (r.totalReps != null) segs.push(`${r.totalReps} reps`);
   /* AUTH-417: sin reps, la vez pasada de un ejercicio por
      tiempo dice su tiempo total, no un silencio. */
   else if (r.totalSec != null) segs.push(trainTimerFmt(r.totalSec));
   if (r.maxKg != null) segs.push(`${fmtMass(r.maxKg)} ${t('train.lastTime.max')}`);
+  /* AUTH-509: la sesión de referencia se identifica con su
+     variante cuando la trae anotada y la vista no es esa misma
+     variante (la vista base ya no esconde de qué forma fue). */
+  if (r.varName) segs.push(r.varName);
   return `<div class="train-ex-last">${head} · ${esc(r.dateShort)}: ${esc(segs.join(' · '))}</div>`;
 }
 
@@ -46987,8 +47045,10 @@ function trainLastTimeCardHTML(ex, mode) {
    entrada cuya sesión no trae series (legado v1) ES la vez pasada
    y no tiene detalle que emparejar: el bloque no nace y manda la
    línea honesta de «Tus últimas veces», que no se toca. Una
-   entrada con series pero sin ningún dato no cuenta como sesión
-   (el criterio del escaneo de siempre) y la búsqueda sigue. El
+   entrada con series pero sin ningún dato cuenta como respaldo
+   desde AUTH-509 (como la aparición v1): la búsqueda sigue hacia
+   una anterior con detalle, y solo si no hay ninguna vale ella
+   como la vez pasada, sin detalle. El
    día propio de la ventana (excludeIso) no cuenta: su sesión aún
    no es «la vez pasada». */
 function trainLastTimeSession(ex, allLogs, excludeIso) {
@@ -47014,11 +47074,13 @@ function trainLastTimeSession(ex, allLogs, excludeIso) {
       const match = id ? (e.exerciseId != null && String(e.exerciseId) === id)
         : (e.exerciseId == null && e.name != null && String(e.name) === name);
       if (!match) continue;
-      if (varsH) {
-        const ev = Number.isInteger(e.variantIndex) ? e.variantIndex : null;
-        if (viActive) { if (ev !== viEx) continue; }
-        else if (ev !== null && ev !== stdIdx) continue;
-      }
+      /* AUTH-509: la misma regla reunida del escaneo — la
+         separación es solo entre dos variantes distintas y
+         ambas anotadas; sin anotar, la sesión es de la forma
+         estándar y cuenta para cualquier vista. */
+      const ev = varsH ? (Number.isInteger(e.variantIndex) ? e.variantIndex : null) : null;
+      if (viActive && ev !== null && ev !== viEx) continue;
+      const varName = (varsH && ev !== null && !(viActive && ev === viEx)) ? (libField(varsH[ev], 'nombre') || null) : null;
       const sets = Array.isArray(e.sets) ? e.sets : null;
       /* F-37: una aparición v1 sin series NO tapa la búsqueda:
          se recuerda como respaldo y se sigue hacia atrás hasta
@@ -47029,8 +47091,15 @@ function trainLastTimeSession(ex, allLogs, excludeIso) {
          ES una serie con dato (sin esto, la sesión de la plancha
          sería invisible como «vez pasada»). */
       const withData = sets.filter(s => s && (typeof s.loadKg === 'number' || (s.repsDone != null && s.repsDone !== '') || (typeof s.secDone === 'number' && s.secDone > 0)));
-      if (!withData.length) continue;
-      return { legacy: false, date: log.date, sets: withData };
+      if (!withData.length) {
+        /* AUTH-509: la sesión realizada sin detalle cuenta como
+           respaldo, igual que la aparición v1 de F-37 — no tapa
+           la búsqueda de una anterior con detalle, pero si no
+           hay ninguna, ella ES la vez pasada, sin detalle. */
+        if (!legacyFallback) legacyFallback = { legacy: true, date: log.date };
+        continue;
+      }
+      return { legacy: false, date: log.date, sets: withData, varName };
     }
   }
   return legacyFallback;
@@ -47067,7 +47136,9 @@ function trainLastTimeHTML(ex, allLogs, excludeIso) {
     return `<div class="excard-last-line">${parts.join(' · ')}</div>`;
   }).join('');
   if (!lines) return '';
-  return `<div class="excard-last"><div class="excard-last-title">${t('train.lastTime.title')} · ${histShortDate(ses.date)}</div>${lines}</div>`;
+  /* AUTH-509: el detalle identifica su variante cuando la sesión
+     la trae anotada y la vista no es esa misma variante. */
+  return `<div class="excard-last"><div class="excard-last-title">${t('train.lastTime.title')} · ${histShortDate(ses.date)}${ses.varName ? ' · ' + esc(ses.varName) : ''}</div>${lines}</div>`;
 }
 /* Instrucciones de la ficha con honestidad de forma: si el texto
    YA trae pasos separados por líneas se pinta como lista numerada;
@@ -65387,7 +65458,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-plan-21-dias';
+const PWA_SW_VERSION = '20261119-historial-hecho';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
