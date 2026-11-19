@@ -8596,11 +8596,35 @@ en: {
   'chal.back': '← Back',
   'chal.intro': 'Pick a challenge, show up day after day, and earn your medal. Consistency is what builds results — every challenge here measures just that.',
   'chal.myTitle': 'My challenges',
-  'chal.myEmpty': 'You have no challenges yet. Start one from the catalog below.',
+  'chal.myEmpty': 'You have no challenges yet. Start one from “Start a challenge”.',
   'chal.catalogTitle': 'Start a challenge',
   'chal.p21Tag': 'Challenge · 21 days',
   'chal.p21Desc': 'A complete program for beginners: training and food for 21 days. It adapts to your available days and your equipment, and week 1 calibrates your loads.',
   'chal.p21ViewBtn': 'View my plan',
+  'chal.featuredTag': '⭐ Featured',
+  'chal.assignedBy': 'Assigned by {name} · {date}',
+  'chal.repoPrograms': 'Programs',
+  'chal.repoChallenges': 'Challenges',
+  'chal.repoOpenGroups': 'Open group challenges',
+  'chal.assignCardBtn': 'Assign',
+  'chal.assignSheetTitle': 'Assign a challenge',
+  'chal.whoTitle': 'Who is it for?',
+  'chal.modeOne': 'One person',
+  'chal.modeAllMine': 'All my students',
+  'chal.modeSome': 'Several people',
+  'chal.modeAll': 'All students',
+  'chal.pickedN': '{n} people selected',
+  'chal.assignSummary': 'Assign {chal} to {who}. It starts today for each person.',
+  'chal.whoN': '{n} people: {names}',
+  'chal.assignNote': 'The challenge is born already active in each person’s “My challenges”, with your name as who assigned it, and its window starts today. It needs no approval: assigning it is your decision.',
+  'chal.assignedDone': '✓ {chal} reached {who}. They already see it in their “My challenges”, active from today.',
+  'chal.assignP21Note': 'The 21-Day Plan is applied as a plan, not as a counting challenge.',
+  'chal.assignP21Btn': 'Apply it from the template catalog',
+  'chal.featuredLbl': 'Featured challenge on the page',
+  'chal.featuredSaveBtn': 'Save featured',
+  'chal.featuredSaved': 'Featured saved: the page will show “{name}”.',
+  'chal.programTag': 'Program',
+  'chal.needWho': 'Choose at least one person.',
   'chal.groupTitle': 'Group challenges',
   'chal.groupEmpty': 'No group challenges are open right now.',
   'chal.manageTitle': 'Create & manage',
@@ -14002,11 +14026,35 @@ es: {
   'chal.back': '← Volver',
   'chal.intro': 'Elige un reto, aparece día tras día y gana tu medalla. La constancia es lo que construye resultados: cada reto aquí mide exactamente eso.',
   'chal.myTitle': 'Mis retos',
-  'chal.myEmpty': 'Todavía no tienes retos. Empieza uno desde el catálogo de abajo.',
+  'chal.myEmpty': 'Todavía no tienes retos. Empieza uno desde «Empezar un reto».',
   'chal.catalogTitle': 'Empezar un reto',
   'chal.p21Tag': 'Reto · 21 días',
   'chal.p21Desc': 'Un programa completo para principiantes: entrenamiento y alimentación durante 21 días. Se adapta a tus días disponibles y a tu equipo, y la primera semana calibra tus cargas.',
   'chal.p21ViewBtn': 'Ver mi plan',
+  'chal.featuredTag': '⭐ Destacado',
+  'chal.assignedBy': 'Asignado por {name} · {date}',
+  'chal.repoPrograms': 'Programas',
+  'chal.repoChallenges': 'Retos',
+  'chal.repoOpenGroups': 'Retos de grupo abiertos',
+  'chal.assignCardBtn': 'Asignar',
+  'chal.assignSheetTitle': 'Asignar un reto',
+  'chal.whoTitle': '¿A quién?',
+  'chal.modeOne': 'Una persona',
+  'chal.modeAllMine': 'Todos mis alumnos',
+  'chal.modeSome': 'Varias personas',
+  'chal.modeAll': 'Todos los alumnos',
+  'chal.pickedN': '{n} personas elegidas',
+  'chal.assignSummary': 'Asignar {chal} a {who}. Empieza hoy para cada quien.',
+  'chal.whoN': '{n} personas: {names}',
+  'chal.assignNote': 'El reto nace ya activo en el «Mis retos» de cada persona, con tu nombre como quien lo asignó, y su ventana empieza hoy. No necesita aprobación: asignarlo es tu decisión.',
+  'chal.assignedDone': '✓ {chal} llegó a {who}. Ya lo ven en su «Mis retos», activo desde hoy.',
+  'chal.assignP21Note': 'El Plan 21 días se aplica como plan, no como reto de conteo.',
+  'chal.assignP21Btn': 'Aplicarlo desde el catálogo de plantillas',
+  'chal.featuredLbl': 'Reto destacado de la página',
+  'chal.featuredSaveBtn': 'Guardar destacado',
+  'chal.featuredSaved': 'Destacado guardado: la página mostrará «{name}».',
+  'chal.programTag': 'Programa',
+  'chal.needWho': 'Elige al menos una persona.',
   'chal.groupTitle': 'Retos de grupo',
   'chal.groupEmpty': 'No hay retos de grupo abiertos ahora mismo.',
   'chal.manageTitle': 'Crear y gestionar',
@@ -66649,7 +66697,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-audio-instrucciones';
+const PWA_SW_VERSION = '20261119-retos-mecanismo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -69717,9 +69765,12 @@ const CHAL = {
   partsByChal: {},     // cid -> [parts] (tablas, bajo demanda)
   openTables: {},      // cid -> true
   students: null,      // alumnos asignables (entrenador/admin)
+  allStudents: null,   // AUTH-518: todos los alumnos aprobados (modo «Todos los alumnos»)
   justDone: [],        // retos completados en esta sesión (celebración)
   designMetric: 'train_days',
   p21: null,           // AUTH-505: estado del Plan 21 días en Retos (chalPlan21State)
+  featured: undefined, // AUTH-518: ajuste del destacado (challenges_featured/current); undefined = aún no leído, null = sin ajuste (cae al Plan 21)
+  userNames: {},       // AUTH-518: uid -> nombre visible (para «Asignado por»)
 };
 const chalMe = () => (auth.currentUser ? auth.currentUser.uid : null);
 const chalCanManage = () => ROLE === 'entrenador' || ROLE === 'administrador' || (typeof IS_OWNER !== 'undefined' && IS_OWNER);
@@ -69946,6 +69997,27 @@ async function chalLoad(force) {
     }
     CHAL.groups = groups;
     try { CHAL.p21 = await chalPlan21State(me); } catch { CHAL.p21 = null; }
+    /* AUTH-518: el ajuste del destacado (un documento único,
+       patrón trainer_directory). Si no existe, no se puede leer
+       (p. ej. reglas aún sin desplegar) o viene mal formado, el
+       destacado cae al Plan 21: la página nunca se queda sin
+       destacado ni rota por el ajuste. */
+    try {
+      const fs2 = await getDoc(doc(db, 'challenges_featured', 'current'));
+      const fv = fs2.exists() ? fs2.data() : null;
+      CHAL.featured = (fv && (fv.source === 'plan21' || fv.source === 'catalog' || fv.source === 'challenge')) ? { source: fv.source, refId: String(fv.refId || '') } : null;
+    } catch { CHAL.featured = null; }
+    /* AUTH-518: los nombres de quienes me asignaron retos, para
+       la línea «Asignado por» (la lectura de users de la casa; si
+       un nombre no se puede resolver, esa línea no se pinta —
+       jamás se muestra un uid). */
+    try {
+      const bys = [...new Set(CHAL.mine.filter(x => x.chal.kind === 'assigned' && x.chal.createdBy && x.chal.createdBy !== me).map(x => x.chal.createdBy))];
+      for (const uid of bys) {
+        if (CHAL.userNames[uid]) continue;
+        try { const us = await getDoc(doc(db, 'users', uid)); if (us.exists()) { const nm = String(us.data().name || '').trim(); if (nm) CHAL.userNames[uid] = nm; } } catch {}
+      }
+    } catch {}
     CHAL.loaded = true; CHAL.loadError = false; CHAL.lastSync = Date.now();
     try { const data = await chalFetchOwnData(me); CHAL.ownData = data; await chalSyncMine(data); } catch {}
   } catch { CHAL.loadError = true; }
@@ -70069,31 +70141,60 @@ async function chalDeleteCreated(cid) {
   delete CHAL.partsByChal[cid];
   chalRenderPaint();
 }
-async function chalAssign(studentUid, catId) {
-  const cat = CHAL_CATALOG.find(c => c.id === catId); const me = chalMe();
-  if (!cat || !me || !studentUid) return;
+/* AUTH-518: la asignación generalizada — UN spec (un reto del
+   catálogo o un reto diseñado por mí: su título, métrica, meta,
+   días y recompensa) y N destinatarios. Por cada persona nace
+   exactamente el documento de hoy (kind 'assigned', ventana
+   desde hoy — D-R7) con su participación sembrada aprobada
+   (D2), y entra en «Retos que creé» (una fila por persona, como
+   hoy). Asignar a un grupo = repetir la operación de hoy una
+   vez por persona: no nace ninguna estructura nueva. Sin
+   correo (D-R6: el comportamiento de hoy). Devuelve los retos
+   creados (con su ownerUid), para la constancia de la hoja. */
+async function chalAssign(spec, recipients) {
+  const me = chalMe();
+  if (!spec || !me || !Array.isArray(recipients) || !recipients.length) return [];
   const today = todayISO();
-  const docData = {
-    kind: 'assigned', catalogId: cat.id, metric: cat.metric, target: cat.target,
-    periodDays: cat.periodDays, startDate: today, endDate: addDaysISO(today, cat.periodDays - 1),
-    createdBy: me, ownerUid: studentUid, groupScope: '', title: '', rewardText: '', createdAt: serverTimestamp(),
-  };
-  try {
-    const ref = await addDoc(collection(db, 'challenges'), docData);
-    const stu = (CHAL.students || []).find(s => s.id === studentUid) || {};
-    /* Siembra de la participación del alumno (las reglas la
-       admiten del creador del reto asignado, todo a cero). */
+  const made = [];
+  for (const studentUid of recipients) {
+    if (!studentUid || studentUid === me) continue;
+    const docData = {
+      kind: 'assigned', catalogId: spec.catalogId || '', metric: spec.metric, target: spec.target,
+      periodDays: spec.periodDays, startDate: today, endDate: addDaysISO(today, spec.periodDays - 1),
+      createdBy: me, ownerUid: studentUid, groupScope: '', title: spec.title || '', rewardText: spec.rewardText || '', createdAt: serverTimestamp(),
+    };
     try {
-      await setDoc(doc(db, 'challenge_parts', ref.id + '_' + studentUid), {
-        challengeId: ref.id, uid: studentUid, displayName: String(stu.name || stu.email || '').slice(0, 60),
-        progressCount: 0, progressPct: 0, completedAt: null, joinedAt: serverTimestamp(),
-        joinState: 'approved', joinRequestedAt: serverTimestamp(), joinDecidedAt: serverTimestamp(), joinDecidedBy: me,
-      });
+      const ref = await addDoc(collection(db, 'challenges'), docData);
+      const stu = (CHAL.students || []).find(s => s.id === studentUid) || (CHAL.allStudents || []).find(s => s.id === studentUid) || {};
+      /* Siembra de la participación del alumno (las reglas la
+         admiten del creador del reto asignado, todo a cero). */
+      try {
+        await setDoc(doc(db, 'challenge_parts', ref.id + '_' + studentUid), {
+          challengeId: ref.id, uid: studentUid, displayName: String(stu.name || stu.email || '').slice(0, 60),
+          progressCount: 0, progressPct: 0, completedAt: null, joinedAt: serverTimestamp(),
+          joinState: 'approved', joinRequestedAt: serverTimestamp(), joinDecidedAt: serverTimestamp(), joinDecidedBy: me,
+        });
+      } catch {}
+      const created = { id: ref.id, ...docData, createdAt: Timestamp.now() };
+      CHAL.created.unshift(created);
+      made.push(created);
     } catch {}
-    CHAL.created.unshift({ id: ref.id, ...docData, createdAt: Timestamp.now() });
-    toast(t('chal.assignedOk'));
-  } catch { toast(t('chal.saveError'), true); }
-  chalRenderPaint();
+  }
+  return made;
+}
+/* AUTH-518: la lista completa de alumnos (solo la usa el modo
+   «Todos los alumnos» de administrador/dueño cuando su lista de
+   asignables no es ya la completa). */
+async function chalLoadAllStudents() {
+  if (CHAL.allStudents) return CHAL.allStudents;
+  const out = [];
+  try {
+    const s = await getDocs(query(collection(db, 'users'), where('approved', '==', true)));
+    s.forEach(d => { const u = { id: d.id, ...d.data() }; if (!u.isOwner && u.role === 'usuario') out.push(u); });
+  } catch {}
+  out.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+  CHAL.allStudents = out;
+  return out;
 }
 async function chalCreateGroup(form) {
   const me = chalMe(); if (!me) return;
@@ -70167,7 +70268,7 @@ const CHAL_FACE_MUSCLE = 'https://ronbo-store.github.io/ronbo-nutri-assets/avata
    entero) · Qué ganas · y la acción según el estado: pedir
    unirme, esperando aprobación, no aprobada, en marcha o
    cumplido. */
-let CHAL_SHEET = null;   // { catId } | { chalId }
+let CHAL_SHEET = null;   // { catId } | { chalId } | { box: 'mine'|'medals'|'repo'|'assign' } (AUTH-518)
 function chalSheetResolve() {
   const S = CHAL_SHEET; if (!S) return null;
   if (S.catId) {
@@ -70211,6 +70312,23 @@ function chalStripHTML(chal, part) {
 }
 function chalSheetPaint() {
   const fl = $('chal-ficha-float'); if (!fl || !CHAL_SHEET) return;
+  /* AUTH-518: las hojas de las tres cajitas viven en la misma
+     pieza que la ficha. La ficha de un reto sustituye a la hoja
+     de la cajita (su ✕ vuelve a la página, como hoy). */
+  if (CHAL_SHEET.box) {
+    const body = $('chal-ficha-sheet-body'); if (!body) return;
+    if (CHAL_SHEET.box === 'assign') { fl.style.display = ''; chalAssignPaint(); try { coverSync(); } catch {} return; }
+    const titles = { mine: 'chal.myTitle', medals: 'chal.medalsTitle', repo: 'chal.catalogTitle' };
+    let inner = '';
+    if (CHAL_SHEET.box === 'mine') inner = chalBoxMineHTML();
+    else if (CHAL_SHEET.box === 'medals') inner = chalBoxMedalsHTML();
+    else if (CHAL_SHEET.box === 'repo') inner = chalBoxRepoHTML();
+    body.innerHTML = `<div class="chal-sheet-head"><div class="chal-sheet-tt"><b>${esc(t(titles[CHAL_SHEET.box] || 'chal.title'))}</b></div></div>` + inner;
+    fl.style.display = '';
+    if (CHAL_SHEET.box === 'repo') chalWireForms();
+    try { coverSync(); } catch {}
+    return;
+  }
   const v = chalSheetResolve(); if (!v) { chalSheetClose(); return; }
   const chal = v.chal, part = v.part;
   const cat = v.cat || CHAL_CATALOG.find(c => c.id === chal.catalogId) || null;
@@ -70273,6 +70391,277 @@ function chalSheetClose() {
   CHAL_SHEET = null;
   try { coverSync(); } catch {}
 }
+/* ═══ AUTH-518 · EL MECANISMO DE RETOS (diseño aprobado
+   2026-11-19): la página corta con el destacado, las tres
+   cajitas con sus hojas y la asignación a una persona o a un
+   grupo. Decisiones D-R1…D-R8 construidas con la propuesta
+   del diseño (D-R3 y D-R6, sin propuesta expresa, con la
+   lectura conservadora: lo que la app ya hace). ═══ */
+function chalBoxOpen(box) { CHAL_SHEET = { box }; chalSheetPaint(); }
+/* Las tres cajitas de la línea de «Volver»: su texto lo pinta
+   la app; la de «Mis retos» lleva la cuenta de mis retos
+   activos, como la maqueta aprobada. */
+function chalBoxesPaint() {
+  const mine = $('chal-box-mine'), med = $('chal-box-medals'), repo = $('chal-box-repo');
+  if (mine) {
+    const today = todayISO();
+    const n = CHAL.loaded ? CHAL.mine.filter(x => chalIsApproved(x.part) && !x.part.completedAt && x.chal.endDate >= today).length : 0;
+    mine.innerHTML = `${esc(t('chal.myTitle'))}${n ? `<span class="chal-box-n">${n}</span>` : ''}`;
+  }
+  if (med) med.textContent = t('chal.medalsTitle');
+  if (repo) repo.textContent = t('chal.catalogTitle');
+}
+/* La hoja «Mis retos»: exactamente la sección de hoy — en
+   espera primero, activos y terminados — sin perder nada. */
+function chalBoxMineHTML() {
+  const today = todayISO();
+  const waiting = CHAL.mine.filter(x => !x.part.completedAt && chalJoinState(x.part) !== 'approved');
+  const active = CHAL.mine.filter(x => chalIsApproved(x.part) && !x.part.completedAt && x.chal.endDate >= today);
+  const finished = CHAL.mine.filter(x => chalIsApproved(x.part) && !(!x.part.completedAt && x.chal.endDate >= today));
+  const mineList = [...waiting, ...active];
+  let h = mineList.length ? mineList.map(x => chalItemHTML(x.chal, x.part)).join('') : `<div class="wempty">${esc(t('chal.myEmpty'))}</div>`;
+  if (finished.length) h += finished.map(x => chalItemHTML(x.chal, x.part)).join('');
+  return h;
+}
+/* La hoja «Mis medallas»: los puntos en grande y las medallas
+   de siempre, de la misma fuente (D5). */
+function chalBoxMedalsHTML() {
+  return `<p class="chal-points-line chal-points-big">🏆 ${esc(t('chal.pointsTitle'))}: <b>${chalPointsOf(CHAL.mine.map(x => x.part))}</b></p>` + chalMedalsHTML();
+}
+/* La tarjeta compacta del catálogo (la de hoy, extraída de la
+   página): cara de la mascota, nombre, meta en una línea,
+   «Medalla + 1 punto» y mi estado si ya participo. Con
+   opts.assignable (solo gestión) gana su botón «Asignar»; con
+   opts.featured, la etiqueta y el marco del destacado. */
+function chalCatalogCardHTML(c, opts = {}) {
+  const today = todayISO();
+  const mineC = CHAL.mine.filter(x => x.chal.catalogId === c.id);
+  const cur = mineC.find(x => chalJoinState(x.part) === 'pending')
+    || mineC.find(x => chalIsApproved(x.part) && !x.part.completedAt && x.chal.endDate >= today)
+    || mineC.find(x => x.part.completedAt) || null;
+  let st = '';
+  if (cur) {
+    if (cur.part.completedAt) st = `<p class="chal-cat-state chal-state chal-state-done">✓ ${esc(t('chal.stateDone'))}</p>`;
+    else if (chalJoinState(cur.part) === 'pending') st = `<p class="chal-cat-state chal-state chal-state-pend">⏳ ${esc(t('chal.statePending'))}</p>`;
+    else if (chalJoinState(cur.part) === 'rejected') st = `<p class="chal-cat-state chal-state chal-state-rej">✕ ${esc(t('chal.stateRejected'))}</p>`;
+    else st = `<div class="chal-cat-bar">${chalBarHTML(cur.part, cur.chal)}</div>`;
+  }
+  return `<div class="chal-item chal-cat${opts.featured ? ' chal-featured' : ''}" data-chal-act="open" data-chal-cat="${c.id}" role="button" tabindex="0">
+    <div class="chal-item-head"><span class="chal-head-l"><img class="chal-cat-face" src="${CHAL_FACE_MUSCLE}" alt="" aria-hidden="true" onerror="this.remove()"><b>${esc(t('chal.cat.' + c.id + '.title'))}</b></span><span class="chal-head-tags">${opts.featured ? `<span class="chal-tag chal-tag-star">${esc(t('chal.featuredTag'))}</span>` : ''}<span class="chal-tag">${esc(t('chal.periodDaysTxt', { n: c.periodDays }))}</span></span></div>
+    <p class="chal-metric">${esc(t('chal.goalLine', { y: c.target, metric: t('chal.metric.' + c.metric), n: c.periodDays }))}</p>
+    <p class="chal-medal-line">${esc(t('chal.medalPointLine'))}</p>
+    ${st}
+    ${opts.assignable ? `<div class="chal-actions"><button type="button" class="btn-ghost btn-sm" data-chal-act="assign" data-chal-cat="${c.id}">${esc(t('chal.assignCardBtn'))}</button></div>` : ''}
+  </div>`;
+}
+/* La hoja «Empezar un reto» = EL REPOSITORIO (D-R8): Programas,
+   los 10 retos de conteo y los retos de grupo abiertos; al
+   final, solo para gestión, la zona «Crear y gestionar»
+   (D-R1). */
+function chalBoxRepoHTML() {
+  const today = todayISO();
+  let h = `<h3 class="history-title">${esc(t('chal.repoPrograms'))}</h3>`;
+  h += chalPlan21CardHTML();
+  h += `<h3 class="history-title">${esc(t('chal.repoChallenges'))}</h3>`;
+  h += CHAL_CATALOG.map(c => chalCatalogCardHTML(c, { assignable: chalCanManage() })).join('');
+  h += `<h3 class="history-title">${esc(t('chal.repoOpenGroups'))}</h3>`;
+  /* Descubrimiento: SOLO retos activos (aclaración de Ronald,
+     2026-11-04 18:42 CST: el alumno ve solo retos activos). Un
+     reto de grupo ya vencido no se ofrece para unirse; quien
+     participa en él lo sigue viendo en «Mis retos» y en sus
+     medallas, que salen de CHAL.mine, no de esta lista. */
+  const groupsActive = CHAL.groups.filter(g => g.endDate >= today);
+  h += groupsActive.length ? groupsActive.map(g => chalItemHTML(g, null, { joinable: true })).join('') : `<div class="wempty">${esc(t('chal.groupEmpty'))}</div>`;
+  if (chalCanManage()) h += chalManageHTML();
+  return h;
+}
+/* EL DESTACADO de la página (D-R5): un solo ajuste global del
+   administrador/dueño; sin ajuste, sin lectura o con el reto
+   señalado ya inexistente o vencido, la página cae al Plan 21
+   (el destacado por defecto, el comportamiento de hoy). */
+function chalFeaturedHTML() {
+  const f = CHAL.featured;
+  if (f && f.source === 'catalog') {
+    const cat = CHAL_CATALOG.find(c => c.id === f.refId);
+    if (cat) return chalCatalogCardHTML(cat, { featured: true });
+  }
+  if (f && f.source === 'challenge') {
+    const today = todayISO();
+    const entry = CHAL.mine.find(x => x.chal.id === f.refId);
+    const g = entry ? entry.chal : (CHAL.groups.find(x => x.id === f.refId) || CHAL.created.find(x => x.id === f.refId) || null);
+    if (g && g.endDate >= today) {
+      return entry ? chalItemHTML(g, entry.part, { featured: true }) : chalItemHTML(g, null, { joinable: true, featured: true });
+    }
+  }
+  return chalPlan21CardHTML({ featured: true });
+}
+async function chalFeaturedSave(value) {
+  const me = chalMe(); if (!me) return;
+  let source = 'plan21', refId = '';
+  if (value && value.indexOf('catalog:') === 0) { source = 'catalog'; refId = value.slice(8); }
+  else if (value && value.indexOf('challenge:') === 0) { source = 'challenge'; refId = value.slice(10); }
+  try {
+    await setDoc(doc(db, 'challenges_featured', 'current'), { source, refId, updatedBy: me, updatedAt: serverTimestamp() });
+    CHAL.featured = { source, refId };
+    let name = refId;
+    if (source === 'plan21') name = t('plan21.title');
+    else if (source === 'catalog') name = t('chal.cat.' + refId + '.title');
+    else { const g = [...CHAL.created, ...CHAL.groups].find(x => x.id === refId); if (g) name = chalNameOf(g); }
+    toast(t('chal.featuredSaved', { name }));
+  } catch { toast(t('chal.saveError'), true); }
+  chalRenderPaint();
+}
+/* ---------- LA HOJA DE ASIGNAR (persona o grupo) ---------- */
+let CHAL_ASSIGN = null;   // { sel, mode, student, checked:Set, done }
+function chalAssignOpen(sel) {
+  CHAL_ASSIGN = {
+    sel: sel || 'plan21', mode: 'one',
+    student: (CHAL.students && CHAL.students[0]) ? CHAL.students[0].id : '',
+    checked: new Set(), done: null,
+  };
+  CHAL_SHEET = { box: 'assign' };
+  chalSheetPaint();
+  /* El modo «Todos los alumnos» del administrador necesita la
+     lista completa: se carga y la hoja se repinta al llegar. */
+  if (!((typeof IS_OWNER !== 'undefined' && IS_OWNER)) && ROLE === 'administrador' && !CHAL.allStudents) {
+    chalLoadAllStudents().then(() => { if (CHAL_SHEET && CHAL_SHEET.box === 'assign') chalSheetPaint(); }).catch(() => {});
+  }
+}
+/* El spec del reto elegido en la hoja: el Plan 21 (deriva al
+   catálogo de plantillas, D-R4), un reto del catálogo o uno
+   diseñado por mí. */
+function chalAssignSpec() {
+  const A = CHAL_ASSIGN; if (!A) return null;
+  if (A.sel === 'plan21') return { plan21: true, name: t('plan21.title') };
+  if (A.sel.indexOf('cat:') === 0) {
+    const c = CHAL_CATALOG.find(x => x.id === A.sel.slice(4)); if (!c) return null;
+    return { catalogId: c.id, metric: c.metric, target: c.target, periodDays: c.periodDays, title: '', rewardText: '', name: t('chal.cat.' + c.id + '.title'), goal: t('chal.goalLine', { y: c.target, metric: t('chal.metric.' + c.metric), n: c.periodDays }) };
+  }
+  if (A.sel.indexOf('des:') === 0) {
+    const c = CHAL.created.find(x => x.id === A.sel.slice(4) && x.kind === 'group'); if (!c) return null;
+    return { catalogId: '', metric: c.metric, target: c.target, periodDays: c.periodDays, title: c.title || '', rewardText: c.rewardText || '', name: chalNameOf(c), goal: t('chal.goalLine', { y: c.target, metric: t('chal.metric.' + c.metric), n: c.periodDays }) };
+  }
+  return null;
+}
+/* «Grupo» (D-R2) = el conjunto elegido al asignar: una persona,
+   todos mis alumnos, varias por casillas, o todos los alumnos
+   (solo administrador/dueño). No se guarda como conjunto. */
+function chalAssignRecipients() {
+  const A = CHAL_ASSIGN; if (!A) return [];
+  const students = CHAL.students || [];
+  if (A.mode === 'one') return A.student ? [A.student] : [];
+  if (A.mode === 'allmine') return students.map(s => s.id);
+  if (A.mode === 'some') {
+    const known = new Set([...students, ...(CHAL.allStudents || [])].map(s => s.id));
+    return [...A.checked].filter(id => known.has(id));
+  }
+  if (A.mode === 'all') {
+    if (typeof IS_OWNER !== 'undefined' && IS_OWNER) return students.map(s => s.id);
+    return (CHAL.allStudents || []).map(s => s.id);
+  }
+  return [];
+}
+function chalStudentName(uid) {
+  const s = (CHAL.students || []).find(x => x.id === uid) || (CHAL.allStudents || []).find(x => x.id === uid);
+  return s ? String(s.name || s.email || '') : '';
+}
+function chalAssignWhoText(ids) {
+  if (!ids.length) return '';
+  if (ids.length === 1) return chalStudentName(ids[0]);
+  return t('chal.whoN', { n: ids.length, names: ids.map(chalStudentName).filter(Boolean).join(', ') });
+}
+function chalAssignPaint() {
+  const body = $('chal-ficha-sheet-body'); if (!body) return;
+  const A = CHAL_ASSIGN; if (!A) { body.innerHTML = ''; return; }
+  const students = CHAL.students || [];
+  const designed = CHAL.created.filter(c => c.kind === 'group');
+  const spec = chalAssignSpec();
+  let h = `<div class="chal-sheet-head"><div class="chal-sheet-tt"><b>${esc(t('chal.assignSheetTitle'))}</b></div></div>`;
+  if (A.done) {
+    h += `<p class="chal-celebrate">${esc(t('chal.assignedDone', { chal: A.done.name, who: chalAssignWhoText(A.done.ids) }))}</p>`;
+    body.innerHTML = h;
+    return;
+  }
+  if (!students.length && !(CHAL.allStudents && CHAL.allStudents.length)) {
+    h += `<div class="wempty">${esc(t('chal.noStudents'))}</div>`;
+    body.innerHTML = h;
+    return;
+  }
+  h += `<label class="muted">${esc(t('chal.challengeLbl'))}<select id="chal-asg2-chal" class="chal-input">
+    <option value="plan21"${A.sel === 'plan21' ? ' selected' : ''}>${esc(t('plan21.title'))} · ${esc(t('chal.programTag'))}</option>
+    ${CHAL_CATALOG.map(c => `<option value="cat:${c.id}"${A.sel === 'cat:' + c.id ? ' selected' : ''}>${esc(t('chal.cat.' + c.id + '.title'))}</option>`).join('')}
+    ${designed.map(c => `<option value="des:${c.id}"${A.sel === 'des:' + c.id ? ' selected' : ''}>${esc(chalNameOf(c))}</option>`).join('')}
+  </select></label>`;
+  if (spec && spec.plan21) {
+    h += `<p class="progress-hint">${esc(t('chal.assignP21Note'))}</p>
+    <div class="chal-actions"><button type="button" class="btn-primary" id="chal-asg2-p21">${esc(t('chal.assignP21Btn'))}</button></div>`;
+    body.innerHTML = h;
+    chalAssignWire();
+    return;
+  }
+  if (spec) h += `<p class="chal-goal-big">${esc(spec.goal)}</p>`;
+  const isAdmin = (typeof IS_OWNER !== 'undefined' && IS_OWNER) || ROLE === 'administrador';
+  const modes = isAdmin ? ['one', 'allmine', 'some', 'all'] : ['one', 'allmine', 'some'];
+  const modeLbl = { one: 'chal.modeOne', allmine: 'chal.modeAllMine', some: 'chal.modeSome', all: 'chal.modeAll' };
+  h += `<p class="muted chal-flabel">${esc(t('chal.whoTitle'))}</p>` + modes.map(m => {
+    let extra = '';
+    if (m === 'allmine') extra = ` (${students.length})`;
+    if (m === 'all') extra = ` (${isAdmin && !(typeof IS_OWNER !== 'undefined' && IS_OWNER) ? (CHAL.allStudents || []).length : students.length})`;
+    return `<button type="button" class="chal-mode-row${A.mode === m ? ' chal-mode-on' : ''}" data-chal-mode="${m}"><span aria-hidden="true">${A.mode === m ? '●' : '○'}</span><span>${esc(t(modeLbl[m]))}${extra}</span></button>`;
+  }).join('');
+  if (A.mode === 'one') {
+    h += `<label class="muted">${esc(t('chal.studentLbl'))}<select id="chal-asg2-student" class="chal-input">${students.map(s => `<option value="${s.id}"${A.student === s.id ? ' selected' : ''}>${esc(s.name || s.email || '')}</option>`).join('')}</select></label>`;
+  } else if (A.mode === 'some') {
+    h += students.map(s => `<button type="button" class="chal-mode-row" data-chal-pick="${s.id}"><span aria-hidden="true">${A.checked.has(s.id) ? '☑' : '☐'}</span><span>${esc(s.name || s.email || '')}</span></button>`).join('');
+    h += `<p class="progress-hint">${esc(t('chal.pickedN', { n: A.checked.size }))}</p>`;
+  }
+  const ids = chalAssignRecipients();
+  h += `<p class="progress-hint">${esc(t('chal.assignNote'))}</p>`;
+  if (spec) h += `<p class="chal-assign-summary">${esc(t('chal.assignSummary', { chal: spec.name, who: chalAssignWhoText(ids) || '—' }))}</p>`;
+  h += `<div class="chal-actions"><button type="button" class="btn-primary" id="chal-asg2-btn"${ids.length ? '' : ' disabled'}>${esc(t('chal.assignBtn'))}</button></div>`;
+  body.innerHTML = h;
+  chalAssignWire();
+}
+function chalAssignWire() {
+  const A = CHAL_ASSIGN; if (!A) return;
+  const sel = $('chal-asg2-chal');
+  if (sel) sel.onchange = () => { A.sel = sel.value; A.done = null; chalSheetPaint(); };
+  const p21 = $('chal-asg2-p21');
+  if (p21) p21.onclick = () => {
+    /* D-R4: el Plan 21 se aplica desde el catálogo de
+       plantillas — la hoja lleva a la pieza existente, con la
+       lista de plantillas abierta en Entrenamiento. */
+    chalSheetClose();
+    try { navOpenPage('train'); } catch {}
+    try {
+      PROP_TPL_LIST_OPEN = true;
+      renderPropTemplates();
+      const el = $('my-templates'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch {}
+  };
+  const stu = $('chal-asg2-student');
+  if (stu) stu.onchange = () => { A.student = stu.value; chalSheetPaint(); };
+  document.querySelectorAll('#chal-ficha-sheet-body [data-chal-mode]').forEach(b => {
+    b.onclick = () => { A.mode = b.dataset.chalMode; chalSheetPaint(); };
+  });
+  document.querySelectorAll('#chal-ficha-sheet-body [data-chal-pick]').forEach(b => {
+    b.onclick = () => { const id = b.dataset.chalPick; if (A.checked.has(id)) A.checked.delete(id); else A.checked.add(id); chalSheetPaint(); };
+  });
+  const btn = $('chal-asg2-btn');
+  if (btn) btn.onclick = async () => {
+    const spec = chalAssignSpec(); const ids = chalAssignRecipients();
+    if (!spec || spec.plan21) return;
+    if (!ids.length) { toast(t('chal.needWho'), true); return; }
+    btn.disabled = true;
+    const made = await chalAssign(spec, ids);
+    if (made.length) {
+      A.done = { name: spec.name, ids: made.map(c => c.ownerUid) };
+      toast(t('chal.assignedOk'));
+    } else toast(t('chal.saveError'), true);
+    chalRenderPaint();
+    chalSheetPaint();
+  };
+}
 { const wire = () => {
   const x = $('chal-ficha-x');
   if (x && !x.dataset.wired) { x.dataset.wired = '1'; x.onclick = () => chalSheetClose(); }
@@ -70291,9 +70680,10 @@ function chalItemHTML(chal, part, opts = {}) {
     ? `<img class="chal-face" src="${MASCOT_CELEB_URL}" alt="" onerror="this.remove()">`
     : ((isMine && !part.completedAt) || opts.joinable
       ? `<img class="chal-face" src="${CHAL_FACE_MUSCLE}" alt="" onerror="this.remove()">` : '');
-  let h = `<div class="chal-item${part && part.completedAt ? ' chal-item-done' : ''}"${(isMine || opts.joinable) ? ` data-chal-act="open" data-chal-id="${chal.id}"` : ''}>
-    <div class="chal-item-head"><span class="chal-head-l">${chalFace}<b>${esc(chalNameOf(chal))}</b></span>${chalTagHTML(chal)}</div>
+  let h = `<div class="chal-item${part && part.completedAt ? ' chal-item-done' : ''}${opts.featured ? ' chal-featured' : ''}"${(isMine || opts.joinable) ? ` data-chal-act="open" data-chal-id="${chal.id}"` : ''}>
+    <div class="chal-item-head"><span class="chal-head-l">${chalFace}<b>${esc(chalNameOf(chal))}</b></span><span class="chal-head-tags">${opts.featured ? `<span class="chal-tag chal-tag-star">${esc(t('chal.featuredTag'))}</span>` : ''}${chalTagHTML(chal)}</span></div>
     <p class="chal-metric">${esc(t('chal.metric.' + chal.metric))}</p>
+    ${isMine && chal.kind === 'assigned' && chal.createdBy && chal.createdBy !== chalMe() && CHAL.userNames[chal.createdBy] ? `<p class="chal-assignedby">${esc(t('chal.assignedBy', { name: CHAL.userNames[chal.createdBy], date: chal.createdAt && chal.createdAt.toDate ? dateName(chal.createdAt.toDate().toISOString().slice(0, 10)) : '' }))}</p>` : ''}
     ${chal.rewardText ? `<p class="chal-reward">🎁 ${esc(t('chal.rewardLbl'))}: <b>${esc(chal.rewardText)}</b></p>` : ''}
     ${isMine && chalJoinState(part) === 'pending' ? `<div class="chal-dates"><span class="chal-state chal-state-pend">${chal.kind === 'group' && chal.endDate < todayISO() ? esc(t('chal.expiredNoApproval')) : '⏳ ' + esc(t('chal.statePending'))}</span></div>`
       : isMine && chalJoinState(part) === 'rejected' ? `<div class="chal-dates"><span class="chal-state chal-state-rej">✕ ${esc(t('chal.stateRejected'))}</span></div>`
@@ -70374,7 +70764,7 @@ async function chalPlan21State(me) {
    al entrenador → su constancia; terminado → su cierre, SIN
    botón de repetir (la salida del día 22 es la de D8 y vive
    en la tarjeta del plan). */
-function chalPlan21CardHTML() {
+function chalPlan21CardHTML(opts = {}) {
   const st = CHAL.p21 || { state: 'none', plan: null, dayIx: 0 };
   let inner = '';
   if (st.state === 'active' && st.plan) {
@@ -70393,83 +70783,52 @@ function chalPlan21CardHTML() {
     <p class="chal-metric">${esc(t('plan21.catalogLine'))}</p>
     <div class="chal-actions"><button type="button" class="btn-primary" data-chal-act="p21start">${esc(t('plan21.startBtn'))}</button></div>`;
   }
-  return `<div class="chal-item chal-p21">
-    <div class="chal-item-head"><span class="chal-head-l"><img class="chal-cat-face" src="${CHAL_FACE_MUSCLE}" alt="" aria-hidden="true" onerror="this.remove()"><b>${esc(t('plan21.title'))}</b></span><span class="chal-tag">${esc(t('chal.p21Tag'))}</span></div>
+  return `<div class="chal-item chal-p21${opts.featured ? ' chal-featured' : ''}">
+    <div class="chal-item-head"><span class="chal-head-l"><img class="chal-cat-face" src="${CHAL_FACE_MUSCLE}" alt="" aria-hidden="true" onerror="this.remove()"><b>${esc(t('plan21.title'))}</b></span><span class="chal-head-tags">${opts.featured ? `<span class="chal-tag chal-tag-star">${esc(t('chal.featuredTag'))}</span>` : ''}<span class="chal-tag">${esc(t('chal.p21Tag'))}</span></span></div>
     ${inner}
   </div>`;
 }
 function chalRenderPaint() {
   const body = $('chal-body'); if (!body) return;
+  chalBoxesPaint();
   if (!auth.currentUser) { body.innerHTML = ''; return; }
   if (CHAL.loadError) { body.innerHTML = `<div class="wempty">${esc(t('chal.loadError'))}</div>`; return; }
   if (!CHAL.loaded) { body.innerHTML = `<div class="wempty">${esc(t('train.loading'))}</div>`; return; }
-  const today = todayISO();
-  const waiting = CHAL.mine.filter(x => !x.part.completedAt && chalJoinState(x.part) !== 'approved');
-  const active = CHAL.mine.filter(x => chalIsApproved(x.part) && !x.part.completedAt && x.chal.endDate >= today);
-  const finished = CHAL.mine.filter(x => chalIsApproved(x.part) && !(!x.part.completedAt && x.chal.endDate >= today));
-  let h = `<p class="progress-hint">${esc(t('chal.intro'))}</p>`;
-  h += `<h3 class="history-title">${esc(t('chal.myTitle'))}</h3>`;
-  const mineList = [...waiting, ...active];
-  h += mineList.length ? mineList.map(x => chalItemHTML(x.chal, x.part)).join('') : `<div class="wempty">${esc(t('chal.myEmpty'))}</div>`;
-  if (finished.length) h += finished.map(x => chalItemHTML(x.chal, x.part)).join('');
-  h += `<h3 class="history-title">${esc(t('chal.medalsTitle'))}</h3>`;
-  h += `<p class="chal-points-line">🏆 ${esc(t('chal.pointsTitle'))}: <b>${chalPointsOf(CHAL.mine.map(x => x.part))}</b></p>` + chalMedalsHTML();
-  h += `<h3 class="history-title">${esc(t('chal.catalogTitle'))}</h3>`;
-  h += chalPlan21CardHTML();
-  /* El catálogo, compacto (diseño §2): icono de la métrica,
-     nombre, la meta y el plazo en una línea, «Medalla + 1 punto»
-     y el estado si ya participo. El párrafo fundado vive entero
-     en la ficha del reto, que se abre tocando la tarjeta.
-     Correctivo 2026-11-08 (la misma orden de arriba): la tarjeta
-     del catálogo pintaba SOLO el emoji de la métrica como icono
-     principal; toma su sitio la cara de músculos, que es la cara
-     de los retos por unirse del paquete de la mascota (la misma
-     que ya pintan las tarjetas de grupo por unirse en
-     chalItemHTML). La métrica sigue nombrada en el texto de la
-     línea de meta. */
-  h += CHAL_CATALOG.map(c => {
-    const mineC = CHAL.mine.filter(x => x.chal.catalogId === c.id);
-    const cur = mineC.find(x => chalJoinState(x.part) === 'pending')
-      || mineC.find(x => chalIsApproved(x.part) && !x.part.completedAt && x.chal.endDate >= today)
-      || mineC.find(x => x.part.completedAt) || null;
-    let st = '';
-    if (cur) {
-      if (cur.part.completedAt) st = `<p class="chal-cat-state chal-state chal-state-done">✓ ${esc(t('chal.stateDone'))}</p>`;
-      else if (chalJoinState(cur.part) === 'pending') st = `<p class="chal-cat-state chal-state chal-state-pend">⏳ ${esc(t('chal.statePending'))}</p>`;
-      else if (chalJoinState(cur.part) === 'rejected') st = `<p class="chal-cat-state chal-state chal-state-rej">✕ ${esc(t('chal.stateRejected'))}</p>`;
-      else st = `<div class="chal-cat-bar">${chalBarHTML(cur.part, cur.chal)}</div>`;
-    }
-    return `<div class="chal-item chal-cat" data-chal-act="open" data-chal-cat="${c.id}" role="button" tabindex="0">
-      <div class="chal-item-head"><span class="chal-head-l"><img class="chal-cat-face" src="${CHAL_FACE_MUSCLE}" alt="" aria-hidden="true" onerror="this.remove()"><b>${esc(t('chal.cat.' + c.id + '.title'))}</b></span><span class="chal-tag">${esc(t('chal.periodDaysTxt', { n: c.periodDays }))}</span></div>
-      <p class="chal-metric">${esc(t('chal.goalLine', { y: c.target, metric: t('chal.metric.' + c.metric), n: c.periodDays }))}</p>
-      <p class="chal-medal-line">${esc(t('chal.medalPointLine'))}</p>
-      ${st}
-    </div>`;
-  }).join('');
-  h += `<h3 class="history-title">${esc(t('chal.groupTitle'))}</h3>`;
-  /* Descubrimiento: SOLO retos activos (aclaración de Ronald,
-     2026-11-04 18:42 CST: el alumno ve solo retos activos). Un
-     reto de grupo ya vencido no se ofrece para unirse; quien
-     participa en él lo sigue viendo en «Mis retos» y en sus
-     medallas, que salen de CHAL.mine, no de esta lista. */
-  const groupsActive = CHAL.groups.filter(g => g.endDate >= today);
-  h += groupsActive.length ? groupsActive.map(g => chalItemHTML(g, null, { joinable: true })).join('') : `<div class="wempty">${esc(t('chal.groupEmpty'))}</div>`;
-  if (chalCanManage()) h += chalManageHTML();
-  body.innerHTML = h;
-  chalWireForms();
+  /* AUTH-518: la página corta — la intro de siempre y SOLO el
+     reto destacado. Mis retos, Mis medallas y el repositorio
+     entero viven en las hojas de las tres cajitas de la línea
+     de «Volver»; nada de lo de hoy se pierde, se mueve. */
+  body.innerHTML = `<p class="progress-hint">${esc(t('chal.intro'))}</p>` + chalFeaturedHTML();
+  /* Si hay una hoja de cajita abierta, se repinta con el estado
+     nuevo: las acciones de siempre la mantienen al día. */
+  if (CHAL_SHEET && CHAL_SHEET.box) chalSheetPaint();
 }
 function chalManageHTML() {
   const me = chalMe();
   const scopeTxt = (typeof IS_OWNER !== 'undefined' && IS_OWNER) || ROLE === 'administrador' ? t('chal.forAll') : t('chal.forMine');
   let h = `<h3 class="history-title">${esc(t('chal.manageTitle'))}</h3>`;
-  /* Asignar del catálogo */
-  h += `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.assignTitle'))}</b></div>
-    ${CHAL.students && CHAL.students.length ? `
-    <label class="muted">${esc(t('chal.studentLbl'))}<select id="chal-asg-student" class="chal-input">${CHAL.students.map(s => `<option value="${s.id}">${esc(s.name || s.email || '')}</option>`).join('')}</select></label>
-    <label class="muted">${esc(t('chal.challengeLbl'))}<select id="chal-asg-cat" class="chal-input">${CHAL_CATALOG.map(c => `<option value="${c.id}">${esc(t('chal.cat.' + c.id + '.title'))}</option>`).join('')}</select></label>
-    <div class="chal-actions"><button type="button" class="btn-primary" id="chal-asg-btn">${esc(t('chal.assignBtn'))}</button></div>`
-    : `<div class="wempty">${esc(t('chal.noStudents'))}</div>`}
+  /* AUTH-518: asignar (a una persona o a un grupo) abre la hoja
+     de asignar; el formulario de un solo alumno de hoy se retira
+     porque la hoja lo cubre entero. */
+  h += `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.assignSheetTitle'))}</b></div>
+    <div class="chal-actions"><button type="button" class="btn-primary" id="chal-asg-open">${esc(t('chal.assignBtn'))}</button></div>
   </div>`;
+  /* AUTH-518: el reto destacado de la página — ajuste SOLO del
+     administrador/dueño (D-R5): el Plan 21, un reto de conteo o
+     un reto de grupo vigente. */
+  if ((typeof IS_OWNER !== 'undefined' && IS_OWNER) || ROLE === 'administrador') {
+    const f = CHAL.featured || { source: 'plan21', refId: '' };
+    const cur = f.source === 'catalog' ? 'catalog:' + f.refId : (f.source === 'challenge' ? 'challenge:' + f.refId : 'plan21');
+    const groupOpts = [...CHAL.created.filter(c => c.kind === 'group'), ...CHAL.groups];
+    h += `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.featuredLbl'))}</b></div>
+    <label class="muted">${esc(t('chal.featuredLbl'))}<select id="chal-feat-sel" class="chal-input">
+      <option value="plan21"${cur === 'plan21' ? ' selected' : ''}>${esc(t('plan21.title'))}</option>
+      ${CHAL_CATALOG.map(c => `<option value="catalog:${c.id}"${cur === 'catalog:' + c.id ? ' selected' : ''}>${esc(t('chal.cat.' + c.id + '.title'))}</option>`).join('')}
+      ${groupOpts.map(g => `<option value="challenge:${g.id}"${cur === 'challenge:' + g.id ? ' selected' : ''}>${esc(chalNameOf(g))}</option>`).join('')}
+    </select></label>
+    <div class="chal-actions"><button type="button" class="btn-primary" id="chal-feat-btn">${esc(t('chal.featuredSaveBtn'))}</button></div>
+  </div>`;
+  }
   /* Diseñar grupo */
   h += `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.designTitle'))}</b></div>
     <label class="muted">${esc(t('chal.fName'))}<input type="text" id="chal-d-name" class="chal-input" maxlength="80" placeholder="${esc(t('chal.fNamePh'))}"></label>
@@ -70510,12 +70869,14 @@ function chalManageHTML() {
   }).join('');
   return h;
 }
+/* AUTH-518: los formularios de gestión viven ahora en la hoja
+   del repositorio: este cableado se llama al pintar esa hoja
+   (desde chalSheetPaint) y actúa sobre #chal-ficha-sheet-body. */
 function chalWireForms() {
-  const asgBtn = $('chal-asg-btn');
-  if (asgBtn) asgBtn.onclick = () => {
-    const stu = $('chal-asg-student'), cat = $('chal-asg-cat');
-    if (stu && cat && stu.value) chalAssign(stu.value, cat.value);
-  };
+  const asgOpen = $('chal-asg-open');
+  if (asgOpen) asgOpen.onclick = () => chalAssignOpen();
+  const featBtn = $('chal-feat-btn');
+  if (featBtn) featBtn.onclick = () => { const s = $('chal-feat-sel'); if (s) chalFeaturedSave(s.value); };
   const dBtn = $('chal-d-btn');
   if (dBtn) dBtn.onclick = () => {
     const name = ($('chal-d-name') || {}).value || '';
@@ -70527,35 +70888,56 @@ function chalWireForms() {
     if (!(days >= 1 && days <= 90)) { toast(t('chal.needDays'), true); return; }
     chalCreateGroup({ title: String(name).trim().slice(0, 80), metric: CHAL.designMetric, target, days, reward: String(reward).trim().slice(0, 200) });
   };
-  document.querySelectorAll('#chal-body [data-chal-metric]').forEach(b => {
-    b.onclick = () => { CHAL.designMetric = b.dataset.chalMetric; chalRenderPaint(); };
+  document.querySelectorAll('#chal-ficha-sheet-body [data-chal-metric]').forEach(b => {
+    b.onclick = () => { CHAL.designMetric = b.dataset.chalMetric; chalSheetPaint(); };
   });
+}
+/* AUTH-518: el despachador de acciones de retos, compartido por
+   la página (#chal-body) y por la hoja de las cajitas
+   (#chal-ficha-float): las tarjetas se comportan igual en su
+   casa nueva que en la página de antes. */
+function chalActDispatch(el) {
+  const act = el.dataset.chalAct, id = el.dataset.chalId;
+  if (act === 'open') { if (el.dataset.chalCat) chalSheetOpenCat(el.dataset.chalCat); else chalSheetOpenId(id); }
+  else if (act === 'assign') { chalAssignOpen(el.dataset.chalCat ? 'cat:' + el.dataset.chalCat : undefined); }
+  else if (act === 'p21start') { plan21OpenSheet(); }
+  else if (act === 'p21view') { Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} }); }
+  else if (act === 'leave') chalLeave(id);
+  else if (act === 'abandon') chalAbandon(id);
+  else if (act === 'delcreated') chalDeleteCreated(id);
+  else if (act === 'table') {
+    CHAL.openTables[id] = !CHAL.openTables[id];
+    if (CHAL.openTables[id] && !CHAL.partsByChal[id]) {
+      chalLoadParts(id).then(() => chalRenderPaint()).catch(() => chalRenderPaint());
+    }
+    chalRenderPaint();
+  }
 }
 /* Delegación de acciones de la pantalla (una sola vez). */
 { const wire = () => {
   const back = $('chal-back');
   if (back && !back.dataset.wired) { back.dataset.wired = '1'; back.onclick = () => { try { switchTab('track'); } catch {} }; }
+  /* AUTH-518: las tres cajitas de la línea de «Volver». */
+  const boxMine = $('chal-box-mine'), boxMedals = $('chal-box-medals'), boxRepo = $('chal-box-repo');
+  if (boxMine && !boxMine.dataset.wired) { boxMine.dataset.wired = '1'; boxMine.onclick = () => chalBoxOpen('mine'); }
+  if (boxMedals && !boxMedals.dataset.wired) { boxMedals.dataset.wired = '1'; boxMedals.onclick = () => chalBoxOpen('medals'); }
+  if (boxRepo && !boxRepo.dataset.wired) { boxRepo.dataset.wired = '1'; boxRepo.onclick = () => chalBoxOpen('repo'); }
   const body = $('chal-body');
-  if (!body || body.dataset.wired) return;
-  body.dataset.wired = '1';
-  body.addEventListener('click', e => {
-    const el = e.target.closest('[data-chal-act]');
-    if (!el) return;
-    const act = el.dataset.chalAct, id = el.dataset.chalId;
-    if (act === 'open') { if (el.dataset.chalCat) chalSheetOpenCat(el.dataset.chalCat); else chalSheetOpenId(id); }
-    else if (act === 'p21start') { plan21OpenSheet(); }
-    else if (act === 'p21view') { Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} }); }
-    else if (act === 'leave') chalLeave(id);
-    else if (act === 'abandon') chalAbandon(id);
-    else if (act === 'delcreated') chalDeleteCreated(id);
-    else if (act === 'table') {
-      CHAL.openTables[id] = !CHAL.openTables[id];
-      if (CHAL.openTables[id] && !CHAL.partsByChal[id]) {
-        chalLoadParts(id).then(() => chalRenderPaint()).catch(() => chalRenderPaint());
-      }
-      chalRenderPaint();
-    }
-  });
+  if (body && !body.dataset.wired) {
+    body.dataset.wired = '1';
+    body.addEventListener('click', e => {
+      const el = e.target.closest('[data-chal-act]');
+      if (el) chalActDispatch(el);
+    });
+  }
+  const fl = $('chal-ficha-float');
+  if (fl && !fl.dataset.wired) {
+    fl.dataset.wired = '1';
+    fl.addEventListener('click', e => {
+      const el = e.target.closest('[data-chal-act]');
+      if (el) chalActDispatch(el);
+    });
+  }
 };
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire(); }
 

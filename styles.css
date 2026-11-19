@@ -7092,3 +7092,24 @@ textarea.gest-in { resize: none; }
 .sf-ausprog i { display: block; height: 100%; width: 0; background: #3ddc5a; border-radius: 2px; }
 .sf-austime { margin-top: 7px; font-size: 12px; color: #cfe0f2; font-variant-numeric: tabular-nums; }
 .sf-austage[hidden] { display: none; }
+
+/* AUTH-518 · EL MECANISMO DE RETOS: la línea de «Volver» con
+   sus tres cajitas a la derecha (la pieza .btn-ghost de la
+   casa; letra de cajita a 13 px para que las tres + Volver
+   quepan en una fila a 360 px, como la maqueta aprobada, con
+   el toque mínimo de la casa), la tarjeta destacada, la línea
+   «Asignado por», los puntos en grande de la hoja de medallas
+   y las filas de la hoja de asignar. */
+.chal-toprow { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.chal-toprow .prog-back { flex: none; }
+.chal-boxes { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.chal-box { min-height: 44px; padding: 8px 12px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+.chal-box-n { background: #0d9488; color: #fff; border-radius: 999px; font-size: .78rem; font-weight: 800; padding: 1px 7px; line-height: 1.5; }
+.chal-head-tags { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.chal-featured { border: 2px solid #0d9488; background: rgba(13, 148, 136, 0.05); }
+.chal-tag-star { background: #fef3c7; color: #92400e; }
+.chal-assignedby { margin: 4px 0 0; color: #555; font-size: .9rem; }
+.chal-points-big { font-size: 1.2rem; font-weight: 700; }
+.chal-mode-row { display: flex; gap: 10px; align-items: center; width: 100%; box-sizing: border-box; text-align: left; min-height: 52px; padding: 10px 14px; border: 1px solid #bbb; border-radius: 12px; background: #fff; margin: 6px 0; font-size: 1rem; cursor: pointer; color: #222; }
+.chal-mode-on { border-color: #0d9488; background: rgba(13, 148, 136, 0.07); font-weight: 700; }
+.chal-assign-summary { font-weight: 700; margin: 10px 0 0; }
