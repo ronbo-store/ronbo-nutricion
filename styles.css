@@ -6587,6 +6587,7 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sf-exrow .sess-full-exclock { display: inline-block; background: rgba(255,255,255,.14); border-radius: 99px; padding: 4px 12px; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .sf-paused { font-size: 13px; font-weight: 800; color: #fbbf24; letter-spacing: .06em; }
 .sf-running { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.72); }
+.sf-goal { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.55); white-space: nowrap; font-variant-numeric: tabular-nums; }
 /* AUTH-485 · LOS CÍRCULOS DE SERIES (maqueta C de Ronald): una
    fila flexible que ENVUELVE sin encoger — el círculo es de
    44 px siempre (suelo de toque de la casa); con muchas series

@@ -6543,7 +6543,7 @@ en: {
   'sess.dayMsg': 'MESSAGE OF THE DAY', 'sess.reflToday': "TODAY'S REFLECTION",
   'sess.articleLine': 'Article · read it or listen to it',
   'sess.seeHow': 'See how it’s done', 'sess.seeHowSub': 'Video · muscles · grip',
-  'sess.nowLab': 'NOW', 'sess.exRunning': 'in progress',
+  'sess.nowLab': 'NOW', 'sess.exRunning': 'in progress', 'sess.timeGoal': 'Time goal {t}',
   'sess.ofDay': '{p}% of the day',
   'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel', 'sess.barFinish': 'Finish',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
@@ -11933,7 +11933,7 @@ es: {
   'sess.dayMsg': 'MENSAJE DEL DÍA', 'sess.reflToday': 'REFLEXIÓN DE HOY',
   'sess.articleLine': 'Artículo · leerlo o escucharlo',
   'sess.seeHow': 'Ver cómo se hace', 'sess.seeHowSub': 'Video · músculos · agarre',
-  'sess.nowLab': 'AHORA', 'sess.exRunning': 'en curso',
+  'sess.nowLab': 'AHORA', 'sess.exRunning': 'en curso', 'sess.timeGoal': 'Meta de tiempo {t}',
   'sess.ofDay': '{p}% del día',
   'sess.barLabel': 'Barra de la sesión', 'sess.fullLabel': 'Panel de la sesión', 'sess.barFinish': 'Finalizar',
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
@@ -41219,6 +41219,31 @@ function sessHowRowHTML(ex) {
   if (!photo) return btn;
   return `<div class="sf-howrow">${btn}<img class="sf-howimg" src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()"></div>`;
 }
+/* AUTH-516 · LA META DE TIEMPO DEL EJERCICIO EN CURSO (decisión
+   de Ronald, 2026-11-19 13:22 CST, precisada a las 13:27): el
+   TOTAL ASIGNADO del ejercicio — la suma de los máximos de sus
+   series — SOLO cuando TODAS sus series son por tiempo, con el
+   criterio de la casa (trainTimedOf, el mismo de la cuenta de
+   AUTH-502 y del botoncito de la tarjeta) sobre las series tal
+   como la tarjeta las conoce (las de la marca; una serie añadida
+   a mano hereda el criterio de su ejercicio, como en la tarjeta).
+   La línea del reloj compara contra el tiempo total activo del
+   ejercicio, así que la meta que la acompaña es la del ejercicio
+   completo — la de la SERIE sigue viviendo en el círculo durante
+   su cuenta: dos escalas distintas, ninguna cifra duplicada.
+   Ejercicio de repeticiones, mixto o sin criterio → 0 y la línea
+   queda como siempre: la estimación de la ruta guiada quedó
+   descartada por Ronald — aquí solo vive tiempo ASIGNADO. */
+function sessGoalSec(ex, chk) {
+  if (!chk || !Array.isArray(chk.sets) || !chk.sets.length) return 0;
+  let tot = 0;
+  for (let i = 0; i < chk.sets.length; i++) {
+    const c = trainTimedOf(ex, chk.sets[i]);
+    if (!c || !(c.max > 0)) return 0;
+    tot += c.max;
+  }
+  return tot;
+}
 function sessFullSync(run) {
   const full = $('sess-full'); if (!full) return;
   sessFoldDaySync();   /* AUTH-491/494/504: cada día el Mensaje y la Reflexión nacen plegados */
@@ -41263,9 +41288,11 @@ function sessFullSync(run) {
     else if (flowSt === 'paused') acts = `<div class="sf-btnrow sf-row3"><button type="button" class="sf-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button><button type="button" class="sf-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>${quitBtn}</div>`;
     else if (flowSt === 'open') acts = `<div class="sf-btnrow sf-row3"><button type="button" class="sf-btn stop" data-pill-pause="${ck}">${esc(t('train.flow.pause'))}</button><button type="button" class="sf-btn fin" data-pill-finish="${ck}">${esc(t('train.flow.finish'))}</button>${quitBtn}</div>`;
     else acts = `<div class="sf-btnrow sf-row2"><button type="button" class="sf-btn ini" data-pill-resume="${ck}">${esc(t('train.flow.resume'))}</button>${quitBtn}</div>`;
+    const goalSec = sessGoalSec(st.eff[st.cur].ex, curChk);   /* AUTH-516: el total asignado del ejercicio en curso, si es por tiempo */
+    const goalBlk = goalSec > 0 ? `<span class="sf-goal">· ${esc(t('sess.timeGoal', { t: sessFmtExClock(goalSec * 1000) }))}</span>` : '';
     const exState = flowSt === 'paused'
-      ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-paused">${esc(t('sess.exPaused'))}</span>`
-      : (curChk && flowSt !== 'closing' ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-running">${esc(t('sess.exRunning'))}</span>` : '');
+      ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-paused">${esc(t('sess.exPaused'))}</span>${goalBlk}`
+      : (curChk && flowSt !== 'closing' ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-running">${esc(t('sess.exRunning'))}</span>${goalBlk}` : '');
     const dotsBlk = sessDotsHTML(curChk, ck, flowSt, st.eff[st.cur].ex);   /* AUTH-485: los círculos de series del ejercicio en curso · AUTH-502: el ejercicio entra para detectar el tiempo sin leer la biblioteca */
     const nowBlk = `<div class="sf-now"><div class="sf-now-lab">${esc(t('sess.nowLab'))} · ${esc(pos)}</div><div class="sf-name">${esc(curName)}</div>`
       + (exState ? `<div class="sf-exrow">${exState}</div>` : '')
@@ -41278,7 +41305,7 @@ function sessFullSync(run) {
     const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
     const cdLive = curChk ? sessCdOf(curChk) : null;   /* AUTH-502: la fase de la cuenta del círculo entra en la firma — nacer, pasar de preparación a cuenta y llegar a cero repintan una vez cada cambio; el segundo a segundo lo pinta el tick en sitio */
     const cdTerm = cdLive ? 'C' + cdLive.si + ':' + (cdLive.cd.f === 1 ? 'z' : (sessCdElapsed(cdLive.cd) < SESS_CD_PREP ? 'p' : 'r')) : '';
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace */
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm, 'G' + goalSec].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace · AUTH-516: el término G trae la meta de tiempo del ejercicio en curso — si cambia el ejercicio o su criterio, la línea repinta una vez; el segundo a segundo lo sigue pintando el tick en sitio, sin tocar la meta */
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
@@ -65413,7 +65440,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-plan21-en-retos';
+const PWA_SW_VERSION = '20261119-meta-tiempo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
