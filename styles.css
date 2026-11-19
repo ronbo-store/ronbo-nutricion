@@ -1962,14 +1962,12 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .train-dressed-ring { position: relative; width: 56px; height: 56px; flex: none; }
 .train-dressed-ring svg { display: block; }
 .train-dressed-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; }
-.train-dressed-tag { display: block; width: fit-content; max-width: 94%; margin: 8px auto 0; text-align: center; background: linear-gradient(90deg, #FF4D2E, #FF2E88); color: #fff; font-weight: 800; font-size: 14px; padding: 6px 16px; border-radius: 999px; box-shadow: 0 6px 16px rgba(255,46,136,.35); }
 /* AUTH-2026-11-05-266: la celebración de la mascota dentro de la
    pastilla de completado (30 px, junto al texto); si la imagen no
    carga, se retira y la pastilla queda como siempre. */
 .train-done-face { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; vertical-align: -9px; margin-right: 8px; }
 .train-dressed-bar { height: 9px; border-radius: 99px; background: rgba(255,255,255,.22); overflow: hidden; margin-top: 10px; }
 .train-dressed-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #FFB300, #C6FF4A); }
-.train-dressed-msg { margin-top: 10px; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.28); border-radius: 12px; padding: 8px 12px; font-style: italic; font-size: 13.5px; text-align: center; }
 .train-day-dressed h4 { color: #fff; font-size: 17px; margin-top: 12px; }
 .train-day-dressed .train-ex-card { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.28); border-left: 5px solid var(--stripe, #38BDF8); border-radius: 12px; padding: 9px 10px; margin: 7px 0; flex-wrap: wrap; cursor: pointer; }
 .train-day-dressed .train-ex-card.is-done { background: rgba(34,197,94,.20); }
@@ -6568,7 +6566,10 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sf-clock { font-size: 52px; font-weight: 800; letter-spacing: .01em; line-height: 1; font-variant-numeric: tabular-nums; }
 .sf-franja { position: relative; height: 8px; border-radius: 99px; background: rgba(255,255,255,.18); }
 .sf-franja > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: linear-gradient(90deg, #22c55e, #84cc16); }
-.sf-prog { font-size: 13.5px; color: rgba(255,255,255,.78); font-weight: 600; margin-top: -8px; }
+.sf-prog { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 13.5px; color: rgba(255,255,255,.78); font-weight: 600; margin-top: -8px; }
+/* AUTH-512: el ánimo de la pastilla, discreto al final de la
+   línea de avance — letra pequeña y atenuada, sin fondo. */
+.sf-mood { color: #8fa9c4; font-weight: 600; font-size: 12px; white-space: nowrap; }
 /* AUTH-507 · EL BLOQUE DE DÍA COMPLETADO de la completa: su
    título y su resumen sobre el azul del panel; el formulario
    de cierre que vive dentro trae su propia superficie clara

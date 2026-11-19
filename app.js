@@ -41480,7 +41480,15 @@ function sessFullSync(run) {
       + acts + `</div>`;
     const nxtBlk = (st.nxt != null && st.nxt !== st.cur)
       ? `<div class="sf-next"><span class="sf-next-lab">${esc(t('sess.pillNext'))}</span><span class="sf-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sf-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '';
-    const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
+    /* AUTH-512 · EL ÁNIMO, DISCRETO, AL FINAL DE ESTA LÍNEA
+       (decisión de Ronald, 2026-11-19, sobre maqueta aprobada):
+       la pastilla «¡A darle!» salió de la cabecera del día y su
+       ánimo vive aquí, en letra pequeña y atenuada (.sf-mood),
+       al final de la línea de avance que ya existía — sin línea
+       nueva, sin altura añadida y sin repetir la cifra (la
+       línea ya dice «Ejercicio X de N»). Solo lectura; en la
+       pastilla minimizada no va nada. */
+    const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog"><span>${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</span><span class="sf-mood">${esc(t('shareW.tag'))} 🔥</span></div>`;
     const cdLive = curChk ? sessCdOf(curChk) : null;   /* AUTH-502: la fase de la cuenta del círculo entra en la firma — nacer, pasar de preparación a cuenta y llegar a cero repintan una vez cada cambio; el segundo a segundo lo pinta el tick en sitio */
     const cdTerm = cdLive ? 'C' + cdLive.si + ':' + (cdLive.cd.f === 1 ? 'z' : (sessCdElapsed(cdLive.cd) < SESS_CD_PREP ? 'p' : 'r')) : '';
     const warmTerm = curChk && curChk.warmup && curChk.warmup.on === true && Array.isArray(curChk.warmup.sets) ? 'W' + curChk.warmup.sets.map(s2 => (s2 && s2.dot === true ? 1 : 0) + ':' + (s2 && s2.loadVal != null ? String(s2.loadVal) : '')).join(',') : 'W-';   /* AUTH-505: la aproximación entra en la firma — encender el bloque, cambiar su lista o tocar una marca «A» repinta la línea una vez · AUTH-511: sus cargas también — lo que la rueda escriba en una fila de aproximación repinta su cara */
@@ -46592,8 +46600,8 @@ function trainShareOpen(model) {
 /* CHECKLIST FLOTANTE (cuarta enmienda de Ronald, chat 2026-10-26
    02:32 CDT; §6 del informe de Entrenamiento-HOY): la tarjeta del
    día seleccionado se VISTE con el sistema visual de la tarjeta
-   exportable — mismo degradado teal, anillo de % en lima, etiqueta
-   gancho centrada coral→rosa, barra ámbar→lima, filas de cristal
+   exportable — mismo degradado teal, anillo de % en lima, barra
+   ámbar→lima, filas de cristal
    con franja lateral de la paleta vibrante y marca de agua del
    logo-icono — y tocar una fila abre la ventana flotante del
    ejercicio (#train-ex-float) con todo lo ya construido para él:
@@ -46607,9 +46615,10 @@ function trainShareOpen(model) {
    RECOGE (animación de cierre) y la tarjeta se re-pinta con el
    estado nuevo. Pasado: la flotante abre en SOLO LECTURA con lo
    registrado; futuro: ficha con multimedia, sin registro; el día
-   de descanso no tiene filas ni flotante. La franja del mensaje
-   del día aparece solo si shareMsgForDate devuelve texto (con el
-   banco vacío no aparece: la pantalla funciona sin franja). */
+   de descanso no tiene filas ni flotante. (La etiqueta gancho y la
+   franja del mensaje que esta cabecera pintó al principio salieron
+   de la vista con AUTH-512: la frase vive en el Mensaje del cuadro
+   de sesión y el ánimo, discreto, en su línea de avance.) */
 function dressExRows(html, di, mode) {
   let n = 0;
   return String(html || '').replace(/<div class="train-ex-card[^"]*"/g, m =>
@@ -46631,31 +46640,28 @@ const MASCOT_EXPECT_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/avat
 function trainDressedHeadHTML(plan, logs, di, iso) {
   const m = trainShareModel(plan, logs, di, iso);
   const pct = m.total ? Math.round(100 * m.doneCount / m.total) : 0;
-  const log = logs.find(l => l.date === iso && l.dayIndex === di) || null;
-  const st = trainLogStatus(log);
-  const doneFace = (m.closedStatus === 'done') ? `<img class="train-done-face" src="${MASCOT_CELEB_URL}" alt="" onerror="this.remove()">` : '';
-  let hook;
-  if (log && st === 'skipped') hook = esc(t('train.d.statusSkipped'));
-  else if (!log && iso < todayISO()) hook = esc(t('train.d.statusNone'));
-  /* COMPLETADO HONESTO: el gancho de completado exige el registro
-     cerrado (closedStatus 'done'); con solo marcas — aunque estén
-     todas — la cabecera muestra el AVANCE, como el resto de
-     estados no completados. */
-  else if (m.closedStatus === 'done') hook = esc(t('shareW.done'));
-  else hook = esc(t('shareW.tag')) + ' 🔥 ' + esc(t('shareW.progress', { x: m.doneCount, y: m.total }));
   const C = 2 * Math.PI * 24;
-  const msg = shareMsgRevealedFor(iso);
   /* AUTH-407 · LA FRANJA CAMBIA DE CASA: la barra de
      avance (.train-dressed-bar) ya no se pinta en esta cabecera
      — vive como el borde de abajo de la píldora gruesa
      (sessPillSync), con la llamita en la punta del relleno.
-     Una sola franja en la app; la pastilla «¡A darle!»
-     conserva su texto y el anillo conserva su pct. */
+     Una sola franja en la app; el anillo conserva su pct. */
+  /* AUTH-512 · LA PASTILLA Y LA FRASE SALEN DE ESTA CABECERA
+     (decisión de Ronald, 2026-11-19, sobre maqueta aprobada):
+     la etiqueta gancho (.train-dressed-tag — el avance, el
+     completado, el saltado y el sin registro, con la cara de
+     celebración de AUTH-266 dentro cuando el día cerraba) y la
+     franja del mensaje (.train-dressed-msg) ya no se pintan
+     aquí. La frase del día no se pierde: sigue viviendo en el
+     Mensaje del cuadro de sesión (sessMsgHTML, con el banco
+     SHARE_MSG_BANK intacto) y en la tarjeta de compartir; y el
+     ánimo «¡A darle!» se muda, discreto, al final de la línea
+     de avance del cuadro de sesión (.sf-mood en sessFullSync).
+     La cabecera conserva el kicker, el anillo y su pct, y el
+     día empieza directo en su contenido. */
   return `<div class="train-dressed-head">
     <div class="train-dressed-top"><span class="train-dressed-kicker">${esc(iso === todayISO() ? t('shareW.kickerToday') : t('shareW.kicker'))}</span>
     <span class="train-dressed-ring"><svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="5"/><circle cx="28" cy="28" r="24" fill="none" stroke="#C6FF4A" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - pct / 100)).toFixed(1)}" transform="rotate(-90 28 28)"/></svg><span class="train-dressed-pct">${pct}%</span></span></div>
-    <span class="train-dressed-tag">${doneFace}${hook}</span>
-    ${msg ? `<div class="train-dressed-msg">${esc(msg.icon)} ${esc(msg.text)}</div>` : ''}
   </div>`;
 }
 function trainDressedCardHTML(plan, logs, di, iso, innerHTML, extraCls) {
@@ -65962,7 +65968,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-circulos-carga';
+const PWA_SW_VERSION = '20261119-pastilla-panel';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
