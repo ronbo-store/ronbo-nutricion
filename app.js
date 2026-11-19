@@ -6406,6 +6406,58 @@ en: {
   'train.repeat.applyBtn': 'Apply repeat',
   'train.repeat.applyNote': 'Approved. Nothing is saved yet: applying opens the editor with the copy ready and your save makes it real.',
   'train.planFreq': 'Your plan: {n} days per week',
+  'plan21.title': '21-Day Plan for Beginners',
+  'plan21.catalogLine': '21 days · Torso/Legs · it adapts to your days and your equipment',
+  'plan21.freqLine': 'Your plan: {n} training days a week, for 3 weeks',
+  'plan21.startBtn': 'Start this plan',
+  'plan21.sheetTitle': 'Your 21-Day Plan',
+  'plan21.sheetForm4': 'You will train 4 days a week (Torso/Legs), with fixed rest days placed on your available days.',
+  'plan21.sheetForm5': 'You will train 5 days a week (Torso/Legs plus a light technique day), with fixed rest days placed on your available days.',
+  'plan21.sheetStepSuave': 'Gentle start: the first week uses the low end of each range.',
+  'plan21.sheetStepStd': 'Standard start: full ranges from week 1.',
+  'plan21.sheetStepBase': 'You already have a base: full ranges, and the main lifts aim at the top of the range in week 2.',
+  'plan21.sheetStart': 'It starts on {date} and ends on {date2}.',
+  'plan21.sheetDaysMin': 'Pick at least 4 days to be able to start.',
+  'plan21.sheetGo': 'Start my plan',
+  'plan21.sentTrainer': 'Request sent: your trainer will build your 21-Day Plan.',
+  'plan21.startedOk': 'Your 21-Day Plan is active.',
+  'plan21.startedHold': 'Your plan is created. It will activate on its own when your health declaration is ready.',
+  'plan21.dayOf': 'Day {x} of 21',
+  'plan21.finished': 'You finished the 21 days 🎉',
+  'plan21.warnNoData': 'Weighing yourself and entering your measurements would make this plan fit you much better. Until then, the plan works with a provisional setup.',
+  'plan21.day1Weigh': 'Day 1 step: weigh yourself',
+  'plan21.weighBtn': 'Enter my weight',
+  'plan21.goalsFixedNote': 'Your food goal is provisional: 1,500 kcal a day. As soon as you enter your weight and your measurements, it is replaced by the calculation made for you.',
+  'plan21.goalsFallbackNote': 'Your food goal was set from your declared objective while your data is completed.',
+  'plan21.goalsHeldNote': 'Your food plan is waiting for a health review of your declaration.',
+  'plan21.askWeekQ': 'Week {n} of the plan is coming: is the food OK, or would you like a little change?',
+  'plan21.askOk': "It's fine as is",
+  'plan21.askVary': 'I want a change',
+  'plan21.askPick': 'Two different weeks for you — pick the one you like best:',
+  'plan21.candTitle': 'Option {n}',
+  'plan21.askChosen': 'Done: your new food week is saved.',
+  'plan21.askNeedSetup': 'To build your food weeks, first answer the cooking questions in your food plan.',
+  'plan21.askKept': 'Perfect: the planned week stays.',
+  'plan21.exitTitle': 'You completed the 21-Day Plan',
+  'plan21.exitBody': 'The next step is the continuous program, adjusted to you. This plan never renews on its own.',
+  'plan21.exitBtn': 'Move to the next level',
+  'plan21.exitSent': 'Your trainer already has your request to move to the next level.',
+  'plan21.trayStart': 'wants to start the 21-Day Plan',
+  'plan21.trayNext': 'finished the 21-Day Plan: move to the next level',
+  'plan21.trayApply': 'Build the plan',
+  'plan21.trayOpenEditor': 'Open the editor',
+  'plan21.noteCalib': 'Calibration week: pick a weight that leaves 3–4 reps in reserve.',
+  'plan21.noteTech': 'Technique practice: light load, 4 or more reps in reserve.',
+  'plan21.noteAssumedGym': 'The equipment was not on file: the plan was built with full-gym implements. Flag anything that does not fit.',
+  'plan21.noteDegraded': 'With these available days, some sessions fall on back-to-back days.',
+  'plan21.noteHealthAdj': 'Adjusted to the health declaration.',
+  'plan21.restDay': 'Rest',
+  'plan21.weekN': 'Week {n}',
+  'plan21.sessTA': 'Torso A',
+  'plan21.sessPA': 'Legs A',
+  'plan21.sessTB': 'Torso B',
+  'plan21.sessPB': 'Legs B',
+  'plan21.sessTC': 'Technique + Core',
   'train.markDone': 'Done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
   'train.chronoStart': '▶ Start workout',
@@ -11741,6 +11793,58 @@ es: {
   'train.repeat.applyBtn': 'Aplicar repetición',
   'train.repeat.applyNote': 'Aprobada. Aún no se guarda nada: al aplicar se abre el editor con la copia lista y tu guardado la hace real.',
   'train.planFreq': 'Tu plan: {n} días por semana',
+  'plan21.title': 'Plan 21 días para principiantes',
+  'plan21.catalogLine': '21 días · Torso/Pierna · se adapta a tus días y a tu equipo',
+  'plan21.freqLine': 'Tu plan: {n} días de entrenamiento por semana, durante 3 semanas',
+  'plan21.startBtn': 'Empezar este plan',
+  'plan21.sheetTitle': 'Tu Plan 21 días',
+  'plan21.sheetForm4': 'Entrenarás 4 días por semana (Torso/Pierna), con los descansos fijos colocados sobre tus días disponibles.',
+  'plan21.sheetForm5': 'Entrenarás 5 días por semana (Torso/Pierna y un día ligero de técnica), con los descansos fijos colocados sobre tus días disponibles.',
+  'plan21.sheetStepSuave': 'Arranque suave: la primera semana usa el extremo bajo de cada banda.',
+  'plan21.sheetStepStd': 'Arranque estándar: bandas plenas desde la semana 1.',
+  'plan21.sheetStepBase': 'Ya traes base: bandas plenas y los compuestos principales buscan el techo de la banda en la semana 2.',
+  'plan21.sheetStart': 'Empieza el {date} y termina el {date2}.',
+  'plan21.sheetDaysMin': 'Elige al menos 4 días para poder empezar.',
+  'plan21.sheetGo': 'Empezar mi plan',
+  'plan21.sentTrainer': 'Solicitud enviada: tu entrenador armará tu Plan 21 días.',
+  'plan21.startedOk': 'Tu Plan 21 días está activo.',
+  'plan21.startedHold': 'Tu plan quedó creado. Se activará solo cuando tu declaración de salud esté lista.',
+  'plan21.dayOf': 'Día {x} de 21',
+  'plan21.finished': 'Terminaste los 21 días 🎉',
+  'plan21.warnNoData': 'Pesarte y registrar tus medidas haría que este plan se adapte mucho mejor a ti. Mientras tanto, el plan funciona con un ajuste provisional.',
+  'plan21.day1Weigh': 'Paso del día 1: pésate',
+  'plan21.weighBtn': 'Registrar mi peso',
+  'plan21.goalsFixedNote': 'Tu meta de comida es provisional: 1.500 kcal al día. En cuanto registres tu peso y tus medidas, se sustituye por el cálculo hecho para ti.',
+  'plan21.goalsFallbackNote': 'Tu meta de comida se fijó desde tu objetivo declarado mientras se completan tus datos.',
+  'plan21.goalsHeldNote': 'Tu plan de comida espera una revisión de salud de tu declaración.',
+  'plan21.askWeekQ': 'Viene la semana {n} del plan: ¿la comida está bien o quieres variar un poco?',
+  'plan21.askOk': 'Está bien así',
+  'plan21.askVary': 'Quiero variar',
+  'plan21.askPick': 'Dos semanas diferentes para ti: elige la que más te guste:',
+  'plan21.candTitle': 'Opción {n}',
+  'plan21.askChosen': 'Listo: tu nueva semana de comida quedó guardada.',
+  'plan21.askNeedSetup': 'Para armar tus semanas de comida, primero responde las preguntas de cocina en tu plan de comida.',
+  'plan21.askKept': 'Perfecto: se mantiene la semana planeada.',
+  'plan21.exitTitle': 'Completaste el Plan 21 días',
+  'plan21.exitBody': 'El siguiente paso es el programa continuo, ajustado a ti. Este plan nunca se renueva solo.',
+  'plan21.exitBtn': 'Pasar al siguiente nivel',
+  'plan21.exitSent': 'Tu entrenador ya tiene tu solicitud de pasar al siguiente nivel.',
+  'plan21.trayStart': 'quiere empezar el Plan 21 días',
+  'plan21.trayNext': 'terminó el Plan 21 días: pasar al siguiente nivel',
+  'plan21.trayApply': 'Armar el plan',
+  'plan21.trayOpenEditor': 'Abrir el editor',
+  'plan21.noteCalib': 'Semana de calibración: elige un peso que te deje 3-4 repeticiones en reserva.',
+  'plan21.noteTech': 'Práctica de técnica: carga ligera, 4 o más repeticiones en reserva.',
+  'plan21.noteAssumedGym': 'El equipo no estaba registrado: el plan se armó con implementos de gimnasio completo. Avisa si algo no encaja.',
+  'plan21.noteDegraded': 'Con estos días disponibles, algunas sesiones caen en días seguidos.',
+  'plan21.noteHealthAdj': 'Ajustado a la declaración de salud.',
+  'plan21.restDay': 'Descanso',
+  'plan21.weekN': 'Semana {n}',
+  'plan21.sessTA': 'Torso A',
+  'plan21.sessPA': 'Pierna A',
+  'plan21.sessTB': 'Torso B',
+  'plan21.sessPB': 'Pierna B',
+  'plan21.sessTC': 'Técnica + Core',
   'train.markDone': 'Hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
   'train.chronoStart': '▶ Iniciar entrenamiento',
@@ -48182,7 +48286,8 @@ async function loadMyTraining() {
     ${isLoose ? `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div><div id="plan-ai-door"></div>` : `<h3 class="history-title">${esc(plan.title || '')}</h3>
     
     ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
-    <p class="progress-hint">${t('train.planFreq', { n: (plan.days || []).length })}</p>
+    <p class="progress-hint">${plan && plan.genSource && plan.genSource.kind === 'plan21' ? t('plan21.freqLine', { n: plan.genSource.form || 4 }) : t('train.planFreq', { n: (plan.days || []).length })}</p>
+    <div id="p21-slot"></div>
     `}
     ${myPlanLineHTML}
     <!-- AUTH-431 · LA FILA DE AÑADIR, BAJO EL PLAN (orden
@@ -48212,6 +48317,7 @@ async function loadMyTraining() {
   /* AUTH-493: sin plan activo y con autogestión, la puerta de la
      IA vive bajo el mensaje de «sin plan» (la tarjeta y sus dos
      pliegues de la maqueta aprobada). */
+  if (!isLoose && plan && plan.genSource && plan.genSource.kind === 'plan21') { try { plan21CardRender(plan); } catch {} }
   if (isLoose && canSelfManage) planAiDoorRender(box);
   /* AUTH-411: el bloque «Mis planes» se pinta y se cablea en
      su nueva casa, #train-custom-plans (index.html, dentro de
@@ -48971,6 +49077,8 @@ function propDetailLine(p) {
   if (p.type === 'repeatDay') return p.sourceLogDate
     ? t('train.repeat.propDayLogLine', { date: dateName(p.sourceLogDate), day: p.dayLabel || '' })
     : t('train.repeat.propDayLine', { day: p.dayLabel || '', plan: p.planTitle || '' });
+  if (p.type === 'plan21Start') return t('plan21.trayStart');
+  if (p.type === 'plan21Next') return t('plan21.trayNext');
   return p.type === 'change'
     ? t('train.prop.changeLine', { old: p.targetName || '', ex: propExName(p), day: p.dayLabel || '' })
     : t('train.prop.addLine', { ex: propExName(p), day: p.dayLabel || '' });
@@ -49036,6 +49144,7 @@ function renderPropTemplates() {
   box.querySelectorAll('[data-prop-tpl-edit]').forEach(b => b.onclick = () => { const tpl = TPL_BY_ID[b.dataset.propTplEdit]; if (tpl) mybOpenEdit(tpl); });
   box.querySelectorAll('[data-prop-tpl-del]').forEach(b => b.onclick = () => tplDelete(b.dataset.propTplDel));
   box.querySelectorAll('[data-prop-ex]').forEach(b => b.onclick = () => propOpenForm({ exerciseId: b.dataset.propEx, fromTemplateId: b.dataset.propTpl || null }));
+  box.querySelectorAll('[data-p21-start]').forEach(b => b.onclick = () => plan21OpenSheet());
 }
 function propTplCardHTML(tpl) {
   const open = PROP_TPL_OPEN.has(tpl.id);
@@ -49060,7 +49169,7 @@ function propTplCardHTML(tpl) {
   const n09acts = (tplVisibility(tpl) === 'private' && tplCanEdit(tpl))
     ? `<button type="button" class="btn-ghost btn-sm" data-prop-tpl-edit="${esc(tpl.id)}">${t('train.n09.edit')}</button><button type="button" class="btn-ghost btn-sm" data-prop-tpl-del="${esc(tpl.id)}">${t('train.n09.del')}</button>`
     : (tplCanEdit(tpl) ? '' : `<span class="tpl-lock">${t('train.n09.lockedNote')}</span>`);
-  return `<div class="prop-tpl-card"><div class="prop-tpl-info"><b>${esc(tplField(tpl, 'nombre'))}</b><span class="prop-tpl-meta">${esc(meta)}</span>${tplMetaHTML(tpl)}</div>${n09acts}<button type="button" class="btn-ghost btn-sm" data-prop-tpl-toggle="${esc(tpl.id)}">${open ? t('train.prop.hide') : t('train.prop.details')}</button>${detail}</div>`;
+  return `<div class="prop-tpl-card"><div class="prop-tpl-info"><b>${esc(tplField(tpl, 'nombre'))}</b><span class="prop-tpl-meta">${esc(meta)}</span>${tplMetaHTML(tpl)}</div>${n09acts}${tpl.plan21 === true ? `<span class="prop-tpl-meta">${esc(t('plan21.catalogLine'))}</span><button type="button" class="btn-primary btn-sm" data-p21-start="${esc(tpl.id)}">${t('plan21.startBtn')}</button>` : ''}<button type="button" class="btn-ghost btn-sm" data-prop-tpl-toggle="${esc(tpl.id)}">${open ? t('train.prop.hide') : t('train.prop.details')}</button>${detail}</div>`;
 }
 
 /* --- Formulario de propuesta (cliente) --- */
@@ -49218,6 +49327,8 @@ async function loadClientProposals(uid, plans, host) {
     await setDoc(doc(db, 'nutrition_progress', parts[0]), { status: parts[1], decidedAt: serverTimestamp(), decidedBy: auth.currentUser.uid }, { merge: true });
     loadClientProposals(PROP_TRAY.uid, PROP_TRAY.plans, PROP_TRAY.host);
   });
+  box.querySelectorAll('[data-prop-p21apply]').forEach(b => b.onclick = async () => { await plan21ApplyForStudent(PROP_TRAY.uid); });
+  box.querySelectorAll('[data-prop-p21next]').forEach(b => b.onclick = () => { openPlanEditor(PROP_TRAY.uid, null); toast(t('plan21.trayNext')); });
   box.querySelectorAll('[data-prop-open]').forEach(b => b.onclick = () => {
     const p = list.find(x => x.id === b.dataset.propOpen); if (!p) return;
     const plan = PROP_TRAY.plans.find(x => x.id === p.planId); if (plan) openPlanEditor(PROP_TRAY.uid, plan);
@@ -49265,6 +49376,8 @@ function propTrayCardHTML(p) {
     ${p.status === 'pending' ? `<button class="btn-primary btn-sm" data-prop-decide="${esc(p.id)}|approved">${t('train.prop.approve')}</button><button class="btn-ghost btn-sm" data-prop-decide="${esc(p.id)}|rejected">${t('train.prop.reject')}</button>` : ''}
     ${p.status === 'approved' ? ((p.type === 'repeatDay' || p.type === 'repeatWeek')
       ? `<button class="btn-primary btn-sm" data-prop-apply="${esc(p.id)}">${t('train.repeat.applyBtn')}</button>`
+      : p.type === 'plan21Start' ? `<button class="btn-primary btn-sm" data-prop-p21apply="${esc(p.id)}">${t('plan21.trayApply')}</button>`
+      : p.type === 'plan21Next' ? `<button class="btn-primary btn-sm" data-prop-p21next="${esc(p.id)}">${t('plan21.trayOpenEditor')}</button>`
       : (plan ? `<button class="btn-ghost btn-sm" data-prop-open="${esc(p.id)}">${t('train.prop.openEditor')}</button>` : `<span class="muted">${t('train.prop.planGone')}</span>`)) : ''}
   </div></div>`;
 }
@@ -49866,6 +49979,710 @@ function planAiTplDays(tpl) {
   }
   return days;
 }
+/* ================= PLAN 21 DÍAS PARA PRINCIPIANTES (AUTH-503) =================
+   Paquete que construye EXACTAMENTE lo decidido por Ronald el
+   2026-11-18/19 (documento PROPUESTA-PLAN-21-DIAS-2026-11-18.md,
+   sección «Decisiones de Ronald», D1–D10 + tabla §10 aprobada):
+   - D1: la forma (4 o 5 días/semana) la deciden las métricas del
+     usuario: 5 solo con ≥5 días disponibles Y (actividad ≥3 o
+     batería AUTH-399 completa); 4 por defecto. División
+     Torso/Pierna; el 5.º día es Técnica + Core.
+   - D2: descansos FIJOS colocados por el plan tras cada dos
+     sesiones, sobre los días disponibles del usuario: el plan
+     nace como calendario cerrado de 21 días fechados
+     (sessionsPerWeek 7 + 21 entradas; los descansos son entradas
+     freeDay explícitas, la tarjeta «Día libre asignado» de la
+     casa). Si los días del usuario obligan a sesiones seguidas
+     para no perder el volumen semanal decidido, la degradación
+     se declara en las notas del plan (noteDegraded).
+   - D3: el implemento se resuelve por patrón contra las
+     equipFamilies del usuario (AUTH-382); el patrón nunca
+     cambia. «corporal» cuenta siempre disponible (es el propio
+     cuerpo). Sin familias registradas: resolución de gimnasio
+     completo DECLARADA en las notas (noteAssumedGym).
+   - D4: sin cortes inventados: la batería solo elige la
+     VARIANTE de entrada de las flexiones (su variante registrada
+     manda: rodillas/pared → inclinadas E010) y, con batería
+     completa + flexiones en suelo + plancha ≥ 60 s (el ejemplo
+     del propio diseño aprobado), el escalón «con base».
+   - D5: semana 1 = calibración RIR 3-4 (nota en cada ejercicio
+     con carga); el peso vive en training_logs, nunca en el plan;
+     desde la sesión 2 manda la doble progresión de AUTH-440, que
+     ya lee ese historial — aquí no se duplica.
+   - D6: dos puertas — el alumno lo inicia desde su catálogo
+     (con entrenador asignado: propuesta plan21Start por el canal
+     de AUTH-341 y el entrenador lo ARMA desde su bandeja, con el
+     invariante de Repetir: nada se guarda hasta que guarda en el
+     editor; sin entrenador: nace directo con la puerta de salud
+     de AUTH-493) y el entrenador asignándolo (aplicar la
+     plantilla de fábrica PLAN21 en el editor corre ESTE mismo
+     ajustador sobre los datos del alumno).
+   - D7: sin pesaje el plan nace igual; la tarjeta del plan
+     muestra la advertencia SIEMPRE que falte peso o medidas y
+     la retira al registrarse ambos; pesarse es paso del día 1.
+   - D8: al terminar, la tarjeta ofrece SOLO la salida al
+     siguiente nivel (la puerta del programa continuo de la casa;
+     con entrenador, propuesta plan21Start→plan21Next por la
+     bandeja). Nunca renovación en silencio.
+   - D9: la alimentación nace con TRES semanas distintas del
+     planificador AUTH-474 (tres lunes, gen derivado de los
+     insumos: semanas distintas entre sí); al final de cada
+     semana la tarjeta pregunta «¿la comida está bien o quieres
+     variar un poco?»: si está bien, la semana planeada se
+     mantiene; si quiere variar, DOS propuestas (gen+1 y gen+2
+     del constructor determinista) y la persona elige una. Las
+     respuestas viven en nutrition_progress kind 'plan21Check'
+     (las reglas no dejan al alumno con entrenador escribir su
+     training_plans; el estado del plan tampoco se toca). Las
+     tres listas de compras salen del modo compra AUTH-480
+     sobre esos mismos documentos, sin código nuevo.
+   - D10: sin metas calculadas manda la regla de Ronald: con
+     los datos mínimos (resultado de la evaluación + último
+     peso) se escribe la meta del motor fundado con el objetivo
+     declarado y, si es bajar, el déficit máximo fundado
+     (−1.000 kcal, el mayor ritmo decidible de la casa) dentro
+     de los pisos de seguridad del propio motor (goalsCoreCompute
+     íntegro, con sus frenos §E: si el motor retiene las kcal,
+     NO se escribe nada); sin objetivo declarado, bajar; sin ni
+     siquiera los datos mínimos, la CIFRA FIJA provisional de
+     1.500 kcal/día declarada en la propia app (goalsFixedNote),
+     sustituida por el cálculo fundado en cuanto la persona
+     registra sus datos. La escritura usa la rama isSelf de las
+     reglas (goals/goalsProvenance/goalsFib/goalObjective) y se
+     re-aplica mientras el plan viva si el motor la sobrescribe
+     sin una decisión real de ritmo (paceState 'approved' de una
+     decisión de verdad la retira para siempre).
+   Interpretaciones declaradas (informe del paquete): la puerta
+   de salud sigue el patrón vivo AUTH-493 (el plan nace en
+   espera y se auto-activa) en vez del «no nace» literal de
+   §8.1 del diseño; en la vía del entrenador sin equipo
+   registrado manda la resolución de gimnasio completo con la
+   suposición escrita en las notas; sin días disponibles en la
+   vía del editor se usa la semana canónica [1,2,4,5]. */
+const PLAN21_TPL_ID = 'PLAN21';
+const PLAN21_TPL_VERSION = 'v1';
+/* El esqueleto de §10 TAL COMO SE APROBÓ: por sesión, los
+   patrones en orden con su rol de banda y los candidatos por
+   familia en orden de preferencia [familia, exerciseId,
+   rolSustituto?]. Las 3 fichas Intermedio ⚠ aprobadas por
+   Ronald (E006, E141, E036) entran como variantes. */
+const PLAN21_SESSIONS = [
+  { code: 'TA', slots: [
+    { pat: 'pushH', role: 'compound', cands: [['maquinas', 'E001'], ['mancuernas', 'E006'], ['poleas', 'E141'], ['corporal', 'E010']] },
+    { pat: 'rowH', role: 'compound', cands: [['maquinas', 'E014'], ['poleas', 'E112'], ['mancuernas', 'E022'], ['corporal', 'E123']] },
+    { pat: 'pushV', role: 'compound', cands: [['maquinas', 'E025'], ['mancuernas', 'E032', 'isolation']] },
+    { pat: 'pullV', role: 'compound', cands: [['maquinas', 'E013'], ['poleas', 'E133'], ['corporal', 'E123']] },
+    { pat: 'core', role: 'core', cands: [['corporal', 'E093']] } ] },
+  { code: 'PA', slots: [
+    { pat: 'knee', role: 'compound', cands: [['maquinas', 'E051'], ['mancuernas', 'E058'], ['kb', 'E058'], ['corporal', 'E059']] },
+    { pat: 'hingeLight', role: 'isolation', cands: [['corporal', 'E074']] },
+    { pat: 'kneeUni', role: 'compound', cands: [['corporal', 'E059']] },
+    { pat: 'calves', role: 'calves', cands: [['maquinas', 'E078'], ['mancuernas', 'E081'], ['corporal', 'E081']] },
+    { pat: 'plank', role: 'time', time: 'plank', cands: [['corporal', 'E087']] } ] },
+  { code: 'TB', slots: [
+    { pat: 'pushup', role: 'compound', pushup: true, cands: [['corporal', 'E009']] },
+    { pat: 'rowH', role: 'compound', cands: [['mancuernas', 'E022'], ['poleas', 'E136'], ['corporal', 'E123']] },
+    { pat: 'latRaise', role: 'isolation', cands: [['maquinas', 'E026'], ['mancuernas', 'E032']] },
+    { pat: 'triceps', role: 'isolation', cands: [['poleas', 'E044'], ['corporal', 'E047'], ['mancuernas', 'E049']] },
+    { pat: 'biceps', role: 'isolation', cands: [['mancuernas', 'E039'], ['poleas', 'E036']] },
+    { pat: 'core', role: 'core', cands: [['corporal', 'E140']] } ] },
+  { code: 'PB', slots: [
+    { pat: 'hinge', role: 'compound', cands: [['mancuernas', 'E066'], ['kb', 'E066'], ['corporal', 'E124']] },
+    { pat: 'knee', role: 'compound', cands: [['kb', 'E058'], ['mancuernas', 'E058'], ['corporal', 'E059']] },
+    { pat: 'hamstring', role: 'isolation', cands: [['maquinas', 'E061'], ['corporal', 'E067']] },
+    { pat: 'gluteAbd', role: 'isolation', cands: [['maquinas', 'E069'], ['poleas', 'E143'], ['corporal', 'E076']] },
+    { pat: 'calves', role: 'calves', cands: [['corporal', 'E081'], ['mancuernas', 'E081']] } ] },
+  { code: 'TC', slots: [
+    { pat: 'technique', role: 'compound', technique: true, cands: [] },
+    { pat: 'plankSide', role: 'time', time: 'plankSide', cands: [['corporal', 'E088']] },
+    { pat: 'carry', role: 'time', time: 'carry', cands: [['mancuernas', 'E103'], ['kb', 'E103']] } ] }
+];
+function plan21Weekday(iso) { const d = new Date(String(iso) + 'T12:00:00'); return isNaN(d.getTime()) ? 1 : d.getDay(); }
+function plan21DateLabel(iso) {
+  try { return new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { day: 'numeric', month: 'short' }).format(new Date(String(iso) + 'T12:00:00')); }
+  catch { return String(iso || ''); }
+}
+/* D3: primer candidato cuya familia tiene la persona; si
+   ninguno encaja, el titular del patrón (última reserva: el
+   patrón nunca desaparece). */
+function plan21Resolve(slot, fams) {
+  const has = f => f === 'corporal' || (fams || []).includes(f);
+  for (const c of (slot.cands || [])) if (has(c[0])) return { id: c[1], role: c[2] || slot.role, assumed: false };
+  const last = (slot.cands || [])[slot.cands.length - 1];
+  return { id: last ? last[1] : '', role: (last && last[2]) || slot.role, assumed: true };
+}
+/* Bandas de la casa (§5.2): el escalón mueve la posición en la
+   banda la semana 1; desde la semana 2 la banda es plena para
+   todos y «con base» busca el techo en los compuestos. */
+function plan21Band(role, step, wk) {
+  if (role === 'compound') {
+    if (step === 'base' && wk >= 1) return [10, 12];
+    return (step === 'suave' && wk === 0) ? [8, 10] : [8, 12];
+  }
+  if (role === 'isolation') return (step === 'suave' && wk === 0) ? [10, 12] : [10, 15];
+  return (step === 'suave' && wk === 0) ? [12, 15] : [12, 20];   /* core y pantorrillas */
+}
+function plan21TimeBand(kind, step) {
+  if (kind === 'plank') return step === 'suave' ? [15, 25] : step === 'base' ? [25, 45] : [20, 35];
+  if (kind === 'plankSide') return step === 'suave' ? [10, 20] : step === 'base' ? [20, 40] : [15, 30];
+  return [30, 45];   /* carry: distancia por tiempo, igual para todos [D declarado] */
+}
+function plan21Rest(role) { return role === 'compound' ? '2-3 min' : role === 'isolation' ? '60-90 s' : '60 s'; }
+/* Lectura de insumos de UNA persona (sirve igual en la sesión
+   del alumno y en la del entrenador: declaración solo si el
+   consentimiento específico la deja ver, como en planGateState). */
+async function plan21FetchInputs(uid) {
+  const out = { uid, udata: null, assessment: null, lastWeight: null, hasWeight: false,
+    tests: {}, batteryComplete: false, conditions: [], hp: null };
+  try { const s = await getDoc(doc(db, 'users', uid)); if (s.exists()) out.udata = s.data(); } catch {}
+  try { const s = await getDoc(doc(db, 'users', uid, 'assessment', 'current')); if (s.exists()) out.assessment = s.data(); } catch {}
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
+    snap.forEach(d => { const w = d.data(); if (w && isFinite(Number(w.weight))) { if (!out.hasWeight || String(w.date || '') >= String(out.lastWeightDate || '')) { out.lastWeight = Number(w.weight); out.lastWeightDate = w.date || ''; out.hasWeight = true; } } });
+  } catch {}
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid), where('kind', '==', 'fitTest')));
+    snap.forEach(d => { const x = d.data(); if (x && x.test && isFinite(Number(x.value))) { const cur = out.tests[x.test]; if (!cur || String(x.date || '') >= String(cur.date || '')) out.tests[x.test] = { value: Number(x.value), variant: x.variant || '', complete: x.complete === true, date: x.date || '' }; } });
+  } catch {}
+  out.batteryComplete = ['sts1min', 'pushup', 'plank', 'stepYmca'].every(k => out.tests[k] && out.tests[k].complete);
+  if (out.udata) {
+    try {
+      const ch = await fetchClientHealth(uid, out.udata);
+      if (ch && ch.available && ch.decl) { out.conditions = ch.decl.conditions || []; out.hp = autoHealthPlan(out.conditions); }
+    } catch {}
+  }
+  return out;
+}
+/* Autogestión con la MISMA regla de la vista (AUTH-343): sin
+   otro entrenador (o siendo el propio) la persona administra
+   sus planes; con un entrenador distinto, los maneja él. */
+function plan21SelfManaged() {
+  const me = auth.currentUser && auth.currentUser.uid;
+  const tr = (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.trainerUid) ? MY_REL.trainerUid
+    : ((typeof UDATA !== 'undefined' && UDATA && UDATA.assignmentStatus === 'assigned' && UDATA.trainerUid) ? UDATA.trainerUid : '');
+  return !tr || tr === me;
+}
+function plan21AvailDays(inp) {
+  const a = (inp.udata && inp.udata.availDays) || [];
+  return [...new Set(a.filter(x => Number.isInteger(x) && x >= 0 && x <= 6))];
+}
+function plan21Families(inp) {
+  const a = (inp.udata && inp.udata.equipFamilies) || [];
+  const ok = a.filter(f => WIZ_EQ_FAMS.includes(f));
+  return { fams: ok.length ? ok : WIZ_EQ_FAMS.slice(), assumed: !ok.length };
+}
+/* D1: la forma la deciden las métricas. */
+function plan21FormOf(inp) {
+  const act = Number(inp.assessment && inp.assessment.activityCategoryId) || 0;
+  return (plan21AvailDays(inp).length >= 5 && (act >= 3 || inp.batteryComplete)) ? 5 : 4;
+}
+/* §5.2 + D4: el escalón sin cortes inventados. */
+function plan21StepOf(inp) {
+  const act = Number(inp.assessment && inp.assessment.activityCategoryId) || 0;
+  const by = Number(inp.assessment && inp.assessment.birthYear) || 0;
+  const age = by ? (new Date().getFullYear() - by) : 0;
+  const pu = inp.tests.pushup, pl = inp.tests.plank;
+  if (inp.batteryComplete && pu && pu.variant === 'std' && pl && Number(pl.value) >= 60) return 'base';
+  if (age >= 50 || act === 1 || act === 2) return 'suave';
+  if (act >= 3 || inp.batteryComplete) return 'estandar';
+  return 'suave';
+}
+function plan21StartISO(inp) {
+  const avail = plan21AvailDays(inp);
+  const today = todayISO();
+  if (!avail.length) return today;
+  for (let i = 0; i < 7; i++) { const iso = planISOAddDays(today, i); if (avail.includes(plan21Weekday(iso))) return iso; }
+  return today;
+}
+function plan21SessionDay(code, inp, fams, step, wk) {
+  const sess = PLAN21_SESSIONS.find(s => s.code === code);
+  const sets = code === 'TC' ? 2 : (wk === 0 ? 2 : 3);
+  const exs = [];
+  let dropped = false;
+  for (const slot of sess.slots) {
+    /* D3 + salud: los candidatos se prueban en el orden de
+       preferencia (primero los de las familias de la persona);
+       si el filtro de salud de la casa excluye uno, entra el
+       siguiente del mismo patrón — el patrón no desaparece
+       salvo que todos queden excluidos. */
+    const srcSlot = slot.technique ? PLAN21_SESSIONS[0].slots[0] : slot;
+    const famsHas = f => f === 'corporal' || (fams || []).includes(f);
+    const ordered = [...srcSlot.cands.filter(c => famsHas(c[0])), ...srcSlot.cands.filter(c => !famsHas(c[0]))];
+    let id = '', role = srcSlot.role;
+    for (const c of ordered) {
+      let cid = c[1];
+      /* D4: la batería solo elige la variante de entrada de
+         las flexiones (la variante registrada manda; sin
+         prueba, el escalón suave también entra inclinado). */
+      if (slot.pushup && (step === 'suave' || (inp.tests.pushup && inp.tests.pushup.variant && inp.tests.pushup.variant !== 'std'))) cid = 'E010';
+      const centry = LIB_BY_ID[cid] || null;
+      if (centry && inp.hp && autoHealthExcludes(centry, inp.hp)) continue;
+      id = cid; role = c[2] || srcSlot.role; break;
+    }
+    if (!id) {
+      if (slot.pat === 'core') { id = 'E088'; role = 'time'; }
+      else { dropped = true; continue; }
+    }
+    const e2 = LIB_BY_ID[id] || entry;
+    let reps, repsMin, repsMax, repsKind;
+    if (role === 'time') { const b = plan21TimeBand(id === 'E088' ? 'plankSide' : (slot.time || 'plank'), step); reps = b[0] + '-' + b[1] + ' seg'; repsMin = b[0]; repsMax = b[1]; repsKind = 'time'; }
+    else { const b = plan21Band(role, step, wk); reps = b[0] + '-' + b[1]; repsMin = b[0]; repsMax = b[1]; repsKind = 'reps'; }
+    exs.push({
+      name: e2 ? libNameOf(e2) : id, sets: slot.technique ? 2 : sets, reps,
+      note: slot.technique ? t('plan21.noteTech') : (wk === 0 && role !== 'time' ? t('plan21.noteCalib') : ''),
+      exerciseId: id, photoUrl: (e2 && e2.foto_url) || '', videoUrl: (e2 && (e2.video_youtube_url || e2.video_url)) || '',
+      rest: plan21Rest(role), rest_en: plan21Rest(role), repsMin, repsMax, repsKind,
+      warmup: exs.length === 0 ? (LANG === 'es' ? 'Series de aproximación' : 'Warm-up sets') : '', warmup_en: 'Warm-up sets'
+    });
+  }
+  return { day: { label: t('plan21.sess' + code), exercises: exs }, dropped };
+}
+/* El constructor del calendario cerrado de 21 días (D1+D2). */
+function plan21Build(inp, startISO) {
+  const form = plan21FormOf(inp);
+  let step = plan21StepOf(inp);
+  if (inp.hp && inp.hp.conservative) step = 'suave';
+  const fam = plan21Families(inp);
+  let avail = plan21AvailDays(inp);
+  if (!avail.length) avail = [1, 2, 4, 5];
+  const seq = form === 5 ? ['TA', 'PA', 'TB', 'PB', 'TC'] : ['TA', 'PA', 'TB', 'PB'];
+  const days = [], notes = [];
+  let sessIx = 0, consec = 0, degraded = false, healthDropped = false;
+  for (let i = 0; i < 21; i++) {
+    const iso = planISOAddDays(startISO, i);
+    const wk = Math.floor(i / 7);
+    const isAvail = avail.includes(plan21Weekday(iso));
+    let place = false;
+    if (isAvail) {
+      const sessThisWeek = days.slice(wk * 7).filter(d => !d.freeDay).length;
+      let availLeft = 0;
+      for (let j = i + 1; j < (wk + 1) * 7; j++) if (avail.includes(plan21Weekday(planISOAddDays(startISO, j)))) availLeft++;
+      const need = form - sessThisWeek;
+      if (consec < 2 || need > availLeft) place = true;
+      if (place && consec >= 2) degraded = true;
+    }
+    if (place) {
+      const built = plan21SessionDay(seq[sessIx % seq.length], inp, fam.fams, step, wk);
+      sessIx++;
+      if (built.dropped) healthDropped = true;
+      days.push(built.day);
+      consec++;
+    } else {
+      days.push({ label: t('plan21.restDay'), exercises: [], freeDay: true });
+      consec = 0;
+    }
+  }
+  if (fam.assumed) notes.push(t('plan21.noteAssumedGym'));
+  if (degraded) notes.push(t('plan21.noteDegraded'));
+  if ((inp.hp && inp.hp.programMarks && inp.hp.programMarks.length) || healthDropped) notes.push(t('plan21.noteHealthAdj'));
+  return { days, startsAt: startISO, endsAt: planISOAddDays(startISO, 20), form, step,
+    notes: notes.join(' · '), hp: inp.hp, equipAssumed: fam.assumed };
+}
+/* Nacimiento directo (alumno sin entrenador): la misma puerta
+   de salud y la misma desactivación del plan anterior que la
+   puerta de la IA (AUTH-493). */
+async function plan21CreatePlan(uid, built) {
+  const gate = await planGateState(uid);
+  const active = gate === 'valid';
+  const data = {
+    clientUid: uid, title: t('plan21.title'), notes: built.notes, days: built.days,
+    active, startsAt: built.startsAt, endsAt: built.endsAt, sessionsPerWeek: 7, durationPreset: null,
+    createdBy: uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    healthHold: !active, holdAuto: !active,
+    sourceRoutineId: PLAN21_TPL_ID, sourceRoutineVersion: PLAN21_TPL_VERSION,
+    genSource: { kind: 'plan21', version: PLAN21_TPL_VERSION, templateId: PLAN21_TPL_ID, form: built.form, step: built.step, equipAssumed: !!built.equipAssumed }
+  };
+  if (!active) data.holdSince = serverTimestamp();
+  const ref = await addDoc(collection(db, 'training_plans'), data);
+  if (active) {
+    const others = await fetchPlans(uid);
+    for (const o of others) if (o.id !== ref.id && o.active === true)
+      await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
+  }
+  return { id: ref.id, active };
+}
+/* Volcado al editor (entrenador asignándolo o aplicando la
+   propuesta del alumno): el borrador nace ajustado a ESE alumno
+   y nada se guarda hasta que el entrenador guarda, como en
+   Repetir. La cadencia del calendario cerrado (7) viaja en
+   planCtx.plan21Spw y la escribe la línea del guardado. */
+async function plan21DumpToEditor(uid, built) {
+  openPlanEditor(uid, null);
+  await libEnsure();
+  const daysBox = $('pl-days');
+  if (daysBox) { daysBox.innerHTML = ''; built.days.forEach(d => daysBox.appendChild(planDayRow(d))); }
+  if ($('pl-title')) $('pl-title').value = t('plan21.title');
+  if ($('pl-notes')) $('pl-notes').value = built.notes || '';
+  if ($('pl-start')) $('pl-start').value = built.startsAt;
+  if ($('pl-end')) $('pl-end').value = built.endsAt;
+  planCtx.genSource = { kind: 'plan21', version: PLAN21_TPL_VERSION, templateId: PLAN21_TPL_ID, form: built.form, step: built.step, equipAssumed: !!built.equipAssumed, params: { chestPain: !!(built.hp && built.hp.chestPain) } };
+  planCtx.tplSource = { id: PLAN21_TPL_ID, version: PLAN21_TPL_VERSION };
+  planCtx.plan21Spw = 7;
+  planTouched = true;
+}
+/* Aplicar la plantilla PLAN21 desde el editor (tplApply): el
+   ajustador corre sobre los datos del cliente del editor. */
+async function plan21ApplyTemplate(uid, tpl) {
+  if (!uid) return;
+  await libEnsure();
+  const inp = await plan21FetchInputs(uid);
+  const built = plan21Build(inp, plan21StartISO(inp));
+  await plan21DumpToEditor(uid, built);
+  toast(t('plan21.startedOk'));
+}
+/* Aplicar desde la bandeja la propuesta plan21Start aprobada. */
+async function plan21ApplyForStudent(uid) {
+  await libEnsure();
+  const inp = await plan21FetchInputs(uid);
+  const built = plan21Build(inp, plan21StartISO(inp));
+  await plan21DumpToEditor(uid, built);
+}
+
+/* --- La hoja de arranque del alumno (desde su catálogo, D6) --- */
+let PLAN21_SHEET = null;
+function plan21DayName(wd) {
+  try { return new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { weekday: 'short' }).format(new Date(2024, 0, wd === 0 ? 7 : wd)); }
+  catch { return String(wd); }
+}
+async function plan21OpenSheet() {
+  const fl = $('plan21-float'); if (!fl) return;
+  fl.style.display = '';
+  const x = $('plan21-x'); if (x) x.onclick = () => plan21CloseSheet();
+  const body = $('plan21-body'); if (body) body.innerHTML = `<div class="wempty compact">${esc(t('train.loading'))}</div>`;
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me) return;
+  await libEnsure();
+  const inp = await plan21FetchInputs(me);
+  const days = new Set(plan21AvailDays(inp));
+  const fams = new Set((inp.udata && inp.udata.equipFamilies) || []);
+  PLAN21_SHEET = { inp, days, fams, showDays: days.size < 4, showEq: !fams.size };
+  plan21SheetPaint();
+}
+function plan21SheetPaint() {
+  const body = $('plan21-body'); if (!body || !PLAN21_SHEET) return;
+  const S = PLAN21_SHEET;
+  const probe = { ...S.inp, udata: { ...(S.inp.udata || {}), availDays: [...S.days], equipFamilies: [...S.fams] } };
+  const form = plan21FormOf(probe);
+  const step = plan21StepOf(S.inp);
+  const startISO = plan21StartISO(probe);
+  const dayChips = WIZ_DAY_ORDER.map(wd => `<button type="button" class="wiz-chip${S.days.has(wd) ? ' sel' : ''}" data-p21-day="${wd}" aria-pressed="${S.days.has(wd)}">${esc(plan21DayName(wd))}</button>`).join('');
+  const eqChips = WIZ_EQ_FAMS.map(f => `<button type="button" class="wiz-chip${S.fams.has(f) ? ' sel' : ''}" data-p21-eq="${f}" aria-pressed="${S.fams.has(f)}">${esc(t('train.auto.eq.' + f))}</button>`).join('');
+  body.innerHTML = `
+    <p class="wiz-body">${esc(t(form === 5 ? 'plan21.sheetForm5' : 'plan21.sheetForm4'))}</p>
+    <p class="wiz-body">${esc(t(step === 'base' ? 'plan21.sheetStepBase' : step === 'estandar' ? 'plan21.sheetStepStd' : 'plan21.sheetStepSuave'))}</p>
+    <p class="wiz-body">${esc(t('plan21.sheetStart', { date: plan21DateLabel(startISO), date2: plan21DateLabel(planISOAddDays(startISO, 20)) }))}</p>
+    ${S.showDays ? `<h3 class="wiz-h">${esc(t('wiz.daysTitle'))}</h3><div class="wiz-chips">${dayChips}</div>` : ''}
+    ${S.showEq ? `<h3 class="wiz-h">${esc(t('wiz.eqTitle'))}</h3><div class="wiz-chips">${eqChips}</div>` : ''}
+    ${S.days.size < 4 ? `<p class="wiz-body" style="color:#b91c1c">${esc(t('plan21.sheetDaysMin'))}</p>` : ''}
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <button type="button" class="btn-primary" id="p21-go" ${S.days.size < 4 ? 'disabled' : ''}>${esc(t('plan21.sheetGo'))}</button>
+      <button type="button" class="btn-ghost" id="p21-cancel">${esc(t('client.close'))}</button>
+    </div>`;
+  body.querySelectorAll('[data-p21-day]').forEach(b => b.onclick = () => { const wd = Number(b.dataset.p21Day); if (S.days.has(wd)) S.days.delete(wd); else S.days.add(wd); plan21SheetPaint(); });
+  body.querySelectorAll('[data-p21-eq]').forEach(b => b.onclick = () => { const f = b.dataset.p21Eq; if (S.fams.has(f)) S.fams.delete(f); else S.fams.add(f); plan21SheetPaint(); });
+  const cancel = $('p21-cancel'); if (cancel) cancel.onclick = () => plan21CloseSheet();
+  const go = $('p21-go'); if (go) go.onclick = () => plan21Start();
+}
+function plan21CloseSheet() { const fl = $('plan21-float'); if (fl) fl.style.display = 'none'; PLAN21_SHEET = null; }
+async function plan21Start() {
+  const S = PLAN21_SHEET; if (!S) return;
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  const go = $('p21-go'); if (go) go.disabled = true;
+  try {
+    /* Lo que la hoja preguntó se guarda en el documento del
+       usuario, por la misma vía del asistente AUTH-382. */
+    if (S.showDays) { const arr = [...S.days].sort((a, b) => WIZ_DAY_ORDER.indexOf(a) - WIZ_DAY_ORDER.indexOf(b)); await setDoc(doc(db, 'users', me), { availDays: arr }, { merge: true }); if (UDATA) UDATA.availDays = arr; }
+    if (S.showEq) { const arr = [...S.fams]; await setDoc(doc(db, 'users', me), { equipFamilies: arr }, { merge: true }); if (UDATA) UDATA.equipFamilies = arr; }
+    const inp = await plan21FetchInputs(me);
+    const selfManaged = plan21SelfManaged();
+    if (!selfManaged) {
+      /* Con entrenador asignado las reglas no dejan al alumno
+         escribir su training_plans: la petición viaja por el
+         canal de propuestas y el entrenador lo arma (D6). */
+      await setDoc(doc(db, 'nutrition_progress', `${me}_p21start_${Date.now()}`), {
+        kind: 'planProposal', ownerUid: me, uid: me, planId: '', planTitle: t('plan21.title'),
+        type: 'plan21Start', sourceTemplateId: PLAN21_TPL_ID, note: '', status: 'pending', createdAt: serverTimestamp()
+      });
+      plan21CloseSheet();
+      toast(t('plan21.sentTrainer'));
+      try { renderMyProposals(); } catch {}
+      return;
+    }
+    const built = plan21Build(inp, plan21StartISO(inp));
+    const res = await plan21CreatePlan(me, built);
+    plan21CloseSheet();
+    toast(t(res.active ? 'plan21.startedOk' : 'plan21.startedHold'), !res.active);
+    try { await plan21AfterStart({ id: res.id, startsAt: built.startsAt, endsAt: built.endsAt, active: res.active }); } catch {}
+    loadMyTraining();
+  } catch { toast(t('train.saveError'), true); if (go) go.disabled = false; }
+}
+/* Al nacer (y en cada visita a la vista con el plan vivo): las
+   metas de D10 primero — sin metas no hay semanas que armar —
+   y después las tres semanas de D9. */
+async function plan21AfterStart(plan) {
+  if (!plan || plan.active !== true) return;
+  try { await plan21GoalsEnsure(); } catch {}
+  try { await plan21FoodEnsure(plan); } catch {}
+}
+/* --- D10: las metas cuando el motor no las ha calculado --- */
+let PLAN21_GOALS_HELD = false;
+async function plan21LastWeightKg(me) {
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', me)));
+    let best = null;
+    snap.forEach(d => { const w = d.data(); if (w && isFinite(Number(w.weight))) { if (!best || String(w.date || '') >= String(best.date || '')) best = w; } });
+    return best ? Number(best.weight) : null;
+  } catch { return null; }
+}
+async function plan21GoalsEnsure() {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me || !UDATA) return 'skip';
+  const prov = UDATA.goalsProvenance || null;
+  /* Una decisión real de ritmo (del entrenador o aceptada) ya
+     escribió metas fundadas: el relevo de D10 se retira. */
+  if (prov && prov.engineVersion && prov.paceState === 'approved' && !prov.plan21Fallback) return 'founded';
+  const conds = (typeof activeDecl === 'function' && typeof declLoadState !== 'undefined' && declLoadState === 'ok') ? ((activeDecl() || {}).conditions || []) : [];
+  let a = null;
+  try { const s = await getDoc(doc(db, 'users', me, 'assessment', 'current')); if (s.exists()) a = s.data(); } catch {}
+  const lastKg = await plan21LastWeightKg(me);
+  const objective = ['mantener', 'bajar', 'ganar'].includes(UDATA.goalObjective || '') ? UDATA.goalObjective : 'bajar';
+  if (a && faHasResult(a) && lastKg) {
+    /* Caso A: el motor fundado íntegro, con el ritmo máximo
+       decidible de la casa cuando el objetivo es bajar. Si el
+       motor retiene las kcal (§E), no se escribe nada. */
+    const res = goalsCoreCompute({ objective, tdeeKcal: a.tdeeKcal, weightKg: lastKg, hasTrainer: gmHasTrainer(),
+      paceSuggestion: objective === 'bajar' ? { status: 'approved', decidedPaceKcal: 1000 } : null, goalsTerms: null, conditions: conds });
+    if (!res || !res.goals || !(Number(res.goals.kcal) > 0)) { PLAN21_GOALS_HELD = true; return 'held'; }
+    const newProv = { objective, equationUsed: a.equationUsed || a.equation || '', tdeeKcal: Math.round(a.tdeeKcal), weightKg: lastKg,
+      heightCm: num(a.heightCm), age: new Date().getFullYear() - parseInt(a.birthYear, 10), palBasal: num(a.palBasal),
+      proteinFactor: res.proteinFactor, fatPct: res.fatPct, dayLevel: 'base', sugarRule: 'OMS-5%',
+      paceKcal: res.paceKcal, paceState: res.paceState, heldParams: res.heldParams, heldDetails: res.heldDetails,
+      guardHeld: res.guardHeld, infoAlerts: res.infoAlerts, engineGoals: res.goals, focus: (typeof gmFocusOf === 'function' ? gmFocusOf(UDATA).focus : 'general'),
+      objectiveSource: 'plan21-fallback', competitionPhase: null, changeLog: (prov && prov.changeLog) || [],
+      fingerprint: res.fingerprint, computedAt: new Date().toISOString(), engineVersion: GOALS_ENGINE_VERSION,
+      plan21Fallback: objective === 'bajar' ? 'pace-1000' : 'objective' };
+    const patch = { goals: res.goals, goalsProvenance: newProv, goalsFib: res.fibGoal != null ? res.fibGoal : deleteField() };
+    if (!UDATA.goalObjective) patch.goalObjective = 'bajar';
+    try {
+      await setDoc(doc(db, 'users', me), patch, { merge: true });
+      UDATA.goals = res.goals; UDATA.goalsProvenance = newProv; UDATA.goalsFib = res.fibGoal != null ? res.fibGoal : null;
+      if (patch.goalObjective) UDATA.goalObjective = 'bajar';
+      GOALS = { ...res.goals };
+      PLAN21_GOALS_HELD = false;
+      return 'written-a';
+    } catch { return 'error'; }
+  }
+  /* Caso B: ni siquiera los datos mínimos — la cifra fija
+     provisional de la casa (decisión de Ronald, D10), con el
+     reparto declarado [D]: proteína 30 % · grasa 20 % (el % de
+     bajar del motor) · azúcar OMS 5 % · resto carbohidratos;
+     fibra por la regla de la casa (14 g/1.000 kcal, suelo 25).
+     Los frenos §E que retienen kcal o déficit también la
+     detienen: sin escritura. */
+  const hm = goalsHealthMap(conds);
+  if (hm && hm.held && (hm.held.includes('kcal') || hm.held.includes('deficit'))) { PLAN21_GOALS_HELD = true; return 'held'; }
+  const goals = { kcal: 1500, prot: 113, carb: 188, azuc: 19, gras: 33 };
+  const newProv = { objective: 'bajar', paceState: 'plan21-fixed', plan21Fallback: 'fixed-1500', provisional: true,
+    fingerprint: 'plan21-fixed-1500', computedAt: new Date().toISOString(), engineVersion: GOALS_ENGINE_VERSION, changeLog: (prov && prov.changeLog) || [] };
+  const patch = { goals, goalsProvenance: newProv, goalsFib: fiberGoalFromKcal(1500) };
+  if (!UDATA.goalObjective) patch.goalObjective = 'bajar';
+  try {
+    await setDoc(doc(db, 'users', me), patch, { merge: true });
+    UDATA.goals = goals; UDATA.goalsProvenance = newProv; UDATA.goalsFib = patch.goalsFib;
+    if (patch.goalObjective) UDATA.goalObjective = 'bajar';
+    GOALS = { ...goals };
+    PLAN21_GOALS_HELD = false;
+    return 'written-b';
+  } catch { return 'error'; }
+}
+/* --- D9: las tres semanas de comida y la pregunta semanal --- */
+function plan21Mondays(plan) { return [0, 7, 14].map(d => mmMondayOf(planISOAddDays(plan.startsAt, d))); }
+async function plan21WeekInputs(wk) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me) return null;
+  if (!SCHED_PREFS) { try { await schedLoadOwn(); } catch {} }
+  if (!SCHED_PREFS || !SCHED_PREFS.cookPattern || !SCHED_PREFS.cookRepeat) return null;
+  let wishes = NUTRI.myWishes || null;
+  if (!wishes) {
+    try { const s = await getDoc(doc(db, 'nutrition_wishes', me)); wishes = s.exists() ? (s.data() || {}) : {}; NUTRI.myWishes = wishes; }
+    catch { wishes = {}; }
+  }
+  const catalog = await planAutoLoadCatalog();
+  if (!catalog || !catalog.length) return null;
+  let pendCfg = null;
+  try { pendCfg = await schedLoadPendCfg(); } catch {}
+  if (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.state === 'loading') { try { await loadMyEnergy(); } catch {} }
+  const inp = planAutoInputs(me, wk, wishes, pendCfg, catalog);
+  if (!inp) return null;
+  const found = planResolveMenu(NUTRI.myMenus || [], wk, me).auto;
+  return { me, inp, found, wishes, catalog };
+}
+async function plan21SaveWeek(wk, ctx, gen) {
+  const built = planAutoBuildWeek(ctx.inp, gen);
+  if (!built) return null;
+  await planAutoLoadDetails([...new Set(built.days.flatMap(d => (d.meals || []).filter(m => m.recipeId).map(m => m.recipeId)))]);
+  const catById = {};
+  for (const r of ctx.catalog) catById[r.id] = r;
+  for (const d of built.days) for (const m of d.meals) { if (m.recipeId && catById[m.recipeId]) m.ings = planAutoMealIngs(catById[m.recipeId], m.factor); }
+  const payload = { studentUid: ctx.me, nutritionistUid: null, authorRole: 'alumno', authorUid: ctx.me,
+    status: 'vigente', basedOnPlanId: null, weekStart: wk, days: built.days,
+    wishesSnapshot: { allergies: ctx.wishes.allergies || [], allergyText: ctx.wishes.allergyText || '', dislikes: ctx.wishes.dislikes || [] },
+    changeRequest: null,
+    auto: { v: 1, gen, inputsHash: ctx.inp.hash, cookPattern: ctx.inp.cookPattern, cookRepeat: ctx.inp.cookRepeat, generatedAt: Date.now(), fixed: !!ctx.inp.fixed },
+    updatedAt: serverTimestamp() };
+  if (!ctx.found) payload.createdAt = serverTimestamp();
+  try {
+    await setDoc(doc(db, 'nutrition_menus', planAutoDocId(ctx.me, wk)), payload);
+    const docObj = { id: planAutoDocId(ctx.me, wk), ...payload, updatedAt: null };
+    NUTRI.myMenus = NUTRI.myMenus || [];
+    const ix = NUTRI.myMenus.findIndex(m => m.id === docObj.id);
+    if (ix >= 0) NUTRI.myMenus[ix] = docObj; else NUTRI.myMenus.push(docObj);
+    return docObj;
+  } catch { return null; }
+}
+async function plan21AutoEnsureWeek(wk, genForce) {
+  if (wk < mmMondayOf(todayISO())) return null;
+  const ctx = await plan21WeekInputs(wk);
+  if (!ctx) return null;
+  if (ctx.found && ctx.found.manual && genForce == null) return ctx.found;
+  if (genForce == null && ctx.found && ctx.found.auto && ctx.found.auto.inputsHash === ctx.inp.hash) return ctx.found;
+  const gen = genForce != null ? genForce : ((ctx.found && ctx.found.auto && ctx.found.auto.gen) || 0);
+  return plan21SaveWeek(wk, ctx, gen);
+}
+async function plan21FoodEnsure(plan) {
+  if (!plan || !plan.startsAt) return;
+  for (const wk of plan21Mondays(plan)) { try { await plan21AutoEnsureWeek(wk, null); } catch {} }
+}
+async function plan21WriteCheck(plan, wk, data) {
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  await setDoc(doc(db, 'nutrition_progress', `${me}_p21chk_${plan.id}_${wk}`),
+    { kind: 'plan21Check', ownerUid: me, uid: me, planId: plan.id, weekStart: wk, at: serverTimestamp(), ...data }, { merge: true });
+}
+function plan21MealNames(day) {
+  const names = [];
+  for (const m of ((day && day.meals) || [])) {
+    if (!m || !m.recipeId) continue;
+    if (!/almuerzo|lunch|cena|dinner/i.test(String(m.name || ''))) continue;
+    const nm = m.title ? (m.title[LANG] || m.title.es || '') : '';
+    if (nm) names.push(nm);
+  }
+  return names.slice(0, 2).join(' · ');
+}
+/* --- La tarjeta del plan en la vista del alumno (D7·D8·D9) --- */
+const PLAN21_ENSURED = {};
+let PLAN21_CARD_BUSY = false;
+async function plan21CardRender(plan) {
+  const host = $('p21-slot'); if (!host || !plan || PLAN21_CARD_BUSY) return;
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  PLAN21_CARD_BUSY = true;
+  try {
+    const today = todayISO();
+    const dayIx = Math.round((Date.parse(today + 'T12:00:00') - Date.parse(String(plan.startsAt) + 'T12:00:00')) / 86400000);
+    let h = '<div class="p21-card">';
+    if (dayIx < 0) h += `<p class="progress-hint">${esc(t('plan21.sheetStart', { date: plan21DateLabel(plan.startsAt), date2: plan21DateLabel(plan.endsAt) }))}</p>`;
+    else if (dayIx <= 20) h += `<p class="p21-progress"><b>${esc(t('plan21.dayOf', { x: dayIx + 1 }))}</b> · ${esc(t('plan21.weekN', { n: Math.floor(dayIx / 7) + 1 }))}</p>`;
+    else h += `<p class="p21-progress"><b>${esc(t('plan21.finished'))}</b></p>`;
+    /* D7: la advertencia vive mientras falte peso o medidas. */
+    let hasWeight = false;
+    try { hasWeight = (await plan21LastWeightKg(me)) != null; } catch {}
+    if (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.state === 'loading') { try { await loadMyEnergy(); } catch {} }
+    const asmt = (typeof MY_ASMT !== 'undefined' && MY_ASMT && MY_ASMT.doc) || null;
+    const hasMeasures = !!(asmt && asmt.birthYear && asmt.heightCm);
+    if (plan.active === true && dayIx <= 20 && (!hasWeight || !hasMeasures)) {
+      h += `<div class="p21-warn"><span>${esc(t('plan21.warnNoData'))}</span>
+        ${!hasWeight ? `<div class="p21-warn-row">${dayIx === 0 ? `<b>${esc(t('plan21.day1Weigh'))}</b>` : ''}<button type="button" class="btn-primary btn-sm" id="p21-weigh">${esc(t('plan21.weighBtn'))}</button></div>` : ''}</div>`;
+    }
+    /* D10: la declaración de provisionalidad, en la propia app. */
+    const prov = (UDATA && UDATA.goalsProvenance) || null;
+    if (prov && prov.plan21Fallback === 'fixed-1500') h += `<p class="progress-hint">${esc(t('plan21.goalsFixedNote'))}</p>`;
+    else if (prov && prov.plan21Fallback) h += `<p class="progress-hint">${esc(t('plan21.goalsFallbackNote'))}</p>`;
+    if (PLAN21_GOALS_HELD) h += `<p class="progress-hint">${esc(t('plan21.goalsHeldNote'))}</p>`;
+    /* D9: la pregunta al final de cada semana (por la semana
+       que viene), una sola vez por semana: la respuesta queda
+       en nutrition_progress y la pregunta no vuelve. */
+    let ask = null;
+    if (plan.active === true && dayIx >= 7 && dayIx <= 20) {
+      const mondays = plan21Mondays(plan);
+      let checks = {};
+      try {
+        const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', me), where('kind', '==', 'plan21Check')));
+        snap.forEach(d => { const v = d.data(); if (v && v.planId === plan.id) checks[v.weekStart] = v; });
+      } catch {}
+      for (let k = 1; k <= 2; k++) {
+        if (dayIx >= 7 * k && !checks[mondays[k]]) { ask = { n: k + 1, monday: mondays[k] }; break; }
+      }
+      if (ask) {
+        h += `<div class="p21-ask"><p><b>${esc(t('plan21.askWeekQ', { n: ask.n }))}</b></p>
+          <div class="p21-ask-row"><button type="button" class="btn-primary btn-sm" id="p21-ask-ok">${esc(t('plan21.askOk'))}</button>
+          <button type="button" class="btn-ghost btn-sm" id="p21-ask-vary">${esc(t('plan21.askVary'))}</button></div>
+          <div id="p21-cands"></div></div>`;
+      }
+    }
+    /* D8: la única salida ofrecida al terminar. */
+    if (dayIx > 20) {
+      let nextPending = false;
+      try {
+        const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', me), where('kind', '==', 'planProposal')));
+        snap.forEach(d => { const v = d.data(); if (v && v.type === 'plan21Next' && v.status === 'pending') nextPending = true; });
+      } catch {}
+      h += `<div class="p21-exit"><p><b>${esc(t('plan21.exitTitle'))}</b></p><p class="progress-hint">${esc(t('plan21.exitBody'))}</p>
+        ${nextPending ? `<p class="progress-hint">${esc(t('plan21.exitSent'))}</p>` : `<button type="button" class="btn-primary" id="p21-exit">${esc(t('plan21.exitBtn'))}</button>`}</div>`;
+    }
+    h += '</div>';
+    host.innerHTML = h;
+    const weighBtn = $('p21-weigh'); if (weighBtn) weighBtn.onclick = () => openWeightModal(null);
+    if (ask) {
+      const okB = $('p21-ask-ok');
+      if (okB) okB.onclick = async () => { okB.disabled = true; try { await plan21WriteCheck(plan, ask.monday, { answer: 'ok' }); await plan21AutoEnsureWeek(ask.monday, null); } catch {} toast(t('plan21.askKept')); PLAN21_CARD_BUSY = false; plan21CardRender(plan); };
+      const varyB = $('p21-ask-vary');
+      if (varyB) varyB.onclick = () => plan21AskVary(plan, ask);
+    }
+    const exitB = $('p21-exit');
+    if (exitB) exitB.onclick = async () => {
+      exitB.disabled = true;
+      const selfManaged = plan21SelfManaged();
+      if (selfManaged) { planAiOpen(); return; }
+      try {
+        await setDoc(doc(db, 'nutrition_progress', `${me}_p21next_${Date.now()}`), {
+          kind: 'planProposal', ownerUid: me, uid: me, planId: plan.id, planTitle: plan.title || '',
+          type: 'plan21Next', sourceTemplateId: PLAN21_TPL_ID, note: '', status: 'pending', createdAt: serverTimestamp()
+        });
+        toast(t('plan21.exitSent'));
+      } catch { toast(t('train.saveError'), true); }
+      PLAN21_CARD_BUSY = false; plan21CardRender(plan);
+    };
+    /* Los aseguramientos corren una vez por plan y día: metas
+       (D10) y después semanas (D9). Al terminar, un repintado
+       para que las notas de metas se vean sin recargar. */
+    const ekey = plan.id + '|' + today;
+    if (plan.active === true && plan.clientUid === me && dayIx >= -7 && dayIx <= 20 && !PLAN21_ENSURED[ekey]) {
+      PLAN21_ENSURED[ekey] = true;
+      (async () => { try { await plan21AfterStart(plan); } catch {} PLAN21_CARD_BUSY = false; plan21CardRender(plan); })();
+    }
+  } catch {}
+  PLAN21_CARD_BUSY = false;
+}
+async function plan21AskVary(plan, ask) {
+  const host = $('p21-cands'); if (!host) return;
+  host.innerHTML = `<div class="wempty compact">${esc(t('train.loading'))}</div>`;
+  const ctx = await plan21WeekInputs(ask.monday);
+  if (!ctx) { host.innerHTML = `<p class="progress-hint">${esc(t('plan21.askNeedSetup'))}</p>`; return; }
+  const g0 = (ctx.found && ctx.found.auto && ctx.found.auto.gen) || 0;
+  const cands = [g0 + 1, g0 + 2].map(g => ({ gen: g, week: planAutoBuildWeek(ctx.inp, g) }));
+  host.innerHTML = `<p><b>${esc(t('plan21.askPick'))}</b></p>` + cands.map((c, i) => `
+    <div class="p21-cand"><b>${esc(t('plan21.candTitle', { n: i + 1 }))}</b>
+      ${(c.week.days || []).map(d => `<div class="p21-cand-day"><span>${esc(plan21DateLabel(d.date))}</span><span>${esc(plan21MealNames(d))}</span></div>`).join('')}
+      <button type="button" class="btn-primary btn-sm" data-p21-pick="${c.gen}">${esc(t('plan21.candTitle', { n: i + 1 }))} ✓</button>
+    </div>`).join('');
+  host.querySelectorAll('[data-p21-pick]').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    const gen = Number(b.dataset.p21Pick);
+    try { await plan21SaveWeek(ask.monday, ctx, gen); await plan21WriteCheck(plan, ask.monday, { answer: 'varied', chosenGen: gen }); } catch {}
+    toast(t('plan21.askChosen'));
+    plan21CardRender(plan);
+  });
+}
+
 async function planAiOpen() {
   const fl = $('plan-ai-float'), bd = $('plan-ai-body');
   if (!fl || !bd || !auth.currentUser) return;
@@ -52161,6 +52978,9 @@ async function tplApply(id) {
      guardan nombres de ejercicio: se resuelven por exerciseId,
      §3.2 del mapeo de carga); se asegura su carga antes de volcar. */
   await libEnsure();
+  /* AUTH-503: la plantilla del Plan 21 no se vuelca tal cual:
+     corre el ajustador sobre los datos de ESTE cliente. */
+  if (tpl.plan21 === true) { await plan21ApplyTemplate(planCtx.clientUid, tpl); return; }
   const blocksByDay = {};
   (tpl.session || []).forEach(s => { blocksByDay[Number(s.dia_num)] = tplSessionBlocks(s); });
   const daysBox = $('pl-days');
@@ -53477,6 +54297,9 @@ $('form-plan').addEventListener('submit', async e => {
      (§4.2) la cadencia es 1 y el fin es el propio inicio. */
   const repSpw = planCtx.repeatCadence || planCtx.repeatSessionsPerWeek;
   if (repSpw) data.sessionsPerWeek = repSpw;
+  /* AUTH-503: el Plan 21 es un calendario cerrado de 21 días
+     fechados: su cadencia escrita es 7 (una entrada por día). */
+  if (planCtx.plan21Spw) data.sessionsPerWeek = planCtx.plan21Spw;
   if (planCtx.repeatOneDay) { data.endsAt = data.startsAt; data.sessionsPerWeek = 1; }
   /* PLANTILLAS (§4.2/§4.6): procedencia OPCIONAL y veraz — solo si
      en ESTA sesión del editor se aplicó una plantilla. Es
@@ -64564,7 +65387,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261118-cronometro-circulos';
+const PWA_SW_VERSION = '20261119-plan-21-dias';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

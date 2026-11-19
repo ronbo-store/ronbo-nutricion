@@ -6937,3 +6937,17 @@ textarea.gest-in { resize: none; }
 .flow-area-fold { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 50px; margin: 10px 0 12px; padding: 8px 12px; box-sizing: border-box; border: 2px solid rgba(255, 255, 255, .5); border-radius: 12px; background: transparent; color: inherit; font: inherit; font-size: 15px; font-weight: 700; text-align: left; cursor: pointer; }
 .flow-area-fold .faf-go { margin-left: auto; font-weight: 800; }
 .tf-warm .flow-area-fold { min-height: 40px; margin: 0; padding: 2px 0; border: none; border-radius: 0; color: #065f46; }
+
+/* AUTH-503 · Plan 21 días: la tarjeta del plan en la vista del
+   alumno (progreso, advertencia D7, pregunta D9, salida D8) y
+   las dos propuestas de comida. Controles grandes de la casa. */
+.p21-card{margin:10px 0;padding:12px 14px;border:2px solid #0D9488;border-radius:14px;background:#F0FDF9}
+.p21-progress{font-size:17px;margin:2px 0 6px}
+.p21-warn{margin:8px 0;padding:10px 12px;border-radius:10px;background:#FEF3C7;color:#92400E;font-size:15.5px}
+.p21-warn-row{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.p21-ask{margin-top:10px;padding-top:10px;border-top:1px solid #99F6E4}
+.p21-ask-row{display:flex;gap:10px;flex-wrap:wrap}
+.p21-cand{margin:10px 0;padding:10px 12px;border:1px solid #5EEAD4;border-radius:12px;background:#fff}
+.p21-cand-day{display:flex;gap:8px;font-size:14.5px;padding:2px 0}
+.p21-cand-day span:first-child{font-weight:700;min-width:64px}
+.p21-exit{margin-top:10px;padding-top:10px;border-top:1px solid #99F6E4}

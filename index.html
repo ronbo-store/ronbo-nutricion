@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261118-cronometro-circulos">
+<link rel="stylesheet" href="styles.css?v=20261119-plan-21-dias">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -2333,6 +2333,18 @@ cuando no hay declaración legible (decisión 5). -->
      (app.js): propuesta validada como borrador editable, con
      [Aprobar y usar] y [Editar primero]. Nada se guarda desde
      aquí sin el toque de la persona. -->
+<!-- AUTH-503 · PLAN 21 DÍAS: hoja de arranque del alumno
+     desde su catálogo (D6). La pinta plan21SheetPaint (app.js);
+     con entrenador asignado la hoja envía la propuesta por el
+     canal de la bandeja, sin escribir planes. -->
+<div class="pend-float pend-consult" id="plan21-float" style="display:none" role="dialog">
+  <div class="pend-head">
+    <h2><span data-i18n="plan21.sheetTitle">Tu Plan 21 días</span></h2>
+    <button type="button" class="pend-close" id="plan21-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+  </div>
+  <div id="plan21-body"></div>
+</div>
+
 <div class="pend-float pend-consult" id="plan-ai-float" style="display:none" role="dialog">
   <div class="pend-head">
     <h2><span class="nudge-kicker" data-i18n="planai.kicker">AI PLAN PROPOSAL</span><br><span data-i18n="planai.title">A plan proposed for you</span></h2>
@@ -2580,6 +2592,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261118-cronometro-circulos"></script>
+<script type="module" src="app.js?v=20261119-plan-21-dias"></script>
 </body>
 </html>
