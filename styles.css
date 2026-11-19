@@ -6587,35 +6587,76 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sf-exrow .sess-full-exclock { display: inline-block; background: rgba(255,255,255,.14); border-radius: 99px; padding: 4px 12px; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .sf-paused { font-size: 13px; font-weight: 800; color: #fbbf24; letter-spacing: .06em; }
 .sf-running { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.72); }
-/* AUTH-485 · LOS CÍRCULOS DE SERIES (maqueta C de Ronald): una
-   fila flexible que ENVUELVE sin encoger — el círculo es de
-   44 px siempre (suelo de toque de la casa); con muchas series
-   la fila baja a otra línea y el rótulo baja con ella. */
-/* AUTH-500: la línea única — círculos + «Editar» compacta + botón de voz en UNA línea de 52 px; el rótulo vive en su propia línea (.sf-dots-lab). La envoltura solo sobrevive donde la letra aprobada (D1) no tiene forma física con toques de 44 px: 7+ series en banda estrecha y 8+ en la media — el toque no se encoge jamás (la envoltura de AUTH-485). */
-.sf-dots { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; height: 52px; margin-top: 2px; }
-.sf-dots.sfv-wrap { flex-wrap: wrap; height: auto; min-height: 52px; }
-@media (max-width: 400px) {
-  .sf-dots.sfv-n5, .sf-dots.sfv-n6 { gap: 2px; }
-  .sf-dots.sfv-n6 .sf-edit, .sf-dots.sfv-n7 .sf-edit, .sf-dots.sfv-n8 .sf-edit, .sf-dots.sfv-n9 .sf-edit, .sf-dots.sfv-n10 .sf-edit { display: none; }
-  .sf-dots.sfv-n7, .sf-dots.sfv-n8, .sf-dots.sfv-n9, .sf-dots.sfv-n10 { flex-wrap: wrap; height: auto; min-height: 52px; }
-}
+/* AUTH-485 · LOS CÍRCULOS DE SERIES (maqueta C de Ronald): la
+   fila de los círculos del ejercicio en curso. AUTH-500 la
+   dejó en una línea de 52 px con el rótulo en la suya, y la
+   envoltura de 485 solo sobrevivía donde los toques de 44 px
+   no tenían forma física (7+ series en banda estrecha, 8+ en
+   la media). */
+/* AUTH-505 · UNA SOLA LÍNEA SIEMPRE, DENTRO DEL BORDE (orden
+   expresa de Ronald, 2026-11-19, con la maqueta aprobada de
+   la aproximación: «si hay que reducir el tamaño de los
+   íconos pues se reduce para que todo quepa» y «no puede
+   salir fuera del borde»): la envoltura DESAPARECE. La fila
+   lleva además las marcas de aproximación «A1, A2, …» de la
+   tarjeta, y su clase sfv-t{T} cuenta el TOTAL de elementos
+   (aproximaciones + series). Los tamaños viven en variables
+   (--d círculo · --dw marca · --g hueco · --v/--vv voz) y
+   bajan por escalones según T y la banda, calculados sobre
+   el interior real del panel (.sf-col: mín(vista,430) − 36;
+   en ancha mín(vista,640) − 36) con la puerta de «Editar» y
+   la voz presentes — sin puerta, sobra sitio. Los toques se
+   mantienen tan grandes como la geometría permite en cada
+   escalón; el escalón exacto queda medido por la batería en
+   las seis bandas. La palabra «Editar» sube a la línea del
+   contador con los umbrales de AUTH-500 (estrecha T≥6, media
+   T≥7) y su botón de la fila se oculta en esos escalones. */
+.sf-dots { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--g); height: 52px; margin-top: 2px; --d: 44px; --dw: 38px; --g: 6px; --v: 48px; --vv: 44px; }
+.sf-dots.sfv-t5 { --g: 5px; }
+.sf-dots.sfv-t6 { --g: 5px; }
+.sf-dots.sfv-t7 { --g: 5px; }
+.sf-dots.sfv-t8 { --g: 4px; }
+.sf-dots.sfv-t9 { --g: 4px; }
+.sf-dots.sfv-t10 { --g: 4px; }
+.sf-dots.sfv-t11 { --d: 42px; --dw: 36px; --g: 4px; }
+.sf-dots.sfv-t12 { --d: 39px; --dw: 33px; --g: 3px; --v: 40px; --vv: 36px; }
 @media (min-width: 401px) and (max-width: 719px) {
-  .sf-dots.sfv-n6, .sf-dots.sfv-n7 { gap: 5px; }
-  .sf-dots.sfv-n7 .sf-edit, .sf-dots.sfv-n8 .sf-edit, .sf-dots.sfv-n9 .sf-edit, .sf-dots.sfv-n10 .sf-edit { display: none; }
-  .sf-dots.sfv-n8, .sf-dots.sfv-n9, .sf-dots.sfv-n10 { flex-wrap: wrap; height: auto; min-height: 52px; }
+  .sf-dots.sfv-t8 { --d: 39px; --dw: 33px; --g: 4px; --v: 44px; --vv: 40px; }
+  .sf-dots.sfv-t9 { --d: 35px; --dw: 29px; --g: 4px; --v: 40px; --vv: 36px; }
+  .sf-dots.sfv-t10 { --d: 32px; --dw: 26px; --g: 3px; --v: 40px; --vv: 36px; }
+  .sf-dots.sfv-t11 { --d: 29px; --dw: 23px; --g: 3px; --v: 36px; --vv: 32px; }
+  .sf-dots.sfv-t12 { --d: 26px; --dw: 20px; --g: 3px; --v: 36px; --vv: 32px; }
+  .sf-dots.sfv-t7 .sf-edit, .sf-dots.sfv-t8 .sf-edit, .sf-dots.sfv-t9 .sf-edit, .sf-dots.sfv-t10 .sf-edit, .sf-dots.sfv-t11 .sf-edit, .sf-dots.sfv-t12 .sf-edit { display: none; }
 }
-.sf-dot { width: 44px; height: 44px; flex: none; border-radius: 50%; border: 2.5px solid #6f87ab; background: none; color: #c9d8ec; font: inherit; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+@media (max-width: 400px) {
+  .sf-dots.sfv-t5 { --d: 40px; --dw: 34px; --g: 4px; }
+  .sf-dots.sfv-t6 { --d: 40px; --dw: 34px; --g: 5px; }
+  .sf-dots.sfv-t7 { --d: 35px; --dw: 29px; --g: 4px; --v: 44px; --vv: 40px; }
+  .sf-dots.sfv-t8 { --d: 30px; --dw: 24px; --g: 4px; --v: 44px; --vv: 40px; }
+  .sf-dots.sfv-t9 { --d: 27px; --dw: 21px; --g: 4px; --v: 40px; --vv: 36px; }
+  .sf-dots.sfv-t10 { --d: 25px; --dw: 19px; --g: 3px; --v: 40px; --vv: 36px; }
+  .sf-dots.sfv-t11 { --d: 23px; --dw: 17px; --g: 3px; --v: 36px; --vv: 32px; }
+  .sf-dots.sfv-t12 { --d: 20px; --dw: 14px; --g: 3px; --v: 36px; --vv: 32px; }
+  .sf-dots.sfv-t6 .sf-edit, .sf-dots.sfv-t7 .sf-edit, .sf-dots.sfv-t8 .sf-edit, .sf-dots.sfv-t9 .sf-edit, .sf-dots.sfv-t10 .sf-edit, .sf-dots.sfv-t11 .sf-edit, .sf-dots.sfv-t12 .sf-edit { display: none; }
+}
+.sf-dot { width: var(--d); height: var(--d); flex: none; border-radius: 50%; border: clamp(2px, calc(var(--d) * .06), 2.5px) solid #6f87ab; background: none; color: #c9d8ec; font: inherit; font-size: calc(var(--d) * .34); font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+/* AUTH-505 · LA MARCA DE APROXIMACIÓN: redonda, ámbar y con
+   borde punteado (la maqueta aprobada), algo menor que los
+   círculos de trabajo; marcada, se llena de ámbar. Su letra
+   es «A1, A2, …» — la fila de la tarjeta a la que marca. */
+.sf-dot.sf-warm { width: var(--dw); height: var(--dw); border: clamp(1.5px, calc(var(--dw) * .08), 2.5px) dashed #e8a33d; background: rgba(232, 163, 61, .08); color: #f5c877; font-size: calc(var(--dw) * .36); }
+.sf-dot.sf-warm.ok { background: #e8a33d; border-style: solid; border-color: #e8a33d; color: #23160a; }
 .sf-dot.ok { background: #57d93d; border-color: #57d93d; color: #0e1e3a; }
 .sf-dot.next { border-color: #57d93d; color: #fff; }
 .sf-dot:active { filter: brightness(1.2); }
-/* AUTH-502 · EL CÍRCULO QUE CUENTA (mockup aprobado): el anillo corre DENTRO del círculo de siempre — 44×44, el toque no cambia de tamaño. Verde en la cuenta de la serie; ámbar en los 10 s de preparación (D2: se distingue de la cuenta); rojo en el instante de cero, antes de la marca verde. */
+/* AUTH-502 · EL CÍRCULO QUE CUENTA (mockup aprobado): el anillo corre DENTRO del círculo de siempre — 44×44, el toque no cambia de tamaño. Verde en la cuenta de la serie; ámbar en los 10 s de preparación (D2: se distingue de la cuenta); rojo en el instante de cero, antes de la marca verde. AUTH-505: el círculo es el de la escalera de la fila (44 px hasta donde la geometría lo permite; el anillo y su número escalan con él). */
 .sf-dot.counting { position: relative; border-color: transparent; background: #12283f; color: #fff; }
 .sf-dot.counting .cd-ring { position: absolute; inset: 0; transform: rotate(-90deg); }
 .sf-dot.counting .cd-ring circle { fill: none; stroke-width: 3.5; }
 .sf-dot.counting .cd-ring-bg { stroke: #27435f; }
 .sf-dot.counting .cd-ring-fg { stroke: #57d93d; stroke-linecap: round; }
 .sf-dot.counting.prep .cd-ring-fg { stroke: #e8930c; }
-.sf-dot.counting .cd-num { font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sf-dot.counting .cd-num { font-size: calc(var(--d) * .285); font-weight: 800; font-variant-numeric: tabular-nums; }
 .sf-dot.counting.alarm { background: #d92b20; }
 .sf-dot.counting.alarm .cd-ring-fg { stroke: #ffb3ab; }
 .sf-dots-lab { display: block; margin-top: 12px; font-size: 13.5px; color: #9fb4cc; line-height: 1.4; }
@@ -6636,9 +6677,9 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sf-dots.sfv-pencil .sf-edit-vis { width: 34px; height: 34px; }
 .sf-dots.sfv-pencil .sf-edit-word { display: none; }
 .sf-dots.sfv-pencil .sf-edit-pencil { display: inline; }
-/* AUTH-500 · EL BOTÓN DE VOZ: solo el signo de la voz (corrección expresa de Ronald, 2026-11-18: sin la cara de la mascota). Se ve un círculo de 44×44 y se toca 48×48. */
-.sf-voice { flex: none; width: 48px; height: 48px; padding: 0; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.sf-voice-vis { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #2ec4a6; border: 2.5px solid #5fd4c4; box-sizing: border-box; }
+/* AUTH-500 · EL BOTÓN DE VOZ: solo el signo de la voz (corrección expresa de Ronald, 2026-11-18: sin la cara de la mascota). Se ve un círculo de 44×44 y se toca 48×48. AUTH-505: en los escalones altos de la fila su tamaño es el de las variables --v/--vv (nunca sale del borde). */
+.sf-voice { flex: none; width: var(--v); height: var(--v); padding: 0; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.sf-voice-vis { display: flex; align-items: center; justify-content: center; width: var(--vv); height: var(--vv); border-radius: 50%; background: #2ec4a6; border: 2.5px solid #5fd4c4; box-sizing: border-box; }
 .sf-voice:active .sf-voice-vis { filter: brightness(1.15); }
 /* AUTH-500 · LA BANDA DE ESCUCHA: ocupa el lugar de la línea mientras la app escucha una sola frase. */
 .sf-listen { margin-top: 12px; background: #20365e; border: 1.5px solid #5fd4c4; border-radius: 18px; padding: 16px; text-align: center; }
