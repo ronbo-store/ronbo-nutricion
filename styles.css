@@ -7052,3 +7052,43 @@ textarea.gest-in { resize: none; }
    nuevo. */
 .sf-done-q { font-size: 17px; font-weight: 800; color: #fff; line-height: 1.3; margin-top: 10px; }
 .sf-done-cardio .sf-btnrow { margin-top: 10px; }
+/* AUTH-518 · LA FILA CON AUDIO Y LA MASCOTA QUE HABLA (diseño
+   aprobado por Ronald el 2026-11-19, medido en la maqueta): en
+   la fila con audio los tres elementos — botón de video, control
+   de audio y foto — miden 60 px exactos de alto, con los mismos
+   márgenes arriba y abajo (su corrección de alineación). El
+   botón de video cede lo justo: círculo de 32, título a 13 y
+   subtítulo corto; el control de audio mide 76 px de ancho con
+   su rótulo dentro de la caja; la foto va a 50 px de ancho. La
+   barra de avance cuelga del borde inferior de la fila (3 px,
+   sin alto nuevo). Coste de altura frente a la fila de hoy: la
+   fila pasa de 58 a 60 px SOLO cuando el ejercicio tiene audio.
+   La mascota es una capa fija que solo existe mientras suena;
+   su botón de minimizar mide 30 × 30 exactos (excepción expresa
+   de Ronald a la regla de controles grandes). */
+.sf-howrow-au { position: relative; gap: 7px; }
+.sf-howrow-au .sf-how { height: 60px; min-height: 60px; padding: 8px 10px; gap: 5px; }
+.sf-howrow-au .sf-how-play { width: 32px; height: 32px; font-size: 13px; }
+.sf-howrow-au .sf-how-tx b { font-size: 13px; }
+.sf-howrow-au .sf-how-tx small { font-size: 11px; }
+.sf-howimg-au { width: 50px; height: 60px; }
+.sf-auctl { flex: 0 0 76px; width: 76px; height: 60px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 2px 4px; border-radius: 14px; border: 1.5px solid rgba(255,255,255,.35); background: rgba(255,255,255,.08); cursor: pointer; }
+.sf-aubtn { width: 29px; height: 29px; flex: none; border: none; border-radius: 50%; background: #2fd08c; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.sf-aubtn.playing { background: #e8a33d; }
+.sf-aulab { font-size: 9.5px; line-height: 1.1; font-weight: 700; color: rgba(255,255,255,.85); text-align: center; }
+.sf-aulab .t { color: #f5c877; font-weight: 800; }
+.sf-auprog { position: absolute; left: 4px; right: 57px; bottom: -3px; height: 3px; border-radius: 2px; background: rgba(61,220,90,.18); overflow: hidden; }
+.sf-auprog i { display: block; height: 100%; width: 0; background: #3ddc5a; border-radius: 2px; }
+.sf-austage { position: fixed; inset: 0; z-index: 90; background: radial-gradient(circle at 50% 40%, rgba(47,208,140,.13), rgba(0,0,0,0) 62%), linear-gradient(180deg, #132c49, #0a1828); display: flex; flex-direction: column; align-items: center; opacity: 0; pointer-events: none; transform: scale(.965); transition: opacity .28s ease, transform .28s ease; color: #fff; font-family: inherit; }
+.sf-austage.on { opacity: 1; pointer-events: auto; transform: scale(1); }
+.sf-aumin { position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border-radius: 50%; background: rgba(9,18,32,.42); border: 1px solid rgba(255,255,255,.16); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; z-index: 2; }
+.sf-aumin:active { background: rgba(9,18,32,.65); }
+.sf-auwrap { position: relative; width: min(320px, 84%); aspect-ratio: 1/1; margin-top: 64px; cursor: pointer; }
+.sf-auwrap img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 18px 24px rgba(0,0,0,.45)); }
+.sf-aumouth { position: absolute; left: 53.5%; top: 60.4%; width: 20%; height: 1.4%; transform: translate(-50%,-50%); border-radius: 50%; background: linear-gradient(to bottom, #f3ead9 0%, #f3ead9 22%, #5a2410 34%, #33150a 80%, #200c04 100%); box-shadow: inset 0 -3px 6px rgba(0,0,0,.5); }
+.sf-aucap { margin-top: 20px; font-size: 15px; font-weight: 800; color: #fff; text-align: center; padding: 0 20px; }
+.sf-ausub { margin-top: 3px; font-size: 12.5px; color: #9db6d2; text-align: center; padding: 0 24px; line-height: 1.45; }
+.sf-ausprog { width: 78%; height: 4px; border-radius: 2px; background: rgba(61,220,90,.18); overflow: hidden; margin-top: 22px; }
+.sf-ausprog i { display: block; height: 100%; width: 0; background: #3ddc5a; border-radius: 2px; }
+.sf-austime { margin-top: 7px; font-size: 12px; color: #cfe0f2; font-variant-numeric: tabular-nums; }
+.sf-austage[hidden] { display: none; }

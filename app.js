@@ -6545,6 +6545,13 @@ en: {
   'sess.dayMsg': 'MESSAGE OF THE DAY', 'sess.reflToday': "TODAY'S REFLECTION",
   'sess.articleLine': 'Article · read it or listen to it',
   'sess.seeHow': 'See how it’s done', 'sess.seeHowSub': 'Video · muscles · grip',
+  'sess.seeHowSubShort': 'Video · muscles',
+  'sess.listen1': 'Listen to', 'sess.listen2': 'instructions', 'sess.listenFull': 'Listen to the instructions',
+  'sess.auPlaying': 'Playing…', 'sess.auPaused': 'Paused',
+  'sess.auStageSub': 'Listening to the instructions · Tap the mascot to pause',
+  'sess.auStageSubPaused': 'Paused · Tap the mascot to keep listening',
+  'sess.auDone': 'Instructions finished',
+  'sess.auMin': 'Minimize the mascot', 'sess.auTap': 'Tap the mascot to pause or resume',
   'sess.nowLab': 'NOW', 'sess.exRunning': 'in progress', 'sess.timeGoal': 'Time goal {t}',
   'sess.ofDay': '{p}% of the day',
   'sess.dayDone': 'Day completed', 'sess.dayDoneSum': '{n} of {m} exercises done',
@@ -11943,6 +11950,13 @@ es: {
   'sess.dayMsg': 'MENSAJE DEL DÍA', 'sess.reflToday': 'REFLEXIÓN DE HOY',
   'sess.articleLine': 'Artículo · leerlo o escucharlo',
   'sess.seeHow': 'Ver cómo se hace', 'sess.seeHowSub': 'Video · músculos · agarre',
+  'sess.seeHowSubShort': 'Video · músculos',
+  'sess.listen1': 'Escuchar', 'sess.listen2': 'instrucciones', 'sess.listenFull': 'Escuchar instrucciones',
+  'sess.auPlaying': 'Sonando…', 'sess.auPaused': 'En pausa',
+  'sess.auStageSub': 'Escuchando las instrucciones · Toca la mascota para pausar',
+  'sess.auStageSubPaused': 'En pausa · Toca la mascota para seguir escuchando',
+  'sess.auDone': 'Indicación terminada',
+  'sess.auMin': 'Minimizar la mascota', 'sess.auTap': 'Toca la mascota para pausar o seguir',
   'sess.nowLab': 'AHORA', 'sess.exRunning': 'en curso', 'sess.timeGoal': 'Meta de tiempo {t}',
   'sess.ofDay': '{p}% del día',
   'sess.dayDone': 'Día completado', 'sess.dayDoneSum': '{n} de {m} ejercicios hechos',
@@ -39754,6 +39768,7 @@ let SESS_FULL_SIG = '';
 let SESS_BORN_FULL = false;   /* AUTH-482: ¿esta aparición de la sesión ya nació maximizada? */
 function sessViewSet(v) {
   if (v !== 'bar' && v !== 'full') v = 'pill';
+  if (v !== 'full') { try { sessAudioStop(); } catch {} }   /* AUTH-518: fuera de la vista completa, la indicación se detiene — su control vive en la fila de la completa */
   SESS_VIEW = v;
   try { sessPillTick(); } catch {}
   try { coverSync(); } catch {}
@@ -39761,7 +39776,7 @@ function sessViewSet(v) {
 function sessPillTick() {
   const pill = $('sess-pill'); if (!pill) return;
   const run = sessRunning();
-  if (!run) { pill.style.display = 'none'; const b0 = $('sess-bar'); if (b0) b0.style.display = 'none'; const f0 = $('sess-full'); if (f0) f0.style.display = 'none'; document.body.classList.remove('sess-on', 'sess-view-pill', 'sess-view-bar', 'sess-view-full'); SESS_VIEW = 'pill'; SESS_BORN_FULL = false; SESS_BAR_SIG = ''; SESS_FULL_SIG = ''; try { moveTick(null); } catch {} SESS_PILL_SIG = ''; return; }
+  if (!run) { pill.style.display = 'none'; const b0 = $('sess-bar'); if (b0) b0.style.display = 'none'; const f0 = $('sess-full'); if (f0) f0.style.display = 'none'; document.body.classList.remove('sess-on', 'sess-view-pill', 'sess-view-bar', 'sess-view-full'); SESS_VIEW = 'pill'; SESS_BORN_FULL = false; SESS_BAR_SIG = ''; SESS_FULL_SIG = ''; try { moveTick(null); } catch {} try { sessAudioStop(); } catch {} SESS_PILL_SIG = ''; return; }
   /* AUTH-482 (orden de Ronald, 2026-11-16): EL CUADRITO
      NACE MAXIMIZADO — la primera vez que el latido ve una
      sesión viva (el arranque del cronómetro, o la vuelta a
@@ -41411,8 +41426,292 @@ function sessMsgHTML(msg) {
 function sessHowRowHTML(ex) {
   const btn = `<button type="button" class="sf-how" data-sess-ficha="1"><span class="sf-how-play" aria-hidden="true">▶</span><span class="sf-how-tx"><b>${esc(t('sess.seeHow'))}</b><small>${esc(t('sess.seeHowSub'))}</small></span></button>`;
   const photo = trainExPhoto(ex);
-  if (!photo) return btn;
-  return `<div class="sf-howrow">${btn}<img class="sf-howimg" src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()"></div>`;
+  const auKey = sessAudioKey(ex);
+  if (!auKey) {
+    if (!photo) return btn;
+    return `<div class="sf-howrow">${btn}<img class="sf-howimg" src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()"></div>`;
+  }
+  /* AUTH-518: con audio, la fila es la de la maqueta aprobada —
+     el botón de video cede lo justo (círculo de 32, título a 13
+     y subtítulo corto «Video · músculos»; la hoja que abre sigue
+     enseñando el agarre igual que hoy), el control de audio de
+     76 px con su rótulo dentro de la caja, y la foto a 50 px —
+     los tres a 60 px exactos, mismos márgenes. */
+  const btnMin = `<button type="button" class="sf-how" data-sess-ficha="1"><span class="sf-how-play" aria-hidden="true">▶</span><span class="sf-how-tx"><b>${esc(t('sess.seeHow'))}</b><small>${esc(t('sess.seeHowSubShort'))}</small></span></button>`;
+  const img = photo ? `<img class="sf-howimg sf-howimg-au" src="${esc(photo)}" alt="" loading="lazy" onerror="this.remove()">` : '';
+  return `<div class="sf-howrow sf-howrow-au">${btnMin}${sessAudioCtlHTML(auKey)}${img}${sessAudioProgHTML(auKey)}</div>`;
+}
+/* ═══ AUTH-518 · «ESCUCHAR INSTRUCCIONES» Y LA MASCOTA QUE
+   HABLA (orden y diseño aprobados por Ronald el 2026-11-19:
+   la fila en la misma línea de «Ver cómo se hace», la mascota
+   grande articulando con el volumen real y el botón de
+   minimizar discreto de 30 × 30 — excepción expresa suya a la
+   regla de controles grandes de la casa).
+   LOS ARCHIVOS: los audios viven en el repo de assets, como
+   las fotos, y se nombran por CONVENCIÓN:
+   audio-{ejercicio}[v{índiceDeVariante}]-{idioma}.mp3
+   (la variante lleva el MISMO índice que variantIndex en la
+   ficha: E004v1 es variantes[1] de E004). El manifiesto
+   SESS_AUDIO_FORMS dice qué formas tienen audio publicado:
+   una forma entra en el manifiesto SOLO cuando sus dos
+   archivos (ES y EN) ya están subidos al repo de assets —
+   así crece la biblioteca tanda a tanda sin tocar más
+   código que esta lista. Sin audio publicado, la fila queda
+   como hoy (AUTH-501): la lectura del guion con la voz de la
+   app queda FUERA de este paquete (la ficha aún no guarda el
+   guion como campo; la nota de producción la deja como red
+   futura, no como parte del diseño aprobado).
+   EL IDIOMA del audio es el de la app (LANG): cada forma
+   nace con sus dos archivos y el género de su voz ya viene
+   mezclado en la grabación (impares masculina, pares
+   femenina), así que aquí no se elige voz alguna.
+   LA MASCOTA: capa a pantalla completa SOLO mientras suena
+   (coste cero en el panel en reposo); su boca es un óvalo
+   sobre la boca medida del modelo de guiño (53,5 % × 60,4 %,
+   ancho 20 %, apertura máxima ≈9,5 % del alto) y la abre el
+   VOLUMEN REAL de la voz (AnalyserNode sobre el elemento de
+   audio; los assets se sirven con CORS «*», la condición de
+   la nota). Minimizar esconde la capa SIN detener la voz; la
+   fila queda en «Sonando…» y tocarla la trae de vuelta. Al
+   terminar, la boca se detiene y la mascota se minimiza sola
+   tras ≈1,2 s. Si se abre la ficha (el video), si cambia el
+   ejercicio en curso, si el panel sale de la vista completa
+   o si la sesión se acaba, el audio se detiene: nunca suenan
+   dos cosas a la vez ni queda sonando sin control visible.
+   El elemento de audio y la capa viven FUERA de #sess-full:
+   los repintados del panel no cortan la reproducción. ═══ */
+const SESS_AUDIO_BASE = 'https://ronbo-store.github.io/ronbo-nutri-assets/';
+const SESS_AUDIO_MASCOT = SESS_AUDIO_BASE + 'avatar-coach-virtual/web/guino-hablando.webp';
+const SESS_AUDIO_FORMS = new Set(['E001', 'E002', 'E003', 'E004', 'E004v1', 'E005', 'E006', 'E007', 'E008', 'E009', 'E010', 'E011', 'E012', 'E105', 'E105v1']);
+const SESS_AUDIO_WAVE_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#08351f" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M4 10v4M8.5 7v10M13 4v16M17.5 7v10M22 10v4" transform="translate(-1 0)"/></svg>';
+const SESS_AUDIO_PAUSE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="#3a2403" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>';
+let SESS_AUDIO = { key: '', name: '', st: 'idle', stage: false, seq: 0, cur: 0, dur: 0, el: null, ctx: null, an: null, data: null, raf: 0, lvl: 0, endT: 0 };
+/* La clave de audio de la forma en curso: el ejercicio, y su
+   variante elegida si la lleva (el mismo variantIndex de la
+   ficha). '' si esa forma no tiene audio publicado. */
+function sessAudioKey(ex) {
+  if (!ex || !ex.exerciseId) return '';
+  const key = trainVariantOf(ex) ? ex.exerciseId + 'v' + ex.variantIndex : ex.exerciseId;
+  return SESS_AUDIO_FORMS.has(key) ? key : '';
+}
+function sessAudioFmt(s) { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function sessAudioLabHTML(auKey) {
+  if (!auKey || SESS_AUDIO.key !== auKey || SESS_AUDIO.st === 'idle') return `${esc(t('sess.listen1'))}<br>${esc(t('sess.listen2'))}`;
+  return `<span class="t">${esc(t(SESS_AUDIO.st === 'playing' ? 'sess.auPlaying' : 'sess.auPaused'))}</span><br>${sessAudioFmt(SESS_AUDIO.cur)} / ${sessAudioFmt(SESS_AUDIO.dur)}`;
+}
+function sessAudioCtlHTML(auKey) {
+  const playing = SESS_AUDIO.key === auKey && SESS_AUDIO.st === 'playing';
+  return `<div class="sf-auctl" data-sess-audio-open="1" data-au-key="${esc(auKey)}"><button type="button" class="sf-aubtn${playing ? ' playing' : ''}" data-sess-audio="1" aria-label="${esc(t('sess.listenFull'))}">${playing ? SESS_AUDIO_PAUSE_SVG : SESS_AUDIO_WAVE_SVG}</button><div class="sf-aulab">${sessAudioLabHTML(auKey)}</div></div>`;
+}
+function sessAudioProgHTML(auKey) {
+  if (SESS_AUDIO.key !== auKey || SESS_AUDIO.st === 'idle') return '';
+  const pct = SESS_AUDIO.dur ? Math.min(100, SESS_AUDIO.cur * 100 / SESS_AUDIO.dur) : 0;
+  return `<div class="sf-auprog" aria-hidden="true"><i style="width:${pct}%"></i></div>`;
+}
+/* El elemento de audio y la capa de la mascota nacen una
+   sola vez, al primer toque, y viven en el cuerpo del
+   documento: ningún repintado del panel los toca. */
+function sessAudioEnsure() {
+  if (SESS_AUDIO.el) return;
+  const el = new Audio();
+  el.crossOrigin = 'anonymous';
+  el.preload = 'auto';
+  SESS_AUDIO.el = el;
+  const stage = document.createElement('div');
+  stage.className = 'sf-austage';
+  stage.id = 'sess-audio-stage';
+  stage.hidden = true;
+  stage.innerHTML = `<button type="button" class="sf-aumin" data-au-min="1" aria-label="${esc(t('sess.auMin'))}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.82)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9l8 8 8-8"/></svg></button><div class="sf-auwrap" data-au-mascot="1" role="button" aria-label="${esc(t('sess.auTap'))}"><img src="${SESS_AUDIO_MASCOT}" alt="" draggable="false"><div class="sf-aumouth"></div></div><div class="sf-aucap"></div><div class="sf-ausub"></div><div class="sf-ausprog"><i></i></div><div class="sf-austime"><span class="sf-aucur">0:00</span> / <span class="sf-audur">0:00</span></div>`;
+  document.body.appendChild(stage);
+  stage.querySelector('[data-au-min]').addEventListener('click', ev => { ev.stopPropagation(); sessAudioStageSet(false); });
+  stage.querySelector('[data-au-mascot]').addEventListener('click', () => { if (SESS_AUDIO.st === 'playing') sessAudioPause(); else if (SESS_AUDIO.st === 'paused') sessAudioPlay(); });
+  el.addEventListener('timeupdate', sessAudioTime);
+  el.addEventListener('loadedmetadata', sessAudioTime);
+  el.addEventListener('ended', sessAudioFinish);
+  el.addEventListener('error', sessAudioError);
+}
+/* El grafo de volumen: se crea dentro del gesto del toque
+   (lo que iOS exige) y se reanuda si el navegador lo dejó
+   dormido. Si el grafo fallara, el audio suena igual y la
+   boca queda en reposo — nunca al revés. */
+function sessAudioGraph() {
+  if (SESS_AUDIO.ctx) { if (SESS_AUDIO.ctx.state === 'suspended') { try { SESS_AUDIO.ctx.resume(); } catch {} } return; }
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || !SESS_AUDIO.el) return;
+    const ctx = new AC();
+    const src = ctx.createMediaElementSource(SESS_AUDIO.el);
+    const an = ctx.createAnalyser();
+    an.fftSize = 512;
+    src.connect(an);
+    an.connect(ctx.destination);
+    SESS_AUDIO.ctx = ctx;
+    SESS_AUDIO.an = an;
+    SESS_AUDIO.data = new Uint8Array(an.fftSize);
+  } catch { SESS_AUDIO.ctx = null; SESS_AUDIO.an = null; }
+}
+/* La boca sigue al volumen: ataque rápido, caída suave —
+   habla con las sílabas y se queda quieta en los silencios. */
+function sessAudioLoop() {
+  let target = 0;
+  if (SESS_AUDIO.an && SESS_AUDIO.st === 'playing') {
+    SESS_AUDIO.an.getByteTimeDomainData(SESS_AUDIO.data);
+    let sum = 0;
+    const d = SESS_AUDIO.data;
+    for (let i = 0; i < d.length; i++) { const v = (d[i] - 128) / 128; sum += v * v; }
+    target = Math.min(1, Math.max(0, (Math.sqrt(sum / d.length) - 0.015) * 3.4));
+  }
+  SESS_AUDIO.lvl += (target - SESS_AUDIO.lvl) * (target > SESS_AUDIO.lvl ? 0.55 : 0.16);
+  if (SESS_AUDIO.lvl < 0.004 && target === 0) SESS_AUDIO.lvl = 0;
+  const mouth = document.querySelector('#sess-audio-stage .sf-aumouth');
+  if (mouth) {
+    mouth.style.height = (1.4 + SESS_AUDIO.lvl * 8.1).toFixed(2) + '%';
+    mouth.style.width = (20 + SESS_AUDIO.lvl * 1.6).toFixed(2) + '%';
+  }
+  if (SESS_AUDIO.st === 'playing' || SESS_AUDIO.lvl > 0) SESS_AUDIO.raf = requestAnimationFrame(sessAudioLoop);
+  else { SESS_AUDIO.raf = 0; sessAudioMouthRest(); }
+}
+function sessAudioMouthRest() {
+  SESS_AUDIO.lvl = 0;
+  const mouth = document.querySelector('#sess-audio-stage .sf-aumouth');
+  if (mouth) { mouth.style.height = '1.4%'; mouth.style.width = '20%'; }
+}
+function sessAudioStageSet(on) {
+  SESS_AUDIO.stage = !!on;
+  const stage = $('sess-audio-stage');
+  if (!stage) return;
+  if (on) {
+    stage.hidden = false;
+    requestAnimationFrame(() => stage.classList.add('on'));
+    sessAudioStagePaint(false);
+  } else {
+    stage.classList.remove('on');
+    setTimeout(() => { if (!SESS_AUDIO.stage) stage.hidden = true; }, 300);
+  }
+}
+function sessAudioStagePaint(done) {
+  const stage = $('sess-audio-stage');
+  if (!stage) return;
+  const cap = stage.querySelector('.sf-aucap');
+  if (cap) cap.textContent = SESS_AUDIO.name || '';
+  const sub = stage.querySelector('.sf-ausub');
+  if (sub) sub.textContent = done ? t('sess.auDone') : (SESS_AUDIO.st === 'paused' ? t('sess.auStageSubPaused') : t('sess.auStageSub'));
+  const fill = stage.querySelector('.sf-ausprog i');
+  if (fill) fill.style.width = (SESS_AUDIO.dur ? Math.min(100, SESS_AUDIO.cur * 100 / SESS_AUDIO.dur) : 0) + '%';
+  const cur = stage.querySelector('.sf-aucur');
+  if (cur) cur.textContent = sessAudioFmt(SESS_AUDIO.cur);
+  const dur = stage.querySelector('.sf-audur');
+  if (dur) dur.textContent = sessAudioFmt(SESS_AUDIO.dur);
+}
+/* El pintado en sitio de la fila: el tiempo avanza unas
+   cuatro veces por segundo sin repintar el panel — solo se
+   tocan el botón, el rótulo y la barra del control en curso. */
+function sessAudioRowPaint() {
+  const full = $('sess-full');
+  if (!full) return;
+  const ctl = full.querySelector('.sf-auctl');
+  if (ctl && SESS_AUDIO.key && ctl.dataset.auKey === SESS_AUDIO.key) {
+    const playing = SESS_AUDIO.st === 'playing';
+    const btn = ctl.querySelector('.sf-aubtn');
+    if (btn) { btn.classList.toggle('playing', playing); btn.innerHTML = playing ? SESS_AUDIO_PAUSE_SVG : SESS_AUDIO_WAVE_SVG; }
+    const lab = ctl.querySelector('.sf-aulab');
+    if (lab) lab.innerHTML = sessAudioLabHTML(SESS_AUDIO.key);
+  }
+  const bar = full.querySelector('.sf-auprog i');
+  if (bar) bar.style.width = (SESS_AUDIO.dur ? Math.min(100, SESS_AUDIO.cur * 100 / SESS_AUDIO.dur) : 0) + '%';
+}
+function sessAudioTime() {
+  const el = SESS_AUDIO.el;
+  if (!el) return;
+  SESS_AUDIO.cur = el.currentTime || 0;
+  if (el.duration && isFinite(el.duration)) SESS_AUDIO.dur = el.duration;
+  sessAudioRowPaint();
+  sessAudioStagePaint(false);
+}
+function sessAudioPlay() {
+  const el = SESS_AUDIO.el;
+  if (!el) return;
+  sessAudioGraph();
+  try { const p = el.play(); if (p && p.catch) p.catch(() => {}); } catch {}
+  SESS_AUDIO.st = 'playing';
+  SESS_AUDIO.seq++;
+  if (!SESS_AUDIO.raf) SESS_AUDIO.raf = requestAnimationFrame(sessAudioLoop);
+  sessAudioStagePaint(false);
+  sessAudioRowPaint();
+  try { sessPillTick(); } catch {}
+}
+function sessAudioPause() {
+  const el = SESS_AUDIO.el;
+  if (!el) return;
+  try { el.pause(); } catch {}
+  SESS_AUDIO.st = 'paused';
+  SESS_AUDIO.seq++;
+  sessAudioStagePaint(false);
+  sessAudioRowPaint();
+  try { sessPillTick(); } catch {}
+}
+/* El toque en el botón redondo: si suena la forma en curso,
+   pausa o sigue; si es otra (u otra vez tras el fin), carga
+   su archivo en el idioma de la app y la mascota aparece. */
+function sessAudioToggle() {
+  let st = null;
+  try { st = trainBarState(); } catch {}
+  if (!st) return;
+  const ex = st.eff[st.cur].ex;
+  const key = sessAudioKey(ex);
+  if (!key) return;
+  sessAudioEnsure();
+  if (SESS_AUDIO.key === key && SESS_AUDIO.st !== 'idle') {
+    if (SESS_AUDIO.st === 'playing') sessAudioPause(); else sessAudioPlay();
+    return;
+  }
+  if (SESS_AUDIO.endT) { clearTimeout(SESS_AUDIO.endT); SESS_AUDIO.endT = 0; }
+  SESS_AUDIO.key = key;
+  SESS_AUDIO.name = trainExName(ex) || ex.name || '';
+  SESS_AUDIO.cur = 0;
+  SESS_AUDIO.dur = 0;
+  try { SESS_AUDIO.el.src = SESS_AUDIO_BASE + 'audio-' + key + '-' + LANG + '.mp3'; } catch {}
+  sessAudioStageSet(true);
+  sessAudioPlay();
+}
+/* La parada entera: la llaman la ficha (el video), el cambio
+   de ejercicio, la salida de la vista completa y el fin de
+   la sesión. No llama al latido: quien llama repinta. */
+function sessAudioStop() {
+  if (!SESS_AUDIO.key && SESS_AUDIO.st === 'idle') return;
+  if (SESS_AUDIO.endT) { clearTimeout(SESS_AUDIO.endT); SESS_AUDIO.endT = 0; }
+  if (SESS_AUDIO.el) { try { SESS_AUDIO.el.pause(); } catch {} }
+  SESS_AUDIO.key = '';
+  SESS_AUDIO.name = '';
+  SESS_AUDIO.st = 'idle';
+  SESS_AUDIO.cur = 0;
+  SESS_AUDIO.dur = 0;
+  SESS_AUDIO.seq++;
+  sessAudioStageSet(false);
+  sessAudioMouthRest();
+}
+/* El fin del audio: la boca se detiene, la capa enseña
+   «Indicación terminada» y se minimiza sola tras ≈1,2 s;
+   la fila vuelve a «Escuchar instrucciones». */
+function sessAudioFinish() {
+  SESS_AUDIO.st = 'idle';
+  SESS_AUDIO.seq++;
+  sessAudioMouthRest();
+  sessAudioStagePaint(true);
+  sessAudioRowPaint();
+  try { sessPillTick(); } catch {}
+  if (SESS_AUDIO.endT) clearTimeout(SESS_AUDIO.endT);
+  SESS_AUDIO.endT = setTimeout(() => {
+    SESS_AUDIO.endT = 0;
+    sessAudioStageSet(false);
+    SESS_AUDIO.key = '';
+    SESS_AUDIO.seq++;
+    try { sessPillTick(); } catch {}
+  }, 1200);
+}
+function sessAudioError() {
+  sessAudioStop();
+  try { sessPillTick(); } catch {}
 }
 /* AUTH-516 · LA META DE TIEMPO DEL EJERCICIO EN CURSO (decisión
    de Ronald, 2026-11-19 13:22 CST, precisada a las 13:27): el
@@ -41445,6 +41744,14 @@ function sessFullSync(run) {
   let st = null; try { st = trainBarState(); } catch {}
   let dc = null;
   if (!st) { try { dc = sessDayCompleteState(run); } catch {} }   /* AUTH-507: ¿el nulo es porque el día está hecho? */
+  /* AUTH-518: si el ejercicio en curso ya no es el del audio
+     que suena (cambió el «ahora», o ya no hay estado), el
+     audio se detiene antes de pintar: la fila nueva nace en
+     reposo y nada queda sonando sin su control. */
+  if (SESS_AUDIO.key) {
+    const curKey = st ? sessAudioKey(st.eff[st.cur].ex) : '';
+    if (curKey !== SESS_AUDIO.key) { try { sessAudioStop(); } catch {} }
+  }
   const msg = shareMsgRevealedFor(todayISO());
   const refl = sessReflOfDay();
   const cMin = sessCardioMin(run);   /* AUTH-482: el mismo total que la píldora — vivo + cardio incluido */
@@ -41456,7 +41763,7 @@ function sessFullSync(run) {
   if (!st && !dc) {
     /* Sin estado del día: reloj, día, mensaje y reflexión —
        ningún ejercicio inventado. */
-    sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l'].join('|');
+    sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', 'AU' + SESS_AUDIO.seq + ':' + SESS_AUDIO.st].join('|');
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${msgBlk}${sessReflHTML()}</div>${minBtn}</div>`;
   } else if (!st) {
     /* AUTH-507 · DÍA COMPLETO: el nulo de trainBarState es
@@ -41567,7 +41874,7 @@ function sessFullSync(run) {
     const cdTerm = cdLive ? 'C' + cdLive.si + ':' + (cdLive.cd.f === 1 ? 'z' : (sessCdElapsed(cdLive.cd) < SESS_CD_PREP ? 'p' : 'r')) : '';
     const warmTerm = curChk && curChk.warmup && curChk.warmup.on === true && Array.isArray(curChk.warmup.sets) ? 'W' + curChk.warmup.sets.map(s2 => (s2 && s2.dot === true ? 1 : 0) + ':' + (s2 && s2.loadVal != null ? String(s2.loadVal) : '')).join(',') : 'W-';   /* AUTH-505: la aproximación entra en la firma — encender el bloque, cambiar su lista o tocar una marca «A» repinta la línea una vez · AUTH-511: sus cargas también — lo que la rueda escriba en una fila de aproximación repinta su cara */
     const loadTerm = curChk && Array.isArray(curChk.sets) ? 'L' + curChk.sets.map(s2 => (s2 && s2.loadVal != null ? String(s2.loadVal) : '') + (s2 && s2.clr === true ? 'c' : '')).join(',') : 'L-';   /* AUTH-511: las cargas de las series de trabajo entran en la firma — son la cara de los círculos y la referencia del cálculo de la aproximación: lo que la rueda o la tarjeta escriban repinta la línea en el siguiente latido */
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm, warmTerm, loadTerm, 'G' + goalSec].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace · AUTH-516: el término G trae la meta de tiempo del ejercicio en curso — si cambia el ejercicio o su criterio, la línea repinta una vez; el segundo a segundo lo sigue pintando el tick en sitio, sin tocar la meta */
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm, warmTerm, loadTerm, 'G' + goalSec, 'AU' + SESS_AUDIO.seq + ':' + SESS_AUDIO.st + ':' + (SESS_AUDIO.key || '-')].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace · AUTH-516: el término G trae la meta de tiempo del ejercicio en curso — si cambia el ejercicio o su criterio, la línea repinta una vez; el segundo a segundo lo sigue pintando el tick en sitio, sin tocar la meta · AUTH-518: el término AU trae el estado del audio — sonar, pausar, terminar o detenerse repintan una vez; el segundo a segundo del tiempo lo pinta sessAudioRowPaint en sitio, sin repintar */
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
@@ -41698,7 +42005,30 @@ function sessPanelWire(el, surface) {
   el.addEventListener('click', ev => {
     const run = sessRunning(); if (!run) return;
     const fd = ev.target.closest ? ev.target.closest('[data-sess-ficha]') : null;
-    if (fd) { ev.stopPropagation(); try { sessFullFichaOpen(); } catch {} return; }
+    if (fd) { ev.stopPropagation(); try { sessAudioStop(); } catch {} try { sessFullFichaOpen(); } catch {} return; }
+    const au = ev.target.closest ? ev.target.closest('[data-sess-audio]') : null;
+    if (au) {
+      /* AUTH-518: el botón redondo del control de audio —
+         sonar, pausar o seguir la indicación del ejercicio
+         en curso, con la misma guarda de contexto de los
+         círculos y de las caras. */
+      ev.stopPropagation();
+      const planA = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (planA && TRAIN_CHECKS_CTX === planA.id + '|' + todayISO()) {
+        try { sessAudioToggle(); } catch {}
+      }
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const auo = ev.target.closest ? ev.target.closest('[data-sess-audio-open]') : null;
+    if (auo) {
+      /* AUTH-518: tocar el resto del control (su rótulo) con
+         la indicación viva trae de vuelta a la mascota; en
+         reposo no hace nada. Sin guarda de contexto: no
+         escribe estado de entrenamiento alguno. */
+      if (SESS_AUDIO.key && SESS_AUDIO.st !== 'idle') { try { sessAudioEnsure(); sessAudioStageSet(true); } catch {} }
+      return;
+    }
     const fac = ev.target.closest ? ev.target.closest('[data-pill-face]') : null;
     if (fac) {
       const planF = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
@@ -66319,7 +66649,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-cierre-nombres';
+const PWA_SW_VERSION = '20261119-audio-instrucciones';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
