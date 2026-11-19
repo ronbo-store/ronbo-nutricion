@@ -6549,7 +6549,7 @@ en: {
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.cardioIncl': 'includes {min} min of cardio',
   'sess.setsOf': '{n} of {m} sets', 'sess.setsTap': 'tap a circle as you finish', 'sess.edit': 'Edit', 'sess.reflTag': 'REFLECTION', 'sess.listenShort': 'read it or listen',
-  'sess.voice.btn': 'Dictate the set by voice', 'sess.voice.hint': 'or dictate your set 🎙',
+  'sess.voice.btn': 'Dictate the set by voice', 'sess.voice.hint': 'or dictate your set', 'sess.warmSet': 'Warm-up set',
   'sess.voice.listening': '🎙 Listening… dictate your set {n}', 'sess.voice.example': 'Say: “twelve reps, sixty-five pounds”', 'sess.voice.doneBtn': 'Done',
   'sess.voice.heard': '🎙 I heard: {parts}', 'sess.voice.repsN': '{n} repetitions', 'sess.voice.rep1': '1 repetition', 'sess.voice.bodyweight': 'bodyweight',
   'sess.voice.loaded': 'Set {n} loaded and checked ✓', 'sess.voice.fix': 'Did I get it wrong? Tap Edit and fix it as always', 'sess.voice.chipSet': 'Set {n}',
@@ -11936,7 +11936,7 @@ es: {
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
   'sess.cardioIncl': 'incluye {min} min de cardio',
   'sess.setsOf': '{n} de {m} series', 'sess.setsTap': 'toca un círculo al terminar', 'sess.edit': 'Editar', 'sess.reflTag': 'REFLEXIÓN', 'sess.listenShort': 'leerlo o escucharlo',
-  'sess.voice.btn': 'Dictar la serie por voz', 'sess.voice.hint': 'o dicta tu serie 🎙',
+  'sess.voice.btn': 'Dictar la serie por voz', 'sess.voice.hint': 'o dicta tu serie', 'sess.warmSet': 'Serie de aproximación',
   'sess.voice.listening': '🎙 Te escucho… dicta tu serie {n}', 'sess.voice.example': 'Di: «doce repeticiones, sesenta y cinco libras»', 'sess.voice.doneBtn': 'Listo',
   'sess.voice.heard': '🎙 Escuché: {parts}', 'sess.voice.repsN': '{n} repeticiones', 'sess.voice.rep1': '1 repetición', 'sess.voice.bodyweight': 'peso corporal',
   'sess.voice.loaded': 'Serie {n} cargada y marcada ✓', 'sess.voice.fix': '¿Lo entendí mal? Toca Editar y corrígelo como siempre', 'sess.voice.chipSet': 'Serie {n}',
@@ -34935,7 +34935,17 @@ function trainChecksRead(planId) {
         out[k].warmup = { on: c.warmup.on === true,
           sets: Array.isArray(c.warmup.sets) ? c.warmup.sets.filter(s => s && typeof s === 'object').map(s => ({
             repsDone: String(s.repsDone == null ? '' : s.repsDone),
-            loadVal: String(s.loadVal == null ? '' : s.loadVal), ...tfDetailSpread(s) })) : [],
+            loadVal: String(s.loadVal == null ? '' : s.loadVal),
+            /* AUTH-505 · LA MARCA DE LA APROXIMACIÓN (la que
+               el panel pinta como «A1, A2, …» en la línea de
+               círculos) sobrevive a la restauración del
+               borrador como la de las series de trabajo: solo
+               viaja `dot: true`. La tarjeta nunca tuvo marca
+               de hecho para estas series — este campo nace
+               aquí, vive SOLO en el borrador y el escritor
+               del cierre no lo copia (su proyección de la
+               aproximación es campo a campo: reps y carga). */
+            ...(s.dot === true ? { dot: true } : {}), ...tfDetailSpread(s) })) : [],
           /* AUTH-428 · LA IDENTIDAD DE LA APROXIMACIÓN:
              el ejercicio elegido en la Biblioteca viaja con el
              bloque, saneado como texto; sin él, la aproximación
@@ -40417,6 +40427,34 @@ function sessDotMark(s) {
   }
   s.dot = true;
 }
+/* ═══ AUTH-505 · LA MARCA DE LA APROXIMACIÓN EN LA LÍNEA
+   (diseño aprobado por Ronald el 2026-11-19: maqueta
+   «propuesta-aproximacion-2026-11-19», caso A, con su
+   corrección del borde). Las series de aproximación son
+   las de la TARJETA (el bloque warmup del borrador, con
+   sus filas A1, A2, …): la línea del panel pinta una marca
+   redonda por cada una, antes del círculo 1 y en su orden,
+   y tocarla marca o desmarca ESA serie — su campo `dot`,
+   que nace con este paquete (la tarjeta nunca tuvo marca
+   de hecho para ellas) y vive SOLO en el borrador: el
+   escritor del cierre proyecta la aproximación campo a
+   campo (reps y carga a warmupSets) y no lo copia.
+   La marca es PREPARACIÓN y nada más: no entra en el
+   contador «X de N series» (que lee solo las series de
+   trabajo), no finaliza el ejercicio (la auto-finalización
+   de AUTH-496 vive solo en sessDotTap), no arranca la
+   cuenta de AUTH-502 (este gesto no pasa por sessDotTap)
+   y el dictado de AUTH-500 ni la ve (su serie destino se
+   busca entre las de trabajo). Completar las numeradas
+   finaliza el ejercicio aunque queden aproximaciones sin
+   marcar. ═══ */
+function sessWarmTap(plan, key, wi) {
+  const chk = TRAIN_CHECKS[key];
+  if (!chk || !chk.warmup || chk.warmup.on !== true || !Array.isArray(chk.warmup.sets) || !chk.warmup.sets[wi]) return;
+  const s = chk.warmup.sets[wi];
+  if (s.dot === true) delete s.dot; else s.dot = true;
+  trainChecksPersist(plan.id);
+}
 function sessDotTap(plan, key, si, viaVoice) {
   const chk = TRAIN_CHECKS[key];
   if (!chk || !Array.isArray(chk.sets) || !chk.sets[si]) return;
@@ -40776,6 +40814,12 @@ function sessDotsHTML(curChk, ck, flowSt, ex) {
   if (!curChk || !Array.isArray(curChk.sets) || !curChk.sets.length) return '';
   if (curChk.done === true || (flowSt !== 'open' && flowSt !== 'paused')) return '';
   const sets = curChk.sets;
+  /* AUTH-505: las series de aproximación DE LA TARJETA (el
+     bloque warmup encendido y con filas) se pintan en esta
+     misma línea, una marca redonda por fila y en su orden,
+     antes del círculo 1. Sin bloque o sin filas, no hay
+     marcas y la línea queda como siempre. */
+  const wsets = (curChk.warmup && curChk.warmup.on === true && Array.isArray(curChk.warmup.sets)) ? curChk.warmup.sets : [];
   const flags = sets.map(s => sessSetDone(s));
   const doneN2 = flags.filter(Boolean).length;
   const nextI = flags.indexOf(false);
@@ -40834,14 +40878,26 @@ function sessDotsHTML(curChk, ck, flowSt, ex) {
      expresa de Ronald: sin la cara de la mascota) y sigue la
      MISMA puerta que «Editar» (sessEditVisible): sin puerta
      no hay ni «Editar» ni voz ni pista de dictado. */
+  /* AUTH-505 · LAS MARCAS DE APROXIMACIÓN Y EL TOTAL DE LA
+     LÍNEA: las clases de tamaño de la fila dependen desde
+     este paquete del TOTAL de elementos (aproximaciones +
+     series de trabajo), no solo de las series: la fila es
+     UNA sola línea dentro del borde siempre, y el CSS
+     reduce los tamaños según ese total (la escalera
+     sfv-t5…t12 de styles.css) — la envoltura de AUTH-485/500
+     desaparece por orden expresa de Ronald. La pista de
+     dictado pierde su glifo 🎙 (la misma orden): el texto
+     queda, el botón de voz queda. */
+  const warmDots = wsets.map((s, wi2) => `<button type="button" class="sf-dot sf-warm${s && s.dot === true ? ' ok' : ''}" data-sess-warm="${ck}:${wi2}" aria-label="${esc(t('sess.warmSet'))} ${wi2 + 1}">A${wi2 + 1}</button>`).join('');
   const gate = sessEditVisible();
   const nSets = sets.length;
+  const nTot = nSets + wsets.length;
   const editBtn = gate ? `<button type="button" class="sf-edit" data-sess-edit="${ck}" aria-label="${esc(t('sess.edit'))}"><span class="sf-edit-vis"><span class="sf-edit-word">${esc(t('sess.edit'))}</span><span class="sf-edit-pencil" aria-hidden="true">✎</span></span></button>` : '';
   const voiceBtn = gate ? `<button type="button" class="sf-voice" data-sess-voice="${ck}" aria-label="${esc(t('sess.voice.btn'))}"><span class="sf-voice-vis" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M4 10v4" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M9 7v10" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M14 4v16" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M19 8v8" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/></svg></span></button>` : '';
-  const labEdit = (gate && nSets >= 6) ? ` · <button type="button" class="sf-lab-edit" data-sess-edit="${ck}">${esc(t('sess.edit'))}</button>` : '';
+  const labEdit = (gate && nTot >= 6) ? ` · <button type="button" class="sf-lab-edit" data-sess-edit="${ck}">${esc(t('sess.edit'))}</button>` : '';
   const hint = gate ? ` — ${esc(t('sess.voice.hint'))}` : '';
-  const labCls = 'sf-dots-lab' + ((gate && nSets >= 6) ? ' up' + Math.min(nSets, 8) : '');
-  const rowCls = 'sf-dots' + (nSets >= 5 ? ' sfv-pencil' : '') + (nSets >= 5 ? ' sfv-n' + Math.min(nSets, 10) : '') + (nSets >= 11 ? ' sfv-wrap' : '');
+  const labCls = 'sf-dots-lab' + ((gate && nTot >= 6) ? ' up' + Math.min(nTot, 8) : '');
+  const rowCls = 'sf-dots' + (nTot >= 5 ? ' sfv-pencil' : '') + (nTot >= 5 ? ' sfv-t' + Math.min(nTot, 12) : '');
   /* AUTH-502 · LA ETIQUETA CON CUENTA VIVA es la del
      mockup (preparación / contando / cumplida) y ocupa la
      línea sola mientras la cuenta vive; sin cuenta, un
@@ -40854,11 +40910,11 @@ function sessDotsHTML(curChk, ck, flowSt, ex) {
     sessCdArm();
     const phL = sessCdPhase(liveCd2.cd);
     const labCd = phL === 'prep' ? t('sess.cd.prepLab') : phL === 'run' ? t('sess.cd.countLab', { n: liveCd2.si + 1 }) : t('sess.cd.doneLab', { n: liveCd2.si + 1 });
-    return `<div class="${labCls}">${esc(labCd)}</div><div class="${rowCls}">${dots}${editBtn}${voiceBtn}</div>`;
+    return `<div class="${labCls}">${esc(labCd)}</div><div class="${rowCls}">${warmDots}${dots}${editBtn}${voiceBtn}</div>`;
   }
   const nextTimed = nextI >= 0 ? trainTimedOf(ex || null, sets[nextI]) : null;
   const labTap = nextTimed ? t('sess.cd.tapHint') : t('sess.setsTap');
-  return `<div class="${labCls}">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(labTap)}${hint}${labEdit}</div><div class="${rowCls}">${dots}${editBtn}${voiceBtn}</div>`;
+  return `<div class="${labCls}">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(labTap)}${hint}${labEdit}</div><div class="${rowCls}">${warmDots}${dots}${editBtn}${voiceBtn}</div>`;
 }
 /* ═══ AUTH-500 · EL BOTÓN DE VOZ DE LA LÍNEA (diseño
    aprobado por Ronald el 2026-11-18, con sus correcciones:
@@ -41272,7 +41328,8 @@ function sessFullSync(run) {
     const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
     const cdLive = curChk ? sessCdOf(curChk) : null;   /* AUTH-502: la fase de la cuenta del círculo entra en la firma — nacer, pasar de preparación a cuenta y llegar a cero repintan una vez cada cambio; el segundo a segundo lo pinta el tick en sitio */
     const cdTerm = cdLive ? 'C' + cdLive.si + ':' + (cdLive.cd.f === 1 ? 'z' : (sessCdElapsed(cdLive.cd) < SESS_CD_PREP ? 'p' : 'r')) : '';
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace */
+    const warmTerm = curChk && curChk.warmup && curChk.warmup.on === true && Array.isArray(curChk.warmup.sets) ? 'W' + curChk.warmup.sets.map(s2 => s2 && s2.dot === true ? 1 : 0).join('') : 'W-';   /* AUTH-505: la aproximación entra en la firma — encender el bloque, cambiar su lista o tocar una marca «A» repinta la línea una vez */
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm, warmTerm].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace */
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
@@ -41424,6 +41481,22 @@ function sessPanelWire(el, surface) {
         sessDotTap(planD, partsD[0] + ':' + partsD[1], Number(partsD[2]));
       }
       sessPanelRepaint(planD);   /* AUTH-488: el círculo escribe la marca — la tarjeta se repinta */
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const wrm = ev.target.closest ? ev.target.closest('[data-sess-warm]') : null;
+    if (wrm) {
+      /* AUTH-505: el toque en una marca «A» marca/desmarca
+         ESA serie de aproximación de la tarjeta, con la
+         misma guarda de contexto de los círculos. La marca
+         no cuenta, no finaliza y no arranca cuentas: solo
+         escribe el `dot` de esa fila del bloque warmup. */
+      const planW = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (planW && TRAIN_CHECKS_CTX === planW.id + '|' + todayISO()) {
+        const partsW = String(wrm.dataset.sessWarm).split(':');
+        sessWarmTap(planW, partsW[0] + ':' + partsW[1], Number(partsW[2]));
+      }
+      sessPanelRepaint(planW);
       try { sessPillTick(); } catch {}
       return;
     }
@@ -46309,6 +46382,11 @@ function tfWarmSnap(w) {
        como el de las series de trabajo (saneado). */
     const detW = tfDetailSan(s && s.loadDetail);
     if (detW) outW.loadDetail = detW;
+    /* AUTH-505: la marca de hecho de la aproximación (su
+       `dot`, la de las «A» del panel) viaja también en el
+       espejo — sin ella, reconstruir la marca desde el
+       borrador del flotante la perdería en silencio. */
+    if (s && s.dot === true) outW.dot = true;
     return outW;
   }),
     /* AUTH-428: la identidad elegida viaja en el
@@ -65407,7 +65485,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-reflexion-plegada';
+const PWA_SW_VERSION = '20261119-aproximacion-linea';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
