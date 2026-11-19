@@ -42855,6 +42855,19 @@ function flowAreaFoldLineHTML(area, key, icon, title, sets) {
   }
   return `<button type="button" class="flow-area-fold" data-flow-fold-open="${area}:${key}"><span class="faf-txt">${icon} ${esc(title)} · ${n} ${n === 1 ? t('train.sets.one') : t('train.sets.many')}${dato}</span><span class="faf-go" aria-hidden="true">›</span></button>`;
 }
+/* ═══ AUTH-506 · AÑADIR APROXIMACIÓN: LA PUERTA SE VE Y
+   TIENE EL TOPE DE LA CASA (reporte de Ronald, 2026-11-19
+   12:01 CST, con su captura de «Aducción en máquina»: el
+   botón «+ Añadir serie de aproximación» se veía apagado y
+   no le dejaba añadir la A2): el pintor y el cableado de
+   este bloque nunca tuvieron tope ni candado — la puerta
+   estaba pintada en blanco sobre el fondo claro del bloque
+   por una fuga de CSS de la tarjeta vestida (el arreglo de
+   color vive en styles.css, bloque AUTH-506 al final). Lo
+   que aquí cambia es solo el tope: el botón nace con menos
+   de 12 series de aproximación y el cableado guarda el
+   mismo tope — el espejo exacto del de las series de
+   trabajo (AUTH-427 y la hoja), declarado. ═══ */
 function trainFlowWarmCardHTML(ex, key, chk) {
   const w = (chk && chk.warmup && typeof chk.warmup === 'object' && !Array.isArray(chk.warmup)) ? chk.warmup : { on: false, sets: [] };
   const head = `<div class="tf-warm-head"><span class="tf-warm-title">${t('train.start.warmupTitle')}</span><button type="button" class="tf-warm-tog${w.on ? ' is-on' : ''}" data-flow-warm-tog="${key}" aria-pressed="${w.on ? 'true' : 'false'}">${w.on ? t('train.start.yes') : t('train.start.no')}</button></div>`;
@@ -42870,7 +42883,7 @@ function trainFlowWarmCardHTML(ex, key, chk) {
     <div class="train-set-row"><span class="train-set-n">A${wi + 1}</span>
       <span class="tf-chips" data-tf-chips="cardw:${key}:${wi}">${tfChipsHTML('cardw:' + key, wi, s, wEx)}</span>
       <button type="button" class="tf-warm-del" data-flow-warm-del="${key}:${wi}" aria-label="${t('train.start.warmupRemove')}">✕</button></div>`).join('')}</div>
-    <button type="button" class="btn-ghost btn-sm" data-flow-warm-add="${key}">${t('train.start.warmupAdd')}</button>`;
+    ${(Array.isArray(w.sets) ? w.sets.length : 0) < 12 ? `<button type="button" class="btn-ghost btn-sm" data-flow-warm-add="${key}">${t('train.start.warmupAdd')}</button>` : ''}`;
   /* AUTH-495: el botón «Listo» cierra el área, tras «+ Añadir». */
   return `<div class="tf-warm flow-warm">${head}${idLine}${rows}${flowAreaDoneBtnHTML('warm', key)}</div>`;
 }
@@ -42917,6 +42930,10 @@ function trainFlowWarmWire(box, plan) {
   }; });
   box.querySelectorAll('[data-flow-warm-add]').forEach(b => { b.onclick = () => {
     const w = warmOf(b.dataset.flowWarmAdd); if (!w) return;
+    /* AUTH-506: la guarda espejo del tope de las series de
+       trabajo (12 vivas) — el pintor ya no pinta el botón al
+       llegar, y este gesto tampoco pasa de ahí. */
+    if (w.sets.length >= 12) return;
     w.sets.push({ repsDone: '', loadVal: '' });
     trainChecksPersist(plan.id); loadMyTraining();
   }; });
@@ -65491,7 +65508,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-aproximacion-linea';
+const PWA_SW_VERSION = '20261119-aproximacion-anadir';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

@@ -6998,3 +6998,19 @@ textarea.gest-in { resize: none; }
    borde y el fondo de .p21-card de AUTH-503); sin layout nuevo. */
 .chal-p21 { border: 2px solid #0D9488; background: #F0FDF9; }
 .chal-p21 .p21-progress { margin: 8px 0 4px; font-size: 16px; }
+
+/* ═══ AUTH-506 · EL BLOQUE DE APROXIMACIÓN CONSERVA SUS COLORES
+   (reporte de Ronald, 2026-11-19: «no me permite agregar otra
+   serie de aproximación» — el botón se veía apagado): el bloque
+   .tf-warm vive sobre su fondo claro de siempre (#f0fdfa), pero
+   dentro de la tarjeta vestida las reglas genéricas de la
+   vestida pintaban sus .btn-ghost en blanco y sus etiquetas de
+   serie en blanco translúcido — blanco sobre claro: el botón
+   de añadir, el de «Cambiar ejercicio» y la etiqueta «A1»
+   quedaban invisibles, y una puerta que no se ve no se puede
+   tocar. Estas dos reglas devuelven al bloque sus colores de
+   la clase base, gane el ancestro que gane; fuera del bloque
+   la vestida no cambia en nada. ═══ */
+.tf-warm .btn-ghost { background: #fff; color: #374151; border-color: #d1d5db; }
+.tf-warm .btn-ghost:hover { background: #f8fafc; }
+.tf-warm .train-set-n { color: #6b7280; }
