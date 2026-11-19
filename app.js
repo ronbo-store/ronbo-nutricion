@@ -6545,6 +6545,7 @@ en: {
   'sess.seeHow': 'See how it’s done', 'sess.seeHowSub': 'Video · muscles · grip',
   'sess.nowLab': 'NOW', 'sess.exRunning': 'in progress',
   'sess.ofDay': '{p}% of the day',
+  'sess.dayDone': 'Day completed', 'sess.dayDoneSum': '{n} of {m} exercises done',
   'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel', 'sess.barFinish': 'Finish',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.cardioIncl': 'includes {min} min of cardio',
@@ -11935,6 +11936,7 @@ es: {
   'sess.seeHow': 'Ver cómo se hace', 'sess.seeHowSub': 'Video · músculos · agarre',
   'sess.nowLab': 'AHORA', 'sess.exRunning': 'en curso',
   'sess.ofDay': '{p}% del día',
+  'sess.dayDone': 'Día completado', 'sess.dayDoneSum': '{n} de {m} ejercicios hechos',
   'sess.barLabel': 'Barra de la sesión', 'sess.fullLabel': 'Panel de la sesión', 'sess.barFinish': 'Finalizar',
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
   'sess.cardioIncl': 'incluye {min} min de cardio',
@@ -39808,14 +39810,24 @@ function sessPillSync(run) {
   const pill = $('sess-pill'); if (!pill) return;
   let st = null;
   try { st = trainBarState(); } catch {}
+  let dc = null;
+  if (!st) { try { dc = sessDayCompleteState(run); } catch {} }   /* AUTH-507: ¿el nulo es porque el día está hecho? */
   let sig, html;
   let pillPaused = false;
   let pillChip = false;
   let pillFaces = false;
   const cMin = sessCardioMin(run);   /* AUTH-482: los minutos de cardio que el total suma (0 = cuadrito de siempre) */
-  if (!st) {
+  if (!st && !dc) {
     sig = 'deg|' + (run.label || '') + '|c' + cMin;
     html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}</div>${sessCardioLineHTML('sp-cardio', cMin)}<div class="sp-state"><span class="sp-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + sessDoorsHTML();
+  } else if (!st) {
+    /* AUTH-507 · DÍA COMPLETO EN LA PÍLDORA: el mismo
+       degradado honesto, pero diciendo lo que pasa — el día
+       está completado (y su cierre vive en la completa, por
+       la función única del cierre). La firma conserva el
+       prefijo 'deg|' para que la clase is-deg siga puesta. */
+    sig = 'deg|done|' + (run.label || '') + '|c' + cMin + '|' + dc.di + '|' + dc.eff.length;
+    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}</div>${sessCardioLineHTML('sp-cardio', cMin)}<div class="sp-state"><span class="sp-training">${esc(t('sess.dayDone'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + sessDoorsHTML();
   } else {
     const ck = st.di + ':' + st.cur;
     const curChk = st.checks[ck] || null;
@@ -39885,7 +39897,7 @@ function sessPillSync(run) {
     pill.classList.toggle('has-exc', pillChip);
     pill.classList.toggle('has-faces', pillFaces);
     /* AUTH-464: sin anexo ya no hay clase de escucha en la píldora. */
-    pill.setAttribute('aria-label', run.label ? t('sess.pillLabel', { label: run.label }) : t('sess.pillPlain'));
+    pill.setAttribute('aria-label', sig.startsWith('deg|done|') ? (run.label ? t('sess.dayDone') + ' · ' + run.label : t('sess.dayDone')) : (run.label ? t('sess.pillLabel', { label: run.label }) : t('sess.pillPlain')));   /* AUTH-507: la etiqueta hablada también dice día completado en su degradado */
   }
   const tEl = $('sess-pill-time');
   /* AUTH-434 · EL CONTADOR DE LA PÍLDORA ES EL
@@ -41279,6 +41291,8 @@ function sessFullSync(run) {
   const full = $('sess-full'); if (!full) return;
   sessFoldDaySync();   /* AUTH-491/494/504: cada día el Mensaje y la Reflexión nacen plegados */
   let st = null; try { st = trainBarState(); } catch {}
+  let dc = null;
+  if (!st) { try { dc = sessDayCompleteState(run); } catch {} }   /* AUTH-507: ¿el nulo es porque el día está hecho? */
   const msg = shareMsgRevealedFor(todayISO());
   const refl = sessReflOfDay();
   const cMin = sessCardioMin(run);   /* AUTH-482: el mismo total que la píldora — vivo + cardio incluido */
@@ -41287,11 +41301,38 @@ function sessFullSync(run) {
   const msgBlk = sessMsgHTML(msg);   /* AUTH-491: el mensaje nace plegado en una línea (sessMsgHTML) */
   const minBtn = `<button type="button" class="sf-min" data-sess-view="bar">⌄ ${esc(t('sess.minimize'))}</button>`;
   let sig, html;
-  if (!st) {
+  if (!st && !dc) {
     /* Sin estado del día: reloj, día, mensaje y reflexión —
        ningún ejercicio inventado. */
     sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l'].join('|');
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${msgBlk}${sessReflHTML()}</div>${minBtn}</div>`;
+  } else if (!st) {
+    /* AUTH-507 · DÍA COMPLETO: el nulo de trainBarState es
+       porque el día está HECHO, no porque falte estado — el
+       panel lo dice y lo CIERRA AQUÍ (corrección de Ronald,
+       2026-11-19 12:20 CST: nada de viajar a la vista del día
+       a hacer un segundo cierre). La confirmación de la casa
+       — su formulario de cierre, trainCloseFormHTML, con su
+       superficie clara propia — se presenta en el propio
+       panel, nacida abierta, y corre por la función única
+       del cierre (trainCloseConfirm, cableada en
+       sessPanelWire): la misma escritura, la misma hoja de
+       satisfacción interpuesta, el mismo apagado del
+       cronómetro. Su «Cancelar» repliega el formulario al
+       resumen con la puerta de reapertura (el par
+       abrir/cancelar de la vista del día, en el sitio). */
+    const dKey = dc.plan.id + '|' + todayISO() + '|' + dc.di;
+    if (SESS_DONE_KEY !== dKey) { SESS_DONE_KEY = dKey; SESS_DONE_FORM = true; }
+    const totalD = dc.eff.length;
+    const headDone = `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.dayDone'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}</div>`;
+    const franjaDone = `<div class="sf-franja" aria-hidden="true"><i style="width:100%"></i>${sessPillTipHTML('calc(100% - 13px)')}</div><div class="sf-prog">${esc(t('train.guide.pos', { n: totalD, m: totalD }))} · ${esc(t('sess.ofDay', { p: 100 }))}</div>`;
+    const doneForm = SESS_DONE_FORM
+      ? trainCloseFormHTML(dc.plan.id, dc.di)
+      : `<button type="button" class="sf-btn fin sf-done-open" data-sess-done-open="1">${esc(t('train.closeFinish'))}</button>`;
+    const doneBlk = `<div class="sf-done"><div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div><div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: totalD, m: totalD }))} · <span class="sf-done-clock">00:00:00</span></div>${doneForm}</div>`;
+    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f'].join('|');
+    if (!SESS_FULL_SIG.startsWith('fdone')) sessDayDoneHook(dc);   /* AUTH-507: la celebración se engancha a la ENTRADA en el estado, no a cada latido */
+    html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${msgBlk}${sessReflHTML()}${doneBlk}</div>${minBtn}</div>`;
   } else {
     const ck = st.di + ':' + st.cur;
     const curChk = st.checks[ck] || null;
@@ -41345,6 +41386,8 @@ function sessFullSync(run) {
   }
   const tEl = $('sess-full-time');
   if (tEl) tEl.textContent = sessFmtClock(Date.now() - run.start + Math.round(cMin * 60000));   /* AUTH-482: vivo + cardio incluido */
+  const dEl = full.querySelector('.sf-done-clock');
+  if (dEl) dEl.textContent = sessFmtClock(Date.now() - run.start + Math.round(cMin * 60000));   /* AUTH-507: el total del resumen de día completado, en el sitio como el reloj */
   if (st) {
     const cEls = full.querySelectorAll('.sess-full-exclock');
     if (cEls.length) {
@@ -41557,6 +41600,42 @@ function sessPanelWire(el, surface) {
       }
       return;
     }
+    const dconf = ev.target.closest ? ev.target.closest('[data-train-close-confirm]') : null;
+    if (dconf) {
+      /* AUTH-507 · CONFIRMAR EL CIERRE DEL DÍA DESDE EL
+         PANEL: el formulario de cierre que la completa
+         presenta al completarse el día corre por la función
+         única del cierre (trainCloseConfirm) con la guarda
+         de contexto de este panel — la misma escritura que
+         desde la vista del día, sin salir del panel ni hacer
+         un segundo cierre. La hoja de satisfacción se
+         interpone sola, como en todo cierre con cronómetro,
+         y finishClose apaga el cronómetro y retira el panel
+         por el camino de siempre. */
+      const planC = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (planC && TRAIN_CHECKS_CTX === planC.id + '|' + todayISO()) {
+        try { trainCloseConfirm(planC, Number(dconf.dataset.trainCloseConfirm), dconf.closest('.train-close-form')); } catch {}
+      }
+      return;
+    }
+    const dcan = ev.target.closest ? ev.target.closest('[data-train-close-cancel]') : null;
+    if (dcan) {
+      /* AUTH-507 · CANCELAR EN EL PANEL: repliega SOLO el
+         formulario del panel (SESS_DONE_FORM); TRAIN_CLOSE_DI
+         es el estado del formulario de la vista del día y no
+         se toca desde aquí. */
+      SESS_DONE_FORM = false;
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const dopen = ev.target.closest ? ev.target.closest('[data-sess-done-open]') : null;
+    if (dopen) {
+      /* AUTH-507 · REABRIR EL FORMULARIO DE CIERRE del día
+         completado, tras su Cancelar. */
+      SESS_DONE_FORM = true;
+      try { sessPillTick(); } catch {}
+      return;
+    }
     const fin = ev.target.closest ? ev.target.closest('[data-pill-finish]') : null;
     const ini = !fin && ev.target.closest ? ev.target.closest('[data-pill-start]') : null;
     const pau = !fin && !ini && ev.target.closest ? ev.target.closest('[data-pill-pause]') : null;
@@ -41734,6 +41813,61 @@ function trainBarState() {
   return { run, plan, di, checks, eff, cur, nxt: (nxt === undefined ? null : nxt) };
 }
 
+/* ═══ AUTH-507 · EL PREDICADO HONESTO DE «DÍA COMPLETO»:
+   trainBarState devuelve null por TRES causas distintas y
+   solo una es «el día está hecho» — la de arriba: sin
+   pendientes y sin cierres vivos. Este predicado la re-deriva
+   EN POSITIVO, con las mismas lecturas de trainBarState (las
+   marcas de trainChecksRead y el flujo en memoria), para que
+   las dos cuentas nunca se contradigan: la sesión corre para
+   hoy (sessRunning solo lee cronómetros de hoy), el plan
+   coincide con el de la sesión, el día se encuentra por su
+   rótulo, la lista efectiva tiene al menos un ejercicio,
+   TODOS están hechos (done === true) y ninguno trae un
+   cierre vivo con datos — la pregunta de la cara de un
+   ejercicio ya hecho manda sobre el día completo: mientras
+   viva, la rama normal del panel la sigue pintando, como
+   hoy. Los otros nulos (plan distinto, día no encontrado,
+   día sin ejercicios efectivos) devuelven null aquí también:
+   esas superficies siguen en la rama vacía de siempre, sin
+   inventar ningún «completado». ═══ */
+function sessDayCompleteState(run) {
+  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  if (!run || !plan || !run.planId || run.planId !== plan.id) return null;
+  let di = -1;
+  (plan.days || []).forEach((d, i) => { if (di < 0 && trainDayLabelOf(plan, i) === run.label) di = i; });
+  if (di < 0) return null;
+  const checks = trainChecksRead(plan.id);
+  const eff = trainEffectiveList(plan, di);
+  if (!eff.length) return null;
+  for (let ei = 0; ei < eff.length; ei++) {
+    const c = checks[di + ':' + ei];
+    if (!c || c.done !== true) return null;
+    const f = TRAIN_FLOW[di + ':' + ei];
+    if (f && f.st === 'closing' && flowHasData(c)) return null;
+  }
+  return { plan, di, checks, eff };
+}
+/* AUTH-507 · EL PLIEGUE DEL FORMULARIO DE CIERRE DEL PANEL:
+   solo pantalla, como los demás estados del cuadro — el
+   formulario nace abierto al entrar el día en completo y su
+   «Cancelar» lo repliega al resumen con su puerta de
+   reapertura; la clave (plan|fecha|día) lo renace abierto
+   cuando el día completo es otro. TRAIN_CLOSE_DI no se
+   toca: ese es el estado de la vista del día. */
+let SESS_DONE_FORM = true;
+let SESS_DONE_KEY = '';
+/* ═══ AUTH-507 · EL GANCHO DE LA CELEBRACIÓN (aprobada por
+   Ronald el 2026-11-18: «Los cuatro, a rotar»): el estado
+   de día completado del panel — ya con el cierre
+   ejecutándose en el propio panel, por la función única
+   trainCloseConfirm — es su disparador declarado. Se llama
+   UNA vez al entrar la completa en el estado (la firma
+   anterior no era de día completado), nunca en cada latido.
+   La animación NO vive en este paquete: su paquete aprobado
+   colgará aquí; hoy el gancho no pinta nada. ═══ */
+function sessDayDoneHook(dc) { /* la celebración colgará aquí (paquete propio, aprobado 2026-11-18) */ }
+
 /* ═══ AUTH-488 · UN SOLO «INICIAR» (variante B de la maqueta,
    aprobada por Ronald el 2026-11-17): el «Iniciar» del DÍA
    arranca TODO a la vez. Hasta este paquete ese gesto solo
@@ -41897,6 +42031,265 @@ function trainCloseFormHTML(planId, di) {
     <div style="margin-top:10px"><button type="button" class="train-finish-btn" data-train-close-confirm="${di}">${t('train.closeFinish')}</button></div>
     <div style="margin-top:6px"><button type="button" class="btn-ghost btn-sm" data-train-close-cancel="${di}">${t('form.cancel')}</button></div>
   </div>`;
+}
+/* ═══ AUTH-507 · EL CIERRE DEL DÍA, UNA SOLA FUNCIÓN (extracción
+   mecánica del handler de confirmar de la vista del día, sin
+   tocar su lógica): la vista del día la llama con su botón y su
+   formulario, y el panel de sesión la llama con el SUYO — el
+   formulario de cierre de la casa presentado dentro del panel
+   cuando el día se completa —. Una sola lógica, un solo
+   escritor (el finishClose de dentro y su única escritura en
+   training_logs), la misma hoja de satisfacción interpuesta
+   cuando el cronómetro corre. El sellado por ejercicio no se
+   toca; «Saltar este día» sigue por su puerta de siempre. ═══ */
+async function trainCloseConfirm(plan, di, formEl) {
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  const today = todayISO();
+  const day = (plan.days || [])[di] || {};
+  /* Detalle por ejercicio (§4.6 + D-2): SOLO lo marcado en la
+     sesión, en el orden de la lista EFECTIVA, con su detalle por
+     serie. PERSONALIZA (2026-10-27): el ejercicio realizado es
+     el de la lista efectiva; un cambio guarda su marca
+     (swappedFrom/swappedFromId del original) y un agregado la
+     suya (added) — el plan no se escribe, la verdad queda en
+     este registro. */
+  const doneList = [];
+  trainEffectiveList(plan, di).forEach((it, ei) => {
+    const ex = it.ex;
+    const c = TRAIN_CHECKS[di + ':' + ei];
+    /* AUTH-344: al registro viaja SOLO lo marcado Hecho; una
+       entrada en curso no alimenta el historial, la «última
+       vez», la racha ni ninguna tarjeta como si estuviera
+       terminada. */
+    if (!c || c.done !== true) return;
+    const e = { done: true };
+    if (ex.exerciseId) e.exerciseId = ex.exerciseId; else if (ex.name) e.name = ex.name;
+    if (it.kind === 'swap') {
+      e.swappedFrom = trainExName(it.from) || it.from.name || '';
+      if (it.from.exerciseId) e.swappedFromId = it.from.exerciseId;
+    }
+    if (it.kind === 'add') e.added = true;
+    /* variantIndex (selector, continuación 2026-10-30): la variante
+       elegida viaja al registro tal cual la trae la lista efectiva;
+       sin variante elegida, la entrada es idéntica a la de siempre.
+       Las reglas vivas no validan el interior de exercisesDone. */
+    if (Number.isInteger(ex.variantIndex)) e.variantIndex = ex.variantIndex;
+    if (c.rpe) e.rpe = c.rpe;
+    /* AUTH-406: la cara por ejercicio viaja al registro
+       con el resto de la entrada (el interior de exercisesDone
+       no lo validan las reglas vivas, como markedAt). */
+    if (Number.isInteger(c.face) && c.face >= 1 && c.face <= 5) e.face = c.face;
+    /* AUTH-434 · EL TIEMPO ACTIVO DEL EJERCICIO
+       viaja al registro con el resto de la entrada:
+       activeSec son los segundos trabajados, sin los
+       tramos en pausa — lo selló el reloj del ejercicio
+       al pausar y al finalizar. El interior de
+       exercisesDone no lo validan las reglas vivas (la
+       misma lectura que la cara y markedAt): sin delta
+       de reglas. Sin tiempo sellado, la entrada queda
+       byte a byte la de siempre. */
+    if (typeof c.activeSec === 'number' && isFinite(c.activeSec) && c.activeSec > 0) e.activeSec = Math.floor(c.activeSec);
+    /* SERIES AÑADIDAS PENDIENTES (encargo 2026-10-30): una serie
+       nacida con «+ Añadir serie» que él nunca trabajó sigue
+       `pend` al cerrar — se EXCLUYE del registro: jamás cuenta
+       como realizada ni deja fila fantasma en el historial. Las
+       prescritas por el plan y las añadidas ya trabajadas
+       viajan con la forma de siempre. */
+    const wsets = Array.isArray(c.sets) ? c.sets.filter(s => !(s && s.pend === true)) : [];
+    if (wsets.length) {
+      e.sets = wsets.map(s => {
+        const out = { repsPlanned: String(s.repsPlanned || '') };
+        const rd = num(s.repsDone);
+        if (s.repsDone !== '' && s.repsDone != null && !isNaN(rd)) out.repsDone = rd;
+        const lv = parseFloat(s.loadVal);
+        if (s.loadVal !== '' && s.loadVal != null && isFinite(lv) && lv >= 0) {
+          out.loadKg = massToCanonical(lv);        /* canónico kg (módulo H) */
+          out.loadOriginal = lv;
+          out.loadUnitOriginal = UNIT_PREFS.mass;
+        }
+        /* HORA DE MARCA (paquete tarjeta semanal): la hora de
+           la serie viaja al registro con el resto de sus datos;
+           las reglas vivas no validan el interior de
+           exercisesDone (verificado contra el ruleset vivo
+           84974ca6). Sin hora, la serie queda como siempre. */
+        if (typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0) out.markedAt = Math.floor(s.markedAt);
+        /* AUTH-417 · EL TIEMPO HECHO de la serie por tiempo
+           viaja al registro como su valor (secDone, el segundo
+           entero que se vio en el botoncito). Un cronómetro en
+           curso nunca parado (secT0 sin secDone) no registra
+           tiempo alguno. El interior de exercisesDone no lo
+           validan las reglas vivas (la misma lectura que
+           markedAt): sin delta de reglas. */
+        if (typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0) out.secDone = Math.floor(s.secDone);
+        /* AUTH-2026-11-10-376 · CARGA CON DISCOS: el desglose viaja SOLO
+           si su total coincide con la carga guardada — si el
+           número cambió por otro camino, manda el número y el
+           registro queda como «un solo número». El interior de
+           exercisesDone no lo validan las reglas vivas (misma
+           lectura que markedAt y warmupSets): sin delta. */
+        if (out.loadKg != null) { const detW2 = tfDetailForWrite(s); if (detW2) out.loadDetail = detW2; }
+        return out;
+      });
+    }
+    /* APROXIMACIÓN (paquete Iniciar ejercicio, 2026-10-30): las
+       series de aproximación viajan MARCADAS y APARTE
+       (warmupSets), con la MISMA conversión que las de trabajo
+       y SIN repsPlanned; solo si el bloque estaba encendido y
+       hay al menos una fila con dato. El Historial lee SOLO
+       sets — la aproximación nunca cuenta. Sin aproximación,
+       la entrada es byte a byte la de siempre. */
+    if (c.warmup && c.warmup.on === true && Array.isArray(c.warmup.sets)) {
+      const wsrc = c.warmup.sets.filter(s => s && (String(s.repsDone == null ? '' : s.repsDone) !== '' || String(s.loadVal == null ? '' : s.loadVal) !== ''));
+      if (wsrc.length) e.warmupSets = wsrc.map(s => {
+        const out = {};
+        const rd = num(s.repsDone);
+        if (s.repsDone !== '' && s.repsDone != null && !isNaN(rd)) out.repsDone = rd;
+        const lv = parseFloat(s.loadVal);
+        if (s.loadVal !== '' && s.loadVal != null && isFinite(lv) && lv >= 0) {
+          out.loadKg = massToCanonical(lv);        /* canónico kg (módulo H) */
+          out.loadOriginal = lv;
+          out.loadUnitOriginal = UNIT_PREFS.mass;
+        }
+        /* AUTH-2026-11-10-376: la aproximación con discos guarda también
+           su desglose, con la misma regla de coincidencia. */
+        if (out.loadKg != null) { const detW3 = tfDetailForWrite(s); if (detW3) out.loadDetail = detW3; }
+        return out;
+      });
+      /* AUTH-428: la identidad de la aproximación
+         viaja junto a warmupSets cuando se eligió otro
+         ejercicio en la Biblioteca; sin elección no se
+         escribe nada nuevo y la entrada queda como la de
+         siempre (al reabrir, la ausencia se lee como el
+         propio ejercicio). */
+      if (typeof c.warmup.exerciseId === 'string' && c.warmup.exerciseId) {
+        e.warmupExerciseId = c.warmup.exerciseId;
+        if (typeof c.warmup.name === 'string' && c.warmup.name) e.warmupName = c.warmup.name;
+      }
+    }
+    doneList.push(e);
+  });
+  /* MÓDULO D (D-3): sin ninguna marca NO se escribe un «hecho»
+     vacío — se avisa y el día queda sin registrar (o se salta
+     explícitamente con su botón). */
+  if (!doneList.length) { toast(t('train.d.needCheck'), true); return; }
+  const total = trainEffectiveList(plan, di).length;
+  const status = doneList.length >= total ? 'done' : 'partial';
+  const form = formEl || null;
+  const durRaw = form ? String(form.querySelector('[data-tclose-dur]').value || '').trim() : '';
+  const warmRaw = form ? String(form.querySelector('[data-tclose-warm]').value || '').trim() : '';
+  const inten = form ? String(form.querySelector('[data-tclose-int]').value || 'moderada') : 'moderada';
+  let durMin = null;
+  if (durRaw !== '') { durMin = Math.floor(Number(durRaw)); if (!(durMin >= 1 && durMin <= 600)) { toast(t('act.errDuration'), true); return; } }
+  let warmMin = 0;
+  if (warmRaw !== '') { warmMin = Math.floor(Number(warmRaw)); if (!(warmMin >= 0 && warmMin <= 300)) warmMin = 0; }
+  /* D4: el calentamiento se resta ANTES de estimar. D6: la
+     sesión parcial vale por la duración completa declarada, sin
+     descuento proporcional. El RPE NO entra en el cálculo (regla
+     del módulo de actividad): viaja como señal en la entrada. */
+  const effMin = durMin == null ? null : Math.max(0, durMin - warmMin);
+  const w = actLastWeight();
+  const sessionKcal = (effMin != null && effMin > 0 && w) ? actKcalOf('entrenamiento_plan', inten, effMin, w.weight) : null;
+  const sug = trainChronoSuggestion(plan.id);
+  const rpes = doneList.map(e => e.rpe).filter(r => r != null);
+  const rpeAvg = rpes.length ? Math.round(rpes.reduce((a, c) => a + c, 0) / rpes.length) : null;
+  /* QUITADOS AL CERRAR (2026-10-30): los ejercicios quitados
+     de la sesión de hoy (la edición local que trainEditsClear
+     está a punto de retirar) viajan TAMBIÉN al registro, con
+     la identidad de lo que se quitó: si el slot traía un
+     cambio, lo quitado es el ejercicio realizado (el del
+     cambio, con su variante); si no, el del plan en ese slot.
+     Sin quitados, la carga queda byte a byte la de siempre
+     (el campo solo nace cuando hay entradas). */
+  const edClose = trainEditsRead(plan.id);
+  const removedEntries = [];
+  if (edClose && Array.isArray(edClose.removed)) {
+    edClose.removed.forEach(slot => {
+      const sw = edClose.swaps ? edClose.swaps[String(slot)] : null;
+      const entry = { slot };
+      if (sw) {
+        if (sw.exerciseId) entry.exerciseId = sw.exerciseId;
+        const nm = trainExName({ exerciseId: sw.exerciseId || null, name: sw.name || '', variantIndex: sw.variantIndex }) || sw.name || '';
+        if (nm) entry.name = nm;
+        if (Number.isInteger(sw.variantIndex)) entry.variantIndex = sw.variantIndex;
+      } else {
+        const pex2 = (day.exercises || [])[slot] || {};
+        if (pex2.exerciseId) entry.exerciseId = pex2.exerciseId;
+        else if (pex2.name) entry.name = pex2.name;
+      }
+      removedEntries.push(entry);
+    });
+  }
+  const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: di === -1 ? t('train.trained.label') : (day.label || ''),
+    done: status === 'done', schemaVersion: 2, status, exercisesDone: doneList, updatedAt: serverTimestamp(),
+    durationMin: durMin,
+    warmupMin: durMin == null ? null : warmMin,
+    durationSource: durMin == null ? null : (sug && durMin === sug.min ? 'auto' : 'manual'),
+    intensity: durMin == null ? null : inten,
+    sessionKcal,
+    weightKgUsed: sessionKcal == null ? null : w.weight,
+    metUsed: sessionKcal == null ? null : ACT_MET.entrenamiento_plan[inten] };
+  if (removedEntries.length) data.exercisesRemoved = removedEntries;
+  /* AUTH-426 · EL CALENTAMIENTO VIAJA AL REGISTRO: si
+     la sesión tuvo calentamiento cardiovascular hecho
+     (modalidad y minutos en su borrador local), el cierre lo
+     guarda como bloque propio «cardioWarmup» del registro —
+     junto a exercisesDone, sin mezclarse con él y sin contar
+     como ejercicio. Sin calentamiento, la carga queda byte a
+     byte la de siempre. Las reglas vivas no cierran la lista
+     de claves de training_logs: sin delta de reglas. */
+  const cardioClose = trainCardioForClose(plan.id);
+  if (cardioClose) data.cardioWarmup = cardioClose;
+  /* AUTH-481 · LOS PUNTOS DE CARDIO VIAJAN AL REGISTRO: si
+     la sesión usó el registro nuevo (hay clave cardio2 en el
+     dispositivo), su cierre manda — el calentamiento se
+     proyecta al bloque legado de arriba (y lo sustituye: el
+     borrador viejo pudo quedar desfasado tras la conversión)
+     y TODAS las entradas válidas del día viajan como bloque
+     propio «cardioList», junto a exercisesDone y sin contar
+     como ejercicios. Sin clave cardio2, esta rama no existe
+     y la carga es byte a byte la de siempre. Sin delta de
+     reglas (la regla viva no cierra las claves del doc). */
+  const cardio2Close = trainCardio2ForClose(plan.id);
+  if (cardio2Close) {
+    if (cardio2Close.warmLegacy) data.cardioWarmup = cardio2Close.warmLegacy;
+    else delete data.cardioWarmup;
+    if (cardio2Close.list) data.cardioList = cardio2Close.list;
+  }
+  /* CRONÓMETRO DE SESIÓN + ENCUESTA (punto 88 de la cola): si el
+     reloj de esta sesión corre, el confirmar lo DETIENE aquí —
+     la duración real se mide en este instante — y la encuesta
+     breve se interpone ANTES de la escritura: Enviar guarda la
+     respuesta (1–5) y «Ahora no»/✕ la dejan en null, pero en
+     ambos casos el cierre sigue con LA MISMA única escritura de
+     siempre, con elapsedSec y satisfaction añadidos al propio
+     registro. Si la escritura falla, el aviso es el de siempre y
+     nada se apaga: el reloj sigue corriendo y el panel de cierre
+     sigue abierto para reintentar. Sin reloj, el cierre es byte
+     a byte el de siempre, sin campos nuevos. */
+  const chronoC = trainChronoRead(plan.id);
+  const elapsedSec = chronoC ? Math.max(0, Math.round((Date.now() - chronoC.start) / 1000)) : null;
+  const finishClose = async satisfaction => {
+    if (chronoC) { data.elapsedSec = elapsedSec; data.satisfaction = satisfaction; }
+    try {
+      await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
+    } catch (e) { failToast(e); return; }
+    /* El volcado: la sesión entra en el día de actividad (o sale,
+       si el cierre quedó sin estimación) en la misma operación
+       lógica — una sola entrada, idempotente al re-cerrar. */
+    await trainDumpSession(today, sessionKcal == null ? null
+      : { type: 'entrenamiento_plan', typeCustom: '', durationMin: effMin, intensity: inten, rpe: rpeAvg, notes: '' });
+    trainChronoWrite(plan.id, null);
+    TRAIN_CLOSE_DI = null;
+    trainEditsClear(plan.id);   /* PERSONALIZA: los cambios de hoy ya viven en el registro; el borrador local se retira */
+    trainCardioWrite(plan.id, null);   /* AUTH-426: el borrador del calentamiento se retira con el día, como las ediciones */
+    trainCardio2Write(plan.id, null);   /* AUTH-481: y su gemelo nuevo, en el mismo sitio */
+    Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
+    trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: cerrado el día, el borrador de marcas se retira con él */
+    sessPillTick();
+    loadMyTraining();
+  };
+  if (chronoC) { sessSurveyOpen(elapsedSec, finishClose); return; }
+  await finishClose(null);
 }
 /* Cola de la tarjeta en modo edición: con el panel de cierre
    abierto, la pareja del cronómetro + el panel, como siempre; en
@@ -48693,254 +49086,7 @@ async function loadMyTraining() {
     TRAIN_CLOSE_DI = null;
     loadMyTraining();
   });
-  box.querySelectorAll('[data-train-close-confirm]').forEach(b => b.onclick = async () => {
-    const di = Number(b.dataset.trainCloseConfirm);
-    const day = (plan.days || [])[di] || {};
-    /* Detalle por ejercicio (§4.6 + D-2): SOLO lo marcado en la
-       sesión, en el orden de la lista EFECTIVA, con su detalle por
-       serie. PERSONALIZA (2026-10-27): el ejercicio realizado es
-       el de la lista efectiva; un cambio guarda su marca
-       (swappedFrom/swappedFromId del original) y un agregado la
-       suya (added) — el plan no se escribe, la verdad queda en
-       este registro. */
-    const doneList = [];
-    trainEffectiveList(plan, di).forEach((it, ei) => {
-      const ex = it.ex;
-      const c = TRAIN_CHECKS[di + ':' + ei];
-      /* AUTH-344: al registro viaja SOLO lo marcado Hecho; una
-         entrada en curso no alimenta el historial, la «última
-         vez», la racha ni ninguna tarjeta como si estuviera
-         terminada. */
-      if (!c || c.done !== true) return;
-      const e = { done: true };
-      if (ex.exerciseId) e.exerciseId = ex.exerciseId; else if (ex.name) e.name = ex.name;
-      if (it.kind === 'swap') {
-        e.swappedFrom = trainExName(it.from) || it.from.name || '';
-        if (it.from.exerciseId) e.swappedFromId = it.from.exerciseId;
-      }
-      if (it.kind === 'add') e.added = true;
-      /* variantIndex (selector, continuación 2026-10-30): la variante
-         elegida viaja al registro tal cual la trae la lista efectiva;
-         sin variante elegida, la entrada es idéntica a la de siempre.
-         Las reglas vivas no validan el interior de exercisesDone. */
-      if (Number.isInteger(ex.variantIndex)) e.variantIndex = ex.variantIndex;
-      if (c.rpe) e.rpe = c.rpe;
-      /* AUTH-406: la cara por ejercicio viaja al registro
-         con el resto de la entrada (el interior de exercisesDone
-         no lo validan las reglas vivas, como markedAt). */
-      if (Number.isInteger(c.face) && c.face >= 1 && c.face <= 5) e.face = c.face;
-      /* AUTH-434 · EL TIEMPO ACTIVO DEL EJERCICIO
-         viaja al registro con el resto de la entrada:
-         activeSec son los segundos trabajados, sin los
-         tramos en pausa — lo selló el reloj del ejercicio
-         al pausar y al finalizar. El interior de
-         exercisesDone no lo validan las reglas vivas (la
-         misma lectura que la cara y markedAt): sin delta
-         de reglas. Sin tiempo sellado, la entrada queda
-         byte a byte la de siempre. */
-      if (typeof c.activeSec === 'number' && isFinite(c.activeSec) && c.activeSec > 0) e.activeSec = Math.floor(c.activeSec);
-      /* SERIES AÑADIDAS PENDIENTES (encargo 2026-10-30): una serie
-         nacida con «+ Añadir serie» que él nunca trabajó sigue
-         `pend` al cerrar — se EXCLUYE del registro: jamás cuenta
-         como realizada ni deja fila fantasma en el historial. Las
-         prescritas por el plan y las añadidas ya trabajadas
-         viajan con la forma de siempre. */
-      const wsets = Array.isArray(c.sets) ? c.sets.filter(s => !(s && s.pend === true)) : [];
-      if (wsets.length) {
-        e.sets = wsets.map(s => {
-          const out = { repsPlanned: String(s.repsPlanned || '') };
-          const rd = num(s.repsDone);
-          if (s.repsDone !== '' && s.repsDone != null && !isNaN(rd)) out.repsDone = rd;
-          const lv = parseFloat(s.loadVal);
-          if (s.loadVal !== '' && s.loadVal != null && isFinite(lv) && lv >= 0) {
-            out.loadKg = massToCanonical(lv);        /* canónico kg (módulo H) */
-            out.loadOriginal = lv;
-            out.loadUnitOriginal = UNIT_PREFS.mass;
-          }
-          /* HORA DE MARCA (paquete tarjeta semanal): la hora de
-             la serie viaja al registro con el resto de sus datos;
-             las reglas vivas no validan el interior de
-             exercisesDone (verificado contra el ruleset vivo
-             84974ca6). Sin hora, la serie queda como siempre. */
-          if (typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0) out.markedAt = Math.floor(s.markedAt);
-          /* AUTH-417 · EL TIEMPO HECHO de la serie por tiempo
-             viaja al registro como su valor (secDone, el segundo
-             entero que se vio en el botoncito). Un cronómetro en
-             curso nunca parado (secT0 sin secDone) no registra
-             tiempo alguno. El interior de exercisesDone no lo
-             validan las reglas vivas (la misma lectura que
-             markedAt): sin delta de reglas. */
-          if (typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0) out.secDone = Math.floor(s.secDone);
-          /* AUTH-2026-11-10-376 · CARGA CON DISCOS: el desglose viaja SOLO
-             si su total coincide con la carga guardada — si el
-             número cambió por otro camino, manda el número y el
-             registro queda como «un solo número». El interior de
-             exercisesDone no lo validan las reglas vivas (misma
-             lectura que markedAt y warmupSets): sin delta. */
-          if (out.loadKg != null) { const detW2 = tfDetailForWrite(s); if (detW2) out.loadDetail = detW2; }
-          return out;
-        });
-      }
-      /* APROXIMACIÓN (paquete Iniciar ejercicio, 2026-10-30): las
-         series de aproximación viajan MARCADAS y APARTE
-         (warmupSets), con la MISMA conversión que las de trabajo
-         y SIN repsPlanned; solo si el bloque estaba encendido y
-         hay al menos una fila con dato. El Historial lee SOLO
-         sets — la aproximación nunca cuenta. Sin aproximación,
-         la entrada es byte a byte la de siempre. */
-      if (c.warmup && c.warmup.on === true && Array.isArray(c.warmup.sets)) {
-        const wsrc = c.warmup.sets.filter(s => s && (String(s.repsDone == null ? '' : s.repsDone) !== '' || String(s.loadVal == null ? '' : s.loadVal) !== ''));
-        if (wsrc.length) e.warmupSets = wsrc.map(s => {
-          const out = {};
-          const rd = num(s.repsDone);
-          if (s.repsDone !== '' && s.repsDone != null && !isNaN(rd)) out.repsDone = rd;
-          const lv = parseFloat(s.loadVal);
-          if (s.loadVal !== '' && s.loadVal != null && isFinite(lv) && lv >= 0) {
-            out.loadKg = massToCanonical(lv);        /* canónico kg (módulo H) */
-            out.loadOriginal = lv;
-            out.loadUnitOriginal = UNIT_PREFS.mass;
-          }
-          /* AUTH-2026-11-10-376: la aproximación con discos guarda también
-             su desglose, con la misma regla de coincidencia. */
-          if (out.loadKg != null) { const detW3 = tfDetailForWrite(s); if (detW3) out.loadDetail = detW3; }
-          return out;
-        });
-        /* AUTH-428: la identidad de la aproximación
-           viaja junto a warmupSets cuando se eligió otro
-           ejercicio en la Biblioteca; sin elección no se
-           escribe nada nuevo y la entrada queda como la de
-           siempre (al reabrir, la ausencia se lee como el
-           propio ejercicio). */
-        if (typeof c.warmup.exerciseId === 'string' && c.warmup.exerciseId) {
-          e.warmupExerciseId = c.warmup.exerciseId;
-          if (typeof c.warmup.name === 'string' && c.warmup.name) e.warmupName = c.warmup.name;
-        }
-      }
-      doneList.push(e);
-    });
-    /* MÓDULO D (D-3): sin ninguna marca NO se escribe un «hecho»
-       vacío — se avisa y el día queda sin registrar (o se salta
-       explícitamente con su botón). */
-    if (!doneList.length) { toast(t('train.d.needCheck'), true); return; }
-    const total = trainEffectiveList(plan, di).length;
-    const status = doneList.length >= total ? 'done' : 'partial';
-    const form = b.closest('.train-close-form');
-    const durRaw = form ? String(form.querySelector('[data-tclose-dur]').value || '').trim() : '';
-    const warmRaw = form ? String(form.querySelector('[data-tclose-warm]').value || '').trim() : '';
-    const inten = form ? String(form.querySelector('[data-tclose-int]').value || 'moderada') : 'moderada';
-    let durMin = null;
-    if (durRaw !== '') { durMin = Math.floor(Number(durRaw)); if (!(durMin >= 1 && durMin <= 600)) { toast(t('act.errDuration'), true); return; } }
-    let warmMin = 0;
-    if (warmRaw !== '') { warmMin = Math.floor(Number(warmRaw)); if (!(warmMin >= 0 && warmMin <= 300)) warmMin = 0; }
-    /* D4: el calentamiento se resta ANTES de estimar. D6: la
-       sesión parcial vale por la duración completa declarada, sin
-       descuento proporcional. El RPE NO entra en el cálculo (regla
-       del módulo de actividad): viaja como señal en la entrada. */
-    const effMin = durMin == null ? null : Math.max(0, durMin - warmMin);
-    const w = actLastWeight();
-    const sessionKcal = (effMin != null && effMin > 0 && w) ? actKcalOf('entrenamiento_plan', inten, effMin, w.weight) : null;
-    const sug = trainChronoSuggestion(plan.id);
-    const rpes = doneList.map(e => e.rpe).filter(r => r != null);
-    const rpeAvg = rpes.length ? Math.round(rpes.reduce((a, c) => a + c, 0) / rpes.length) : null;
-    /* QUITADOS AL CERRAR (2026-10-30): los ejercicios quitados
-       de la sesión de hoy (la edición local que trainEditsClear
-       está a punto de retirar) viajan TAMBIÉN al registro, con
-       la identidad de lo que se quitó: si el slot traía un
-       cambio, lo quitado es el ejercicio realizado (el del
-       cambio, con su variante); si no, el del plan en ese slot.
-       Sin quitados, la carga queda byte a byte la de siempre
-       (el campo solo nace cuando hay entradas). */
-    const edClose = trainEditsRead(plan.id);
-    const removedEntries = [];
-    if (edClose && Array.isArray(edClose.removed)) {
-      edClose.removed.forEach(slot => {
-        const sw = edClose.swaps ? edClose.swaps[String(slot)] : null;
-        const entry = { slot };
-        if (sw) {
-          if (sw.exerciseId) entry.exerciseId = sw.exerciseId;
-          const nm = trainExName({ exerciseId: sw.exerciseId || null, name: sw.name || '', variantIndex: sw.variantIndex }) || sw.name || '';
-          if (nm) entry.name = nm;
-          if (Number.isInteger(sw.variantIndex)) entry.variantIndex = sw.variantIndex;
-        } else {
-          const pex2 = (day.exercises || [])[slot] || {};
-          if (pex2.exerciseId) entry.exerciseId = pex2.exerciseId;
-          else if (pex2.name) entry.name = pex2.name;
-        }
-        removedEntries.push(entry);
-      });
-    }
-    const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: di === -1 ? t('train.trained.label') : (day.label || ''),
-      done: status === 'done', schemaVersion: 2, status, exercisesDone: doneList, updatedAt: serverTimestamp(),
-      durationMin: durMin,
-      warmupMin: durMin == null ? null : warmMin,
-      durationSource: durMin == null ? null : (sug && durMin === sug.min ? 'auto' : 'manual'),
-      intensity: durMin == null ? null : inten,
-      sessionKcal,
-      weightKgUsed: sessionKcal == null ? null : w.weight,
-      metUsed: sessionKcal == null ? null : ACT_MET.entrenamiento_plan[inten] };
-    if (removedEntries.length) data.exercisesRemoved = removedEntries;
-    /* AUTH-426 · EL CALENTAMIENTO VIAJA AL REGISTRO: si
-       la sesión tuvo calentamiento cardiovascular hecho
-       (modalidad y minutos en su borrador local), el cierre lo
-       guarda como bloque propio «cardioWarmup» del registro —
-       junto a exercisesDone, sin mezclarse con él y sin contar
-       como ejercicio. Sin calentamiento, la carga queda byte a
-       byte la de siempre. Las reglas vivas no cierran la lista
-       de claves de training_logs: sin delta de reglas. */
-    const cardioClose = trainCardioForClose(plan.id);
-    if (cardioClose) data.cardioWarmup = cardioClose;
-    /* AUTH-481 · LOS PUNTOS DE CARDIO VIAJAN AL REGISTRO: si
-       la sesión usó el registro nuevo (hay clave cardio2 en el
-       dispositivo), su cierre manda — el calentamiento se
-       proyecta al bloque legado de arriba (y lo sustituye: el
-       borrador viejo pudo quedar desfasado tras la conversión)
-       y TODAS las entradas válidas del día viajan como bloque
-       propio «cardioList», junto a exercisesDone y sin contar
-       como ejercicios. Sin clave cardio2, esta rama no existe
-       y la carga es byte a byte la de siempre. Sin delta de
-       reglas (la regla viva no cierra las claves del doc). */
-    const cardio2Close = trainCardio2ForClose(plan.id);
-    if (cardio2Close) {
-      if (cardio2Close.warmLegacy) data.cardioWarmup = cardio2Close.warmLegacy;
-      else delete data.cardioWarmup;
-      if (cardio2Close.list) data.cardioList = cardio2Close.list;
-    }
-    /* CRONÓMETRO DE SESIÓN + ENCUESTA (punto 88 de la cola): si el
-       reloj de esta sesión corre, el confirmar lo DETIENE aquí —
-       la duración real se mide en este instante — y la encuesta
-       breve se interpone ANTES de la escritura: Enviar guarda la
-       respuesta (1–5) y «Ahora no»/✕ la dejan en null, pero en
-       ambos casos el cierre sigue con LA MISMA única escritura de
-       siempre, con elapsedSec y satisfaction añadidos al propio
-       registro. Si la escritura falla, el aviso es el de siempre y
-       nada se apaga: el reloj sigue corriendo y el panel de cierre
-       sigue abierto para reintentar. Sin reloj, el cierre es byte
-       a byte el de siempre, sin campos nuevos. */
-    const chronoC = trainChronoRead(plan.id);
-    const elapsedSec = chronoC ? Math.max(0, Math.round((Date.now() - chronoC.start) / 1000)) : null;
-    const finishClose = async satisfaction => {
-      if (chronoC) { data.elapsedSec = elapsedSec; data.satisfaction = satisfaction; }
-      try {
-        await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
-      } catch (e) { failToast(e); return; }
-      /* El volcado: la sesión entra en el día de actividad (o sale,
-         si el cierre quedó sin estimación) en la misma operación
-         lógica — una sola entrada, idempotente al re-cerrar. */
-      await trainDumpSession(today, sessionKcal == null ? null
-        : { type: 'entrenamiento_plan', typeCustom: '', durationMin: effMin, intensity: inten, rpe: rpeAvg, notes: '' });
-      trainChronoWrite(plan.id, null);
-      TRAIN_CLOSE_DI = null;
-      trainEditsClear(plan.id);   /* PERSONALIZA: los cambios de hoy ya viven en el registro; el borrador local se retira */
-      trainCardioWrite(plan.id, null);   /* AUTH-426: el borrador del calentamiento se retira con el día, como las ediciones */
-      trainCardio2Write(plan.id, null);   /* AUTH-481: y su gemelo nuevo, en el mismo sitio */
-      Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
-      trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: cerrado el día, el borrador de marcas se retira con él */
-      sessPillTick();
-      loadMyTraining();
-    };
-    if (chronoC) { sessSurveyOpen(elapsedSec, finishClose); return; }
-    await finishClose(null);
-  });
+  box.querySelectorAll('[data-train-close-confirm]').forEach(b => b.onclick = () => trainCloseConfirm(plan, Number(b.dataset.trainCloseConfirm), b.closest('.train-close-form')));
   box.querySelectorAll('[data-train-skip]').forEach(b => b.onclick = () => {
     const di = Number(b.dataset.trainSkip);
     /* AUTH-487: la puerta es la hoja de la casa
@@ -65508,7 +65654,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-aproximacion-anadir';
+const PWA_SW_VERSION = '20261119-panel-dia-completado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
