@@ -6608,6 +6608,16 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sf-dot.ok { background: #57d93d; border-color: #57d93d; color: #0e1e3a; }
 .sf-dot.next { border-color: #57d93d; color: #fff; }
 .sf-dot:active { filter: brightness(1.2); }
+/* AUTH-502 · EL CÍRCULO QUE CUENTA (mockup aprobado): el anillo corre DENTRO del círculo de siempre — 44×44, el toque no cambia de tamaño. Verde en la cuenta de la serie; ámbar en los 10 s de preparación (D2: se distingue de la cuenta); rojo en el instante de cero, antes de la marca verde. */
+.sf-dot.counting { position: relative; border-color: transparent; background: #12283f; color: #fff; }
+.sf-dot.counting .cd-ring { position: absolute; inset: 0; transform: rotate(-90deg); }
+.sf-dot.counting .cd-ring circle { fill: none; stroke-width: 3.5; }
+.sf-dot.counting .cd-ring-bg { stroke: #27435f; }
+.sf-dot.counting .cd-ring-fg { stroke: #57d93d; stroke-linecap: round; }
+.sf-dot.counting.prep .cd-ring-fg { stroke: #e8930c; }
+.sf-dot.counting .cd-num { font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sf-dot.counting.alarm { background: #d92b20; }
+.sf-dot.counting.alarm .cd-ring-fg { stroke: #ffb3ab; }
 .sf-dots-lab { display: block; margin-top: 12px; font-size: 13.5px; color: #9fb4cc; line-height: 1.4; }
 /* AUTH-500 (D1): con 6+ series en banda estrecha o media, la palabra «Editar» sube a la línea del contador — este botón solo se muestra en esas bandas (las reglas de arriba ocultan a la vez la «Editar» de la fila). */
 .sf-dots-lab .sf-lab-edit { display: none; align-items: center; min-height: 44px; padding: 0 6px; background: none; border: none; font: inherit; font-weight: 700; color: #c9d8ec; text-decoration: underline; cursor: pointer; }

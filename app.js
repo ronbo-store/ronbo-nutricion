@@ -6507,6 +6507,10 @@ en: {
   'sess.voice.unitLbW': 'pounds', 'sess.voice.unitKgW': 'kilos',
   'sess.voice.noMicTitle': 'Voice dictation', 'sess.voice.noMicBody': "This phone won't let me listen to you in here. You can still dictate to the keyboard: open Edit and tap your keyboard's little microphone to dictate the numbers — manual entry works as always.",
   'sess.voice.openEdit': 'Open Edit', 'sess.voice.gotIt': 'Got it',
+  'sess.cd.left30': 'You have thirty seconds left', 'sess.cd.left10': 'Ten seconds left',
+  'sess.cd.prepLab': 'Get ready…', 'sess.cd.countLab': 'Set {n} counting… the alarm sounds at zero', 'sess.cd.doneLab': 'Set {n} done!',
+  'sess.cd.tapHint': 'timed sets — tap a circle and the count runs inside',
+  'sess.cd.ariaCount': 'Set {n} counting, {s} seconds left', 'sess.cd.ariaPrep': 'Set {n}, getting ready, {s} seconds',
   'sess.pillSub': 'It only stops when you finish, in Training',
   'sess.kicker': 'QUICK SURVEY', 'sess.title': 'Workout finished!',
   'sess.dur': 'Duration: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -11838,6 +11842,10 @@ es: {
   'sess.voice.unitLbW': 'libras', 'sess.voice.unitKgW': 'kilos',
   'sess.voice.noMicTitle': 'Dictado por voz', 'sess.voice.noMicBody': 'Este teléfono no me deja escucharte aquí dentro. Sí puedes dictarle al teclado: abre Editar y toca el micrófonito de tu teclado para dictar los números — la carga manual queda como siempre.',
   'sess.voice.openEdit': 'Abrir Editar', 'sess.voice.gotIt': 'Entendido',
+  'sess.cd.left30': 'Te quedan treinta segundos', 'sess.cd.left10': 'Te quedan diez segundos',
+  'sess.cd.prepLab': 'Prepárate…', 'sess.cd.countLab': 'Serie {n} contando… al llegar a cero suena la alarma', 'sess.cd.doneLab': '¡Serie {n} cumplida!',
+  'sess.cd.tapHint': 'series por tiempo — toca un círculo y la cuenta corre dentro',
+  'sess.cd.ariaCount': 'Serie {n} contando, quedan {s} segundos', 'sess.cd.ariaPrep': 'Serie {n}, preparación, {s} segundos',
   'sess.pillSub': 'Solo se detiene al finalizar, en Entrenamiento',
   'sess.kicker': 'ENCUESTA RÁPIDA', 'sess.title': '¡Entrenamiento finalizado!',
   'sess.dur': 'Duración: {d}', 'sess.durMin': '{m} min', 'sess.durHM': '{h} h {m} min',
@@ -34798,7 +34806,23 @@ function trainChecksRead(planId) {
              arranque de un cronómetro en curso — sin él, una
              recarga a mitad de plancha perdería la cuenta). */
           ...(typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0 ? { secDone: Math.floor(s.secDone) } : {}),
-          ...(typeof s.secT0 === 'number' && isFinite(s.secT0) && s.secT0 > 0 ? { secT0: Math.floor(s.secT0) } : {}), ...tfDetailSpread(s) })) : [] };
+          ...(typeof s.secT0 === 'number' && isFinite(s.secT0) && s.secT0 > 0 ? { secT0: Math.floor(s.secT0) } : {}),
+          /* AUTH-502 · LA CUENTA DEL CÍRCULO sobrevive a la
+             restauración del borrador con la misma disciplina:
+             g (la meta de la serie), e (los segundos bancados
+             de la línea preparación + cuenta), t0 (el arranque
+             del tramo vivo, RELOJ DE PARED como secT0: una
+             recarga a mitad de cuenta no la pierde ni la
+             duplica, el corrido sigue saliendo del mismo t0),
+             a30/a10 (los avisos ya dados, para no repetirlos
+             tras la recarga) y f (la fase de destello a cero).
+             Sin esta clave, una recarga perdería la cuenta. */
+          ...(s.cd && typeof s.cd === 'object' && Number.isFinite(Number(s.cd.g)) && Number(s.cd.g) > 0 ? { cd: {
+            g: Math.min(600, Math.max(5, Math.floor(Number(s.cd.g)))),
+            e: (typeof s.cd.e === 'number' && isFinite(s.cd.e) && s.cd.e > 0) ? Math.floor(s.cd.e * 1000) / 1000 : 0,
+            ...(typeof s.cd.t0 === 'number' && isFinite(s.cd.t0) && s.cd.t0 > 0 ? { t0: Math.floor(s.cd.t0) } : {}),
+            ...(s.cd.a30 === 1 ? { a30: 1 } : {}), ...(s.cd.a10 === 1 ? { a10: 1 } : {}),
+            ...(s.cd.f === 1 ? { f: 1 } : {}) } } : {}), ...tfDetailSpread(s) })) : [] };
       /* APROXIMACIÓN (paquete Iniciar ejercicio, 2026-10-30): el
          bloque de aproximación en curso viaja en el MISMO borrador
          local, saneado con la misma disciplina; sin la clave, la
@@ -40269,10 +40293,48 @@ function sessDotMark(s) {
   }
   s.dot = true;
 }
-function sessDotTap(plan, key, si) {
+function sessDotTap(plan, key, si, viaVoice) {
   const chk = TRAIN_CHECKS[key];
   if (!chk || !Array.isArray(chk.sets) || !chk.sets[si]) return;
+  /* AUTH-502 · EL PREÁMBULO DEL CRONÓMETRO EN LOS CÍRCULOS
+     (antes de la marca de siempre; la explicación completa
+     vive con las piezas sessCd* justo debajo de esta
+     función):
+     — la marca del DICTADO (viaVoice) NO es un toque en el
+       círculo: nunca arranca cuentas y, si la serie dictada
+       era la que contaba, su cuenta queda cancelada por el
+       tick como huérfana de una serie ya marcada.
+     — tocar el círculo QUE ESTÁ CONTANDO es la decisión D3
+       (cerrar con el tiempo corrido / cancelar en
+       preparación): lo resuelve sessCdTapLive y aquí se
+       vuelve sin tocar la marca de siempre.
+     — tocar OTRO círculo con una cuenta viva la cancela en
+       silencio antes de seguir: la viva nunca llega a la
+       marca de abajo.
+     — tocar un círculo sin marcar de un ejercicio POR
+       TIEMPO (y sin el cronómetro de la tarjeta corriendo
+       en esa serie: regla 10 de la convivencia) ARRANCA la
+       cuenta en vez de marcar: los anteriores a él se
+       marcan según el plan, sin tiempo, como manda la
+       regla 8. */
+  const liveCd = sessCdOf(chk);
+  if (!viaVoice && liveCd && liveCd.si === si) { sessCdTapLive(plan, key, si); return; }
+  if (!viaVoice && liveCd) { delete liveCd.s.cd; SESS_CD_PAINT = ''; trainChecksPersist(plan.id); }
   const fr = sessSetsFrontier(chk);
+  if (!viaVoice && si >= fr && chk.done !== true) {
+    const sT = chk.sets[si];
+    const diT = Number(key.split(':')[0]), eiT = Number(key.split(':')[1]);
+    const effT = trainEffectiveList(plan, diT);
+    const itT = effT ? effT[eiT] : null;
+    const crit = sT ? trainTimedOf(itT ? itT.ex : null, sT) : null;
+    if (crit && !(typeof sT.secT0 === 'number' && sT.secT0 > 0)) {
+      for (let j = fr; j < si; j++) sessDotMark(chk.sets[j]);
+      trainChecksPersist(plan.id);
+      sessCdStart(plan, key, si, crit);
+      try { sessPillTick(); } catch {}
+      return;
+    }
+  }
   if (si >= fr) { for (let j = fr; j <= si; j++) sessDotMark(chk.sets[j]); }
   else { for (let j = si; j < fr; j++) { const s = chk.sets[j]; if (s && s.dot === true) delete s.dot; } }
   trainChecksPersist(plan.id);
@@ -40306,6 +40368,269 @@ function sessDotTap(plan, key, si) {
     }
   }
 }
+/* ═══ AUTH-502 · EL CRONÓMETRO EN LOS CÍRCULOS (diseño
+   aprobado por Ronald el 2026-11-18: propuesta
+   «propuesta-cronometro-2026-11-18» — mockup.html y
+   COMPORTAMIENTO.md —, con sus decisiones D2 y D3 cerradas
+   por sus propias palabras).
+
+   En un ejercicio medido POR TIEMPO (la detección que ya
+   existe: trainTimedOf; los segundos viven como texto en
+   repsPlanned — «60 seg», «30-45 seg»), tocar un círculo
+   sin marcar NO marca: ARRANCA la cuenta dentro de ese
+   círculo, y el ejercicio conserva sus repeticiones y su
+   peso opcional: solo el conteo es por tiempo.
+
+   D2 (Ronald, 2026-11-18 21:01 CST: «Siempre da 10
+   segundonde preparación y que cuente también regresivo
+   hasta que se inician lo indicado o asignado
+   previamente»): SIEMPRE hay 10 segundos de preparación
+   en cuenta regresiva dentro del círculo, distinguidos
+   visualmente (anillo ámbar, etiqueta «Prepárate…»), y al
+   llegar a cero la cuenta de la serie arranca sola. La
+   cuenta asignada es el tiempo del plan de esa serie: si
+   el plan trae un RANGO, arranca desde el MÁXIMO (la meta
+   que ya usa el cronómetro de la tarjeta: crit.max); si
+   trae un valor único, ese.
+
+   D3 (Ronald: «Termina la serie con el tiempo corrido»):
+   tocar el círculo QUE ESTÁ CONTANDO cierra la serie con
+   el tiempo corrido de la cuenta de la serie y la marca.
+   Interpretación declarada: tocar durante la PREPARACIÓN
+   cancela el arranque sin marcar nada (la serie aún no
+   empezó; tiempo corrido de la serie = 0).
+
+   LA VOZ (su orden del 13:06 CST): la voz de la app
+   (asstSpeak, perfil AUTH-483, idioma de la app) anuncia
+   a los 30 s restantes «Te quedan treinta segundos» y a
+   los 10 s restantes «Te quedan diez segundos» — regla
+   general: anuncia en 30 y en 10 cuando la duración los
+   alcanza (una serie de 30 s solo recibe el aviso de 10).
+   A cero SUENA la alarma (la pieza de AUTH-498:
+   swAlertBeep, armada desde el toque que arranca con
+   swAlertArm), el círculo pasa a rojo («0:00», ~0,9 s) y
+   luego a la marca verde de hecho, con secDone = la meta:
+   la cuenta ES la medida de la serie (COMPORTAMIENTO §4).
+   Al cerrar el día, el escritor del cierre copia ese
+   secDone real al training_logs (el criterio de la
+   auditoría del 2026-11-18, defecto 2): el campo cd
+   NUNCA viaja al registro — solo viaja el tiempo medido.
+
+   EL ESTADO vive en el borrador, por serie: s.cd = { g
+   (la meta), e (segundos bancados en la línea completa:
+   preparación + cuenta), t0 (el arranque del tramo vivo
+   en ms, RELOJ DE PARED como secT0 — una recarga a mitad
+   de cuenta no la pierde ni la duplica: el corrido sigue
+   saliendo del mismo t0 y el banco se reconcilia —),
+   a30/a10 (los avisos ya dados), f (la fase de
+   destello) }. Saneado en trainChecksRead con la
+   disciplina de secDone/secT0.
+
+   EL TICK (250 ms, propio: SESS_CD_IV) es el único motor:
+   (1) limpia huérfanos — una cuenta en una entrada hecha,
+   en un ejercicio que ya no es el de ahora, en un cierre
+   vivo o en una serie ya marcada por otro camino se
+   borra en silencio (Finalizar con una cuenta viva la
+   cancela sin marcar esa serie; Quitar la mata con el
+   ejercicio; arrancar otro ejercicio la deja huérfana y
+   el tick la recoge); (2) reconcilia t0 con el estado de
+   flujo — flujo abierto y t0 nulo: t0 = ahora (Seguir
+   reanuda, con la preparación ya consumida: sigue donde
+   iba); flujo no abierto y t0 vivo: banca y congela
+   (Detener congela la cuenta, desde el panel o desde la
+   tarjeta, porque ambos mueven el mismo TRAIN_FLOW;
+   minimizar el panel NO detiene nada: el tick no mira la
+   vista) —; (3) da los avisos de voz una sola vez (las
+   banderas viajan en el borrador: una recarga no los
+   repite); (4) a cero suena, destella y completa por
+   sessCdComplete, que marca por sessDotMark y, si era la
+   ÚLTIMA serie sin marcar, finaliza el ejercicio por la
+   vía exacta de AUTH-496; (5) repinta EN SITIO el número
+   y el anillo del círculo que cuenta (sessCdPaint), sin
+   reconstruir el panel cada 250 ms.
+
+   UNA SOLA cuenta a la vez en el ejercicio: arrancar
+   otra (toque en otro círculo) cancela la viva en
+   silencio (sessDotTap). El siguiente círculo siempre
+   espera el toque de la persona: nada arranca solo,
+   salvo el paso preparación→cuenta de la MISMA serie.
+   CONVIVENCIA (regla 10): si el cronómetro de la tarjeta
+   de esa serie está corriendo (secT0), el toque sigue el
+   comportamiento de siempre (banca + marca) y no arranca
+   ninguna cuenta. ═══ */
+const SESS_CD_PREP = 10;
+let SESS_CD_IV = 0;
+let SESS_CD_FLASH = null;   /* { ck, si, until } — memoria de pantalla del instante rojo */
+let SESS_CD_PAINT = '';     /* ck:si:fase de la última etiqueta de cuenta pintada */
+function sessCdOf(chk) {
+  if (!chk || !Array.isArray(chk.sets)) return null;
+  for (let i = 0; i < chk.sets.length; i++) { const s = chk.sets[i]; if (s && s.cd && typeof s.cd === 'object') return { si: i, s, cd: s.cd }; }
+  return null;
+}
+function sessCdElapsed(cd, now) {
+  let e = (cd && typeof cd.e === 'number' && isFinite(cd.e) && cd.e > 0) ? cd.e : 0;
+  if (cd && typeof cd.t0 === 'number' && cd.t0 > 0) e += Math.max(0, ((typeof now === 'number' ? now : Date.now()) - cd.t0) / 1000);
+  return e;
+}
+function sessCdPhase(cd, now) {
+  if (cd && cd.f === 1) return 'zero';
+  return sessCdElapsed(cd, now) < SESS_CD_PREP ? 'prep' : 'run';
+}
+function sessCdRemain(cd, now) {
+  const el = sessCdElapsed(cd, now);
+  if (el < SESS_CD_PREP) return Math.max(0, Math.ceil(SESS_CD_PREP - el));
+  return Math.max(0, Math.ceil(cd.g - (el - SESS_CD_PREP)));
+}
+function sessCdArm() { if (!SESS_CD_IV) SESS_CD_IV = setInterval(sessCdTick, 250); }
+function sessCdStart(plan, key, si, crit) {
+  const chk = TRAIN_CHECKS[key];
+  if (!chk || !chk.sets[si] || !crit) return;
+  const fs = TRAIN_FLOW[key] || null;
+  chk.sets[si].cd = { g: Math.round(crit.max), e: 0, t0: (fs && fs.st === 'open') ? Date.now() : null };
+  /* El sonido se ARMA dentro del gesto (AUTH-498): sin
+     este armado, el pitido de cero llegaría a un contexto
+     ya suspendido por iOS y la alarma sería solo visual. */
+  try { swAlertArm(); } catch {}
+  trainChecksPersist(plan.id);
+  sessCdArm();
+}
+function sessCdComplete(plan, key, si, secs) {
+  const chk = TRAIN_CHECKS[key];
+  if (!chk || !chk.sets[si]) return;
+  const s = chk.sets[si];
+  delete s.cd;
+  SESS_CD_PAINT = '';
+  /* El tiempo medido queda como el tiempo de la serie
+     (secDone, la forma que el escritor del cierre copia
+     al training_logs) y su hora se sella como en toda
+     carga; la marca entra por sessDotMark, la de siempre
+     (que además banca un secT0 si lo hubiera). */
+  if (secs > 0) { s.secDone = Math.floor(secs); if (s.pend) { delete s.pend; s.sug = false; } trainSetStamp(s); }
+  sessDotMark(s);
+  trainChecksPersist(plan.id);
+  /* AUTH-496 · si era la ÚLTIMA serie sin marcar, el
+     ejercicio finaliza por su vía exacta, como con el
+     toque que marca la última. */
+  if (chk.done !== true && chk.sets.length && chk.sets.every(x => x && x.dot === true)) {
+    const fsA = TRAIN_FLOW[key] || null;
+    if (fsA && (fsA.st === 'open' || fsA.st === 'paused')) {
+      flowClockBank(key);
+      trainChecksPersist(plan.id);
+      flowSealDone(plan, key);
+      flowEnterClosing(plan, key);
+      if (trainGuidePref() === 'guided' && TRAIN_FLOW[key] && TRAIN_FLOW[key].st === 'closing') TRAIN_GUIDE.pin = Number(key.split(':')[1]);
+    }
+  }
+  try { sessPillTick(); } catch {}
+}
+function sessCdTapLive(plan, key, si) {
+  const chk = TRAIN_CHECKS[key];
+  const s = chk && chk.sets[si];
+  if (!s || !s.cd) return;
+  const cd = s.cd;
+  /* En el instante rojo el toque vale «ya»: completa con
+     la meta, sin esperar a que el destello se apague. */
+  if (cd.f === 1) { SESS_CD_FLASH = null; sessCdComplete(plan, key, si, cd.g); return; }
+  const el = sessCdElapsed(cd);
+  /* D3 en PREPARACIÓN: cancela el arranque sin marcar
+     nada — la serie aún no empezó. */
+  if (el < SESS_CD_PREP) { delete s.cd; SESS_CD_PAINT = ''; trainChecksPersist(plan.id); try { sessPillTick(); } catch {} return; }
+  /* D3 en la CUENTA: cierra con el tiempo corrido de la
+     cuenta de la serie (la preparación no cuenta). */
+  sessCdComplete(plan, key, si, Math.floor(el - SESS_CD_PREP));
+}
+function sessCdTick() {
+  try {
+    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+    if (!plan || TRAIN_CHECKS_CTX !== plan.id + '|' + todayISO()) return;
+    const now = Date.now();
+    let curKey = null;
+    try { const stB = trainBarState(); if (stB) curKey = stB.di + ':' + stB.cur; } catch {}
+    let dirty = false;
+    Object.keys(TRAIN_CHECKS).forEach(key => {
+      const chk = TRAIN_CHECKS[key];
+      const live = sessCdOf(chk);
+      if (!live) return;
+      const fs = TRAIN_FLOW[key] || null;
+      /* (1) HUÉRFANOS: la cuenta no sobrevive a su
+         ejercicio ni a su serie. */
+      if (chk.done === true || (curKey !== null && key !== curKey) || (fs && fs.st === 'closing') || sessSetDone(live.s)) {
+        delete live.s.cd; dirty = true;
+        if (SESS_CD_FLASH && SESS_CD_FLASH.ck === key) SESS_CD_FLASH = null;
+        return;
+      }
+      const cd = live.cd;
+      /* (4a) EL DESTELLO A CERO: rojo ~0,9 s y completa. */
+      if (cd.f === 1) {
+        if (!SESS_CD_FLASH || SESS_CD_FLASH.ck !== key || SESS_CD_FLASH.si !== live.si) {
+          SESS_CD_FLASH = { ck: key, si: live.si, until: now + 900 };
+          sessCdPaint(key, live.si);
+          return;
+        }
+        if (now >= SESS_CD_FLASH.until) { SESS_CD_FLASH = null; sessCdComplete(plan, key, live.si, cd.g); }
+        return;
+      }
+      /* (2) RECONCILIACIÓN con el flujo: Detener congela,
+         Seguir reanuda — vengan del panel o de la tarjeta. */
+      const running = !!(fs && fs.st === 'open');
+      if (running && !(typeof cd.t0 === 'number' && cd.t0 > 0)) { cd.t0 = now; dirty = true; }
+      if (!running && typeof cd.t0 === 'number' && cd.t0 > 0) { cd.e = sessCdElapsed(cd, now); cd.t0 = null; dirty = true; }
+      const el = sessCdElapsed(cd, now);
+      if (running) {
+        /* (3) LOS AVISOS DE VOZ, una sola vez cada uno. */
+        if (el >= SESS_CD_PREP) {
+          const rem = cd.g - (el - SESS_CD_PREP);
+          if (!cd.a30 && cd.g > 30 && rem <= 30) { cd.a30 = 1; dirty = true; try { asstSpeak(t('sess.cd.left30')); } catch {} }
+          if (!cd.a10 && cd.g > 10 && rem <= 10) { cd.a10 = 1; dirty = true; try { asstSpeak(t('sess.cd.left10')); } catch {} }
+        }
+        /* (4) A CERO: suena la alarma de AUTH-498 y el
+           círculo pasa a rojo; la marca llega al apagarse
+           el destello. */
+        if (el >= SESS_CD_PREP + cd.g) {
+          cd.e = SESS_CD_PREP + cd.g; cd.t0 = null; cd.f = 1; dirty = true;
+          try { swAlertBeep(); } catch {}
+          SESS_CD_FLASH = { ck: key, si: live.si, until: now + 900 };
+          sessCdPaint(key, live.si);
+          if (dirty) { trainChecksPersist(plan.id); dirty = false; }
+          return;
+        }
+      }
+      /* (5) LA PINTURA EN SITIO de esta pasada. */
+      sessCdPaint(key, live.si);
+    });
+    if (dirty) trainChecksPersist(plan.id);
+  } catch {}
+}
+function sessCdPaint(key, si) {
+  const chk = TRAIN_CHECKS[key];
+  if (!chk || !chk.sets[si] || !chk.sets[si].cd) return;
+  const cd = chk.sets[si].cd;
+  const now = Date.now();
+  const phase = sessCdPhase(cd, now);
+  const btn = document.querySelector('[data-sess-dot="' + key + ':' + si + '"]');
+  if (btn) {
+    const numEl = btn.querySelector('.cd-num');
+    const ring = btn.querySelector('.cd-ring-fg');
+    if (phase === 'zero') {
+      if (numEl) numEl.textContent = '0:00';
+      if (ring) ring.style.strokeDashoffset = '122.5';
+      btn.classList.add('alarm');
+    } else {
+      const el = sessCdElapsed(cd, now);
+      const dur = phase === 'prep' ? SESS_CD_PREP : cd.g;
+      const pel = phase === 'prep' ? el : el - SESS_CD_PREP;
+      if (numEl) numEl.textContent = trainTimerFmt(sessCdRemain(cd, now));
+      if (ring) ring.style.strokeDashoffset = String(Math.max(0, Math.min(122.5, 122.5 * pel / dur)));
+      btn.classList.toggle('prep', phase === 'prep');
+    }
+  }
+  const pk = key + ':' + si + ':' + phase;
+  if (SESS_CD_PAINT !== pk) {
+    SESS_CD_PAINT = pk;
+    const lab = document.querySelector('#sess-full .sf-dots-lab');
+    if (lab) lab.textContent = phase === 'prep' ? t('sess.cd.prepLab') : phase === 'run' ? t('sess.cd.countLab', { n: si + 1 }) : t('sess.cd.doneLab', { n: si + 1 });
+  }
+}
 /* AUTH-499 · LA PUERTA DE LA PASTILLA «EDITAR» (decisión de
    Ronald, 2026-11-18 12:45 CST): la pastilla de la línea de
    círculos se ve SOLO si el usuario NO tiene entrenador, o
@@ -40323,7 +40648,7 @@ function sessEditVisible() {
   if (typeof IS_OWNER !== 'undefined' && IS_OWNER === true) return true;
   try { return !gmHasTrainer(); } catch { return true; }
 }
-function sessDotsHTML(curChk, ck, flowSt) {
+function sessDotsHTML(curChk, ck, flowSt, ex) {
   if (!curChk || !Array.isArray(curChk.sets) || !curChk.sets.length) return '';
   if (curChk.done === true || (flowSt !== 'open' && flowSt !== 'paused')) return '';
   const sets = curChk.sets;
@@ -40337,6 +40662,28 @@ function sessDotsHTML(curChk, ck, flowSt) {
     return `<div class="sf-listen"><div class="sf-listen-waves" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="sf-listen-t">${esc(t('sess.voice.listening', { n: SESS_VOICE.si + 1 }))}</div><div class="sf-listen-ej">${esc(t('sess.voice.example'))}</div><div class="sf-listen-row"><button type="button" class="sf-listen-btn cancel" data-sess-voice-cancel="1">${esc(t('form.cancel'))}</button><button type="button" class="sf-listen-btn done" data-sess-voice-done="1">${esc(t('sess.voice.doneBtn'))}</button></div></div>`;
   }
   const dots = sets.map((s, si2) => {
+    /* AUTH-502 · EL CÍRCULO QUE CUENTA: el anillo SVG del
+       mockup aprobado (r=19.5, circunferencia 122.5 que se
+       vacía con el tiempo; el círculo sigue siendo 44×44)
+       y el número dentro, con el mismo data-sess-dot de
+       siempre — el mismo gesto, el mismo cableado. Ámbar
+       en la preparación (D2), verde en la cuenta, rojo en
+       el instante de cero. El tick repinta número y anillo
+       en sitio (sessCdPaint); este pintor solo nace con la
+       cuenta y en sus cambios de fase (la firma de
+       sessFullSync lleva la fase). */
+    if (s.cd && typeof s.cd === 'object') {
+      const cd = s.cd;
+      const ph = sessCdPhase(cd);
+      const el2 = sessCdElapsed(cd);
+      const dur = ph === 'prep' ? SESS_CD_PREP : cd.g;
+      const pel = ph === 'prep' ? el2 : el2 - SESS_CD_PREP;
+      const off = ph === 'zero' ? 122.5 : Math.max(0, Math.min(122.5, 122.5 * pel / dur));
+      const clsC = 'counting' + (ph === 'prep' ? ' prep' : '') + (ph === 'zero' ? ' alarm' : '');
+      const num = ph === 'zero' ? '0:00' : trainTimerFmt(sessCdRemain(cd));
+      const aria = ph === 'prep' ? t('sess.cd.ariaPrep', { n: si2 + 1, s: sessCdRemain(cd) }) : t('sess.cd.ariaCount', { n: si2 + 1, s: sessCdRemain(cd) });
+      return `<button type="button" class="sf-dot ${clsC}" data-sess-dot="${ck}:${si2}" aria-label="${esc(aria)}"><svg class="cd-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="cd-ring-bg" cx="22" cy="22" r="19.5"/><circle class="cd-ring-fg" cx="22" cy="22" r="19.5" stroke-dasharray="122.5" stroke-dashoffset="${off}"/></svg><span class="cd-num">${num}</span></button>`;
+    }
     const cls = flags[si2] ? 'ok' : (si2 === nextI ? 'next' : 'todo');
     return `<button type="button" class="sf-dot ${cls}" data-sess-dot="${ck}:${si2}" aria-label="${esc(t('train.d.set'))} ${si2 + 1}">${flags[si2] ? '✓' : String(si2 + 1)}</button>`;
   }).join('');
@@ -40371,7 +40718,23 @@ function sessDotsHTML(curChk, ck, flowSt) {
   const hint = gate ? ` — ${esc(t('sess.voice.hint'))}` : '';
   const labCls = 'sf-dots-lab' + ((gate && nSets >= 6) ? ' up' + Math.min(nSets, 8) : '');
   const rowCls = 'sf-dots' + (nSets >= 5 ? ' sfv-pencil' : '') + (nSets >= 5 ? ' sfv-n' + Math.min(nSets, 10) : '') + (nSets >= 11 ? ' sfv-wrap' : '');
-  return `<div class="${labCls}">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(t('sess.setsTap'))}${hint}${labEdit}</div><div class="${rowCls}">${dots}${editBtn}${voiceBtn}</div>`;
+  /* AUTH-502 · LA ETIQUETA CON CUENTA VIVA es la del
+     mockup (preparación / contando / cumplida) y ocupa la
+     línea sola mientras la cuenta vive; sin cuenta, un
+     ejercicio por tiempo anuncia su pista («series por
+     tiempo — toca un círculo y la cuenta corre dentro»)
+     en vez de la instrucción genérica. Restaurar una
+     cuenta viva también rearma su tick desde aquí. */
+  const liveCd2 = sessCdOf(curChk);
+  if (liveCd2) {
+    sessCdArm();
+    const phL = sessCdPhase(liveCd2.cd);
+    const labCd = phL === 'prep' ? t('sess.cd.prepLab') : phL === 'run' ? t('sess.cd.countLab', { n: liveCd2.si + 1 }) : t('sess.cd.doneLab', { n: liveCd2.si + 1 });
+    return `<div class="${labCls}">${esc(labCd)}</div><div class="${rowCls}">${dots}${editBtn}${voiceBtn}</div>`;
+  }
+  const nextTimed = nextI >= 0 ? trainTimedOf(ex || null, sets[nextI]) : null;
+  const labTap = nextTimed ? t('sess.cd.tapHint') : t('sess.setsTap');
+  return `<div class="${labCls}">${esc(t('sess.setsOf', { n: doneN2, m: sets.length }))} · ${esc(labTap)}${hint}${labEdit}</div><div class="${rowCls}">${dots}${editBtn}${voiceBtn}</div>`;
 }
 /* ═══ AUTH-500 · EL BOTÓN DE VOZ DE LA LÍNEA (diseño
    aprobado por Ronald el 2026-11-18, con sus correcciones:
@@ -40525,7 +40888,7 @@ function sessVoiceApply(txt) {
   else if (p.load != null) { s.loadVal = convLoadDisplay(String(p.load), p.unit || UNIT_PREFS.mass, UNIT_PREFS.mass); delete s.loadDetail; }
   trainSetStamp(s);
   trainChecksPersist(plan.id);
-  sessDotTap(plan, ck, si);
+  sessDotTap(plan, ck, si, true);   /* AUTH-502: la marca del dictado no es un toque en el círculo — nunca arranca la cuenta de un ejercicio por tiempo */
   const sNow = chk.sets[si];
   sessVoiceSetNote({ kind: 'ok', ck, si, flags: sessVoiceFlags(ck), reps: p.reps, bw: !!p.bw, loadTxt: p.bw ? '' : String(sNow.loadVal == null ? '' : sNow.loadVal), unit: UNIT_PREFS.mass });
   try { asstSpeak(sessVoiceSpoken(si, p, sNow)); } catch {}
@@ -40773,7 +41136,7 @@ function sessFullSync(run) {
     const exState = flowSt === 'paused'
       ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-paused">${esc(t('sess.exPaused'))}</span>`
       : (curChk && flowSt !== 'closing' ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-running">${esc(t('sess.exRunning'))}</span>` : '');
-    const dotsBlk = sessDotsHTML(curChk, ck, flowSt);   /* AUTH-485: los círculos de series del ejercicio en curso */
+    const dotsBlk = sessDotsHTML(curChk, ck, flowSt, st.eff[st.cur].ex);   /* AUTH-485: los círculos de series del ejercicio en curso · AUTH-502: el ejercicio entra para detectar el tiempo sin leer la biblioteca */
     const nowBlk = `<div class="sf-now"><div class="sf-now-lab">${esc(t('sess.nowLab'))} · ${esc(pos)}</div><div class="sf-name">${esc(curName)}</div>`
       + (exState ? `<div class="sf-exrow">${exState}</div>` : '')
       + dotsBlk
@@ -40783,7 +41146,9 @@ function sessFullSync(run) {
     const nxtBlk = (st.nxt != null && st.nxt !== st.cur)
       ? `<div class="sf-next"><span class="sf-next-lab">${esc(t('sess.pillNext'))}</span><span class="sf-next-name">${esc(trainExName(st.eff[st.nxt].ex) || st.eff[st.nxt].ex.name || '')}</span><span class="sf-next-pos">${esc(t('train.guide.pos', { n: st.nxt + 1, m: total }))}</span></div>` : '';
     const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex)].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace */
+    const cdLive = curChk ? sessCdOf(curChk) : null;   /* AUTH-502: la fase de la cuenta del círculo entra en la firma — nacer, pasar de preparación a cuenta y llegar a cero repintan una vez cada cambio; el segundo a segundo lo pinta el tick en sitio */
+    const cdTerm = cdLive ? 'C' + cdLive.si + ':' + (cdLive.cd.f === 1 ? 'z' : (sessCdElapsed(cdLive.cd) < SESS_CD_PREP ? 'p' : 'r')) : '';
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace */
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
@@ -64199,7 +64564,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261118-imagen-fila';
+const PWA_SW_VERSION = '20261118-cronometro-circulos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
