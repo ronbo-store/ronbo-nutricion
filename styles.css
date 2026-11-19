@@ -6592,17 +6592,20 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
    44 px siempre (suelo de toque de la casa); con muchas series
    la fila baja a otra línea y el rótulo baja con ella. */
 /* AUTH-500: la línea única — círculos + «Editar» compacta + botón de voz en UNA línea de 52 px; el rótulo vive en su propia línea (.sf-dots-lab). La envoltura solo sobrevive donde la letra aprobada (D1) no tiene forma física con toques de 44 px: 7+ series en banda estrecha y 8+ en la media — el toque no se encoge jamás (la envoltura de AUTH-485). */
+/* AUTH-514 (2026-11-19): la línea del rótulo sobre los círculos se retira entera por orden de Ronald — sus reglas salen de aquí abajo y las que ocultaban la «Editar» de la fila en favor de esa línea pierden su razón: la palabra vuelve a su botón de la fila en todas las bandas. */
 .sf-dots { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; height: 52px; margin-top: 2px; }
 .sf-dots.sfv-wrap { flex-wrap: wrap; height: auto; min-height: 52px; }
 @media (max-width: 400px) {
   .sf-dots.sfv-n5, .sf-dots.sfv-n6 { gap: 2px; }
-  .sf-dots.sfv-n6 .sf-edit, .sf-dots.sfv-n7 .sf-edit, .sf-dots.sfv-n8 .sf-edit, .sf-dots.sfv-n9 .sf-edit, .sf-dots.sfv-n10 .sf-edit { display: none; }
-  .sf-dots.sfv-n7, .sf-dots.sfv-n8, .sf-dots.sfv-n9, .sf-dots.sfv-n10 { flex-wrap: wrap; height: auto; min-height: 52px; }
+  /* AUTH-514: aquí se ocultaba la «Editar» de la fila con 6+ series porque su palabra vivía en la línea retirada; sin esa línea, el botón se queda. */
+  /* AUTH-514: la envoltura gana el conteo de 6 en esta banda — con la «Editar» de vuelta en la fila, 6 círculos + Editar + voz no caben en una sola línea estrecha sin encoger toques (medido: desbordaba). */
+  .sf-dots.sfv-n6, .sf-dots.sfv-n7, .sf-dots.sfv-n8, .sf-dots.sfv-n9, .sf-dots.sfv-n10 { flex-wrap: wrap; height: auto; min-height: 52px; }
 }
 @media (min-width: 401px) and (max-width: 719px) {
   .sf-dots.sfv-n6, .sf-dots.sfv-n7 { gap: 5px; }
-  .sf-dots.sfv-n7 .sf-edit, .sf-dots.sfv-n8 .sf-edit, .sf-dots.sfv-n9 .sf-edit, .sf-dots.sfv-n10 .sf-edit { display: none; }
-  .sf-dots.sfv-n8, .sf-dots.sfv-n9, .sf-dots.sfv-n10 { flex-wrap: wrap; height: auto; min-height: 52px; }
+  /* AUTH-514: aquí se ocultaba la «Editar» de la fila con 7+ series porque su palabra vivía en la línea retirada; sin esa línea, el botón se queda. */
+  /* AUTH-514: la envoltura gana el conteo de 7 en esta banda — con la «Editar» de vuelta en la fila, 7 círculos + Editar + voz no caben en una sola línea media sin encoger toques (medido: desbordaba). */
+  .sf-dots.sfv-n7, .sf-dots.sfv-n8, .sf-dots.sfv-n9, .sf-dots.sfv-n10 { flex-wrap: wrap; height: auto; min-height: 52px; }
 }
 .sf-dot { width: 44px; height: 44px; flex: none; border-radius: 50%; border: 2.5px solid #6f87ab; background: none; color: #c9d8ec; font: inherit; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .sf-dot.ok { background: #57d93d; border-color: #57d93d; color: #0e1e3a; }
@@ -6618,15 +6621,7 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sf-dot.counting .cd-num { font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .sf-dot.counting.alarm { background: #d92b20; }
 .sf-dot.counting.alarm .cd-ring-fg { stroke: #ffb3ab; }
-.sf-dots-lab { display: block; margin-top: 12px; font-size: 13.5px; color: #9fb4cc; line-height: 1.4; }
-/* AUTH-500 (D1): con 6+ series en banda estrecha o media, la palabra «Editar» sube a la línea del contador — este botón solo se muestra en esas bandas (las reglas de arriba ocultan a la vez la «Editar» de la fila). */
-.sf-dots-lab .sf-lab-edit { display: none; align-items: center; min-height: 44px; padding: 0 6px; background: none; border: none; font: inherit; font-weight: 700; color: #c9d8ec; text-decoration: underline; cursor: pointer; }
-@media (max-width: 400px) {
-  .sf-dots-lab.up6 .sf-lab-edit, .sf-dots-lab.up7 .sf-lab-edit, .sf-dots-lab.up8 .sf-lab-edit { display: inline-flex; }
-}
-@media (min-width: 401px) and (max-width: 719px) {
-  .sf-dots-lab.up7 .sf-lab-edit, .sf-dots-lab.up8 .sf-lab-edit { display: inline-flex; }
-}
+/* AUTH-514: aquí vivían la regla de la línea del rótulo y la de su botón-palabra «Editar» con sus dos bloques de banda (el mecanismo D1 de AUTH-500); salen con la línea retirada — la «Editar» de la fila, arriba, ya no se oculta en ninguna banda. */
 /* AUTH-500 · «EDITAR» COMPACTA (diseño aprobado el 2026-11-18, sobre la pastilla de AUTH-489): se VE una pastilla de 58×34 pero se TOCA 64×44 — el botón es la zona de toque, transparente, y el span interior es lo visible. Con 5+ series (sfv-pencil) queda solo el lápiz: toque 44×44, visible 34×34. */
 .sf-edit { flex: none; width: 64px; height: 44px; padding: 0; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .sf-edit-vis { display: flex; align-items: center; justify-content: center; width: 58px; height: 34px; border-radius: 999px; border: 2px solid #6f87ab; color: #c9d8ec; font-size: 13px; font-weight: 700; box-sizing: border-box; }
