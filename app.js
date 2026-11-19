@@ -6526,6 +6526,8 @@ en: {
   'train.flow.asPlanShort': 'as planned',
   'train.flow.removeToday': 'Remove from today',
   'train.flow.removeShort': 'Remove',
+  'train.flow.finishEdit': 'Finish editing',
+  'train.flow.editExercise': 'Edit exercise',
   'train.flow.removedToday': 'Removed today: {name}',
   'train.flow.beginDay': '▶ Start the workout',
   'train.flow.beginNote': 'Tap it: the timer starts and the focus lands on stop 1. There is no mode to turn on — the day is born this way.',
@@ -11916,6 +11918,8 @@ es: {
   'train.flow.asPlanShort': 'según el plan',
   'train.flow.removeToday': 'Quitar de hoy',
   'train.flow.removeShort': 'Quitar',
+  'train.flow.finishEdit': 'Terminar edición',
+  'train.flow.editExercise': 'Editar ejercicio',
   'train.flow.removedToday': 'Quitado hoy: {name}',
   'train.flow.beginDay': '▶ Comenzar el entrenamiento',
   'train.flow.beginNote': 'Al tocarlo arranca el cronómetro y el foco cae en la parada 1. No hay ningún modo que encender: el día nace así.',
@@ -42528,7 +42532,8 @@ function trainDayHistHTML(day, log) {
    si una no carga, se retira sola y la banda sigue escrita). ═══ */
 let TRAIN_FLOW = {};        // "di:ei" -> { st: 'open'|'closing', face: 1..5|null } — solo pantalla
 /* AUTH-495 · EL PLIEGUE DE CADA ÁREA DE SERIES tras su botón
-   «Listo»: "warm:di:ei" | "sets:di:ei" -> true. Solo pantalla,
+   «Terminar edición» (AUTH-513): "warm:di:ei" | "sets:di:ei"
+   -> true. Solo pantalla,
    como el flujo: plegar no toca la marca (los gestos de la
    tarjeta ya escriben y persisten al acto), y el estado muere
    con el contexto del día, en el mismo punto que TRAIN_FLOW. */
@@ -42761,8 +42766,19 @@ function tfWarmExOf(ex, w) {
    El resumen nombra el nº de series y el dato de la ÚLTIMA
    serie con dato (su tiempo si es por tiempo; si no, sus
    reps y su carga en la unidad a la vista). ═══ */
+/* AUTH-513 · LA ETIQUETA DICE LA VERDAD (decisión de Ronald,
+   2026-11-19 13:21 CST): el botón de plegado se llama
+   «Terminar edición» — sin la «✓», que es el símbolo de
+   «Hecho» y hacía leer el botón como «ejercicio terminado» —
+   y la línea plegada ofrece «Editar ejercicio» como su
+   llamada a reabrir (él descartó expresamente «Edición
+   terminada»). El gesto es el de AUTH-495, intacto: pliega
+   al acto, solo pantalla. Claves PROPIAS
+   (train.flow.finishEdit / train.flow.editExercise): la
+   vieja train.start.wheelDone sigue siendo el «Listo» de
+   la rueda, que NO se renombra. */
 function flowAreaDoneBtnHTML(area, key) {
-  return `<button type="button" class="flow-area-done" data-flow-fold-done="${area}:${key}">✓ ${esc(t('train.start.wheelDone'))}</button>`;
+  return `<button type="button" class="flow-area-done" data-flow-fold-done="${area}:${key}">${esc(t('train.flow.finishEdit'))}</button>`;
 }
 function flowAreaFoldLineHTML(area, key, icon, title, sets) {
   const list = Array.isArray(sets) ? sets : [];
@@ -42780,14 +42796,15 @@ function flowAreaFoldLineHTML(area, key, icon, title, sets) {
     }
     if (bits.length) dato = ' · ' + bits.join(' · ');
   }
-  return `<button type="button" class="flow-area-fold" data-flow-fold-open="${area}:${key}"><span class="faf-txt">${icon} ${esc(title)} · ${n} ${n === 1 ? t('train.sets.one') : t('train.sets.many')}${dato}</span><span class="faf-go" aria-hidden="true">›</span></button>`;
+  return `<button type="button" class="flow-area-fold" data-flow-fold-open="${area}:${key}"><span class="faf-txt">${icon} ${esc(title)} · ${n} ${n === 1 ? t('train.sets.one') : t('train.sets.many')}${dato}</span><span class="faf-act">${esc(t('train.flow.editExercise'))}</span><span class="faf-go" aria-hidden="true">›</span></button>`;
 }
 function trainFlowWarmCardHTML(ex, key, chk) {
   const w = (chk && chk.warmup && typeof chk.warmup === 'object' && !Array.isArray(chk.warmup)) ? chk.warmup : { on: false, sets: [] };
   const head = `<div class="tf-warm-head"><span class="tf-warm-title">${t('train.start.warmupTitle')}</span><button type="button" class="tf-warm-tog${w.on ? ' is-on' : ''}" data-flow-warm-tog="${key}" aria-pressed="${w.on ? 'true' : 'false'}">${w.on ? t('train.start.yes') : t('train.start.no')}</button></div>`;
   if (!w.on) return `<div class="tf-warm flow-warm">${head}</div>`;
-  /* AUTH-495: el área plegada tras su «Listo» es solo su
-     línea de resumen, dentro de su caja de siempre. */
+  /* AUTH-495: el área plegada tras su «Terminar edición»
+     (AUTH-513) es solo su línea de resumen, dentro de su
+     caja de siempre. */
   if (FLOW_AREA_FOLD['warm:' + key]) return `<div class="tf-warm flow-warm">${flowAreaFoldLineHTML('warm', key, '🔥', t('train.start.warmupTitle'), w.sets)}</div>`;
   const wEx = tfWarmExOf(ex, w);
   const photo = wEx ? trainExPhoto(wEx) : '';
@@ -42798,7 +42815,7 @@ function trainFlowWarmCardHTML(ex, key, chk) {
       <span class="tf-chips" data-tf-chips="cardw:${key}:${wi}">${tfChipsHTML('cardw:' + key, wi, s, wEx)}</span>
       <button type="button" class="tf-warm-del" data-flow-warm-del="${key}:${wi}" aria-label="${t('train.start.warmupRemove')}">✕</button></div>`).join('')}</div>
     <button type="button" class="btn-ghost btn-sm" data-flow-warm-add="${key}">${t('train.start.warmupAdd')}</button>`;
-  /* AUTH-495: el botón «Listo» cierra el área, tras «+ Añadir». */
+  /* AUTH-495: el botón de plegado cierra el área, tras «+ Añadir». */
   return `<div class="tf-warm flow-warm">${head}${idLine}${rows}${flowAreaDoneBtnHTML('warm', key)}</div>`;
 }
 /* EL REFRESCO DE LAS PASTILLAS DE APROXIMACIÓN tras un toque
@@ -42884,8 +42901,9 @@ function trainFlowWarmWire(box, plan) {
 }
 function trainFlowSetsHTML(ex, key, chk) {
   const sets = chk && Array.isArray(chk.sets) ? chk.sets : [];
-  /* AUTH-495: el área plegada tras su «Listo» es solo su
-     línea de resumen (sin la cabecera de unidad ni las filas). */
+  /* AUTH-495: el área plegada tras su «Terminar edición»
+     (AUTH-513) es solo su línea de resumen (sin la cabecera
+     de unidad ni las filas). */
   if (sets.length && FLOW_AREA_FOLD['sets:' + key]) return flowAreaFoldLineHTML('sets', key, '🏋', t('train.sets.workTitle'), sets);
   /* AUTH-417 · LA FILA POR TIEMPO EN LA TARJETA Y EL FOCO
      (re-derivada sobre AUTH-416, que movió la fila a las
@@ -42915,7 +42933,7 @@ function trainFlowSetsHTML(ex, key, chk) {
      el guardado al acto. */
   const addRowF = (chk && Array.isArray(chk.sets) && sets.length < 12)
     ? `<div class="tf-sets-actions"><button type="button" class="btn-ghost btn-sm" data-flow-set-add="${key}">${t('train.sets.add')}</button></div>` : '';
-  /* AUTH-495: el botón «Listo» cierra el área, tras «+ Añadir serie». */
+  /* AUTH-495: el botón de plegado cierra el área, tras «+ Añadir serie». */
   const doneF = sets.length ? flowAreaDoneBtnHTML('sets', key) : '';
   return `${head}<div class="train-sets">${sets.map((s, si) => `
       <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
@@ -43493,8 +43511,9 @@ function trainFlowWire(box, plan) {
   /* AUTH-428: el bloque de aproximación de la tarjeta
      se cablea con el resto del flujo. */
   trainFlowWarmWire(box, plan);
-  /* AUTH-495 · EL PLIEGUE DE CADA ÁREA: «Listo» pliega el
-     área en su línea y la línea la reabre; solo se voltea el
+  /* AUTH-495 · EL PLIEGUE DE CADA ÁREA: «Terminar edición»
+     (AUTH-513) pliega el área en su línea y la línea la
+     reabre («Editar ejercicio»); solo se voltea el
      estado de pantalla y se repinta — la marca no se toca,
      porque sus datos ya están guardados al acto. */
   box.querySelectorAll('[data-flow-fold-done]').forEach(b => { b.onclick = () => {
@@ -65413,7 +65432,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-plan21-en-retos';
+const PWA_SW_VERSION = '20261119-terminar-edicion';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
