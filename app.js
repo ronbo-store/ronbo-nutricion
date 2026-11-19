@@ -6550,6 +6550,7 @@ en: {
   'sess.cardioIncl': 'includes {min} min of cardio',
   'sess.setsOf': '{n} of {m} sets', 'sess.setsTap': 'tap a circle as you finish', 'sess.edit': 'Edit', 'sess.reflTag': 'REFLECTION', 'sess.listenShort': 'read it or listen',
   'sess.voice.btn': 'Dictate the set by voice', 'sess.voice.hint': 'or dictate your set', 'sess.warmSet': 'Warm-up set',
+  'sess.face.noLoad': 'Set {n} with no load — tap to choose the weight', 'sess.face.warmNoLoad': 'Warm-up set {n} with no load — tap to choose the weight', 'sess.face.secU': 'SEC', 'sess.face.secWord': 'seconds',
   'sess.voice.listening': '🎙 Listening… dictate your set {n}', 'sess.voice.example': 'Say: “twelve reps, sixty-five pounds”', 'sess.voice.doneBtn': 'Done',
   'sess.voice.heard': '🎙 I heard: {parts}', 'sess.voice.repsN': '{n} repetitions', 'sess.voice.rep1': '1 repetition', 'sess.voice.bodyweight': 'bodyweight',
   'sess.voice.loaded': 'Set {n} loaded and checked ✓', 'sess.voice.fix': 'Did I get it wrong? Tap Edit and fix it as always', 'sess.voice.chipSet': 'Set {n}',
@@ -11937,6 +11938,7 @@ es: {
   'sess.cardioIncl': 'incluye {min} min de cardio',
   'sess.setsOf': '{n} de {m} series', 'sess.setsTap': 'toca un círculo al terminar', 'sess.edit': 'Editar', 'sess.reflTag': 'REFLEXIÓN', 'sess.listenShort': 'leerlo o escucharlo',
   'sess.voice.btn': 'Dictar la serie por voz', 'sess.voice.hint': 'o dicta tu serie', 'sess.warmSet': 'Serie de aproximación',
+  'sess.face.noLoad': 'Serie {n} sin carga — toca para elegir el peso', 'sess.face.warmNoLoad': 'Aproximación {n} sin carga — toca para elegir el peso', 'sess.face.secU': 'SEG', 'sess.face.secWord': 'segundos',
   'sess.voice.listening': '🎙 Te escucho… dicta tu serie {n}', 'sess.voice.example': 'Di: «doce repeticiones, sesenta y cinco libras»', 'sess.voice.doneBtn': 'Listo',
   'sess.voice.heard': '🎙 Escuché: {parts}', 'sess.voice.repsN': '{n} repeticiones', 'sess.voice.rep1': '1 repetición', 'sess.voice.bodyweight': 'peso corporal',
   'sess.voice.loaded': 'Serie {n} cargada y marcada ✓', 'sess.voice.fix': '¿Lo entendí mal? Toca Editar y corrígelo como siempre', 'sess.voice.chipSet': 'Serie {n}',
@@ -40452,8 +40454,38 @@ function sessWarmTap(plan, key, wi) {
   const chk = TRAIN_CHECKS[key];
   if (!chk || !chk.warmup || chk.warmup.on !== true || !Array.isArray(chk.warmup.sets) || !chk.warmup.sets[wi]) return;
   const s = chk.warmup.sets[wi];
-  if (s.dot === true) delete s.dot; else s.dot = true;
+  if (s.dot === true) delete s.dot;
+  else {
+    /* AUTH-511: al MARCAR, la fila que sigue sin carga ADOPTA
+       primero el cálculo de la regla (tfWarmAutoApply): la
+       línea le enseñó esa carga calculada y el registro debe
+       recibir lo que la línea enseñó, no una fila vacía.
+       Desmarcar no escribe nada. */
+    tfWarmAutoApply(chk);
+    s.dot = true;
+  }
   trainChecksPersist(plan.id);
+}
+/* ═══ AUTH-511 · LA PUERTA DE LA RUEDA DESDE LA LÍNEA (el
+   «?» de un círculo o de una marca): abre la MISMA rueda de
+   peso de la casa que la tarjeta usa (tfWheelCardOpen, con
+   su contexto 'set' o 'warm' y su salto a la calculadora de
+   discos dentro) sobre la fila tocada — el ejercicio es el
+   efectivo del día y, en la aproximación, el suyo propio
+   resuelto como lo resuelve la tarjeta (tfWarmExOf). La
+   rueda escribe la fila por su camino de siempre (asentado,
+   propagación, persistencia) y la firma de cargas de
+   sessFullSync repinta la línea en el siguiente latido: el
+   círculo pasa a enseñar esa carga SIN haberse marcado. ═══ */
+function sessLoadWheelOpen(body, plan, key, idx, warm) {
+  const chk = TRAIN_CHECKS[key];
+  if (!chk) return;
+  const p = String(key).split(':');
+  const eff = trainEffectiveList(plan, Number(p[0]));
+  const it = eff ? eff[Number(p[1])] : null;
+  if (!it) return;
+  const ex = warm ? tfWarmExOf(it.ex, chk.warmup) : it.ex;
+  tfWheelCardOpen(body, key, idx, ex, plan.id, warm ? 'warm' : 'set');
 }
 function sessDotTap(plan, key, si, viaVoice) {
   const chk = TRAIN_CHECKS[key];
@@ -40810,6 +40842,38 @@ function sessEditVisible() {
   if (typeof IS_OWNER !== 'undefined' && IS_OWNER === true) return true;
   try { return !gmHasTrainer(); } catch { return true; }
 }
+/* ═══ AUTH-511 · LA CARA DE UNA SERIE EN LA LÍNEA (diseño de
+   Ronald del 2026-11-19 sobre la maqueta aprobada «los
+   círculos dicen la carga»): el círculo ya no dice el número
+   de la serie — dice lo que toca cargar o contar en ella.
+   La frontera es la de la TARJETA, por lo que la serie ES,
+   en este orden:
+   — trae carga (su loadVal, la que la tarjeta sostiene para
+     esa serie: plan, historial sugerido o escrita por él)
+     → la CARGA, con la unidad en miniatura. Manda también
+     si la serie es por tiempo (antes de empezar; durante
+     la cuenta manda la cara de AUTH-502, que el pintor
+     resuelve antes de llegar aquí).
+   — es por tiempo (trainTimedOf) → los SEGUNDOS ASIGNADOS
+     (crit.max, el mismo ancla desde la que cuenta
+     AUTH-502), con su mini-unidad.
+   — la vaciaron a propósito con la rueda (clr) → el
+     NÚMERO: su dueño dijo «sin carga» y nadie queda
+     atrapado en el «?» — el siguiente toque marca.
+   — es de un ejercicio con carga registrable
+     (trainTimedHasLoad) y no trae carga → el «?» rojo: su
+     toque no marca, abre la rueda (sessLoadWheelOpen).
+   — lo demás (repeticiones / peso corporal) → el NÚMERO,
+     como siempre. ═══ */
+function sessSetFace(s, ex) {
+  const lv = String(s && s.loadVal != null ? s.loadVal : '').trim();
+  if (lv !== '') return { t: 'load', v: lv };
+  const crit = trainTimedOf(ex || null, s);
+  if (crit) return { t: 'sec', v: String(crit.max) };
+  if (s && s.clr === true) return { t: 'num' };
+  if (trainTimedHasLoad(ex || null)) return { t: 'q' };
+  return { t: 'num' };
+}
 function sessDotsHTML(curChk, ck, flowSt, ex) {
   if (!curChk || !Array.isArray(curChk.sets) || !curChk.sets.length) return '';
   if (curChk.done === true || (flowSt !== 'open' && flowSt !== 'paused')) return '';
@@ -40852,8 +40916,21 @@ function sessDotsHTML(curChk, ck, flowSt, ex) {
       const aria = ph === 'prep' ? t('sess.cd.ariaPrep', { n: si2 + 1, s: sessCdRemain(cd) }) : t('sess.cd.ariaCount', { n: si2 + 1, s: sessCdRemain(cd) });
       return `<button type="button" class="sf-dot ${clsC}" data-sess-dot="${ck}:${si2}" aria-label="${esc(aria)}"><svg class="cd-ring" viewBox="0 0 44 44" aria-hidden="true"><circle class="cd-ring-bg" cx="22" cy="22" r="19.5"/><circle class="cd-ring-fg" cx="22" cy="22" r="19.5" stroke-dasharray="122.5" stroke-dashoffset="${off}"/></svg><span class="cd-num">${num}</span></button>`;
     }
-    const cls = flags[si2] ? 'ok' : (si2 === nextI ? 'next' : 'todo');
-    return `<button type="button" class="sf-dot ${cls}" data-sess-dot="${ck}:${si2}" aria-label="${esc(t('train.d.set'))} ${si2 + 1}">${flags[si2] ? '✓' : String(si2 + 1)}</button>`;
+    /* AUTH-511: la cara de la serie (sessSetFace) — hecha,
+       su ✓ de siempre; con carga, la carga y su unidad en
+       miniatura; por tiempo, los segundos asignados; sin
+       carga en un ejercicio con carga, el «?» rojo con su
+       atributo propio (su toque abre la rueda, no marca);
+       si no, el número de siempre. El gesto de marcar no
+       cambia: el mismo data-sess-dot y el mismo sessDotTap
+       para toda cara que no sea el «?». */
+    if (flags[si2]) return `<button type="button" class="sf-dot ok" data-sess-dot="${ck}:${si2}" aria-label="${esc(t('train.d.set'))} ${si2 + 1}">✓</button>`;
+    const face = sessSetFace(s, ex);
+    const clsF = si2 === nextI ? 'next' : 'todo';
+    if (face.t === 'load') return `<button type="button" class="sf-dot ${clsF}" data-sess-dot="${ck}:${si2}" aria-label="${esc(t('train.d.set'))} ${si2 + 1} · ${esc(face.v)} ${esc(UNIT_PREFS.mass)}"><span class="sf-dot-n">${esc(face.v)}</span><span class="sf-dot-u">${esc(String(UNIT_PREFS.mass).toUpperCase())}</span></button>`;
+    if (face.t === 'sec') return `<button type="button" class="sf-dot ${clsF}" data-sess-dot="${ck}:${si2}" aria-label="${esc(t('train.d.set'))} ${si2 + 1} · ${esc(face.v)} ${esc(t('sess.face.secWord'))}"><span class="sf-dot-n">${esc(face.v)}</span><span class="sf-dot-u">${esc(t('sess.face.secU'))}</span></button>`;
+    if (face.t === 'q') return `<button type="button" class="sf-dot ${clsF} q" data-sess-dotq="${ck}:${si2}" aria-label="${esc(t('sess.face.noLoad', { n: si2 + 1 }))}"><span class="sf-dot-q">?</span></button>`;
+    return `<button type="button" class="sf-dot ${clsF}" data-sess-dot="${ck}:${si2}" aria-label="${esc(t('train.d.set'))} ${si2 + 1}">${si2 + 1}</button>`;
   }).join('');
   /* AUTH-489 · EL BOTONCITO «EDITAR» DE LA LÍNEA (orden de
      Ronald, 2026-11-17, con su captura de la completa): al
@@ -40888,7 +40965,21 @@ function sessDotsHTML(curChk, ck, flowSt, ex) {
      desaparece por orden expresa de Ronald. La pista de
      dictado pierde su glifo 🎙 (la misma orden): el texto
      queda, el botón de voz queda. */
-  const warmDots = wsets.map((s, wi2) => `<button type="button" class="sf-dot sf-warm${s && s.dot === true ? ' ok' : ''}" data-sess-warm="${ck}:${wi2}" aria-label="${esc(t('sess.warmSet'))} ${wi2 + 1}">A${wi2 + 1}</button>`).join('');
+  /* AUTH-511: la marca de aproximación enseña SU CARGA (la
+     suya propia; si la fila no trae, la CALCULADA por la
+     regla tfWarmAutoLoad; si ni eso, el «?» rojo con su
+     atributo propio, cuyo toque abre la rueda sin marcar).
+     La letra «A» deja de ser el contenido: la condición de
+     aproximación la sigue diciendo su estilo ámbar punteado
+     de AUTH-505 y su aria la nombra. Hecha: ✓ sobre su ámbar
+     lleno, como el ✓ de las series de trabajo. */
+  const warmDots = wsets.map((s, wi2) => {
+    if (s && s.dot === true) return `<button type="button" class="sf-dot sf-warm ok" data-sess-warm="${ck}:${wi2}" aria-label="${esc(t('sess.warmSet'))} ${wi2 + 1}">✓</button>`;
+    const ownW = String(s && s.loadVal != null ? s.loadVal : '').trim();
+    const vW = ownW !== '' ? ownW : tfWarmAutoLoad(curChk);
+    if (vW !== '') return `<button type="button" class="sf-dot sf-warm" data-sess-warm="${ck}:${wi2}" aria-label="${esc(t('sess.warmSet'))} ${wi2 + 1} · ${esc(vW)} ${esc(UNIT_PREFS.mass)}"><span class="sf-dot-n">${esc(vW)}</span><span class="sf-dot-u">${esc(String(UNIT_PREFS.mass).toUpperCase())}</span></button>`;
+    return `<button type="button" class="sf-dot sf-warm q" data-sess-warmq="${ck}:${wi2}" aria-label="${esc(t('sess.face.warmNoLoad', { n: wi2 + 1 }))}"><span class="sf-dot-q">?</span></button>`;
+  }).join('');
   const gate = sessEditVisible();
   const nSets = sets.length;
   const nTot = nSets + wsets.length;
@@ -41328,8 +41419,9 @@ function sessFullSync(run) {
     const franja = `<div class="sf-franja" aria-hidden="true"><i style="width:${pct}%"></i>${sessPillTipHTML(flameLeft)}</div><div class="sf-prog">${esc(pos)} · ${esc(t('sess.ofDay', { p: pct }))}</div>`;
     const cdLive = curChk ? sessCdOf(curChk) : null;   /* AUTH-502: la fase de la cuenta del círculo entra en la firma — nacer, pasar de preparación a cuenta y llegar a cero repintan una vez cada cambio; el segundo a segundo lo pinta el tick en sitio */
     const cdTerm = cdLive ? 'C' + cdLive.si + ':' + (cdLive.cd.f === 1 ? 'z' : (sessCdElapsed(cdLive.cd) < SESS_CD_PREP ? 'p' : 'r')) : '';
-    const warmTerm = curChk && curChk.warmup && curChk.warmup.on === true && Array.isArray(curChk.warmup.sets) ? 'W' + curChk.warmup.sets.map(s2 => s2 && s2.dot === true ? 1 : 0).join('') : 'W-';   /* AUTH-505: la aproximación entra en la firma — encender el bloque, cambiar su lista o tocar una marca «A» repinta la línea una vez */
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm, warmTerm].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace */
+    const warmTerm = curChk && curChk.warmup && curChk.warmup.on === true && Array.isArray(curChk.warmup.sets) ? 'W' + curChk.warmup.sets.map(s2 => (s2 && s2.dot === true ? 1 : 0) + ':' + (s2 && s2.loadVal != null ? String(s2.loadVal) : '')).join(',') : 'W-';   /* AUTH-505: la aproximación entra en la firma — encender el bloque, cambiar su lista o tocar una marca «A» repinta la línea una vez · AUTH-511: sus cargas también — lo que la rueda escriba en una fila de aproximación repinta su cara */
+    const loadTerm = curChk && Array.isArray(curChk.sets) ? 'L' + curChk.sets.map(s2 => (s2 && s2.loadVal != null ? String(s2.loadVal) : '') + (s2 && s2.clr === true ? 'c' : '')).join(',') : 'L-';   /* AUTH-511: las cargas de las series de trabajo entran en la firma — son la cara de los círculos y la referencia del cálculo de la aproximación: lo que la rueda o la tarjeta escriban repinta la línea en el siguiente latido */
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm, warmTerm, loadTerm].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace */
     html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
@@ -41467,6 +41559,34 @@ function sessPanelWire(el, surface) {
         flowResolveClosing(planF, partsF[0] + ':' + partsF[1], Number(partsF[2]));
       }
       sessPanelRepaint(planF);   /* AUTH-488: la cara resuelve el cierre — la tarjeta se repinta */
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const dotq = ev.target.closest ? ev.target.closest('[data-sess-dotq]') : null;
+    if (dotq) {
+      /* AUTH-511: el toque en un círculo «?» NO marca nada —
+         abre la rueda de peso de la casa sobre ESA serie,
+         con la misma guarda de contexto de los círculos.
+         La carga elegida la escribe la rueda por su camino
+         de siempre y la línea la repinta con su firma de
+         cargas; el siguiente toque en el círculo ya marca. */
+      const planQ = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (planQ && TRAIN_CHECKS_CTX === planQ.id + '|' + todayISO()) {
+        const partsQ = String(dotq.dataset.sessDotq).split(':');
+        try { sessLoadWheelOpen(el, planQ, partsQ[0] + ':' + partsQ[1], Number(partsQ[2]), false); } catch {}
+      }
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const wrmq = ev.target.closest ? ev.target.closest('[data-sess-warmq]') : null;
+    if (wrmq) {
+      /* AUTH-511: el «?» de una marca de aproximación, igual:
+         la rueda en su contexto 'warm', sin marcar la serie. */
+      const planWQ = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (planWQ && TRAIN_CHECKS_CTX === planWQ.id + '|' + todayISO()) {
+        const partsWQ = String(wrmq.dataset.sessWarmq).split(':');
+        try { sessLoadWheelOpen(el, planWQ, partsWQ[0] + ':' + partsWQ[1], Number(partsWQ[2]), true); } catch {}
+      }
       try { sessPillTick(); } catch {}
       return;
     }
@@ -42849,6 +42969,63 @@ function flowAreaFoldLineHTML(area, key, icon, title, sets) {
   }
   return `<button type="button" class="flow-area-fold" data-flow-fold-open="${area}:${key}"><span class="faf-txt">${icon} ${esc(title)} · ${n} ${n === 1 ? t('train.sets.one') : t('train.sets.many')}${dato}</span><span class="faf-go" aria-hidden="true">›</span></button>`;
 }
+/* ═══ AUTH-511 · LA REGLA DE CÁLCULO DE LA APROXIMACIÓN
+   (palabra de Ronald, 2026-11-19: «si hay historial, la
+   aproximación tiene que ser el cuarenta por ciento — si
+   cargó cien libras, la aproximación son cuarenta — y las
+   repeticiones más, como un calentamiento»; el número de
+   repeticiones lo fijó él mismo después: 20 FIJAS).
+   UN SOLO CÁLCULO EN UN SOLO SITIO, consumido por las dos
+   superficies:
+   — la REFERENCIA (tfWarmRefLoad): la primera serie de
+     trabajo con carga — la que la tarjeta sostiene para el
+     ejercicio, venga del plan o de su última vez. Sin
+     ninguna, no hay cálculo y la aproximación queda en su
+     «?» (la rueda la pone él).
+   — el CÁLCULO (tfWarmAutoLoad): el 40 % de la referencia,
+     ajustado a la parada más cercana de la escala de la
+     rueda activa (tfLoadScale: la rejilla de 2,5 lb o la
+     escala kg de la casa — el escalón cargable que la app
+     ya usa). Un ajuste a 0 no es carga: no hay cálculo.
+   — la APLICACIÓN (tfWarmAutoApply): escribe el cálculo
+     SOLO donde falta — la fila sin carga recibe la carga
+     calculada y, si tampoco trae repeticiones, las 20
+     fijas; la fila que YA trae su carga (del plan o suya)
+     no se toca: su carga y sus repeticiones mandan. La
+     llaman el nacimiento en la tarjeta (trainFlowWarmWire)
+     y la adopción al marcar desde la línea (sessWarmTap);
+     el pintor de la línea solo LEE el cálculo para la cara
+     de una fila sin carga — pintar no escribe. ═══ */
+function tfWarmRefLoad(chk) {
+  if (!chk || !Array.isArray(chk.sets)) return '';
+  for (const s of chk.sets) {
+    const lv = String(s && s.loadVal != null ? s.loadVal : '').trim();
+    if (lv !== '') return lv;
+  }
+  return '';
+}
+function tfWarmAutoLoad(chk) {
+  const ref = tfWarmRefLoad(chk);
+  if (ref === '') return '';
+  const rv = parseFloat(ref);
+  if (!isFinite(rv) || rv <= 0) return '';
+  const target = rv * 0.4;
+  let best = null, bd = Infinity;
+  for (const st of tfLoadScale().steps) { const dd = Math.abs(st - target); if (dd < bd) { bd = dd; best = st; } }
+  if (best == null || !(best > 0)) return '';
+  return String(best);
+}
+function tfWarmAutoApply(chk) {
+  if (!chk || !chk.warmup || chk.warmup.on !== true || !Array.isArray(chk.warmup.sets) || !chk.warmup.sets.length) return;
+  const auto = tfWarmAutoLoad(chk);
+  if (auto === '') return;
+  chk.warmup.sets.forEach(s => {
+    if (!s) return;
+    if (String(s.loadVal != null ? s.loadVal : '').trim() !== '') return;
+    s.loadVal = auto;
+    if (String(s.repsDone != null ? s.repsDone : '').trim() === '') s.repsDone = '20';
+  });
+}
 function trainFlowWarmCardHTML(ex, key, chk) {
   const w = (chk && chk.warmup && typeof chk.warmup === 'object' && !Array.isArray(chk.warmup)) ? chk.warmup : { on: false, sets: [] };
   const head = `<div class="tf-warm-head"><span class="tf-warm-title">${t('train.start.warmupTitle')}</span><button type="button" class="tf-warm-tog${w.on ? ' is-on' : ''}" data-flow-warm-tog="${key}" aria-pressed="${w.on ? 'true' : 'false'}">${w.on ? t('train.start.yes') : t('train.start.no')}</button></div>`;
@@ -42906,12 +43083,13 @@ function trainFlowWarmWire(box, plan) {
   box.querySelectorAll('[data-flow-warm-tog]').forEach(b => { b.onclick = () => {
     const w = warmOf(b.dataset.flowWarmTog); if (!w) return;
     w.on = !w.on;
-    if (w.on && !w.sets.length) w.sets.push({ repsDone: '', loadVal: '' });
+    if (w.on && !w.sets.length) { w.sets.push({ repsDone: '', loadVal: '' }); tfWarmAutoApply(TRAIN_CHECKS[b.dataset.flowWarmTog]); }   /* AUTH-511: la fila nace con el cálculo de la regla si el ejercicio ya tiene carga de referencia */
     trainChecksPersist(plan.id); loadMyTraining();
   }; });
   box.querySelectorAll('[data-flow-warm-add]').forEach(b => { b.onclick = () => {
     const w = warmOf(b.dataset.flowWarmAdd); if (!w) return;
     w.sets.push({ repsDone: '', loadVal: '' });
+    tfWarmAutoApply(TRAIN_CHECKS[b.dataset.flowWarmAdd]);   /* AUTH-511: la fila añadida nace con el cálculo de la regla, como la semilla */
     trainChecksPersist(plan.id); loadMyTraining();
   }; });
   box.querySelectorAll('[data-flow-warm-del]').forEach(b => { b.onclick = () => {
@@ -65485,7 +65663,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-aproximacion-linea';
+const PWA_SW_VERSION = '20261119-circulos-carga';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
