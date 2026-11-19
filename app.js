@@ -6593,6 +6593,11 @@ en: {
   'train.d.skipAskYes': 'Yes, skip this day',
   'train.dumpFail': 'Your workout was saved, but the activity day could not be updated.',
   'train.d.needCheck': 'Check at least one exercise as done, or use “Skip this day”. Nothing was saved.',
+  'train.d.alreadyClosed': 'This day is already closed and saved',
+  'train.d.needCheckNames1': 'You still need to close: {names} — mark it as done to finish the day, or use “Skip this day”.',
+  'train.d.needCheckNamesN': 'You still need to close: {names} — mark them as done to finish the day, or use “Skip this day”.',
+  'train.d.needCheckSave': 'Nothing was saved: you still need to close {names}. Check at least one as done, or use “Skip this day”.',
+  'train.d.willSaveOpen': 'Will be saved without closing: {names}',
   'train.d.weekTitle': 'This week', 'train.d.weekSummary': 'Done {d} · Partial {p} · Skipped {s}',
   'train.d.dayN': 'Day {n}', 'train.d.cntDone': 'Done', 'train.d.cntPartial': 'Partial', 'train.d.cntSkipped': 'Skipped',
   'train.d.restWord': 'Rest', 'train.d.notYet': 'Not logged yet',
@@ -11984,6 +11989,11 @@ es: {
   'train.d.skipAskYes': 'Sí, saltar este día',
   'train.dumpFail': 'Tu entrenamiento se guardó, pero el día de actividad no pudo actualizarse.',
   'train.d.needCheck': 'Marca al menos un ejercicio como hecho, o usa «Saltar este día». No se guardó nada.',
+  'train.d.alreadyClosed': 'Este día ya está cerrado y guardado',
+  'train.d.needCheckNames1': 'Te falta cerrar: {names} — márcalo como hecho para poder terminar el día, o usa «Saltar este día».',
+  'train.d.needCheckNamesN': 'Te falta cerrar: {names} — márcalos como hechos para poder terminar el día, o usa «Saltar este día».',
+  'train.d.needCheckSave': 'No se guardó nada: te falta cerrar {names}. Marca al menos uno como hecho, o usa «Saltar este día».',
+  'train.d.willSaveOpen': 'Se guardará sin cerrar: {names}',
   'train.d.weekTitle': 'Esta semana', 'train.d.weekSummary': 'Hechos {d} · Parciales {p} · Saltados {s}',
   'train.d.dayN': 'Día {n}', 'train.d.cntDone': 'Hechos', 'train.d.cntPartial': 'Parciales', 'train.d.cntSkipped': 'Saltados',
   'train.d.restWord': 'Descanso', 'train.d.notYet': 'Aún sin registrar',
@@ -34805,6 +34815,8 @@ let TRAIN_CHECKS_CTX = '';     // planId|fecha a la que pertenecen las marcas
 let TRAIN_CHECKS_EPOCH = 0;    // AUTH-497: «la sesión avanzó» — sube en cada guardado del borrador de marcas (trainChecksPersist)
 let TRAIN_PAINT_EPOCH = 0;     // AUTH-497: la época con la que la vista de Entrenamiento pintó por última vez (loadMyTraining)
 let TRAIN_CLOSE_DI = null;     // día con el panel de cierre abierto (solo memoria)
+let TRAIN_CLOSING = {};        // AUTH-517: cierres EN VUELO (clave plan|fecha|día) — el candado de re-entrada del confirmar
+let TRAIN_CLOSED_MARK = {};    // AUTH-517: días ya cerrados y guardados EN ESTA SESIÓN (misma clave) — la guarda consulta el resultado, no solo el borrador
 
 /* --- MARCAS QUE SOBREVIVEN (aprobado por Ronald, chat 2026-10-27
    14:03 CDT: «Sí, corrige las dos cosas (marcas que sobreviven +
@@ -41940,12 +41952,78 @@ function sessSurveyFinish(satisfaction) {
   s.done(satisfaction);
 }
 (function sessInit() { sessPillInit(); })();
+/* ═══ AUTH-517 · EL CIERRE NO MIENTE: candado, registro y nombres ═══
+   El 2026-11-19 Ronald cerró su día bien (el registro se escribió
+   con sus 4 ejercicios) y DESPUÉS salió el toast «Marca al menos un
+   ejercicio como hecho… No se guardó nada.»: la guarda leía solo el
+   borrador, el cierre bueno lo había limpiado y el confirmar no
+   tenía candado — un segundo toque reconstruía «cero hechos» desde
+   el borrador vacío. Tres piezas, en la función única del cierre:
+   (1) el candado TRAIN_CLOSING/TRAIN_CLOSED_MARK (declarados junto
+   a TRAIN_CLOSE_DI); (2) la guarda consulta el registro ya cargado
+   (trainCloseAlreadySaved) y avisa de ESTADO, no de error;
+   (3) los avisos NOMBRAN los ejercicios que faltan por cerrar
+   (trainClosePendingNames) y la hoja anuncia los que quedarán
+   fuera en un cierre parcial (train.d.willSaveOpen). El escritor,
+   la encuesta y «Saltar este día» no se tocan. */
+function trainCloseKey(planId, di) { return planId + '|' + todayISO() + '|' + di; }
+/* El plan de un formulario de cierre pintado (el pintor recibe el
+   id): el de la vista si coincide; si no, el de la lectura cargada.
+   Sin resolución, los llamadores degradan en silencio — ninguna
+   lectura nueva por pintar una línea. */
+function trainPlanForClose(planId) {
+  try {
+    if (typeof MY_PLAN !== 'undefined' && MY_PLAN && MY_PLAN.id === planId) return MY_PLAN;
+    if (typeof MY_PLANS_ALL !== 'undefined' && Array.isArray(MY_PLANS_ALL)) { const p = MY_PLANS_ALL.find(x => x && x.id === planId); if (p) return p; }
+  } catch {}
+  return null;
+}
+/* Los ejercicios que faltan por cerrar, POR SU NOMBRE y en el
+   orden del día (la lista efectiva contra el borrador de marcas):
+   la verdad que el aviso de la guarda debe decir. */
+function trainClosePendingNames(plan, di) {
+  const names = [];
+  trainEffectiveList(plan, di).forEach((it, ei) => {
+    const c = TRAIN_CHECKS[di + ':' + ei];
+    if (c && c.done === true) return;
+    const nm = trainExName(it.ex) || it.ex.name || '';
+    if (nm) names.push(nm);
+  });
+  return names;
+}
+/* ¿El día ya consta cerrado y guardado? Dos fuentes ya cargadas,
+   ninguna lectura nueva: la marca de ESTA sesión (la plantó el
+   propio cierre al escribir) y los registros de la vista
+   (MY_LOGS_ALL, la lectura de la que nace logByDay), con estado
+   hecho o parcial para este plan, hoy y este día. */
+function trainCloseAlreadySaved(plan, di) {
+  if (TRAIN_CLOSED_MARK[trainCloseKey(plan.id, di)]) return true;
+  try {
+    const all = (typeof MY_LOGS_ALL !== 'undefined' && Array.isArray(MY_LOGS_ALL)) ? MY_LOGS_ALL : [];
+    const today = todayISO();
+    return all.some(l => l && l.planId === plan.id && l.date === today && l.dayIndex === di && (trainLogStatus(l) === 'done' || trainLogStatus(l) === 'partial'));
+  } catch { return false; }
+}
 /* Panel de cierre (D1/D2/D4): duración corregible (pre-rellenada
    con la sugerencia del cronómetro), intensidad declarada
    (moderada por defecto; el RPE NO entra en el cálculo) y minutos
    de calentamiento que se RESTAN antes de estimar. */
 function trainCloseFormHTML(planId, di) {
   const sug = trainChronoSuggestion(planId);
+  /* AUTH-517 · EL PARCIAL SE ANUNCIA: si algo está hecho y algo
+     quedará fuera, la hoja lo dice por su nombre ANTES de
+     confirmar — cerrar a medias nunca es sorpresa. Con todo
+     hecho la línea no nace; con nada hecho manda el aviso con
+     nombres del confirmar. */
+  let pendLine = '';
+  const planC = trainPlanForClose(planId);
+  if (planC) {
+    const pendN = trainClosePendingNames(planC, di);
+    if (pendN.length) {
+      const totalC = trainEffectiveList(planC, di).length;
+      if (totalC > pendN.length) pendLine = `<p class="act-note train-close-pend">${esc(t('train.d.willSaveOpen', { names: pendN.join(', ') }))}</p>`;
+    }
+  }
   return `<div class="train-close-form">
     <label class="act-lab">${t('train.durLabel')}
       <input type="number" data-tclose-dur min="1" max="600" step="1" inputmode="numeric" value="${sug ? sug.min : ''}"></label>
@@ -41955,6 +42033,7 @@ function trainCloseFormHTML(planId, di) {
     <label class="act-lab">${t('train.warmLabel')}
       <input type="number" data-tclose-warm min="0" max="300" step="1" inputmode="numeric" value="0"></label>
     <p class="act-note">${t('train.noDurNoEstimate')}</p>
+    ${pendLine}
     <div style="margin-top:10px"><button type="button" class="train-finish-btn" data-train-close-confirm="${di}">${t('train.closeFinish')}</button></div>
     <div style="margin-top:6px"><button type="button" class="btn-ghost btn-sm" data-train-close-cancel="${di}">${t('form.cancel')}</button></div>
   </div>`;
@@ -41973,6 +42052,14 @@ async function trainCloseConfirm(plan, di, formEl) {
   const uid = auth.currentUser ? auth.currentUser.uid : '';
   const today = todayISO();
   const day = (plan.days || [])[di] || {};
+  /* AUTH-517 · EL CANDADO, LECTURA: si ya hay una secuencia de
+     cierre en vuelo para este plan y día (la encuesta interpuesta
+     o la escritura en curso), este toque no es dueño de ningún
+     resultado: vuelve en silencio. La cabeza de la función es
+     síncrona — ninguna re-entrada puede colarse antes del punto
+     de compromiso, donde la bandera se planta —. */
+  const closeKey = trainCloseKey(plan.id, di);
+  if (TRAIN_CLOSING[closeKey]) return;
   /* Detalle por ejercicio (§4.6 + D-2): SOLO lo marcado en la
      sesión, en el orden de la lista EFECTIVA, con su detalle por
      serie. PERSONALIZA (2026-10-27): el ejercicio realizado es
@@ -42097,8 +42184,20 @@ async function trainCloseConfirm(plan, di, formEl) {
   });
   /* MÓDULO D (D-3): sin ninguna marca NO se escribe un «hecho»
      vacío — se avisa y el día queda sin registrar (o se salta
-     explícitamente con su botón). */
-  if (!doneList.length) { toast(t('train.d.needCheck'), true); return; }
+     explícitamente con su botón).
+     AUTH-517: antes de avisar, EL REGISTRO MANDA — si el día ya
+     consta cerrado y guardado (esta sesión o la lectura cargada),
+     el aviso es de estado, no de error, y la vista se repinta.
+     Si de verdad no hay nada, el aviso NOMBRA los ejercicios que
+     faltan por cerrar (pedido de Ronald, 2026-11-19); el texto
+     genérico queda solo para un día sin ejercicios que nombrar. */
+  if (!doneList.length) {
+    if (trainCloseAlreadySaved(plan, di)) { toast(t('train.d.alreadyClosed')); sessPillTick(); loadMyTraining(); return; }
+    const pendNC = trainClosePendingNames(plan, di);
+    if (pendNC.length) toast(t('train.d.needCheckSave', { names: pendNC.join(', ') }), true);
+    else toast(t('train.d.needCheck'), true);
+    return;
+  }
   const total = trainEffectiveList(plan, di).length;
   const status = doneList.length >= total ? 'done' : 'partial';
   const form = formEl || null;
@@ -42199,7 +42298,17 @@ async function trainCloseConfirm(plan, di, formEl) {
     if (chronoC) { data.elapsedSec = elapsedSec; data.satisfaction = satisfaction; }
     try {
       await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
-    } catch (e) { failToast(e); return; }
+    } catch (e) {
+      /* AUTH-517: la escritura falló — el candado se libera y el
+         botón revive: el cierre se puede reintentar, como hoy. */
+      delete TRAIN_CLOSING[closeKey];
+      const btnF = form ? form.querySelector('[data-train-close-confirm]') : null;
+      if (btnF) btnF.disabled = false;
+      failToast(e); return;
+    }
+    /* AUTH-517: desde este instante el día CONSTA guardado — la
+       marca de sesión lo dice aunque el repintado aún no llegue. */
+    TRAIN_CLOSED_MARK[closeKey] = true;
     /* El volcado: la sesión entra en el día de actividad (o sale,
        si el cierre quedó sin estimación) en la misma operación
        lógica — una sola entrada, idempotente al re-cerrar. */
@@ -42212,9 +42321,17 @@ async function trainCloseConfirm(plan, di, formEl) {
     trainCardio2Write(plan.id, null);   /* AUTH-481: y su gemelo nuevo, en el mismo sitio */
     Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
     trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: cerrado el día, el borrador de marcas se retira con él */
+    delete TRAIN_CLOSING[closeKey];   /* AUTH-517: la secuencia terminó — la marca de arriba guarda la puerta desde aquí */
     sessPillTick();
     loadMyTraining();
   };
+  /* AUTH-517 · EL CANDADO, ESCRITURA: pasadas las guardas, la
+     secuencia se compromete — la bandera cubre desde aquí la
+     interposición de la encuesta y la escritura entera, y el
+     botón de este formulario nace deshabilitado. Solo el fallo
+     de la escritura la libera (en finishClose). */
+  TRAIN_CLOSING[closeKey] = true;
+  if (form) { const btnC = form.querySelector('[data-train-close-confirm]'); if (btnC) btnC.disabled = true; }
   if (chronoC) { sessSurveyOpen(elapsedSec, finishClose); return; }
   await finishClose(null);
 }
@@ -48966,9 +49083,25 @@ async function loadMyTraining() {
   });
   box.querySelectorAll('[data-train-done]').forEach(b => b.onclick = () => {
     const di = Number(b.dataset.trainDone);
+    /* AUTH-517: con un cierre en vuelo para este día (el candado
+       de trainCloseConfirm), «Terminar» no abre una segunda hoja. */
+    if (TRAIN_CLOSING[trainCloseKey(plan.id, di)]) return;
     const any = trainEffectiveList(plan, di).some((it, ei) => { const c = TRAIN_CHECKS[di + ':' + ei]; return !!c && c.done === true; });
-    /* MÓDULO D (D-3): sin ninguna marca no hay cierre que abrir. */
-    if (!any) { toast(t('train.d.needCheck'), true); return; }
+    /* MÓDULO D (D-3): sin ninguna marca no hay cierre que abrir.
+       AUTH-517: si el día ya consta cerrado en el registro cargado
+       (logByDay) o en la marca de la sesión, el aviso es de estado,
+       no de error; y si de verdad falta, el aviso NOMBRA los
+       ejercicios por cerrar, en el orden del día. El texto
+       genérico queda solo para un día sin ejercicios que nombrar. */
+    if (!any) {
+      const lgA = logByDay[di];
+      if ((lgA && (trainLogStatus(lgA) === 'done' || trainLogStatus(lgA) === 'partial')) || TRAIN_CLOSED_MARK[trainCloseKey(plan.id, di)]) { toast(t('train.d.alreadyClosed')); loadMyTraining(); return; }
+      const pendA = trainClosePendingNames(plan, di);
+      if (pendA.length === 1) toast(t('train.d.needCheckNames1', { names: pendA[0] }), true);
+      else if (pendA.length > 1) toast(t('train.d.needCheckNamesN', { names: pendA.join(', ') }), true);
+      else toast(t('train.d.needCheck'), true);
+      return;
+    }
     /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): TERMINAR abre el
        panel de cierre — duración corregible, intensidad declarada
        y calentamiento a restar (D1/D2/D4). La escritura ocurre al
@@ -65559,7 +65692,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-panel-dia-completado';
+const PWA_SW_VERSION = '20261119-cierre-nombres';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
