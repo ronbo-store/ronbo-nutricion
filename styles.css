@@ -7022,3 +7022,25 @@ textarea.gest-in { resize: none; }
 .tf-warm .btn-ghost { background: #fff; color: #374151; border-color: #d1d5db; }
 .tf-warm .btn-ghost:hover { background: #f8fafc; }
 .tf-warm .train-set-n { color: #6b7280; }
+
+/* ═══ AUTH-511 · LAS CARAS DE LA LÍNEA DICEN LA CARGA (diseño
+   de Ronald del 2026-11-19, maqueta aprobada): el círculo
+   apila su número (la carga o los segundos) y la unidad en
+   miniatura debajo, con tamaños en fracciones de la MISMA
+   escalera de AUTH-505 (--d círculo · --dw marca): la cara
+   encoge con su círculo, en la única línea que Ronald ya
+   ordenó reducir. El «?» va en rojo — borde apagado y, en la
+   serie actual (next), anillo rojo lleno, como la maqueta —
+   y la marca de aproximación en «?» conserva su fondo pero
+   pierde el ámbar: rojo sobre el panel se lee «falta algo»,
+   no «una marca más». ═══ */
+.sf-dot:has(.sf-dot-u) { flex-direction: column; }
+.sf-dot .sf-dot-n { font-size: calc(var(--d) * .32); line-height: 1; font-weight: 800; }
+.sf-dot .sf-dot-u { font-size: calc(var(--d) * .17); line-height: 1; font-weight: 700; letter-spacing: .4px; color: #9db6d2; margin-top: 1px; }
+.sf-dot.sf-warm .sf-dot-n { font-size: calc(var(--dw) * .34); }
+.sf-dot.sf-warm .sf-dot-u { font-size: calc(var(--dw) * .17); }
+.sf-dot .sf-dot-q { font-size: calc(var(--d) * .42); line-height: 1; font-weight: 800; }
+.sf-dot.sf-warm .sf-dot-q { font-size: calc(var(--dw) * .42); }
+.sf-dot.q { color: #ff5a5a; border-color: rgba(163, 74, 74, .85); }
+.sf-dot.q.next { color: #ff5a5a; border-color: #ff5a5a; box-shadow: 0 0 0 2px rgba(255, 90, 90, .35); }
+.sf-dot.sf-warm.q { color: #ff5a5a; border-color: rgba(163, 74, 74, .85); background: rgba(255, 90, 90, .07); }
