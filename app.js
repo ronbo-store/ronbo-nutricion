@@ -6463,7 +6463,7 @@ en: {
   'train.chronoStart': '▶ Start workout',
   'train.chronoStartBtn': '▶ Start',
 
-  'train.strip.doneToday': 'Done today', 'train.strip.add': '+ Add', 'train.strip.finish': 'Finish', 'train.closeFinish': 'Finish & save',
+  'train.strip.doneToday': 'Done today', 'train.strip.add': '+ Add', 'train.strip.finish': 'Finish', 'train.closeFinish': 'Finish & save', 'train.strip.cardioAdd': '+ Cardio', 'train.day.addExercise': '+ Add exercise',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Stretch',
   'train.chronoRunning': '⏱ Session in progress: {min} min',
   /* META DE TIEMPO POR ENTRENAMIENTO (AUTH-359): solo informativa. */
@@ -11854,7 +11854,7 @@ es: {
   'train.chronoStart': '▶ Iniciar entrenamiento',
   'train.chronoStartBtn': '▶ Iniciar',
 
-  'train.strip.doneToday': 'Hecho hoy', 'train.strip.add': '+ Agregar', 'train.strip.finish': 'Terminar', 'train.closeFinish': 'Terminar y guardar',
+  'train.strip.doneToday': 'Hecho hoy', 'train.strip.add': '+ Agregar', 'train.strip.finish': 'Terminar', 'train.closeFinish': 'Terminar y guardar', 'train.strip.cardioAdd': '+ Cardio', 'train.day.addExercise': '+ Agregar ejercicio',
   'train.strip.cardio': 'Cardio', 'train.strip.core': 'Core', 'train.strip.stretch': 'Estirar',
   'train.chronoRunning': '⏱ Sesión en curso: {min} min',
   /* META DE TIEMPO POR ENTRENAMIENTO (AUTH-359): solo informativa. */
@@ -42315,7 +42315,24 @@ async function trainCloseConfirm(plan, di, formEl) {
    Cardio · Core · Estirar salen de la fila y viven dentro del
    flujo de «+ Agregar» (swapPresetRowHTML, el mismo
    SWAP_PRESET_GROUP de siempre). */
-function trainEditTailHTML(planId, di) {
+/* ═══ AUTH-508 · EL BOTÓN DEL MEDIO ES EL DEL CARDIO
+   (decisión de Ronald, 2026-11-19 12:26 CST, con la captura
+   del pie de su día): los dos «añadir» del pie se intercambian
+   — el botón del medio de esta fila deja de abrir el añadir
+   ejercicio y pasa a añadir el punto de cardio, con el rótulo
+   «+ Cardio» (train.strip.cardioAdd) y el gesto de siempre de
+   la puerta ancha (data-cardio2-add, cableado por
+   trainCardio2Wire sobre la misma caja), llevando en sí mismo
+   el contexto que ese gesto lee (data-cardio2-plan e
+   data-cardio2-iso: la fecha de ESTA tarjeta — la vista pasa
+   la suya, la misma de sus puntos de cardio; el guiado y la
+   tarjeta de hoy cierran sobre hoy). El añadir ejercicio vive
+   ahora en la puerta ancha de los puntos (trainCardio2ExtrasHTML).
+   «Iniciar», «Terminar» y «Saltar este día» no cambian ni de
+   sitio ni de texto ni de comportamiento; la cola reducida
+   del guiado sin empezar (trainGuidePreTailHTML) conserva su
+   «+ Agregar» de añadir ejercicio, intacta. ═══ */
+function trainEditTailHTML(planId, di, iso) {
   if (TRAIN_CLOSE_DI === di) return trainChronoHTML(planId, di) + trainCloseFormHTML(planId, di);
   /* AUTH-402: la fila en reposo lleva LOS CUATRO botones en una sola
      línea, cada uno flex:1 (reparto proporcional del ancho), con su
@@ -42333,7 +42350,7 @@ function trainEditTailHTML(planId, di) {
      no se sacrifica. Coste declarado: +54 px (48 + hueco). */
   return `<div class="train-actions-strip">`
     + `<button type="button" class="train-actions-btn is-start" data-train-start="${di}">${t('train.chronoStartBtn')}</button>`
-    + `<button type="button" class="train-actions-btn" data-train-add-open="1">${t('train.strip.add')}</button>`
+    + `<button type="button" class="train-actions-btn" data-cardio2-add="1" data-cardio2-plan="${esc(planId)}" data-cardio2-iso="${esc(iso || todayISO())}">${t('train.strip.cardioAdd')}</button>`
     + `<button type="button" class="train-actions-btn is-finish" data-train-done="${di}">${t('train.strip.finish')}</button>`
     + `<button type="button" class="train-actions-btn is-skipday" data-train-skip="${di}">${t('train.d.skipDay')}</button>`
     + `</div>` + trainChronoHTML(planId, di, true);
@@ -46124,7 +46141,19 @@ function trainCardio2WarmHTML(plan, di, iso, opts) {
    punto fijo impuesto. (El «¿y si el cardio fuera al
    principio y al final?» fue una pregunta de Ronald del
    2026-11-16, no una orden; queda anotado en el informe del
-   paquete por si un día lo decide.) */
+   paquete por si un día lo decide.)
+   AUTH-508 · LA PUERTA ANCHA CAMBIA DE OFICIO (decisión de
+   Ronald, 2026-11-19 12:26 CST, con la captura del pie de su
+   día: el botón ancho de puntos «+ Añadir cardio» le parecía
+   el de añadir un ejercicio): la puerta ancha pasa a ser la de
+   AÑADIR EJERCICIO — conserva su clase cardio2-add (su estilo
+   de puntos y su sitio) y gana el gesto de siempre de añadir
+   (data-train-add-open, el mismo que cablea loadMyTraining)
+   con el rótulo «+ Agregar ejercicio» (train.day.addExercise);
+   el gesto de añadir el punto de cardio se muda al botón del
+   medio de la fila de la cola (trainEditTailHTML), que nace
+   con este mismo data-cardio2-add y su contexto. Los puntos
+   ya guardados y su pintado no cambian. */
 function trainCardio2ExtrasHTML(plan, di, iso, startNum) {
   if (!plan || !plan.id || di == null || di < -1) return '';
   const doc = trainCardio2Read(plan.id, iso);
@@ -46138,7 +46167,7 @@ function trainCardio2ExtrasHTML(plan, di, iso, startNum) {
     }
     return `<div class="cardio-warm cardio2-point" ${attrs}><div class="cardio-warm-head"><span class="cardio-warm-title">➕ ${esc(t('train.cardio2.register'))}</span></div>${trainCardio2FormHTML(T, e, false)}</div>`;
   });
-  parts.push(`<button type="button" class="cardio2-add" data-cardio2-add="1" ${attrs}>${esc(t('train.cardio2.add'))}</button>`);
+  parts.push(`<button type="button" class="cardio2-add" data-train-add-open="1" ${attrs}>${esc(t('train.day.addExercise'))}</button>`);
   return parts.join('');
 }
 /* Cableado de los puntos (lo llama loadMyTraining tras pintar,
@@ -48428,7 +48457,7 @@ async function loadMyTraining() {
     else exHtml = trainDayCompactHistHTML(day, log, di);
     let tail = tailHTML;
     if (tail == null) {
-      if (mode === 'edit') tail = trainEditTailHTML(plan.id, di);
+      if (mode === 'edit') tail = trainEditTailHTML(plan.id, di, sel);   /* AUTH-508: la cola lleva la fecha vista — la misma de los puntos de cardio de esta tarjeta — para el gesto de cardio de su botón del medio */
       else if (mode === 'done') { const status = trainLogStatus(log); tail = `<div style="margin-top:8px">${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>${trainLogMetaHTML(log)}</div>`; }
       else tail = '';
     }
@@ -65654,7 +65683,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-panel-dia-completado';
+const PWA_SW_VERSION = '20261119-intercambio-anadir';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
