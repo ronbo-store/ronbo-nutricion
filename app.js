@@ -37581,9 +37581,26 @@ function swapCardHTML(ex, opts) {
      (base o variante) antes de confirmar el agregado. */
   const btn = inSession ? t('train.n09.mybAddedBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'add' ? (swapPickableVariants(ex).length ? t('dict.choose') : t('train.swap.addBtn')) : t('train.custom.swap'));
   const th = !ex.foto_url ? ytThumbOf(ex.video_youtube_url) : '';
-  return `<button type="button" class="swap-card${inSession ? ' is-added' : ''}" data-swap-pick="${esc(ex.id)}"${inSession ? ' disabled aria-disabled="true"' : ''}>
+  const card = `<button type="button" class="swap-card${inSession ? ' is-added' : ''}" data-swap-pick="${esc(ex.id)}"${inSession ? ' disabled aria-disabled="true"' : ''}>
     ${ex.foto_url ? `<img class="swap-card-img" src="${esc(ex.foto_url)}" alt="" loading="lazy">` : (th ? `<img class="swap-card-img" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="swap" onerror="ytThumbErr(this)">` : '<span class="swap-card-img swap-card-noimg" aria-hidden="true"></span>')}
     <span class="swap-card-main"><span class="swap-card-name">${esc(opts.nameOverride || libNameOf(ex))}</span>${sub ? `<span class="swap-card-sub">${esc(sub)}</span>` : ''}${tag}${inSession ? `<span class="swap-card-tag">${esc(t('train.pick.inSession'))}</span>` : ''}</span><span class="swap-card-btn">${esc(btn)}</span></button>`;
+  /* AUTH-510: en «agregar», las formas elegibles de la ficha se
+     pintan EN LA LISTA, tras su tarjeta — antes los nombres de las
+     variantes no se veían y la única puerta era tocar la tarjeta
+     (que parecía un agregado normal) y elegir en la vista de
+     formas, o teclear el nombre exacto en el buscador. Cada forma
+     es la tarjeta de siempre (swapVariantPickCardHTML, la de los
+     aciertos del buscador) y guarda por el camino de siempre
+     (swapSheetApplyVariantPick, con el candado AUTH-340: si la
+     ficha ya está en el día, la forma nace desactivada como la
+     base). La tarjeta base conserva su «Elegir» y la vista de
+     formas queda como puerta alternativa; en «cambiar» y en
+     «warm» nada cambia. */
+  if (TRAIN_PICK && TRAIN_PICK.kind === 'add') {
+    const pv = swapPickableVariants(ex);
+    if (pv.length) return card + pv.map(x => swapVariantPickCardHTML(ex, x.v, x.vi)).join('');
+  }
+  return card;
 }
 function swapVariantCardHTML(entry, v, vi) {
   const sub = [libField(v, 'cambio'), libField(v, 'enfasis')].filter(Boolean).join(' · ');
@@ -52490,7 +52507,7 @@ function planDupInDays(days) {
 function planDupToastOmitted(n) {
   if (n > 0) toast(t(n === 1 ? 'train.nodup.omittedOne' : 'train.nodup.omittedMany', { n }));
 }
-function libLinkRow(row, ex) {
+function libLinkRow(row, ex, vi) {
   /* AUTH-348: si la fila vive en un día del editor de planes y
      OTRA fila de ESE día ya tiene este ejercicio (por su id o
      por su nombre normalizado), no se vincula: la fila queda
@@ -52508,8 +52525,18 @@ function libLinkRow(row, ex) {
   if (wrap) { wrap.innerHTML = libLinksHTML({ exerciseId: ex.id, photoUrl: ex.foto_url, videoUrl: ex.video_youtube_url }); wireLibLinks(row); }
   libCloseSug(row);
   /* FUNCIÓN DE VARIANTES (V-4): un vínculo nuevo nace en forma
-     estándar; el selector de la fila se repinta con la ficha. */
-  if (row._extra) delete row._extra.variantIndex;
+     estándar; el selector de la fila se repinta con la ficha.
+     AUTH-510: si la sugerencia tocada era DE VARIANTE, su índice
+     (vi) viaja hasta aquí y la fila nace con ESA variante — antes
+     el índice se perdía en el botón de la sugerencia y la fila
+     nacía estándar sin avisar, aunque la sugerencia dijera
+     «— Torso inclinado». La forma estándar, un índice que no
+     resuelve o la ausencia de vi siguen naciendo como ausencia
+     de variantIndex, como manda el modelo. */
+  const libVars = Array.isArray(ex.variantes) ? ex.variantes : [];
+  const libV = Number.isInteger(vi) && vi >= 0 && vi < libVars.length ? libVars[vi] : null;
+  if (libV && !libV.es_estandar) { row._extra = row._extra || {}; row._extra.variantIndex = vi; }
+  else if (row._extra) delete row._extra.variantIndex;
   planVariantSyncRow(row);
   return true;
 }
@@ -52538,11 +52565,14 @@ function wireLibRow(row) {
        o con la foto caída, la opción se compone SIN la imagen (se
        auto-retira con onerror, el patrón honesto de la casa) y sin
        hueco roto. */
-    sug.innerHTML = hits.map(h => { const ex = h.ex; const vName = h.vi != null ? libField((ex.variantes || [])[h.vi], 'nombre') : ''; return `<button type="button" class="pl-sug-item" data-lib-id="${esc(ex.id)}">${ex.foto_url ? `<img class="sg-thumb" src="${esc(ex.foto_url)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<span class="sg-text"><span class="sg-name">${esc(libNameOf(ex))}${vName ? ' — ' + esc(vName) : ''}</span><span class="sg-meta">${esc([libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · '))}</span></span></button>`; }).join('');
+    sug.innerHTML = hits.map(h => { const ex = h.ex; const vName = h.vi != null ? libField((ex.variantes || [])[h.vi], 'nombre') : ''; return `<button type="button" class="pl-sug-item" data-lib-id="${esc(ex.id)}"${h.vi != null ? ` data-lib-vi="${h.vi}"` : ''}>${ex.foto_url ? `<img class="sg-thumb" src="${esc(ex.foto_url)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<span class="sg-text"><span class="sg-name">${esc(libNameOf(ex))}${vName ? ' — ' + esc(vName) : ''}</span><span class="sg-meta">${esc([libField(ex, 'grupo_muscular'), libField(ex, 'equipo'), libField(ex, 'nivel')].filter(Boolean).join(' · '))}</span></span></button>`; }).join('');
     sug.querySelectorAll('.pl-sug-item').forEach(b => b.addEventListener('mousedown', ev => {
       ev.preventDefault();
       const ex = LIB_BY_ID[b.dataset.libId];
-      if (ex) libLinkRow(row, ex);
+      /* AUTH-510: el índice de la variante del acierto viaja al
+         vínculo — la fila nace con la forma que la sugerencia
+         nombraba, no en forma estándar. */
+      if (ex) libLinkRow(row, ex, b.dataset.libVi != null ? parseInt(b.dataset.libVi, 10) : null);
     }));
   });
   nameIn.addEventListener('focus', () => { if (LIB_STATE === 'ok' && !row.dataset.exid && nameIn.value.trim().length >= 2) nameIn.dispatchEvent(new Event('input')); });
@@ -65387,7 +65417,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-plan-21-dias';
+const PWA_SW_VERSION = '20261119-variante-al-agregar';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
