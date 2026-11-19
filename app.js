@@ -40210,8 +40210,22 @@ function sessReflHeadline(r) {
    abre su hoja). La escucha en el sitio vive en
    SESS_REFL_LISTEN y entra en la firma de sessFullSync,
    como los dos estados de pliegue. ═══ */
+/* ═══ AUTH-504 · LA REFLEXIÓN NACE PLEGADA (orden directa
+   de Ronald, 2026-11-19, con su captura del cuadro con la
+   Reflexión desplegada ocupando la pantalla: «No quiero
+   que esta área de reflexión salga nunca desplegado,
+   quiero que nazca plegado»): revierte el nacimiento
+   abierto de AUTH-494 — SESS_REFL_OPEN nace en false,
+   como SESS_MSG_OPEN desde AUTH-491, en el inicializador
+   y en el reinicio diario de sessFoldDaySync. El bloque
+   se pinta en su línea plegada en cada pintado fresco;
+   desplegarla sigue siendo posible con su gesto de
+   siempre (la frase se despliega en el sitio; el artículo
+   abre su hoja, con su escucha dentro; la tarjeta entera
+   en el sitio y su escucha de AUTH-494 quedan intactas
+   tras el gesto). El Mensaje no cambia. ═══ */
 let SESS_MSG_OPEN = false;
-let SESS_REFL_OPEN = true;
+let SESS_REFL_OPEN = false;
 let SESS_REFL_LISTEN = false;
 /* AUTH-500 · EL ESTADO DEL BOTÓN DE VOZ: solo pantalla — la
    escucha en curso (st/ck/si), su reconocimiento vivo, el
@@ -40225,7 +40239,7 @@ let SESS_VOICE = { st: 'idle', ck: '', si: -1, seq: 0, note: null, rec: null, ca
 let SESS_FOLD_DAY = '';
 function sessFoldDaySync() {
   const hoy = todayISO();
-  if (SESS_FOLD_DAY !== hoy) { SESS_FOLD_DAY = hoy; SESS_MSG_OPEN = false; SESS_REFL_OPEN = true; if (SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { asstStopSpeak(); } catch {} } }
+  if (SESS_FOLD_DAY !== hoy) { SESS_FOLD_DAY = hoy; SESS_MSG_OPEN = false; SESS_REFL_OPEN = false; if (SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { asstStopSpeak(); } catch {} } }
 }
 function sessReflHTML() {
   const r = sessReflOfDay();
@@ -40249,7 +40263,11 @@ function sessReflHTML() {
        (data-sess-art="listen-panel": la misma voz de la
        hoja, sin abrir la hoja) — y el cuerpo SÍ viaja en
        el panel desde este paquete, por la orden expresa
-       de Ronald de que la página crezca hacia abajo. */
+       de Ronald de que la página crezca hacia abajo.
+       AUTH-504 (2026-11-19): ese nacimiento abierto quedó
+       revertido por orden expresa de Ronald — el bloque
+       nace PLEGADO en esta línea, como el Mensaje, y la
+       tarjeta entera en el sitio ya no es el nacimiento. */
     if (!SESS_REFL_OPEN) return `<button type="button" class="sf-card sf-foldcard" data-sess-art="open"><span class="sf-fold-ic" aria-hidden="true">📖</span><span class="sf-fold-lab">${esc(t('sess.reflTag'))}</span><span class="sf-fold-txt">${esc(sessReflHeadline(r))}</span><span class="sf-fold-link">${esc(t('sess.listenShort'))} ›</span></button>`;
     const titleA = moveTitleOf(r.e), bodyA = moveBodyOf(r.e);
     const ttA = titleA[LANG] || titleA.en || titleA.es || '';
@@ -40262,8 +40280,10 @@ function sessReflHTML() {
      la hoja del artículo. AUTH-491: se despliega EN EL
      SITIO (no tiene hoja), con su tarjeta de siempre
      entera — familia, texto y fuente — y su cabecera para
-     replegar. AUTH-494: nace ABIERTA (SESS_REFL_OPEN nace
-     en true cada día); plegada, su línea es la de 491. */
+     replegar. AUTH-494: nació ABIERTA (SESS_REFL_OPEN en
+     true cada día); AUTH-504 la devuelve a nacer PLEGADA
+     (SESS_REFL_OPEN en false, como el Mensaje): su línea
+     es la de 491 y su gesto la despliega en el sitio. */
   const full = moveCardText({ kind: 'bank', e: r.e });
   if (!SESS_REFL_OPEN) return `<button type="button" class="sf-card sf-foldcard" data-sess-fold="refl"><span class="sf-fold-ic" aria-hidden="true">📖</span><span class="sf-fold-lab">${esc(t('sess.reflTag'))}</span><span class="sf-fold-txt">${esc(full)}</span><span class="sf-fold-chev" aria-hidden="true">›</span></button>`;
   return `<div class="sf-card"><button type="button" class="sf-fold-head" data-sess-fold="refl"><span class="sf-card-lab">📖 ${esc(t('sess.reflToday'))}</span><span class="sf-fold-chev" aria-hidden="true">⌃</span></button>${fam}<div class="sf-refl-text">${esc(full)}</div>${r.e.src ? `<div class="sf-refl-src">${esc(r.e.src)}</div>` : ''}</div>`;
@@ -41195,7 +41215,7 @@ function sessHowRowHTML(ex) {
 }
 function sessFullSync(run) {
   const full = $('sess-full'); if (!full) return;
-  sessFoldDaySync();   /* AUTH-491/494: cada día el Mensaje nace plegado y la Reflexión nace abierta */
+  sessFoldDaySync();   /* AUTH-491/494/504: cada día el Mensaje y la Reflexión nacen plegados */
   let st = null; try { st = trainBarState(); } catch {}
   const msg = shareMsgRevealedFor(todayISO());
   const refl = sessReflOfDay();
@@ -65387,7 +65407,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-plan-21-dias';
+const PWA_SW_VERSION = '20261119-reflexion-plegada';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
