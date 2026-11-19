@@ -6951,3 +6951,9 @@ textarea.gest-in { resize: none; }
 .p21-cand-day{display:flex;gap:8px;font-size:14.5px;padding:2px 0}
 .p21-cand-day span:first-child{font-weight:700;min-width:64px}
 .p21-exit{margin-top:10px;padding-top:10px;border-top:1px solid #99F6E4}
+
+/* AUTH-2026-11-19-505 · La tarjeta del Plan 21 días en Retos:
+   la tarjeta de reto de la casa con el acento del plan (el
+   borde y el fondo de .p21-card de AUTH-503); sin layout nuevo. */
+.chal-p21 { border: 2px solid #0D9488; background: #F0FDF9; }
+.chal-p21 .p21-progress { margin: 8px 0 4px; font-size: 16px; }

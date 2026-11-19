@@ -8583,6 +8583,9 @@ en: {
   'chal.myTitle': 'My challenges',
   'chal.myEmpty': 'You have no challenges yet. Start one from the catalog below.',
   'chal.catalogTitle': 'Start a challenge',
+  'chal.p21Tag': 'Challenge · 21 days',
+  'chal.p21Desc': 'A complete program for beginners: training and food for 21 days. It adapts to your available days and your equipment, and week 1 calibrates your loads.',
+  'chal.p21ViewBtn': 'View my plan',
   'chal.groupTitle': 'Group challenges',
   'chal.groupEmpty': 'No group challenges are open right now.',
   'chal.manageTitle': 'Create & manage',
@@ -13971,6 +13974,9 @@ es: {
   'chal.myTitle': 'Mis retos',
   'chal.myEmpty': 'Todavía no tienes retos. Empieza uno desde el catálogo de abajo.',
   'chal.catalogTitle': 'Empezar un reto',
+  'chal.p21Tag': 'Reto · 21 días',
+  'chal.p21Desc': 'Un programa completo para principiantes: entrenamiento y alimentación durante 21 días. Se adapta a tus días disponibles y a tu equipo, y la primera semana calibra tus cargas.',
+  'chal.p21ViewBtn': 'Ver mi plan',
   'chal.groupTitle': 'Retos de grupo',
   'chal.groupEmpty': 'No hay retos de grupo abiertos ahora mismo.',
   'chal.manageTitle': 'Crear y gestionar',
@@ -50403,7 +50409,7 @@ function plan21SheetPaint() {
   const cancel = $('p21-cancel'); if (cancel) cancel.onclick = () => plan21CloseSheet();
   const go = $('p21-go'); if (go) go.onclick = () => plan21Start();
 }
-function plan21CloseSheet() { const fl = $('plan21-float'); if (fl) fl.style.display = 'none'; PLAN21_SHEET = null; }
+function plan21CloseSheet() { const fl = $('plan21-float'); if (fl) fl.style.display = 'none'; PLAN21_SHEET = null; /* AUTH-505: si la hoja se cierra estando en Retos, la tarjeta del reto se repinta con el estado nuevo (recién empezado, en espera o enviado). */ try { if (typeof NAV_TAB !== 'undefined' && NAV_TAB === 'challenges') chalLoad(true).then(() => { try { chalRenderPaint(); chalCardSyncPaint(); } catch {} }); } catch {} }
 async function plan21Start() {
   const S = PLAN21_SHEET; if (!S) return;
   const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
@@ -65407,7 +65413,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-reflexion-plegada';
+const PWA_SW_VERSION = '20261119-plan21-en-retos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -68477,6 +68483,7 @@ const CHAL = {
   students: null,      // alumnos asignables (entrenador/admin)
   justDone: [],        // retos completados en esta sesión (celebración)
   designMetric: 'train_days',
+  p21: null,           // AUTH-505: estado del Plan 21 días en Retos (chalPlan21State)
 };
 const chalMe = () => (auth.currentUser ? auth.currentUser.uid : null);
 const chalCanManage = () => ROLE === 'entrenador' || ROLE === 'administrador' || (typeof IS_OWNER !== 'undefined' && IS_OWNER);
@@ -68702,6 +68709,7 @@ async function chalLoad(force) {
       try { const s = await getDocs(q); s.forEach(d => { const c = { id: d.id, ...d.data() }; if (!seen.has(c.id)) { seen.add(c.id); groups.push(c); } }); } catch {}
     }
     CHAL.groups = groups;
+    try { CHAL.p21 = await chalPlan21State(me); } catch { CHAL.p21 = null; }
     CHAL.loaded = true; CHAL.loadError = false; CHAL.lastSync = Date.now();
     try { const data = await chalFetchOwnData(me); CHAL.ownData = data; await chalSyncMine(data); } catch {}
   } catch { CHAL.loadError = true; }
@@ -69084,6 +69092,76 @@ function chalMedalsHTML() {
     </div>`;
   }).join('');
 }
+/* ═══ AUTH-2026-11-19-505 · EL PLAN 21 DÍAS VIVE TAMBIÉN EN RETOS ═══
+   Orden directa de Ronald (2026-11-19 12:44 CST): el Plan 21
+   días de AUTH-503 quedó con su puerta de inicio en el catálogo
+   de plantillas y Ronald no lo encuentra ahí — «este plan de
+   entrenamiento de veintiún días va dentro de Reto». Esta
+   tarjeta es SOLO una puerta más, en el catálogo de la pantalla
+   de Retos: su botón dispara LA MISMA hoja de arranque de
+   AUTH-503 (plan21OpenSheet: la misma puerta de salud, el mismo
+   armado por métricas, la misma advertencia D7 y la misma
+   alimentación D9/D10), y la tarjeta del catálogo de plantillas
+   se queda como puerta secundaria. No nace ningún reto de la
+   familia chal (sin documento en challenges y sin
+   participación): el plan no es un reto de conteo y no se crea
+   un segundo camino que pueda divergir. El estado se lee de
+   los planes PROPIOS (fetchPlans, la lectura de siempre) y de
+   la propuesta plan21Start pendiente; este paquete no escribe
+   ningún dato nuevo. */
+async function chalPlan21State(me) {
+  const out = { state: 'none', plan: null, dayIx: 0 };
+  let plans = [];
+  try { plans = await fetchPlans(me); } catch {}
+  const mine = (plans || []).filter(p => p && ((p.genSource && p.genSource.kind === 'plan21') || p.sourceRoutineId === PLAN21_TPL_ID));
+  if (mine.length) {
+    mine.sort((a, b) => String(b.startsAt || '').localeCompare(String(a.startsAt || '')));
+    const plan = mine[0];
+    const today = todayISO();
+    const dayIx = Math.round((Date.parse(today + 'T12:00:00') - Date.parse(String(plan.startsAt) + 'T12:00:00')) / 86400000);
+    out.plan = plan; out.dayIx = dayIx;
+    if (dayIx > 20) out.state = 'done';
+    else if (plan.active === true) out.state = 'active';
+    else if (plan.healthHold) out.state = 'hold';
+    else out.state = 'none';
+    return out;
+  }
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', me), where('kind', '==', 'planProposal')));
+    snap.forEach(d => { const v = d.data(); if (v && v.type === 'plan21Start' && v.status === 'pending') out.state = 'sent'; });
+  } catch {}
+  return out;
+}
+/* La tarjeta del reto del Plan 21 en el catálogo de Retos:
+   sin plan → la puerta de arranque; en curso → el día que va
+   y el salto a su plan; en espera de salud → su nota; enviado
+   al entrenador → su constancia; terminado → su cierre, SIN
+   botón de repetir (la salida del día 22 es la de D8 y vive
+   en la tarjeta del plan). */
+function chalPlan21CardHTML() {
+  const st = CHAL.p21 || { state: 'none', plan: null, dayIx: 0 };
+  let inner = '';
+  if (st.state === 'active' && st.plan) {
+    inner = st.dayIx < 0
+      ? `<p class="progress-hint">${esc(t('plan21.sheetStart', { date: plan21DateLabel(st.plan.startsAt), date2: plan21DateLabel(st.plan.endsAt) }))}</p>`
+      : `<p class="p21-progress"><b>${esc(t('plan21.dayOf', { x: st.dayIx + 1 }))}</b> · ${esc(t('plan21.weekN', { n: Math.floor(st.dayIx / 7) + 1 }))}</p>`;
+    inner += `<div class="chal-actions"><button type="button" class="btn-primary" data-chal-act="p21view">${esc(t('chal.p21ViewBtn'))}</button></div>`;
+  } else if (st.state === 'hold') {
+    inner = `<p class="progress-hint">${esc(t('plan21.startedHold'))}</p>`;
+  } else if (st.state === 'sent') {
+    inner = `<p class="progress-hint">${esc(t('plan21.sentTrainer'))}</p>`;
+  } else if (st.state === 'done') {
+    inner = `<p class="p21-progress"><b>${esc(t('plan21.finished'))}</b></p>`;
+  } else {
+    inner = `<p class="chal-metric">${esc(t('chal.p21Desc'))}</p>
+    <p class="chal-metric">${esc(t('plan21.catalogLine'))}</p>
+    <div class="chal-actions"><button type="button" class="btn-primary" data-chal-act="p21start">${esc(t('plan21.startBtn'))}</button></div>`;
+  }
+  return `<div class="chal-item chal-p21">
+    <div class="chal-item-head"><span class="chal-head-l"><img class="chal-cat-face" src="${CHAL_FACE_MUSCLE}" alt="" aria-hidden="true" onerror="this.remove()"><b>${esc(t('plan21.title'))}</b></span><span class="chal-tag">${esc(t('chal.p21Tag'))}</span></div>
+    ${inner}
+  </div>`;
+}
 function chalRenderPaint() {
   const body = $('chal-body'); if (!body) return;
   if (!auth.currentUser) { body.innerHTML = ''; return; }
@@ -69101,6 +69179,7 @@ function chalRenderPaint() {
   h += `<h3 class="history-title">${esc(t('chal.medalsTitle'))}</h3>`;
   h += `<p class="chal-points-line">🏆 ${esc(t('chal.pointsTitle'))}: <b>${chalPointsOf(CHAL.mine.map(x => x.part))}</b></p>` + chalMedalsHTML();
   h += `<h3 class="history-title">${esc(t('chal.catalogTitle'))}</h3>`;
+  h += chalPlan21CardHTML();
   /* El catálogo, compacto (diseño §2): icono de la métrica,
      nombre, la meta y el plazo en una línea, «Medalla + 1 punto»
      y el estado si ya participo. El párrafo fundado vive entero
@@ -69228,6 +69307,8 @@ function chalWireForms() {
     if (!el) return;
     const act = el.dataset.chalAct, id = el.dataset.chalId;
     if (act === 'open') { if (el.dataset.chalCat) chalSheetOpenCat(el.dataset.chalCat); else chalSheetOpenId(id); }
+    else if (act === 'p21start') { plan21OpenSheet(); }
+    else if (act === 'p21view') { Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} }); }
     else if (act === 'leave') chalLeave(id);
     else if (act === 'abandon') chalAbandon(id);
     else if (act === 'delcreated') chalDeleteCreated(id);
