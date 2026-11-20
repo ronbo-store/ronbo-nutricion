@@ -7133,18 +7133,30 @@ textarea.gest-in { resize: none; }
 .sf-aulab .t { color: #f5c877; font-weight: 800; }
 .sf-auprog { position: absolute; left: 4px; right: 57px; bottom: -3px; height: 3px; border-radius: 2px; background: rgba(61,220,90,.18); overflow: hidden; }
 .sf-auprog i { display: block; height: 100%; width: 0; background: #3ddc5a; border-radius: 2px; }
-.sf-austage { position: fixed; inset: 0; z-index: 90; background: radial-gradient(circle at 50% 40%, rgba(47,208,140,.13), rgba(0,0,0,0) 62%), linear-gradient(180deg, #132c49, #0a1828); display: flex; flex-direction: column; align-items: center; opacity: 0; pointer-events: none; transform: scale(.965); transition: opacity .28s ease, transform .28s ease; color: #fff; font-family: inherit; }
-.sf-austage.on { opacity: 1; pointer-events: auto; transform: scale(1); }
-.sf-aumin { position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border-radius: 50%; background: rgba(9,18,32,.42); border: 1px solid rgba(255,255,255,.16); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; z-index: 2; }
+/* AUTH-525 · EL FLOTANTE DEL AVATAR: ya no es una capa a
+   pantalla completa — es una pieza pequeña montada sobre el
+   panel, al lado derecho (≈42 % del ancho, tope 168 px), que
+   solo captura los toques sobre sí misma; el panel detrás
+   sigue visible y tocable. Sin fondo propio: el avatar va
+   sobre su sombra y la píldora trae el suyo. */
+.sf-austage { position: fixed; top: calc(76px + env(safe-area-inset-top, 0px)); right: 10px; width: min(168px, 42vw); z-index: 90; display: flex; flex-direction: column; align-items: stretch; opacity: 0; pointer-events: none; transform: translateY(-6px) scale(.97); transition: opacity .25s ease, transform .25s ease; color: #fff; font-family: inherit; }
+.sf-austage.on { opacity: 1; pointer-events: auto; transform: none; }
+.sf-aumin { align-self: flex-end; width: 30px; height: 30px; flex: none; margin-bottom: 2px; border-radius: 50%; background: rgba(9,18,32,.42); border: 1px solid rgba(255,255,255,.16); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; z-index: 2; }
 .sf-aumin:active { background: rgba(9,18,32,.65); }
-.sf-auwrap { position: relative; width: min(320px, 84%); aspect-ratio: 1/1; margin-top: 64px; cursor: pointer; }
-.sf-auwrap img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 18px 24px rgba(0,0,0,.45)); }
-.sf-aumouth { position: absolute; left: 53.5%; top: 60.4%; width: 20%; height: 1.4%; transform: translate(-50%,-50%); border-radius: 50%; background: linear-gradient(to bottom, #f3ead9 0%, #f3ead9 22%, #5a2410 34%, #33150a 80%, #200c04 100%); box-shadow: inset 0 -3px 6px rgba(0,0,0,.5); }
-.sf-aucap { margin-top: 20px; font-size: 15px; font-weight: 800; color: #fff; text-align: center; padding: 0 20px; }
-.sf-ausub { margin-top: 3px; font-size: 12.5px; color: #9db6d2; text-align: center; padding: 0 24px; line-height: 1.45; }
-.sf-ausprog { width: 78%; height: 4px; border-radius: 2px; background: rgba(61,220,90,.18); overflow: hidden; margin-top: 22px; }
+.sf-auwrap { position: relative; width: 100%; aspect-ratio: 1/1; cursor: pointer; }
+.sf-auwrap img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 10px 16px rgba(0,0,0,.45)); }
+.sf-aupill { margin-top: 6px; background: rgba(8,17,30,.86); border: 1px solid rgba(255,255,255,.15); border-radius: 14px; padding: 8px 10px 7px; box-shadow: 0 8px 20px rgba(0,0,0,.35); }
+.sf-aupillrow { display: flex; align-items: center; gap: 8px; }
+.sf-auico { flex: none; width: 13px; height: 13px; display: flex; align-items: center; justify-content: center; color: #f5c877; }
+.sf-austage[data-st="paused"] .sf-auico { color: #2fd08c; }
+.sf-austage[data-st="done"] .sf-auico { color: #3ddc5a; }
+.sf-austage[data-st="playing"] .ic-play, .sf-austage[data-st="playing"] .ic-done,
+.sf-austage[data-st="paused"] .ic-pause, .sf-austage[data-st="paused"] .ic-done,
+.sf-austage[data-st="done"] .ic-pause, .sf-austage[data-st="done"] .ic-play { display: none; }
+.sf-ausub { margin-top: 4px; font-size: 11px; color: #9db6d2; text-align: center; line-height: 1.35; }
+.sf-ausprog { flex: 1; height: 4px; border-radius: 2px; background: rgba(61,220,90,.18); overflow: hidden; }
 .sf-ausprog i { display: block; height: 100%; width: 0; background: #3ddc5a; border-radius: 2px; }
-.sf-austime { margin-top: 7px; font-size: 12px; color: #cfe0f2; font-variant-numeric: tabular-nums; }
+.sf-austime { font-size: 11.5px; color: #cfe0f2; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sf-austage[hidden] { display: none; }
 
 /* AUTH-518 · EL MECANISMO DE RETOS: la línea de «Volver» con

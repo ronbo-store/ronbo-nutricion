@@ -42188,13 +42188,34 @@ function sessHowRowHTML(ex) {
    o si la sesión se acaba, el audio se detiene: nunca suenan
    dos cosas a la vez ni queda sonando sin control visible.
    El elemento de audio y la capa viven FUERA de #sess-full:
-   los repintados del panel no cortan la reproducción. ═══ */
+   los repintados del panel no cortan la reproducción.
+   ── AUTH-525 · EL AVATAR QUE HABLA, FLOTANTE (rediseño
+   pedido por Ronald el 2026-11-20, maqueta aprobada el mismo
+   día): la pantalla completa MUERE y la boca articulada
+   también — a Ronald no le gustó «ese falso movimiento de
+   la boca» y ordenó quitarlo: fuera el óvalo, fuera el grafo
+   de volumen (AnalyserNode) que solo existía para moverla;
+   el avatar va QUIETO, con su fotograma fijo. Al darle a
+   escuchar, el avatar aparece FLOTANTE encima del panel, al
+   lado DERECHO (≈42 % del ancho, tope 168 px), sin tapar ni
+   cerrar el panel: los círculos y los controles siguen
+   visibles y tocables mientras suena — el flotante solo
+   captura los toques sobre sí mismo. NO es permanente: solo
+   existe mientras se escucha; al terminar el audio (o al
+   detenerse por las puertas de siempre) se retira por
+   completo. Se conserva lo demás, mapeado a la nueva forma:
+   tocar el avatar pausa o sigue; la píldora discreta bajo el
+   avatar trae la barra fina y el tiempo; el botón de
+   minimizar de 30 × 30 (la excepción expresa de Ronald) lo
+   reduce a la forma pequeña de siempre — la fila del panel
+   en «Sonando…» — sin callar la voz, y tocar el rótulo de la
+   fila lo trae de vuelta. ═══ */
 const SESS_AUDIO_BASE = 'https://ronbo-store.github.io/ronbo-nutri-assets/';
 const SESS_AUDIO_MASCOT = SESS_AUDIO_BASE + 'avatar-coach-virtual/web/guino-hablando.webp';
 const SESS_AUDIO_FORMS = new Set(['E001', 'E002', 'E003', 'E004', 'E004v1', 'E005', 'E006', 'E007', 'E008', 'E009', 'E010', 'E011', 'E012', 'E105', 'E105v1']);
 const SESS_AUDIO_WAVE_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#08351f" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M4 10v4M8.5 7v10M13 4v16M17.5 7v10M22 10v4" transform="translate(-1 0)"/></svg>';
 const SESS_AUDIO_PAUSE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="#3a2403" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>';
-let SESS_AUDIO = { key: '', name: '', st: 'idle', stage: false, seq: 0, cur: 0, dur: 0, el: null, ctx: null, an: null, data: null, raf: 0, lvl: 0, endT: 0 };
+let SESS_AUDIO = { key: '', name: '', st: 'idle', stage: false, seq: 0, cur: 0, dur: 0, el: null, endT: 0 };
 /* La clave de audio de la forma en curso: el ejercicio, y su
    variante elegida si la lleva (el mismo variantIndex de la
    ficha). '' si esa forma no tiene audio publicado. */
@@ -42217,9 +42238,15 @@ function sessAudioProgHTML(auKey) {
   const pct = SESS_AUDIO.dur ? Math.min(100, SESS_AUDIO.cur * 100 / SESS_AUDIO.dur) : 0;
   return `<div class="sf-auprog" aria-hidden="true"><i style="width:${pct}%"></i></div>`;
 }
-/* El elemento de audio y la capa de la mascota nacen una
+/* El elemento de audio y el flotante del avatar nacen una
    sola vez, al primer toque, y viven en el cuerpo del
-   documento: ningún repintado del panel los toca. */
+   documento: ningún repintado del panel los toca.
+   AUTH-525: el flotante es la forma aprobada — el avatar
+   quieto a la derecha, su píldora de progreso debajo (icono
+   de estado, barra fina y tiempo) y el botón de minimizar
+   de 30 × 30 arriba; SIN óvalo de boca: no hay nada que
+   articular. */
+const SESS_AUDIO_PILL_SVGS = '<svg class="ic-pause" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg><svg class="ic-play" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.8c0-1.1 1.2-1.8 2.2-1.2l11 6.7c.9.6.9 1.9 0 2.5l-11 6.7c-1 .6-2.2-.1-2.2-1.2V4.8z"/></svg><svg class="ic-done" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg>';
 function sessAudioEnsure() {
   if (SESS_AUDIO.el) return;
   const el = new Audio();
@@ -42230,7 +42257,8 @@ function sessAudioEnsure() {
   stage.className = 'sf-austage';
   stage.id = 'sess-audio-stage';
   stage.hidden = true;
-  stage.innerHTML = `<button type="button" class="sf-aumin" data-au-min="1" aria-label="${esc(t('sess.auMin'))}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.82)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9l8 8 8-8"/></svg></button><div class="sf-auwrap" data-au-mascot="1" role="button" aria-label="${esc(t('sess.auTap'))}"><img src="${SESS_AUDIO_MASCOT}" alt="" draggable="false"><div class="sf-aumouth"></div></div><div class="sf-aucap"></div><div class="sf-ausub"></div><div class="sf-ausprog"><i></i></div><div class="sf-austime"><span class="sf-aucur">0:00</span> / <span class="sf-audur">0:00</span></div>`;
+  stage.dataset.st = 'playing';
+  stage.innerHTML = `<button type="button" class="sf-aumin" data-au-min="1" aria-label="${esc(t('sess.auMin'))}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.82)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9l8 8 8-8"/></svg></button><div class="sf-auwrap" data-au-mascot="1" role="button" aria-label="${esc(t('sess.auTap'))}"><img src="${SESS_AUDIO_MASCOT}" alt="" draggable="false"></div><div class="sf-aupill"><div class="sf-aupillrow"><span class="sf-auico">${SESS_AUDIO_PILL_SVGS}</span><div class="sf-ausprog"><i></i></div><div class="sf-austime"><span class="sf-aucur">0:00</span> / <span class="sf-audur">0:00</span></div></div><div class="sf-ausub"></div></div>`;
   document.body.appendChild(stage);
   stage.querySelector('[data-au-min]').addEventListener('click', ev => { ev.stopPropagation(); sessAudioStageSet(false); });
   stage.querySelector('[data-au-mascot]').addEventListener('click', () => { if (SESS_AUDIO.st === 'playing') sessAudioPause(); else if (SESS_AUDIO.st === 'paused') sessAudioPlay(); });
@@ -42239,52 +42267,10 @@ function sessAudioEnsure() {
   el.addEventListener('ended', sessAudioFinish);
   el.addEventListener('error', sessAudioError);
 }
-/* El grafo de volumen: se crea dentro del gesto del toque
-   (lo que iOS exige) y se reanuda si el navegador lo dejó
-   dormido. Si el grafo fallara, el audio suena igual y la
-   boca queda en reposo — nunca al revés. */
-function sessAudioGraph() {
-  if (SESS_AUDIO.ctx) { if (SESS_AUDIO.ctx.state === 'suspended') { try { SESS_AUDIO.ctx.resume(); } catch {} } return; }
-  try {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC || !SESS_AUDIO.el) return;
-    const ctx = new AC();
-    const src = ctx.createMediaElementSource(SESS_AUDIO.el);
-    const an = ctx.createAnalyser();
-    an.fftSize = 512;
-    src.connect(an);
-    an.connect(ctx.destination);
-    SESS_AUDIO.ctx = ctx;
-    SESS_AUDIO.an = an;
-    SESS_AUDIO.data = new Uint8Array(an.fftSize);
-  } catch { SESS_AUDIO.ctx = null; SESS_AUDIO.an = null; }
-}
-/* La boca sigue al volumen: ataque rápido, caída suave —
-   habla con las sílabas y se queda quieta en los silencios. */
-function sessAudioLoop() {
-  let target = 0;
-  if (SESS_AUDIO.an && SESS_AUDIO.st === 'playing') {
-    SESS_AUDIO.an.getByteTimeDomainData(SESS_AUDIO.data);
-    let sum = 0;
-    const d = SESS_AUDIO.data;
-    for (let i = 0; i < d.length; i++) { const v = (d[i] - 128) / 128; sum += v * v; }
-    target = Math.min(1, Math.max(0, (Math.sqrt(sum / d.length) - 0.015) * 3.4));
-  }
-  SESS_AUDIO.lvl += (target - SESS_AUDIO.lvl) * (target > SESS_AUDIO.lvl ? 0.55 : 0.16);
-  if (SESS_AUDIO.lvl < 0.004 && target === 0) SESS_AUDIO.lvl = 0;
-  const mouth = document.querySelector('#sess-audio-stage .sf-aumouth');
-  if (mouth) {
-    mouth.style.height = (1.4 + SESS_AUDIO.lvl * 8.1).toFixed(2) + '%';
-    mouth.style.width = (20 + SESS_AUDIO.lvl * 1.6).toFixed(2) + '%';
-  }
-  if (SESS_AUDIO.st === 'playing' || SESS_AUDIO.lvl > 0) SESS_AUDIO.raf = requestAnimationFrame(sessAudioLoop);
-  else { SESS_AUDIO.raf = 0; sessAudioMouthRest(); }
-}
-function sessAudioMouthRest() {
-  SESS_AUDIO.lvl = 0;
-  const mouth = document.querySelector('#sess-audio-stage .sf-aumouth');
-  if (mouth) { mouth.style.height = '1.4%'; mouth.style.width = '20%'; }
-}
+/* AUTH-525: el grafo de volumen (AnalyserNode) y el bucle
+   que articulaba la boca YA NO EXISTEN — existían solo para
+   ese movimiento falso que Ronald mandó quitar. El audio
+   suena directo del elemento, sin grafo de por medio. */
 function sessAudioStageSet(on) {
   SESS_AUDIO.stage = !!on;
   const stage = $('sess-audio-stage');
@@ -42301,8 +42287,11 @@ function sessAudioStageSet(on) {
 function sessAudioStagePaint(done) {
   const stage = $('sess-audio-stage');
   if (!stage) return;
-  const cap = stage.querySelector('.sf-aucap');
-  if (cap) cap.textContent = SESS_AUDIO.name || '';
+  /* AUTH-525: la píldora enseña el estado con su icono
+     (pausa al sonar, play en pausa, ✓ al terminar); el
+     nombre del ejercicio ya no se repite en el flotante —
+     el panel lo enseña detrás. */
+  stage.dataset.st = done ? 'done' : (SESS_AUDIO.st === 'paused' ? 'paused' : 'playing');
   const sub = stage.querySelector('.sf-ausub');
   if (sub) sub.textContent = done ? t('sess.auDone') : (SESS_AUDIO.st === 'paused' ? t('sess.auStageSubPaused') : t('sess.auStageSub'));
   const fill = stage.querySelector('.sf-ausprog i');
@@ -42340,11 +42329,9 @@ function sessAudioTime() {
 function sessAudioPlay() {
   const el = SESS_AUDIO.el;
   if (!el) return;
-  sessAudioGraph();
   try { const p = el.play(); if (p && p.catch) p.catch(() => {}); } catch {}
   SESS_AUDIO.st = 'playing';
   SESS_AUDIO.seq++;
-  if (!SESS_AUDIO.raf) SESS_AUDIO.raf = requestAnimationFrame(sessAudioLoop);
   sessAudioStagePaint(false);
   sessAudioRowPaint();
   try { sessPillTick(); } catch {}
@@ -42397,15 +42384,14 @@ function sessAudioStop() {
   SESS_AUDIO.dur = 0;
   SESS_AUDIO.seq++;
   sessAudioStageSet(false);
-  sessAudioMouthRest();
 }
-/* El fin del audio: la boca se detiene, la capa enseña
-   «Indicación terminada» y se minimiza sola tras ≈1,2 s;
-   la fila vuelve a «Escuchar instrucciones». */
+/* El fin del audio: el flotante enseña «Indicación
+   terminada» y se retira solo por completo tras ≈1,2 s
+   (AUTH-525: no queda nada ocupando espacio); la fila
+   vuelve a «Escuchar instrucciones». */
 function sessAudioFinish() {
   SESS_AUDIO.st = 'idle';
   SESS_AUDIO.seq++;
-  sessAudioMouthRest();
   sessAudioStagePaint(true);
   sessAudioRowPaint();
   try { sessPillTick(); } catch {}
@@ -67730,7 +67716,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261120-boton-empezar';
+const PWA_SW_VERSION = '20261120-avatar-flotante';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
