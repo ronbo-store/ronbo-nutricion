@@ -4029,7 +4029,7 @@ en: {
   'sw.lap': 'Lap', 'sw.reset': 'Reset', 'sw.lapN': 'LAP {n}', 'sw.split': 'split',
   'sw.currentLap': 'Current lap', 'sw.totalLaps': 'Total · {n} laps', 'sw.totalLaps1': 'Total · 1 lap',
   'sw.foot': 'FREE TOOL · NOTHING IS SAVED',
-  'sw.alertEvery': 'Alert every', 'sw.alertNever': 'Never', 'sw.alertMin': '{n} min',
+  'sw.alertEvery': 'Alert every', 'sw.alertNever': 'Never', 'sw.alertMin': '{n} min', 'sw.alertPlus': '+5',
   'sw.closeLab': 'CLOSE', 'sw.minLab': 'MINIMIZE', 'sw.minimize': 'Minimize stopwatch', 'sw.miniOpen': 'Stopwatch running: reopen',
   'health.specHelp': 'In plain words: you allow your trainer to see the health answers you write in this declaration, only so he can adapt your program and take care of you. Nobody else can see them, and you can withdraw this whenever you want.',
   'health.panelTitle': '🏥 My health declaration',
@@ -9485,7 +9485,7 @@ es: {
   'sw.lap': 'Vuelta', 'sw.reset': 'Reiniciar', 'sw.lapN': 'VUELTA {n}', 'sw.split': 'parcial',
   'sw.currentLap': 'Vuelta actual', 'sw.totalLaps': 'Total · {n} vueltas', 'sw.totalLaps1': 'Total · 1 vuelta',
   'sw.foot': 'HERRAMIENTA LIBRE · NO SE GUARDA',
-  'sw.alertEvery': 'Avisar cada', 'sw.alertNever': 'Nunca', 'sw.alertMin': '{n} min',
+  'sw.alertEvery': 'Avisar cada', 'sw.alertNever': 'Nunca', 'sw.alertMin': '{n} min', 'sw.alertPlus': '+5',
   'sw.closeLab': 'CERRAR', 'sw.minLab': 'MINIMIZAR', 'sw.minimize': 'Minimizar el cronómetro', 'sw.miniOpen': 'Cronómetro en marcha: reabrir',
   'health.specHelp': 'En palabras simples: permites que tu entrenador vea las respuestas de salud que escribas en esta declaración, solo para que adapte tu programa y te cuide. Nadie más puede verlas, y puedes retirar este permiso cuando quieras.',
   'health.panelTitle': '🏥 Mi declaración de salud',
@@ -68387,7 +68387,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261120-reflexiones-grabadas';
+const PWA_SW_VERSION = '20261120-cronometro-mas5';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -69656,10 +69656,32 @@ function swRestore() {
 const SW_ALERT_KEY = 'ronbofit-stopwatch-alert-v1';
 const SW_ALERT_OPTS = [0, 1, 2, 3, 5];
 let SW_ACTX = null;
+/* ═══ AUTH-532 · LA PASTILLA «+5» (orden literal de Ronald,
+   2026-11-20: «al lado derecho del cinco quiero un botón que
+   sume +5 siempre que se presione; si quiero 30, presiono
+   hasta llegar a 30»): a la derecha de la pastilla del 5 va
+   una pastilla más del mismo estilo, «+5». Cada presión suma
+   5 minutos al intervalo A PARTIR DEL 5: la primera presión
+   deja la selección en 10 min, luego 15, 20, 25, 30… La
+   pastilla del 5 pasa a MOSTRAR el valor acumulado («30
+   min») y sigue siendo la selección activa — lo elegido se
+   lee ahí mismo, sin texto nuevo en ninguna otra parte. La
+   selección válida pasa a ser: las de siempre (0·1·2·3·5) o
+   un múltiplo de 5 desde 10. Tocar cualquier otra pastilla
+   limpia la acumulación por el camino de siempre (la
+   pastilla del 5 vuelve a decir «5 min»); tocar la propia
+   pastilla del 5 con acumulación vuelve a 5, porque su
+   data-sw-alert sigue valiendo 5 aunque enseñe otro número.
+   SIN TOPE: ninguna presión deja de sumar. La persistencia
+   es la de la fila de siempre (su clave de localStorage): el
+   valor acumulado persiste igual que persistía el 5. ═══ */
+function swAlertValid(v) {
+  return SW_ALERT_OPTS.includes(v) || (Number.isInteger(v) && v >= 10 && v % 5 === 0);
+}
 function swAlertLoad() {
   try {
     const v = parseInt(localStorage.getItem(SW_ALERT_KEY) || '0', 10);
-    STOPW.alertMin = SW_ALERT_OPTS.includes(v) ? v : 0;
+    STOPW.alertMin = swAlertValid(v) ? v : 0;
   } catch { STOPW.alertMin = 0; }
 }
 function swAlertSave() {
@@ -69788,7 +69810,7 @@ function swAlertCheck() {
   }
 }
 function swAlertSet(min) {
-  if (!SW_ALERT_OPTS.includes(min)) return;
+  if (!swAlertValid(min)) return;
   STOPW.alertMin = min;
   swAlertSave();
   swAlertBase();
@@ -69796,14 +69818,31 @@ function swAlertSet(min) {
   swAlertPrime();
   swAlertPaint();
 }
+/* AUTH-532: la presión del «+5» — desde una selección menor
+   que 5 (o Nunca) la primera presión cae en 10 (el 5 de la
+   pastilla madre más los 5 que suma); desde 5 o desde un
+   acumulado, suma 5 más. Todo el efecto pasa por swAlertSet,
+   el camino de siempre: guarda, reprograma desde el múltiplo
+   siguiente y ceba el sonido dentro del gesto. */
+function swAlertPlus() {
+  swAlertSet(STOPW.alertMin >= 5 ? STOPW.alertMin + 5 : 10);
+}
 function swAlertPaint() {
   const box = $('sw-alert'); if (!box) return;
   box.querySelectorAll('[data-sw-alert]').forEach(b => {
     const v = Number(b.dataset.swAlert);
-    b.textContent = v === 0 ? t('sw.alertNever') : t('sw.alertMin', { n: v });
-    b.classList.toggle('on', v === STOPW.alertMin);
-    b.setAttribute('aria-pressed', v === STOPW.alertMin ? 'true' : 'false');
+    /* AUTH-532: la pastilla del 5 enseña el valor acumulado
+       cuando la selección pasa de 5, y es la activa para
+       cualquier selección desde 5; sin acumulación, la fila
+       se pinta exactamente como siempre. */
+    const shown = v === 5 && STOPW.alertMin > 5 ? STOPW.alertMin : v;
+    const isOn = v === 5 ? STOPW.alertMin >= 5 : v === STOPW.alertMin;
+    b.textContent = v === 0 ? t('sw.alertNever') : t('sw.alertMin', { n: shown });
+    b.classList.toggle('on', isOn);
+    b.setAttribute('aria-pressed', isOn ? 'true' : 'false');
   });
+  const plus = box.querySelector('[data-sw-alert-plus]');
+  if (plus) plus.textContent = t('sw.alertPlus');
 }
 function swElapsed() { return STOPW.acc + (STOPW.running ? Date.now() - STOPW.startAt : 0); }
 function swPad2(n) { return String(n).padStart(2, '0'); }
@@ -70031,6 +70070,7 @@ function swFabPaint() {
   swAlertLoad();
   const fab = $('btn-stopwatch'); if (fab) fab.addEventListener('click', swOpenTool);
   document.querySelectorAll('[data-sw-alert]').forEach(b => b.addEventListener('click', () => swAlertSet(Number(b.dataset.swAlert))));
+  document.querySelectorAll('[data-sw-alert-plus]').forEach(b => b.addEventListener('click', swAlertPlus));
   swFabPaint(); swMiniPaint();
   setInterval(() => { if (!STOPW.open) { swFabPaint(); swMiniPaint(); } swAlertCheck(); }, 250);
   const x = $('sw-close'); if (x) x.addEventListener('click', swTerminateTool);
