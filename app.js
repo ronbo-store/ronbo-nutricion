@@ -41075,7 +41075,7 @@ let SESS_VOICE = { st: 'idle', ck: '', si: -1, seq: 0, note: null, rec: null, ca
 let SESS_FOLD_DAY = '';
 function sessFoldDaySync() {
   const hoy = todayISO();
-  if (SESS_FOLD_DAY !== hoy) { SESS_FOLD_DAY = hoy; SESS_MSG_OPEN = false; SESS_REFL_OPEN = false; if (SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { asstStopSpeak(); } catch {} } }
+  if (SESS_FOLD_DAY !== hoy) { SESS_FOLD_DAY = hoy; SESS_MSG_OPEN = false; SESS_REFL_OPEN = false; if (SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { moveAudioStop(); } catch {} } }
 }
 function sessReflHTML() {
   const r = sessReflOfDay();
@@ -41152,10 +41152,181 @@ function sessArticlePaint() {
     + `<button type="button" class="sf-art-listen" data-sess-art="listen">${SESS_ART.listening ? '🔇 ' + esc(t('move.stopListen')) : '🔊 ' + esc(t('move.listen'))}</button>`;
 }
 function sessArticleClose() {
-  if (SESS_ART && SESS_ART.listening) { try { asstStopSpeak(); } catch {} }
+  if (SESS_ART && SESS_ART.listening) { try { moveAudioStop(); } catch {} }
   SESS_ART = null;
   const fl = $('sess-article-float'); if (fl) { fl.style.display = 'none'; fl.innerHTML = ''; }
   try { coverSync(); } catch {}
+}
+/* ═══ AUTH-531 · LAS REFLEXIONES Y LAS LECTURAS, GRABADAS
+   (decisión de Ronald, 2026-11-20 12:37 CST: «Grabarlas con
+   las voces de la app»): la Reflexión del panel y las
+   lecturas de la hoja del artículo dejan de sonar con la
+   voz del teléfono (speechSynthesis vía asstSpeak — iOS la
+   apaga al bloquear la pantalla y además corta el texto a
+   1.500 caracteres) y suenan como ARCHIVO, con las voces
+   grabadas de la casa, por la ruta de medios + Media
+   Session de AUTH-529: siguen con el teléfono bloqueado y
+   se mandan desde la pantalla de bloqueo. El archivo de
+   cada pieza se nombra por su id del banco:
+   audio-refl-{id}-{idioma}.mp3 en el repo de assets.
+   LA VOZ DEL TELÉFONO QUEDA SOLO COMO RESPALDO: si el
+   archivo de una pieza falta o falla al cargar, esa escucha
+   — y solo esa — suena con asstSpeak como hasta hoy.
+   Sin cambios visuales: los botones de escucha y las hojas
+   quedan como están; el estado visible lo siguen llevando
+   SESS_REFL_LISTEN y SESS_ART.listening, y este
+   reproductor lo detiene y lo limpia al terminar.
+   Las respuestas del ayudante y los avisos siguen con la
+   voz del teléfono: son texto dinámico, fuera de esta
+   pieza. La rotación del panel «Mientras te mueves»
+   también queda como está (fuera del alcance decidido). ═══ */
+const MOVE_AUDIO = { id: '', lang: '', title: '', tx: '', st: 'idle', fb: false, el: null };
+function moveAudioUrl(id, lang) {
+  return SESS_AUDIO_BASE + 'audio-refl-' + id + '-' + lang + '.mp3';
+}
+function moveAudioEnsure() {
+  if (MOVE_AUDIO.el) return;
+  const el = new Audio();
+  el.preload = 'auto';
+  MOVE_AUDIO.el = el;
+  moveAudioMediaInit();
+  el.addEventListener('timeupdate', moveAudioMediaPos);
+  el.addEventListener('ended', moveAudioEnded);
+  el.addEventListener('error', moveAudioError);
+}
+/* El registro ante el sistema: los manejadores despachan
+   al reproductor que esté activo — este o el de las
+   instrucciones (AUTH-529) — para que la pantalla de
+   bloqueo mande siempre sobre el audio que suena.
+   RE-ANCLAJE SOBRE 529: al promover, el registro de
+   sessAudioMediaInit y este deben fundirse en UNO solo
+   (el último setActionHandler sobrescribe al anterior);
+   estos despachadores ya cubren ambos reproductores. */
+function moveAudioMediaInit() {
+  try {
+    if (!('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    ms.setActionHandler('play', () => {
+      if (MOVE_AUDIO.st === 'paused') moveAudioResume();
+      else if (typeof SESS_AUDIO !== 'undefined' && SESS_AUDIO.st === 'paused') sessAudioPlay();
+    });
+    ms.setActionHandler('pause', () => {
+      if (MOVE_AUDIO.st === 'playing') moveAudioPause();
+      else if (typeof SESS_AUDIO !== 'undefined' && SESS_AUDIO.st === 'playing') sessAudioPause();
+    });
+    ms.setActionHandler('stop', () => {
+      if (MOVE_AUDIO.st !== 'idle' || MOVE_AUDIO.fb) { moveAudioStop(); moveAudioRepaint(); }
+      else if (typeof SESS_AUDIO !== 'undefined' && SESS_AUDIO.st !== 'idle') { sessAudioStop(); try { sessPillTick(); } catch {} }
+    });
+    try { ms.setActionHandler('seekto', null); } catch {}
+  } catch {}
+}
+/* Publica (o retira) la pieza ante el sistema: título de
+   la pieza, «RONBO FIT» como artista y la mascota. Con el
+   respaldo de voz del teléfono el sistema no puede mandar
+   sobre la voz: la sesión se retira, como hasta hoy. */
+function moveAudioMediaSync() {
+  try {
+    if (!('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    if (MOVE_AUDIO.id && MOVE_AUDIO.st !== 'idle' && !MOVE_AUDIO.fb) {
+      ms.metadata = new MediaMetadata({
+        title: MOVE_AUDIO.title || t('sess.reflToday'),
+        artist: 'RONBO FIT',
+        album: t('move.title'),
+        artwork: [{ src: SESS_AUDIO_MASCOT, type: 'image/webp' }]
+      });
+      ms.playbackState = MOVE_AUDIO.st === 'playing' ? 'playing' : 'paused';
+    } else if (typeof SESS_AUDIO === 'undefined' || SESS_AUDIO.st === 'idle') {
+      ms.playbackState = 'none';
+      ms.metadata = null;
+    }
+  } catch {}
+}
+function moveAudioMediaPos() {
+  try {
+    if (!('mediaSession' in navigator) || !navigator.mediaSession.setPositionState) return;
+    const el = MOVE_AUDIO.el;
+    if (!el || MOVE_AUDIO.st === 'idle' || !el.duration || !isFinite(el.duration)) return;
+    navigator.mediaSession.setPositionState({ duration: el.duration, playbackRate: el.playbackRate || 1, position: Math.min(el.currentTime || 0, el.duration) });
+  } catch {}
+}
+/* Arranca la escucha de una pieza del banco por su
+   ARCHIVO. Exclusión mutua con las instrucciones: un solo
+   audio a la vez en toda la app. */
+function moveAudioStart(e) {
+  if (!e || !e.id) return;
+  const body = moveBodyOf(e);
+  const tx = body[LANG] || body.en || body.es || '';
+  if (!tx) return;
+  try { if (typeof SESS_AUDIO !== 'undefined' && SESS_AUDIO.st !== 'idle') sessAudioStop(); } catch {}
+  moveAudioEnsure();
+  MOVE_AUDIO.id = e.id;
+  MOVE_AUDIO.lang = LANG;
+  MOVE_AUDIO.tx = tx;
+  const title = moveTitleOf(e);
+  MOVE_AUDIO.title = title[LANG] || title.en || title.es || '';
+  MOVE_AUDIO.fb = false;
+  MOVE_AUDIO.st = 'playing';
+  const el = MOVE_AUDIO.el;
+  try { el.src = moveAudioUrl(e.id, MOVE_AUDIO.lang); } catch {}
+  let p = null;
+  try { p = el.play(); } catch {}
+  if (p && p.catch) p.catch(() => { moveAudioFallback(); });
+  moveAudioMediaSync();
+}
+/* EL RESPALDO DECLARADO: el archivo falta o falla → esta
+   escucha suena con la voz del teléfono, como hasta hoy. */
+function moveAudioFallback() {
+  if (MOVE_AUDIO.st === 'idle' || MOVE_AUDIO.fb || !MOVE_AUDIO.id) return;
+  MOVE_AUDIO.fb = true;
+  try { if (MOVE_AUDIO.el) MOVE_AUDIO.el.pause(); } catch {}
+  try { asstSpeak(MOVE_AUDIO.tx); } catch {}
+  moveAudioMediaSync();
+}
+function moveAudioError() { moveAudioFallback(); }
+function moveAudioPause() {
+  const el = MOVE_AUDIO.el; if (!el) return;
+  try { el.pause(); } catch {}
+  if (MOVE_AUDIO.st === 'playing') MOVE_AUDIO.st = 'paused';
+  moveAudioMediaSync();
+}
+function moveAudioResume() {
+  const el = MOVE_AUDIO.el; if (!el) return;
+  let p = null;
+  try { p = el.play(); } catch {}
+  if (p && p.catch) p.catch(() => {});
+  MOVE_AUDIO.st = 'playing';
+  moveAudioMediaSync();
+}
+/* Detiene la escucha (archivo o respaldo). El estado
+   visible de cada superficie lo limpia quien llama, como
+   hasta hoy; el fin natural lo limpia moveAudioEnded. */
+function moveAudioStop() {
+  const was = MOVE_AUDIO.st !== 'idle' || !!MOVE_AUDIO.id || MOVE_AUDIO.fb;
+  if (MOVE_AUDIO.fb) { MOVE_AUDIO.fb = false; try { asstStopSpeak(); } catch {} }
+  if (MOVE_AUDIO.el && MOVE_AUDIO.st !== 'idle') { try { MOVE_AUDIO.el.pause(); } catch {} }
+  MOVE_AUDIO.st = 'idle'; MOVE_AUDIO.id = ''; MOVE_AUDIO.tx = '';
+  if (was) moveAudioMediaSync();
+}
+/* Al terminar el archivo: el botón de la superficie que
+   escucha vuelve a «Escuchar» en su siguiente pintura. */
+function moveAudioEnded() {
+  const id = MOVE_AUDIO.id;
+  MOVE_AUDIO.st = 'idle'; MOVE_AUDIO.id = ''; MOVE_AUDIO.tx = '';
+  moveAudioMediaSync();
+  if (SESS_REFL_LISTEN) {
+    let rid = '';
+    try { const r = sessReflOfDay(); rid = (r && r.e && r.e.id) || ''; } catch {}
+    if (rid === id) { SESS_REFL_LISTEN = false; try { sessPillTick(); } catch {} }
+  }
+  if (SESS_ART && SESS_ART.id === id && SESS_ART.listening) { SESS_ART.listening = false; try { sessArticlePaint(); } catch {} }
+}
+/* Repinta las superficies tras una orden del sistema
+   (stop de la pantalla de bloqueo). */
+function moveAudioRepaint() {
+  if (SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { sessPillTick(); } catch {} }
+  if (SESS_ART && SESS_ART.listening) { SESS_ART.listening = false; try { sessArticlePaint(); } catch {} }
 }
 /* ── LA PANTALLA COMPLETA: el reloj total en grande, la
    franja con la foto del usuario, el MENSAJE DEL DÍA (la
@@ -42576,6 +42747,10 @@ function sessAudioToggle() {
   const ex = st.eff[st.cur].ex;
   const key = sessAudioKey(ex);
   if (!key) return;
+  /* AUTH-531: exclusión mutua — al arrancar una
+     instrucción se detiene la lectura/reflexión grabada
+     que estuviera sonando (un solo audio a la vez). */
+  try { moveAudioStop(); moveAudioRepaint(); } catch {}
   sessAudioEnsure();
   if (SESS_AUDIO.key === key && SESS_AUDIO.st !== 'idle') {
     if (SESS_AUDIO.st === 'playing') sessAudioPause(); else sessAudioPlay();
@@ -43167,7 +43342,7 @@ function sessPanelWire(el, surface) {
          AUTH-494: al PLEGAR la Reflexión se detiene su
          escucha en el sitio, si la hubiera. */
       if (fld.dataset.sessFold === 'msg') SESS_MSG_OPEN = !SESS_MSG_OPEN;
-      else if (fld.dataset.sessFold === 'refl') { SESS_REFL_OPEN = !SESS_REFL_OPEN; if (!SESS_REFL_OPEN && SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { asstStopSpeak(); } catch {} } }
+      else if (fld.dataset.sessFold === 'refl') { SESS_REFL_OPEN = !SESS_REFL_OPEN; if (!SESS_REFL_OPEN && SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { moveAudioStop(); } catch {} } }
       try { sessPillTick(); } catch {}
       return;
     }
@@ -43364,29 +43539,33 @@ document.addEventListener('click', ev => {
     let e = null;
     try { e = moveActive().find(x => x.id === SESS_ART.id) || null; } catch {}
     if (!e) return;
-    if (SESS_ART.listening) { SESS_ART.listening = false; try { asstStopSpeak(); } catch {} }
+    if (SESS_ART.listening) { SESS_ART.listening = false; try { moveAudioStop(); } catch {} }
     else {
-      const body = moveBodyOf(e);
-      const tx = body[LANG] || body.en || body.es || '';
+      /* AUTH-531: la lectura suena por su ARCHIVO grabado
+         (moveAudioStart); la voz del teléfono queda solo
+         como respaldo si el archivo falta o falla. */
       SESS_ART.listening = true;
-      try { asstSpeak(tx); } catch {}
+      try { moveAudioStart(e); } catch {}
     }
     try { sessArticlePaint(); } catch {}
   }
   else if (act === 'listen-panel') {
     /* AUTH-494: la escucha de la Reflexión ABIERTA en el
-       panel — la misma voz de la hoja (asstSpeak sobre el
-       mismo texto) sin abrir la hoja. Su estado vive en
-       SESS_REFL_LISTEN y entra en la firma de sessFullSync:
-       el latido repinta el botón (Escuchar/Dejar de
-       escuchar) sin perderlo. */
+       panel — la misma escucha de la hoja sin abrir la
+       hoja. Su estado vive en SESS_REFL_LISTEN y entra en
+       la firma de sessFullSync: el latido repinta el botón
+       (Escuchar/Dejar de escuchar) sin perderlo.
+       AUTH-531: la escucha suena por el ARCHIVO grabado de
+       la pieza (moveAudioStart); asstSpeak queda solo como
+       respaldo si el archivo falta o falla. */
     const r = sessReflOfDay(); if (!r || !r.long) return;
-    if (SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { asstStopSpeak(); } catch {} }
+    if (SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { moveAudioStop(); } catch {} }
     else {
-      const body = moveBodyOf(r.e);
-      const tx = body[LANG] || body.en || body.es || '';
+      /* AUTH-531: la Reflexión suena por su ARCHIVO
+         grabado (moveAudioStart); la voz del teléfono
+         queda solo como respaldo si el archivo falta. */
       SESS_REFL_LISTEN = true;
-      try { asstSpeak(tx); } catch {}
+      try { moveAudioStart(r.e); } catch {}
     }
     try { sessPillTick(); } catch {}
   }
@@ -47154,6 +47333,9 @@ function moveCloseAll() {
 function moveSpeakCard() {
   const txt = moveCardText(moveCardOf());
   if (!txt) return;
+  /* AUTH-531: si suena una lectura grabada, se detiene
+     antes de hablar (nunca dos voces a la vez). */
+  try { moveAudioStop(); moveAudioRepaint(); } catch {}
   try { asstSpeak(txt); } catch {}
 }
 function moveAdvance() {
@@ -68193,7 +68375,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261120-mis-planes-plegado';
+const PWA_SW_VERSION = '20261120-reflexiones-grabadas';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
