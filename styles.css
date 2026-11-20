@@ -2834,7 +2834,7 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
    opción que CAMBIA el plan (Activar/Desactivar) va resaltada en
    verde. La regla va ceñida a #train-custom-plans: la hoja de la
    ficha y la del detalle (la misma pieza compartida) no se tiñen. */
-#train-custom-plans .plan-sheet-opt[data-plan-toggle] { background: #dcfce7; border-radius: 10px; padding-left: 8px; padding-right: 8px; color: #065f46; }
+#train-custom-plans .plan-sheet-opt[data-plan-toggle], #myplans-float .plan-sheet-opt[data-plan-toggle] { background: #dcfce7; border-radius: 10px; padding-left: 8px; padding-right: 8px; color: #065f46; }
 .my-plans-new { margin-top: 2px; }
 .plan-row-c { display: flex; align-items: center; gap: 9px; border: 1px solid #e5e7eb; background: #fff; border-radius: 13px; padding: 10px 12px; margin-bottom: 6px; }
 .plan-row-c-main { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
@@ -7202,3 +7202,32 @@ textarea.gest-in { resize: none; }
 @keyframes sfCelebIn { from { transform: translateY(46px) scale(.82); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 .sf-celeb-tap { z-index: 2; margin-top: 10px; color: #8fa6bf; font-size: 12.5px; letter-spacing: .04em; text-align: center; }
 @media (prefers-reduced-motion: reduce) { .sf-celeb-cf { display: none; } .sf-celeb-scene, .sf-celeb-bubble { animation: none; } }
+
+/* ===== CAND-530 · «MIS PLANES», PLEGADO EN UNA LÍNEA =====
+   (orden de Ronald 2026-11-20 12:26 CST, maqueta aprobada tal
+   cual a las 12:30: la pila de tarjetas a la vista dentro de
+   Personaliza «es un desorden»). La línea plegada vive en
+   #train-custom-plans y la hoja flotante (#myplans-float, velo
+   + hoja inferior de la familia de .ds-float) trae las filas
+   de siempre organizadas como la maqueta. Las reglas de las
+   filas van ceñidas a .myplans-sheet: la pieza compartida
+   planRowsHTML no cambia ni un píxel en la ficha del alumno
+   ni en el detalle de «Mis alumnos». */
+.my-plans-fold { display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; text-align: left; background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 12px 13px; font-family: inherit; min-height: 52px; cursor: pointer; }
+.my-plans-fold-name { flex: none; font-size: 15.5px; font-weight: 800; color: #0b7a6e; }
+.my-plans-fold-key { flex: 1 1 auto; min-width: 0; text-align: right; font-size: 12.5px; font-weight: 600; color: #52605d; overflow-wrap: anywhere; }
+.my-plans-fold-key b { color: #159947; font-weight: 800; }
+.my-plans-fold-chev { flex: none; font-size: 20px; font-weight: 900; color: #0b7a6e; line-height: 1; }
+.myplans-float { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 60; display: flex; align-items: flex-end; justify-content: center; }
+.myplans-sheet { background: #fff; width: min(430px, 100%); max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; border-radius: 24px 24px 0 0; padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; box-shadow: 0 -12px 34px rgba(15, 23, 42, .25); }
+.myplans-grip { width: 44px; height: 5px; border-radius: 99px; background: #d8dee2; margin: 2px auto 10px; }
+.myplans-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.myplans-head b { font-size: 19px; font-weight: 800; color: #14201f; }
+.myplans-x { margin-left: auto; flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #e3e8ea; background: #f4f6f7; color: #33475b; font: inherit; font-size: 15px; cursor: pointer; }
+.myplans-list .plan-row-c { border: none; border-bottom: 1px solid #eef1f3; border-radius: 0; background: transparent; padding: 10px 2px; margin-bottom: 0; }
+.myplans-list .plan-row-c-main b { font-size: 15.5px; color: #14201f; }
+/* El plan activo, primero y como tarjeta limpia (la maqueta):
+   su fila es la que lleva la insignia «Activo» (.ok-badge). */
+.myplans-list .plan-row-c:has(.ok-badge) { background: #effaf3; border: 1px solid #cfe8d8; border-radius: 16px; padding: 12px; margin-bottom: 8px; }
+.myplans-list .plan-row-c:has(.ok-badge) .plan-row-c-main b { font-size: 17px; }
+.myplans-newbtn { width: 100%; margin-top: 12px; min-height: 52px; font-size: 16px; }

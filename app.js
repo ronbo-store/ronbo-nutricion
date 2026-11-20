@@ -6086,7 +6086,7 @@ en: {
   'ui.photoAlt': 'Enlarged photo',
   'msg.photoDeleted': 'Photo deleted.',
   'msg.foodSent': 'Photo sent. Let me know in the chat so I can analyze it.',
-  'train.title': '🏋️ My training plan', 'train.myPlans': '📋 My plans', 'train.planLabel': 'Plan', 'train.myPlansSub': 'here you open and change your plan', 'train.noActivePlan': 'no active plan', 'train.planMenu': 'Plan actions', 'train.loading': 'Loading your plan…',
+  'train.title': '🏋️ My training plan', 'train.myPlans': '📋 My plans', 'train.myPlansTitle': 'My plans', 'train.planLabel': 'Plan', 'train.myPlansSub': 'here you open and change your plan', 'train.noActivePlan': 'no active plan', 'train.planMenu': 'Plan actions', 'train.loading': 'Loading your plan…',
   'train.none': 'Your trainer has not assigned you a plan yet.',
   'train.noneNamed': 'Your trainer {name} hasn\'t assigned you a plan yet.',
   'train.today.btnToday': 'Today', 'train.today.todayWord': 'Today',
@@ -11539,7 +11539,7 @@ es: {
   'ui.photoAlt': 'Foto ampliada',
   'msg.photoDeleted': 'Foto eliminada.',
   'msg.foodSent': 'Foto enviada. Avísame por el chat para analizarla.',
-  'train.title': '🏋️ Mi plan de entrenamiento', 'train.myPlans': '📋 Mis planes', 'train.planLabel': 'Plan', 'train.myPlansSub': 'aquí despliegas y cambias tu plan', 'train.noActivePlan': 'sin plan activo', 'train.planMenu': 'Acciones del plan', 'train.loading': 'Cargando tu plan…',
+  'train.title': '🏋️ Mi plan de entrenamiento', 'train.myPlans': '📋 Mis planes', 'train.myPlansTitle': 'Mis planes', 'train.planLabel': 'Plan', 'train.myPlansSub': 'aquí despliegas y cambias tu plan', 'train.noActivePlan': 'sin plan activo', 'train.planMenu': 'Acciones del plan', 'train.loading': 'Cargando tu plan…',
   'train.none': 'Tu entrenador aún no te ha asignado un plan.',
   'train.noneNamed': 'Tu entrenador {name} aún no te ha asignado un plan.',
   'train.today.btnToday': 'Hoy', 'train.today.todayWord': 'Hoy',
@@ -51169,10 +51169,22 @@ async function loadMyTraining() {
      las herramientas de la sesión), bajo su subtítulo: desplegar
      y cambiar el plan vive ahora ahí. */
   const myPlanLineHTML = canSelfManage ? `<div class="my-plans-line"><span aria-hidden="true">📋</span><span class="my-plans-line-tx"><b>${t('train.planLabel')}:</b> ${mpActive ? esc(mpActive.title || '') : t('train.noActivePlan')}</span>${mpActive ? `<span class="my-plans-pill">● ${t('train.activeBadge')}</span>` : ''}</div>` : '';
+  /* CAND-530 — «MIS PLANES», PLEGADO EN UNA LÍNEA (orden de
+     Ronald 2026-11-20 12:26 CST, maqueta aprobada tal cual a
+     las 12:30: la pila de tarjetas a la vista «es un
+     desorden»): dentro de Personaliza el bloque ya NO pinta
+     las filas desplegadas ni el botón suelto — pinta UNA línea
+     plegada de la casa («📋 Mis planes» + el dato clave: el
+     nombre del plan activo, literal y completo, + «›»), y el
+     subtítulo «aquí despliegas y cambias tu plan» desaparece:
+     lo sustituye el dato clave. Al tocarla se abre la hoja
+     flotante (myPlansSheetOpen) con las mismas filas de
+     siempre (planRowsHTML + wirePlanActions, fuente única) y
+     el «Plan nuevo» ancho al final. La línea informativa del
+     flujo (AUTH-411, arriba) no cambia. Sin autogestión no se
+     pinta nada, como hasta hoy. */
   const myPlansHTML = canSelfManage ? `<div class="my-plans-block" id="my-plans-box">
-    <div class="my-plans-sub"><b>${t('train.myPlans')}</b><small>${t('train.myPlansSub')}</small></div>
-    ${planRowsHTML(plans, true)}
-    <div class="my-plans-new"><button type="button" class="btn-primary btn-sm" data-plan-new="1">${t('train.new')}</button></div>
+    <button type="button" class="my-plans-fold" data-myplans-open="1" aria-haspopup="dialog"><span class="my-plans-fold-name">${t('train.myPlans')}</span>${mpActive ? `<span class="my-plans-fold-key"><b>${esc(t('train.activeBadge'))}:</b> ${esc(mpActive.title || '')}</span>` : `<span class="my-plans-fold-key">${esc(t('train.noActivePlan'))}</span>`}<span class="my-plans-fold-chev" aria-hidden="true">›</span></button>
   </div>` : '';
   const trainTodayHTML = `<div class="train-today">
     <div class="train-sel-head"><b>${esc(dateName(sel))}</b>${sel === today ? ` <span class="ok-badge">${t('train.today.todayWord')}</span>` : ''}</div>
@@ -51239,12 +51251,16 @@ async function loadMyTraining() {
      su nueva casa, #train-custom-plans (index.html, dentro de
      «Personaliza tus asignaciones de hoy»); la línea del flujo ya
      no lleva despliegue ni cableado. Sin autogestión el
-     contenedor queda vacío, como el bloque de antes. */
+     contenedor queda vacío, como el bloque de antes.
+     CAND-530: lo que se pinta es la LÍNEA PLEGADA y su único
+     cableado es abrir la hoja flotante; las filas y sus
+     acciones se cablean DENTRO de la hoja, al abrirla, con el
+     mismo wirePlanActions de siempre. */
   const mpHost = $('train-custom-plans');
   if (mpHost) {
     mpHost.innerHTML = myPlansHTML;
-    const mpBox = $('my-plans-box');
-    if (mpBox) wirePlanActions(mpBox, uid, plans, () => loadMyTraining());
+    const mpOpen = mpHost.querySelector('[data-myplans-open]');
+    if (mpOpen) mpOpen.onclick = () => myPlansSheetOpen(uid, plans, () => loadMyTraining());
   }
   const pcBtn = $('btn-print-card');
   if (pcBtn) pcBtn.onclick = () => printCardRender(plan);
@@ -52164,6 +52180,73 @@ function wirePlanActions(box, uid, plans, reload) {
     wirePlanActionButtons(box, sh, uid, plans, reload);
     sh.querySelectorAll('.plan-sheet-opt').forEach(o => o.addEventListener('click', () => setTimeout(() => { if (sh.parentNode) sh.remove(); }, 0)));
   });
+}
+/* CAND-530 — LA HOJA FLOTANTE «MIS PLANES» (maqueta aprobada
+   por Ronald 2026-11-20 12:30 CST): velo atenuado y hoja
+   inferior de la casa (la familia de .ds-float/.ex-media-pop;
+   su role="dialog" la mete en COVER_SEL: el fondo se congela
+   con el candado de siempre y el sistema de foco la trata
+   como tapa). Dentro va TODO lo que el bloque desplegado de
+   AUTH-411 hacía, organizado como la maqueta: el plan ACTIVO
+   primero (copia ordenada solo para pintar; el orden de
+   fetchPlans no se toca) como tarjeta limpia, los demás como
+   filas compactas — las MISMAS filas de planRowsHTML y el
+   MISMO wirePlanActions de las tres superficies, cableados
+   sobre la propia hoja — y al final el botón ancho «＋ Plan
+   nuevo». Conducta de cierre: la ✕ y el toque en el velo
+   cierran sin hacer nada; las acciones que ESCRIBEN (Activar/
+   Desactivar, Eliminar) cierran por el reload envuelto (la
+   línea plegada se repinta con el resultado); las que ABREN
+   otra superficie (Plan nuevo, Editar, Repetir semana y la
+   elección de día de Repetir día — el editor de siempre)
+   cierran la hoja al aterrizar, por delegación, para que el
+   editor quede al frente como hoy; Versiones se despliega
+   dentro de la hoja, como hoy dentro del bloque. */
+let MYPLANS_SHEET = null;   // { uid, plans, reload } — solo memoria
+function myPlansSheetOpen(uid, plans, reload) {
+  MYPLANS_SHEET = { uid, plans, reload };
+  myPlansSheetSync();
+}
+function myPlansSheetClose() {
+  if (!MYPLANS_SHEET && !document.getElementById('myplans-float')) return;
+  MYPLANS_SHEET = null;
+  myPlansSheetSync();
+}
+function myPlansSheetSync() {
+  let fl = document.getElementById('myplans-float');
+  const S = MYPLANS_SHEET;
+  if (!S) {
+    if (fl) fl.remove();
+    try { coverSync(); } catch {}
+    return;
+  }
+  if (!fl) {
+    fl = document.createElement('div');
+    fl.id = 'myplans-float';
+    fl.className = 'myplans-float';
+    fl.setAttribute('role', 'dialog');
+    fl.setAttribute('aria-label', t('train.myPlansTitle'));
+    document.body.appendChild(fl);
+    fl.addEventListener('click', e => {
+      if (e.target === fl) { myPlansSheetClose(); return; }
+      /* Las puertas que abren otra superficie cierran esta
+         hoja al aterrizar (la elección de día nace después,
+         dentro de la hoja hermana: por eso se delega). */
+      if (e.target.closest('[data-plan-new], [data-plan-edit], [data-plan-repeat-week], [data-plan-repeat-day-pick]'))
+        setTimeout(() => myPlansSheetClose(), 0);
+    });
+  }
+  const sorted = S.plans.slice().sort((a, b) => (b.active === true ? 1 : 0) - (a.active === true ? 1 : 0));
+  fl.innerHTML = `<div class="myplans-sheet">
+    <div class="myplans-grip" aria-hidden="true"></div>
+    <div class="myplans-head"><b>${esc(t('train.myPlansTitle'))}</b><button type="button" class="myplans-x" data-myplans-close="1" aria-label="✕">✕</button></div>
+    <div class="myplans-list">${planRowsHTML(sorted, true)}</div>
+    <button type="button" class="btn-primary myplans-newbtn" data-plan-new="1">＋ ${esc(t('train.new'))}</button>
+  </div>`;
+  const card = fl.querySelector('.myplans-sheet');
+  card.querySelector('[data-myplans-close]').onclick = () => myPlansSheetClose();
+  wirePlanActions(card, S.uid, S.plans, () => { myPlansSheetClose(); S.reload(); });
+  try { coverSync(); } catch {}
 }
 function wirePlanActionButtons(box, root, uid, plans, reload) {
   root.querySelectorAll('[data-plan-new]').forEach(b => b.onclick = () => openPlanEditor(uid, null));
@@ -68110,7 +68193,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261120-audio-en-bloqueo';
+const PWA_SW_VERSION = '20261120-mis-planes-plegado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
