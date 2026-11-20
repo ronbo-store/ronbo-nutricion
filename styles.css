@@ -7041,3 +7041,12 @@ textarea.gest-in { resize: none; }
 .sf-dot.q { color: #ff5a5a; border-color: rgba(163, 74, 74, .85); }
 .sf-dot.q.next { color: #ff5a5a; border-color: #ff5a5a; box-shadow: 0 0 0 2px rgba(255, 90, 90, .35); }
 .sf-dot.sf-warm.q { color: #ff5a5a; border-color: rgba(163, 74, 74, .85); background: rgba(255, 90, 90, .07); }
+
+/* AUTH-516 · ¿CARDIO PARA FINALIZAR?: la pregunta y la
+   confirmación viven en el bloque .sf-done de AUTH-507, con
+   su mismo lenguaje (la pregunta en el peso del título del
+   bloque, los botones .sf-btn de la casa en su fila). La
+   hoja del punto es la .swap-sheet de siempre: sin CSS
+   nuevo. */
+.sf-done-q { font-size: 17px; font-weight: 800; color: #fff; line-height: 1.3; margin-top: 10px; }
+.sf-done-cardio .sf-btnrow { margin-top: 10px; }

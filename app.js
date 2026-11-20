@@ -6548,6 +6548,7 @@ en: {
   'sess.nowLab': 'NOW', 'sess.exRunning': 'in progress',
   'sess.ofDay': '{p}% of the day',
   'sess.dayDone': 'Day completed', 'sess.dayDoneSum': '{n} of {m} exercises done',
+  'sess.doneCardioQ': 'Do you want to finish with cardio?', 'sess.doneCardioYes': 'Yes, do cardio', 'sess.doneFinishQ': 'Shall we wrap up for today?', 'sess.doneCardioDoing': 'Cardio in progress', 'sess.doneCardioResume': 'Continue with cardio',
   'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel', 'sess.barFinish': 'Finish',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.cardioIncl': 'includes {min} min of cardio',
@@ -11940,6 +11941,7 @@ es: {
   'sess.nowLab': 'AHORA', 'sess.exRunning': 'en curso',
   'sess.ofDay': '{p}% del día',
   'sess.dayDone': 'Día completado', 'sess.dayDoneSum': '{n} de {m} ejercicios hechos',
+  'sess.doneCardioQ': '¿Quieres hacer cardio para finalizar?', 'sess.doneCardioYes': 'Sí, hacer cardio', 'sess.doneFinishQ': '¿Finalizamos la jornada por hoy?', 'sess.doneCardioDoing': 'Cardio en curso', 'sess.doneCardioResume': 'Seguir con el cardio',
   'sess.barLabel': 'Barra de la sesión', 'sess.fullLabel': 'Panel de la sesión', 'sess.barFinish': 'Finalizar',
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
   'sess.cardioIncl': 'incluye {min} min de cardio',
@@ -41436,14 +41438,42 @@ function sessFullSync(run) {
        abrir/cancelar de la vista del día, en el sitio). */
     const dKey = dc.plan.id + '|' + todayISO() + '|' + dc.di;
     if (SESS_DONE_KEY !== dKey) { SESS_DONE_KEY = dKey; SESS_DONE_FORM = true; }
+    /* AUTH-516 · LA PREGUNTA DE CARDIO AL FINALIZAR (regla de
+       Ronald, 2026-11-19 13:25 CST): el estado propio del
+       paquete (SESS_DONE_CARDIO, misma clave y disciplina que
+       SESS_DONE_FORM) manda en el bloque .sf-done. La puerta:
+       estado '' y el borrador de cardio de hoy SIN ninguna
+       entrada válida — quien ya tiene su cardio hoy no recibe
+       la pregunta, y tras hacer el cardio del «sí» tampoco
+       renace (ese punto ya es una entrada válida y el estado
+       ya no está en ''). Si el punto en curso quedó guardado
+       (plegado y válido) o fue retirado, el estado pasa solo
+       a 'after' en este latido. */
+    if (SESS_DONE_CARDIO_KEY !== dKey) { SESS_DONE_CARDIO_KEY = dKey; SESS_DONE_CARDIO = ''; SESS_DONE_CARDIO_T = ''; }
+    let cardioValid = false;
+    try { cardioValid = sessDoneCardioHasValid(dc.plan.id); } catch {}
+    if (SESS_DONE_CARDIO === 'doing' && SESS_DONE_CARDIO_T) {
+      try { if (sessDoneCardioPointAfter(dc.plan.id, SESS_DONE_CARDIO_T)) SESS_DONE_CARDIO = 'after'; } catch {}
+    }
     const totalD = dc.eff.length;
     const headDone = `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.dayDone'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}</div>`;
     const franjaDone = `<div class="sf-franja" aria-hidden="true"><i style="width:100%"></i>${sessPillTipHTML('calc(100% - 13px)')}</div><div class="sf-prog">${esc(t('train.guide.pos', { n: totalD, m: totalD }))} · ${esc(t('sess.ofDay', { p: 100 }))}</div>`;
     const doneForm = SESS_DONE_FORM
       ? trainCloseFormHTML(dc.plan.id, dc.di)
       : `<button type="button" class="sf-btn fin sf-done-open" data-sess-done-open="1">${esc(t('train.closeFinish'))}</button>`;
-    const doneBlk = `<div class="sf-done"><div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div><div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: totalD, m: totalD }))} · <span class="sf-done-clock">00:00:00</span></div>${doneForm}</div>`;
-    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f'].join('|');
+    const askCardio = SESS_DONE_CARDIO === '' && !cardioValid;
+    let doneInner;
+    if (askCardio) {
+      doneInner = `<div class="sf-done-cardio"><div class="sf-done-q">${esc(t('sess.doneCardioQ'))}</div><div class="sf-btnrow"><button type="button" class="sf-btn ini" data-sess-cardio-yes="1">${esc(t('sess.doneCardioYes'))}</button><button type="button" class="sf-btn fin" data-sess-cardio-no="1">${esc(t('train.start.no'))}</button></div></div>`;
+    } else if (SESS_DONE_CARDIO === 'doing') {
+      doneInner = `<div class="sf-done-doing"><div class="sf-done-q">${esc(t('sess.doneCardioDoing'))}</div><button type="button" class="sf-btn ini sf-done-open" data-sess-cardio-resume="1">${esc(t('sess.doneCardioResume'))}</button></div>`;
+    } else if (SESS_DONE_CARDIO === 'after') {
+      doneInner = `<div class="sf-done-q">${esc(t('sess.doneFinishQ'))}</div>${doneForm}`;
+    } else {
+      doneInner = doneForm;
+    }
+    const doneBlk = `<div class="sf-done"><div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div><div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: totalD, m: totalD }))} · <span class="sf-done-clock">00:00:00</span></div>${doneInner}</div>`;
+    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v')].join('|');
     if (!SESS_FULL_SIG.startsWith('fdone')) sessDayDoneHook(dc);   /* AUTH-507: la celebración se engancha a la ENTRADA en el estado, no a cada latido */
     html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${msgBlk}${sessReflHTML()}${doneBlk}</div>${minBtn}</div>`;
   } else {
@@ -41786,6 +41816,42 @@ function sessPanelWire(el, surface) {
       try { sessPillTick(); } catch {}
       return;
     }
+    const dcno = ev.target.closest ? ev.target.closest('[data-sess-cardio-no]') : null;
+    if (dcno) {
+      /* AUTH-516 · NO A LA PREGUNTA DE CARDIO: el bloque
+         pinta exactamente el cierre de AUTH-507. */
+      SESS_DONE_CARDIO = 'no';
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const dcyes = ev.target.closest ? ev.target.closest('[data-sess-cardio-yes]') : null;
+    if (dcyes) {
+      /* AUTH-516 · SÍ A LA PREGUNTA DE CARDIO: nace (o se
+         reutiliza) el punto en blanco por la entrada
+         compartida de creación y su formulario se abre en
+         la hoja flotante de la casa, sin salir del panel. */
+      const planY = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (planY && TRAIN_CHECKS_CTX === planY.id + '|' + todayISO()) {
+        try {
+          SESS_DONE_CARDIO_T = trainCardio2AddBlank(planY.id);
+          SESS_DONE_CARDIO = 'doing';
+          sessDoneCardioSheetOpen(planY, SESS_DONE_CARDIO_T);
+        } catch {}
+      }
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const dcres = ev.target.closest ? ev.target.closest('[data-sess-cardio-resume]') : null;
+    if (dcres) {
+      /* AUTH-516 · SEGUIR CON EL CARDIO: la hoja se reabre
+         sobre el mismo punto, donde iba. */
+      const planS = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      if (planS && SESS_DONE_CARDIO_T) {
+        try { sessDoneCardioSheetOpen(planS, SESS_DONE_CARDIO_T); } catch {}
+      }
+      try { sessPillTick(); } catch {}
+      return;
+    }
     const fin = ev.target.closest ? ev.target.closest('[data-pill-finish]') : null;
     const ini = !fin && ev.target.closest ? ev.target.closest('[data-pill-start]') : null;
     const pau = !fin && !ini && ev.target.closest ? ev.target.closest('[data-pill-pause]') : null;
@@ -42017,6 +42083,93 @@ let SESS_DONE_KEY = '';
    La animación NO vive en este paquete: su paquete aprobado
    colgará aquí; hoy el gancho no pinta nada. ═══ */
 function sessDayDoneHook(dc) { /* la celebración colgará aquí (paquete propio, aprobado 2026-11-18) */ }
+
+/* ═══ AUTH-516 · «¿CARDIO PARA FINALIZAR?» (regla de Ronald,
+   2026-11-19 13:25 CST): al completarse el día por los
+   ejercicios, ANTES del formulario de cierre de AUTH-507 el
+   panel pregunta si la persona quiere hacer cardio para
+   finalizar. Estado propio de pantalla — memoria, clave
+   plan|fecha|día, nace sin preguntar al cambiar la clave —:
+   '' (sin preguntar) · 'no' (respondido no: el cierre de
+   507 intacto) · 'doing' (cardio en curso: el panel enseña
+   «Seguir con el cardio» y NINGÚN formulario de cierre) ·
+   'after' (cardio terminado o retirado: la confirmación
+   con el encabezado literal de Ronald «¿Finalizamos la
+   jornada por hoy?» sobre el formulario de 507). El punto
+   del «sí» es un punto añadido más del protocolo de
+   AUTH-481 — mismo borrador, mismo pintor, mismo cableado,
+   misma proyección al registro — abierto en la hoja
+   flotante de la casa (.swap-sheet) sobre el panel. Ni el
+   escritor ni trainCloseConfirm se tocan. ═══ */
+let SESS_DONE_CARDIO = '';
+let SESS_DONE_CARDIO_KEY = '';
+let SESS_DONE_CARDIO_T = '';
+/* ¿El borrador de cardio de hoy contiene alguna entrada
+   válida? (la puerta 2b del plan: el calentamiento hecho o
+   cualquier añadido con máquina y minutos — la vista de
+   siempre, trainCardio2ViewOf). */
+function sessDoneCardioHasValid(planId) {
+  const doc = trainCardio2Read(planId);
+  if (trainCardio2ViewOf(doc.warm)) return true;
+  return (doc.extras || []).some(e => !!trainCardio2ViewOf(e));
+}
+/* El punto del «sí» (testigo T): ¿ya toca pasar a 'after'?
+   Sí si el punto ya no existe (retirado) o si quedó guardado
+   — plegado y válido con la validez de su guardado (el
+   calentamiento por su vista; el añadido, completo). */
+function sessDoneCardioPointAfter(planId, T) {
+  const doc = trainCardio2Read(planId);
+  const e = T === 'warm' ? doc.warm : (doc.extras || [])[Number(String(T).slice(1))];
+  if (!e) return true;
+  if (e.folded !== true) return false;
+  return T === 'warm' ? !!trainCardio2ViewOf(e) : !!trainCardio2ExtraValid(e);
+}
+/* LA HOJA DEL CARDIO DEL «SÍ»: el formulario del punto
+   (trainCardio2FormHTML) con su cableado de siempre
+   (trainCardio2Wire) en la hoja flotante de la casa sobre el
+   panel — el patrón .swap-sheet de AUTH-484, creado en el
+   DOM como las hojas hermanas (remove/skip). Cerrar la hoja
+   (✕) NO guarda ni cancela el punto: el estado sigue en
+   'doing' y «Seguir con el cardio» lo retoma donde iba. Al
+   GUARDAR el punto (plegado y válido) o al QUITARLO, la
+   hoja se cierra sola y el estado pasa a 'after': la
+   confirmación del fin de jornada queda en el panel. El
+   oyente propio corre en burbuja, DESPUÉS del onclick del
+   cableado de siempre, que ya escribió el borrador. */
+function sessDoneCardioSheetOpen(plan, T) {
+  if (!plan || !T) return;
+  const doc = trainCardio2Read(plan.id);
+  const e = T === 'warm' ? doc.warm : (doc.extras || [])[Number(String(T).slice(1))];
+  if (!e) { SESS_DONE_CARDIO = 'after'; try { sessPillTick(); } catch {} return; }
+  sessDoneCardioSheetClose();
+  const sheet = document.createElement('div');
+  sheet.id = 'done-cardio-sheet';
+  sheet.className = 'swap-sheet done-cardio-sheet';
+  sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('train.cardio2.register'))}</span><button type="button" class="swap-sheet-x" data-done-cardio-close="1" aria-label="✕">✕</button></div><div class="cardio-warm cardio2-point" data-cardio2-plan="${esc(plan.id)}" data-cardio2-iso="${esc(todayISO())}">${trainCardio2FormHTML(T, e, false)}</div>`;
+  document.body.appendChild(sheet);
+  document.body.classList.add('swap-sheet-open');
+  sheet.querySelectorAll('[data-done-cardio-close]').forEach(b => b.onclick = () => sessDoneCardioSheetClose());
+  try { trainCardio2Wire(sheet); } catch {}
+  sheet.addEventListener('click', ev => {
+    const tg = ev.target;
+    if (!tg || !tg.closest) return;
+    if (!tg.closest('[data-cardio2-save]') && !tg.closest('[data-cardio2-del]')) return;
+    setTimeout(() => {
+      let after = false;
+      try { after = sessDoneCardioPointAfter(plan.id, T); } catch {}
+      if (after) {
+        sessDoneCardioSheetClose();
+        SESS_DONE_CARDIO = 'after';
+        try { sessPillTick(); } catch {}
+      }
+    }, 60);
+  });
+}
+function sessDoneCardioSheetClose() {
+  const sheet = document.getElementById('done-cardio-sheet');
+  if (sheet) sheet.remove();
+  document.body.classList.remove('swap-sheet-open');
+}
 
 /* ═══ AUTH-488 · UN SOLO «INICIAR» (variante B de la maqueta,
    aprobada por Ronald el 2026-11-17): el «Iniciar» del DÍA
@@ -46398,6 +46551,26 @@ function trainCardio2ExtrasHTML(plan, di, iso, startNum) {
    borrador local — la disciplina de la casa, sin un «Cancelar»
    global — y repinta; los campos guardan al cambiar y las
    ruedas en el sitio, sin repintar (para no perder el foco). */
+/* AUTH-516 · LA ENTRADA COMPARTIDA DE CREACIÓN DEL PUNTO
+   (extracción declarada del gesto [data-cardio2-add], que
+   vivía dentro del closure de trainCardio2Wire): la misma
+   escritura de siempre sobre el mismo borrador — un punto
+   añadido en blanco al final —, reutilizando el añadido en
+   blanco que ya exista (sin máquina ni minutos) en vez de
+   duplicarlo: la pregunta de cardio al finalizar puede
+   renacer tras una recarga y su «sí» retoma ese mismo
+   punto. Devuelve el testigo del punto ('x<i>'). */
+function trainCardio2Blank() {
+  return { machine: null, minutes: null, kcal: null, dist: null, hr: null, spec: {}, photo: null, folded: false };
+}
+function trainCardio2AddBlank(planId, iso) {
+  const doc = trainCardio2Read(planId, iso);
+  const i = (doc.extras || []).findIndex(e => e && !e.machine && !(Number(e.minutes) > 0));
+  if (i >= 0) return 'x' + i;
+  doc.extras.push(trainCardio2Blank());
+  trainCardio2Write(planId, doc, iso);
+  return 'x' + (doc.extras.length - 1);
+}
 function trainCardio2Wire(box) {
   if (!box) return;
   const roots = box.querySelectorAll('[data-cardio2-plan]');
@@ -46543,9 +46716,7 @@ function trainCardio2Wire(box) {
   });
   box.querySelectorAll('[data-cardio2-add]').forEach(b => b.onclick = () => {
     const c = ctxOf(b); if (!c) return;
-    const doc = trainCardio2Read(c.planId, c.iso);
-    doc.extras.push(blank());
-    trainCardio2Write(c.planId, doc, c.iso);
+    trainCardio2AddBlank(c.planId, c.iso);   /* AUTH-516: la creación vive en la entrada compartida */
     loadMyTraining();
   });
 }
@@ -65988,7 +66159,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-linea-circulos';
+const PWA_SW_VERSION = '20261119-cardio-para-finalizar';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
