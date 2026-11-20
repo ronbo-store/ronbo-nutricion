@@ -6579,6 +6579,7 @@ en: {
   'sess.dayDone': 'Day completed', 'sess.dayDoneSum': '{n} of {m} exercises done', 'sess.celebTap': 'Tap the mascot to replay the confetti',
   'sess.doneCardioQ': 'Do you want to finish with cardio?', 'sess.doneCardioYes': 'Yes, do cardio', 'sess.doneFinishQ': 'Shall we wrap up for today?', 'sess.doneCardioDoing': 'Cardio in progress', 'sess.doneCardioResume': 'Continue with cardio',
   'sess.cstage.warmLab': 'Warm-up cardio', 'sess.cstage.endLab': 'Final cardio', 'sess.cstage.assigned': 'Assigned: {min} min', 'sess.cstage.do': '✓ Done', 'sess.cstage.start': 'Start', 'sess.cstage.pause': 'Pause', 'sess.cstage.endDone': 'Cardio done — finishing now closes the day.', 'sess.cstage.notYet': 'Assigned — it only counts when you do it here.',
+  'home.start.go': 'START', 'home.start.sub': "today's workout", 'home.start.skip': 'Skip today', 'home.start.aria': "Start today's workout",
   'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel', 'sess.barFinish': 'Finish',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.cardioIncl': 'includes {min} min of cardio',
@@ -12031,6 +12032,7 @@ es: {
   'sess.dayDone': 'Día completado', 'sess.dayDoneSum': '{n} de {m} ejercicios hechos', 'sess.celebTap': 'Toca la mascota para repetir el confeti',
   'sess.doneCardioQ': '¿Quieres hacer cardio para finalizar?', 'sess.doneCardioYes': 'Sí, hacer cardio', 'sess.doneFinishQ': '¿Finalizamos la jornada por hoy?', 'sess.doneCardioDoing': 'Cardio en curso', 'sess.doneCardioResume': 'Seguir con el cardio',
   'sess.cstage.warmLab': 'Cardio de calentamiento', 'sess.cstage.endLab': 'Cardio final', 'sess.cstage.assigned': 'Asignado: {min} min', 'sess.cstage.do': '✓ Hecho', 'sess.cstage.start': 'Empezar', 'sess.cstage.pause': 'Pausar', 'sess.cstage.endDone': 'Cardio hecho — al finalizar se cierra la jornada.', 'sess.cstage.notYet': 'Asignado — solo cuenta cuando lo haces aquí.',
+  'home.start.go': 'EMPEZAR', 'home.start.sub': 'tu entrenamiento de hoy', 'home.start.skip': 'Saltar el día de hoy', 'home.start.aria': 'Empezar tu entrenamiento de hoy',
   'sess.barLabel': 'Barra de la sesión', 'sess.fullLabel': 'Panel de la sesión', 'sess.barFinish': 'Finalizar',
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
   'sess.cardioIncl': 'incluye {min} min de cardio',
@@ -25574,11 +25576,124 @@ function fusedObjHTML(gmiD) {
 function fusedNullHeadHTML() {
   const c = fusedTodayData(null);
   let h = `<div class="fused-nullhead"><span class="gmi-head-top fused-headrow"><span class="gmi-head-title">🎯 ${esc(t('gmi.title'))}</span>${fusedStreakChip(c.streak)}</span>`;
-  h += `<span class="fused-ringzone">${glanceRingSVG(c)}`;
+  /* AUTH-524: esta cabecera es siempre la de HOY — el disco
+     de empezar sobre su anillo y el botoncito de saltar
+     debajo, cuando el entrenamiento está pendiente. */
+  const hsN = homeStartParts();
+  h += `<span class="fused-ringzone"><span class="hs-ringwrap">${glanceRingSVG(c)}${hsN.disc}</span>${hsN.skip}`;
   if (c.kcalGoal === null) h += `<span class="fused-note">${esc(t('glance.noGoal'))}</span>`;
   else h += `<span class="fused-at">${esc(t('fuse.atLine', { pct: c.pct, n: fmt(Math.round(c.tot.kcal)) }))}</span><span class="fused-note">${esc(fusedStatusText(c.remaining))}</span>`;
   h += `</span></div>`;
   return h;
+}
+/* ═══ AUTH-524 · EL DISCO FLOTANTE DE EMPEZAR EN INICIO
+   (diseño de Ronald, 2026-11-20; maqueta v2 aprobada tal
+   cual en el chat): sobre el anillo de «Metas de hoy» va
+   montado un disco semitransparente que flashea en rojo
+   ámbar eléctrico y dice «▶ EMPEZAR · tu entrenamiento de
+   hoy». SOLO existe cuando el entrenamiento de hoy está
+   PENDIENTE: día planificado para hoy con ejercicios por
+   hacer, sin registro de hoy para ese día (ni entrenado,
+   ni sellado, ni saltado) y sin sesión ya en curso. En
+   descanso, día hecho o día saltado, el anillo se ve
+   normal, sin disco. Debajo del anillo, el botoncito
+   pequeño y discreto «Saltar el día de hoy» corre LA MISMA
+   puerta y EL MISMO cuerpo que «Saltar este día» en la
+   vista del día (trainSkipAskOpen + trainSkipDayApply):
+   las dos superficies concuerdan porque son una sola
+   escritura. El disco es overlay (no añade alto) y el
+   avatar de la racha no se mueve. ═══ */
+function homeStartState() {
+  try {
+    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+    if (!plan || !Array.isArray(plan.days) || !plan.days.length) return null;
+    if (!auth.currentUser) return null;
+    const today = todayISO();
+    const logs = (typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : [];
+    const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+    const tmap = trainDayMap(plan, cfg);
+    const isCal = tmap.mode === 'plancal';
+    let di = null;
+    if (tmap.pairs || isCal) {
+      /* La MISMA resolución fecha→día de la vista del día:
+         pares/plancal con su día efectivo (mapa ?? base) y
+         rotación con su siguiente día sin registro hoy. */
+      const mapped = tmap.pairs ? tmap.pairs[new Date(today + 'T12:00:00').getDay()] : planCalDayIndex(plan, today);
+      di = trainTodayDiEffective(plan, mapped == null ? null : mapped);
+    } else {
+      di = trainRotationNext(plan, logs, today);
+    }
+    if (di == null || !Number.isInteger(di)) return null;
+    /* Entrenado, sellado o saltado: hay registro de hoy
+       para ese día — la tarjeta del día manda y el disco
+       no nace. */
+    if (logs.some(l => l && l.date === today && l.dayIndex === di)) return null;
+    const eff = trainEffectiveList(plan, di);
+    if (!eff.length) return null;
+    /* Con las marcas de hoy cargadas, «pendiente» quiere
+       decir que queda al menos un ejercicio sin marcar
+       hecho; sin ese contexto basta la lista no vacía. */
+    if (TRAIN_CHECKS_CTX === plan.id + '|' + today) {
+      const anyPend = eff.some((_, ei) => { const c = TRAIN_CHECKS[di + ':' + ei]; return !(c && c.done === true); });
+      if (!anyPend) return null;
+    }
+    /* Ya iniciado: manda el panel de la sesión; el disco
+       sobra. */
+    const run = sessRunning();
+    if (run && run.planId === plan.id) return null;
+    return { plan, di };
+  } catch { return null; }
+}
+/* Las dos piezas (o nada): el disco para montar sobre el
+   anillo y el botoncito de saltar para debajo de él. */
+function homeStartParts() {
+  const st = homeStartState();
+  if (!st) return { disc: '', skip: '' };
+  const disc = `<span class="hs-disc" data-home-start="1" role="button" tabindex="0" aria-label="${esc(t('home.start.aria'))}"><span class="hs-play" aria-hidden="true">▶</span><span class="hs-go">${esc(t('home.start.go'))}</span><span class="hs-sub">${esc(t('home.start.sub'))}</span></span>`;
+  const skip = `<span class="hs-skip" data-home-skip="1" role="button" tabindex="0">${esc(t('home.start.skip'))}</span>`;
+  return { disc, skip };
+}
+/* El gesto del disco ES el «Iniciar» del día, por su
+   camino de siempre: cronómetro del día (trainChronoStart)
+   + el ejercicio de ahora iniciado por la tarjeta
+   (trainDayStartNow) + el latido que abre el panel ya
+   iniciado (sessPillTick) — con la etapa de cardio de
+   calentamiento de AUTH-523 como primera parada si hay
+   cardio asignado, porque el propio panel la antepone —,
+   llevando a la persona a Entrenamiento (navOpenPage).
+   Antes se refresca la vista del día para que el contexto
+   (marcas y flujo de hoy) sea el vigente, como cuando el
+   botón se toca dentro de la propia vista; al final se
+   repinta esa vista, como hace el cableado del botón. */
+async function homeStartPress() {
+  let st = homeStartState();
+  if (!st) return;
+  try { await loadMyTraining(); } catch {}
+  st = homeStartState() || st;
+  const plan = st.plan, di = st.di;
+  trainChronoStart(plan.id, trainDayLabelOf(plan, di));
+  trainDayStartNow(plan, di);
+  try { navOpenPage('train'); } catch {}
+  try { sessPillTick(); } catch {}
+  loadMyTraining();
+}
+/* El botoncito de Inicio salta el día por la puerta y el
+   cuerpo de siempre (los de la vista del día); al
+   confirmar y quedar saltado, la tarjeta se repinta ya
+   sin disco. */
+function homeSkipPress() {
+  const st = homeStartState();
+  if (!st) return;
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  if (!uid) return;
+  const today = todayISO();
+  const logs = (typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : [];
+  trainSkipAskOpen(st.plan, st.di, async () => {
+    if (await trainSkipDayApply(st.plan, st.di, uid, today, logs)) {
+      try { await loadMyTraining(); } catch {}
+      try { renderGoalsEngine(); } catch {}
+    }
+  });
 }
 let FUSED_WATER = { date: '', ml: 0 };
 async function fusedWaterPaint() {
@@ -25674,7 +25789,13 @@ function gmiHeadHTML(d) {
   h += `<span class="gmi-head-top fused-headrow"><span class="gmi-head-title">🎯 ${esc(gmiTitleFor(d.iso))}</span>${gmiIsToday(d.iso) ? fusedStreakChip(fusedStreakToday()) : ''}</span>`;
   if (d.dayNote) h += `<span class="gmi-daynote">${esc(d.dayNote)}</span>`;
   h += `<span class="gmi-chips">${gmiChipsInner(d, c)}</span>`;
-  h += `<span class="fused-ringzone">${fusedRingSVG(d)}<span class="fused-at">${esc(t('fuse.atLine', { pct: d.pct, n: fmt(Math.round(d.tot.kcal)) }))}</span><span class="fused-note">${esc(fusedStatusText(d.left))}</span><span class="gmi-tap">${esc(t('gmi.tapHint'))} ›</span></span>`;
+  /* AUTH-524: solo en la tarjeta de HOY, el disco flotante
+     de empezar va montado sobre el anillo (dentro de su
+     envoltura .hs-ringwrap) y el botoncito de saltar justo
+     debajo; con otro día en vista, la cabecera es la de
+     siempre. */
+  const hsH = gmiIsToday(d.iso) ? homeStartParts() : { disc: '', skip: '' };
+  h += `<span class="fused-ringzone"><span class="hs-ringwrap">${fusedRingSVG(d)}${hsH.disc}</span>${hsH.skip}<span class="fused-at">${esc(t('fuse.atLine', { pct: d.pct, n: fmt(Math.round(d.tot.kcal)) }))}</span><span class="fused-note">${esc(fusedStatusText(d.left))}</span><span class="gmi-tap">${esc(t('gmi.tapHint'))} ›</span></span>`;
   h += `</button>`;
   return h;
 }
@@ -25830,6 +25951,22 @@ function renderGoalsEngine() {
   const tg = $('gm-toggle'); if (tg) tg.onclick = () => { GM_CARD_OPEN = !GM_CARD_OPEN; renderGoalsEngine(); };
   const go = $('gmi-open'); if (go) go.onclick = () => openGmiDetail();
   const ol = $('gmi-objline'); if (ol) ol.onclick = () => openGmiDetail();
+  /* AUTH-524: el disco y el botoncito de saltar de Inicio —
+     su toque es SUYO, no el del anillo: se detiene antes de
+     que suba a la cabecera-botón (que abre el detalle de
+     Metas). Con disco presente, el toque sobre el anillo es
+     del disco; sin disco, el anillo abre el detalle como
+     siempre. */
+  box.querySelectorAll('[data-home-start]').forEach(el => {
+    const goDisc = e => { if (e) { e.stopPropagation(); e.preventDefault(); } homeStartPress(); };
+    el.addEventListener('click', goDisc);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') goDisc(e); });
+  });
+  box.querySelectorAll('[data-home-skip]').forEach(el => {
+    const goSkip = e => { if (e) { e.stopPropagation(); e.preventDefault(); } homeSkipPress(); };
+    el.addEventListener('click', goSkip);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') goSkip(e); });
+  });
   try { fusedWire(box); } catch {}
   if (GM_CARD_OPEN) {
     box.querySelectorAll('[data-gm-obj]').forEach(b => b.onclick = () => gmSetObjective(b.dataset.gmObj));
@@ -50155,6 +50292,43 @@ async function fdBizJoin() {
     toast(t('fdbiz.saved'));
   } catch (e) { if (btn) btn.disabled = false; failToast(e); }
 }
+/* AUTH-524 · EL CUERPO DE «SALTAR ESTE DÍA», EXTRAÍDO SIN
+   CAMBIAR SU LÓGICA: hasta este paquete vivía como clausura
+   dentro del cableado [data-train-skip] de la vista del día;
+   desde este paquete lo comparten LAS DOS superficies que
+   saltan el día — la vista del día y el botoncito «Saltar el
+   día de hoy» de Inicio — para que la marca sea LA MISMA:
+   el registro skipped con su skippedExplicit, el cronómetro
+   apagado y los borradores retirados. La única adaptación
+   es la firma (plan, di, uid, today, logs llegan por
+   parámetro en vez de por clausura) y el retorno: true si
+   el día quedó saltado (el llamante repinta su superficie);
+   si la escritura falla, avisa con failToast y devuelve
+   false, como la clausura volvía sin repintar. */
+async function trainSkipDayApply(plan, di, uid, today, logs) {
+  const day = (plan.days || [])[di] || {};
+  /* MÓDULO D (D-3): saltar es EXPLÍCITO — queda quién y cuándo;
+     done:false con status 'skipped' (invariante intacta). */
+  const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: di === -1 ? t('train.trained.label') : (day.label || ''),
+    done: false, schemaVersion: 2, status: 'skipped',
+    skippedExplicit: { value: true, at: serverTimestamp(), by: uid }, updatedAt: serverTimestamp() };
+  try {
+    await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
+  } catch (e) { failToast(e); return false; }
+  /* PUENTE: saltar apaga el cronómetro y el panel de cierre.
+     El gasto volcado solo se retira si el registro QUE SE
+     REEMPLAZA era el de esa misma sesión con estimación (en
+     rotación, saltar apunta a la sesión siguiente, no a la ya
+     cerrada: su quemado no se toca). */
+  trainChronoWrite(plan.id, null);
+  if (TRAIN_CLOSE_DI === di) TRAIN_CLOSE_DI = null;
+  trainEditsClear(plan.id);   /* PERSONALIZA: saltar también cierra la sesión — el borrador de cambios de hoy se retira */
+  const prevSkip = (logs || []).find(l => l.date === today && l.dayIndex === di);
+  if (prevSkip && prevSkip.sessionKcal != null) await trainDumpSession(today, null);
+  Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
+  trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: saltar también cierra el día — el borrador de marcas se retira */
+  return true;
+}
 async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
@@ -50958,28 +51132,10 @@ async function loadMyTraining() {
        este flujo; el cuerpo de siempre corre solo si la hoja
        confirma, capturado aquí con su ámbito intacto. */
     trainSkipAskOpen(plan, di, async () => {
-    const day = (plan.days || [])[di] || {};
-    /* MÓDULO D (D-3): saltar es EXPLÍCITO — queda quién y cuándo;
-       done:false con status 'skipped' (invariante intacta). */
-    const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: di === -1 ? t('train.trained.label') : (day.label || ''),
-      done: false, schemaVersion: 2, status: 'skipped',
-      skippedExplicit: { value: true, at: serverTimestamp(), by: uid }, updatedAt: serverTimestamp() };
-    try {
-      await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
-    } catch (e) { failToast(e); return; }
-    /* PUENTE: saltar apaga el cronómetro y el panel de cierre.
-       El gasto volcado solo se retira si el registro QUE SE
-       REEMPLAZA era el de esa misma sesión con estimación (en
-       rotación, saltar apunta a la sesión siguiente, no a la ya
-       cerrada: su quemado no se toca). */
-    trainChronoWrite(plan.id, null);
-    if (TRAIN_CLOSE_DI === di) TRAIN_CLOSE_DI = null;
-    trainEditsClear(plan.id);   /* PERSONALIZA: saltar también cierra la sesión — el borrador de cambios de hoy se retira */
-    const prevSkip = logs.find(l => l.date === today && l.dayIndex === di);
-    if (prevSkip && prevSkip.sessionKcal != null) await trainDumpSession(today, null);
-    Object.keys(TRAIN_CHECKS).forEach(k => { if (k.split(':')[0] === String(di)) delete TRAIN_CHECKS[k]; });
-    trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: saltar también cierra el día — el borrador de marcas se retira */
-    loadMyTraining();
+      /* AUTH-524: el cuerpo vive en trainSkipDayApply — el
+         mismo que corre el botoncito de Inicio —; aquí solo
+         queda el repintado de esta vista al quedar saltado. */
+      if (await trainSkipDayApply(plan, di, uid, today, logs)) loadMyTraining();
     });
   });
   box.querySelectorAll('[data-train-undo]').forEach(b => b.onclick = async () => {
@@ -67574,7 +67730,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261120-asignado-no-hecho';
+const PWA_SW_VERSION = '20261120-boton-empezar';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
