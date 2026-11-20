@@ -6554,7 +6554,7 @@ en: {
   'sess.auMin': 'Minimize the mascot', 'sess.auTap': 'Tap the mascot to pause or resume',
   'sess.nowLab': 'NOW', 'sess.exRunning': 'in progress', 'sess.timeGoal': 'Time goal {t}',
   'sess.ofDay': '{p}% of the day',
-  'sess.dayDone': 'Day completed', 'sess.dayDoneSum': '{n} of {m} exercises done',
+  'sess.dayDone': 'Day completed', 'sess.dayDoneSum': '{n} of {m} exercises done', 'sess.celebTap': 'Tap the mascot to replay the confetti',
   'sess.doneCardioQ': 'Do you want to finish with cardio?', 'sess.doneCardioYes': 'Yes, do cardio', 'sess.doneFinishQ': 'Shall we wrap up for today?', 'sess.doneCardioDoing': 'Cardio in progress', 'sess.doneCardioResume': 'Continue with cardio',
   'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel', 'sess.barFinish': 'Finish',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
@@ -11983,7 +11983,7 @@ es: {
   'sess.auMin': 'Minimizar la mascota', 'sess.auTap': 'Toca la mascota para pausar o seguir',
   'sess.nowLab': 'AHORA', 'sess.exRunning': 'en curso', 'sess.timeGoal': 'Meta de tiempo {t}',
   'sess.ofDay': '{p}% del día',
-  'sess.dayDone': 'Día completado', 'sess.dayDoneSum': '{n} de {m} ejercicios hechos',
+  'sess.dayDone': 'Día completado', 'sess.dayDoneSum': '{n} de {m} ejercicios hechos', 'sess.celebTap': 'Toca la mascota para repetir el confeti',
   'sess.doneCardioQ': '¿Quieres hacer cardio para finalizar?', 'sess.doneCardioYes': 'Sí, hacer cardio', 'sess.doneFinishQ': '¿Finalizamos la jornada por hoy?', 'sess.doneCardioDoing': 'Cardio en curso', 'sess.doneCardioResume': 'Seguir con el cardio',
   'sess.barLabel': 'Barra de la sesión', 'sess.fullLabel': 'Panel de la sesión', 'sess.barFinish': 'Finalizar',
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
@@ -41864,7 +41864,7 @@ function sessFullSync(run) {
     } else {
       doneInner = doneForm;
     }
-    const doneBlk = `<div class="sf-done"><div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div><div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: totalD, m: totalD }))} · <span class="sf-done-clock">00:00:00</span></div>${doneInner}</div>`;
+    const doneBlk = `<div class="sf-done"><div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div><div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: totalD, m: totalD }))} · <span class="sf-done-clock">00:00:00</span></div>${sessCelebHTML()}${doneInner}</div>`;   /* AUTH-521: la celebración vive entre el resumen y la pregunta/el cierre, sin bloquear ninguno */
     sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v')].join('|');
     if (!SESS_FULL_SIG.startsWith('fdone')) sessDayDoneHook(dc);   /* AUTH-507: la celebración se engancha a la ENTRADA en el estado, no a cada latido */
     html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${msgBlk}${sessReflHTML()}${doneBlk}</div>${minBtn}</div>`;
@@ -42075,6 +42075,17 @@ function sessPanelWire(el, surface) {
          reposo no hace nada. Sin guarda de contexto: no
          escribe estado de entrenamiento alguno. */
       if (SESS_AUDIO.key && SESS_AUDIO.st !== 'idle') { try { sessAudioEnsure(); sessAudioStageSet(true); } catch {} }
+      return;
+    }
+    const cel = ev.target.closest ? ev.target.closest('[data-sess-celeb]') : null;
+    if (cel) {
+      /* AUTH-521: tocar la mascota de la celebración repite
+         el confeti — se clona su capa y la animación CSS
+         vuelve a correr. Sin guarda de contexto: no escribe
+         estado de entrenamiento alguno. */
+      const box = cel.closest('.sf-celeb');
+      const cf = box ? box.querySelector('.sf-celeb-confetti') : null;
+      if (cf) { const nx = cf.cloneNode(true); cf.replaceWith(nx); }
       return;
     }
     const fac = ev.target.closest ? ev.target.closest('[data-pill-face]') : null;
@@ -42499,7 +42510,79 @@ let SESS_DONE_KEY = '';
    anterior no era de día completado), nunca en cada latido.
    La animación NO vive en este paquete: su paquete aprobado
    colgará aquí; hoy el gancho no pinta nada. ═══ */
-function sessDayDoneHook(dc) { /* la celebración colgará aquí (paquete propio, aprobado 2026-11-18) */ }
+function sessDayDoneHook(dc) {
+  /* AUTH-521: al entrar el día en completado, la celebración
+     fija su clave (plan|fecha|día) y el modelo que toca hoy
+     en la rotación; el pintado lo hace sessFullSync en el
+     propio bloque .sf-done con la misma función pura de la
+     fecha, así que una recarga a mitad del estado enseña el
+     mismo modelo. */
+  const k = dc && dc.plan ? dc.plan.id + '|' + todayISO() + '|' + dc.di : todayISO();
+  if (SESS_CELEB_KEY !== k) { SESS_CELEB_KEY = k; SESS_CELEB_IDX = sessCelebIdxFor(todayISO()); }
+}
+
+/* ═══ AUTH-521 · LA CELEBRACIÓN DEL DÍA COMPLETADO
+   (aprobada por Ronald el 2026-11-18: «Los cuatro, a
+   rotar»): al entrar el panel en el estado de día
+   completado (la rama fdone de sessFullSync), el bloque
+   .sf-done enseña — tras su título y su resumen, y ANTES
+   de la pregunta de cardio de AUTH-516 y del formulario de
+   cierre de AUTH-507, sin bloquear ninguno de los dos — el
+   bocadillo «¡Día completado!» y la mascota celebrando en
+   uno de los CUATRO modelos animados aprobados, publicados
+   en el repo de assets de la casa (avatar-coach-virtual/
+   web/celebracion-*.webp, fondo transparente). La rotación
+   es determinista por FECHA: el índice es el día del
+   calendario módulo 4, así que el modelo cambia cada día y
+   nunca se repite dos días seguidos; el orden declarado es
+   puños · franelilla · guiño · salto. El confeti es de la
+   página (CSS, una pasada de ~3 s, piezas deterministas
+   por fecha) y tocar la mascota lo repite (cableado en
+   sessPanelWire, [data-sess-celeb]); con «reducir
+   movimiento» la celebración se enseña fija, sin confeti
+   ni entradas. DESVIACIÓN DECLARADA frente a la nota del
+   PLAN-515: aquella nota sugería celebrar el día REGISTRADO
+   (tras el escritor), pero tras el escritor el cronómetro
+   se apaga y el panel se retira — no queda superficie — y
+   la maqueta aprobada manda la celebración DENTRO del
+   panel en su estado de día completado, con su Minimizar
+   de siempre: se sigue la maqueta. La voz que la maqueta
+   rotulaba como PROPUESTA no se incluye (no formaba parte
+   de la aprobación «Los cuatro, a rotar»). ═══ */
+const SESS_CELEB_URLS = [
+  'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/celebracion-punos.webp',
+  'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/celebracion-franelilla.webp',
+  'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/celebracion-guino.webp',
+  'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/celebracion-salto.webp'
+];
+let SESS_CELEB_KEY = '';
+let SESS_CELEB_IDX = 0;
+function sessCelebIdxFor(iso) {
+  const d = Date.parse(String(iso || todayISO()) + 'T12:00:00Z');
+  const days = isFinite(d) ? Math.floor(d / 86400000) : 0;
+  return ((days % 4) + 4) % 4;
+}
+function sessCelebConfetti(iso) {
+  /* Las 26 piezas del confeti de la maqueta, deterministas:
+     una semilla por fecha (el mismo día, el mismo confeti)
+     con un LCG simple; colores de la marca como en la
+     maqueta aprobada. */
+  const COL = ['#4ade80', '#2dd4bf', '#fbbf24', '#f472b6', '#60a5fa', '#a3e635'];
+  let s = (sessCelebIdxFor(iso) + 1) * 7919 + String(iso || '').length * 131;
+  const rnd = () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648; };
+  let out = '';
+  for (let i = 0; i < 26; i++) {
+    const left = (rnd() * 96).toFixed(1), size = 6 + Math.floor(rnd() * 6), drift = Math.round(rnd() * 90 - 45);
+    const delay = (rnd() * 1.5).toFixed(2), dur = (2.2 + rnd() * 1.2).toFixed(2);
+    out += `<i class="sf-celeb-cf" style="left:${left}%;width:${size}px;height:${size}px;background:${COL[i % 6]};border-radius:${i % 2 ? '2px' : '50%'};--sfdrift:${drift}px;animation-delay:${delay}s;animation-duration:${dur}s"></i>`;
+  }
+  return out;
+}
+function sessCelebHTML() {
+  const iso = todayISO();
+  const url = SESS_CELEB_URLS[sessCelebIdxFor(iso)];
+  return `<div class="sf-celeb"><div class="sf-celeb-confetti" aria-hidden="true">${sessCelebConfetti(iso)}</div><div class="sf-celeb-bubble">${esc(t('sess.dayDone'))}</div><button type="button" class="sf-celeb-scene" data-sess-celeb="1" aria-label="${esc(t('sess.dayDone'))}"><img src="${url}" alt="" loading="lazy" onerror="this.remove()"></button><div class="sf-celeb-tap">${esc(t('sess.celebTap'))}</div></div>`;
+}
 
 /* ═══ AUTH-516 · «¿CARDIO PARA FINALIZAR?» (regla de Ronald,
    2026-11-19 13:25 CST): al completarse el día por los
@@ -66697,7 +66780,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-retos-mecanismo';
+const PWA_SW_VERSION = '20261120-celebracion-dia';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
