@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261120-celebracion-dia">
+<link rel="stylesheet" href="styles.css?v=20261119-conservar-subir">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -376,6 +376,11 @@
        guardarse; lo pinta aiDraftNoticeSync (texto por i18n
        aiDraft.*) y su botón abre el borrador en su hoja. -->
   <div id="ai-draft-notice" class="ai-draft-notice" style="display:none"></div>
+  <!-- CONSERVAR Y SUBIR DESPUÉS (orden de Ronald 2026-11-19): aviso
+       al abrir la app cuando hay registros conservados en el
+       dispositivo esperando subirse; lo pinta pendNoticeSync (textos
+       por i18n pendUp.*) y su botón abre el diario de su día. -->
+  <div id="pend-up-notice" class="ai-draft-notice" style="display:none"></div>
   <!-- La pastilla ancha del AYUDANTE QUE HABLA que vivía aquí se
        RETIRÓ con AUTH-2026-11-06-286 (orden de Ronald, chat
        RONBO.NUTRI 2026-11-06 13:09 CST): repetía la puerta del
@@ -2244,6 +2249,21 @@ cuando no hay declaración legible (decisión 5). -->
 <!-- ============ NAV UNSAVED MODAL (D3, 2026-10-30): aviso corto
      SOLO ante la comida analizada sin guardar; Guardar pulsa el
      Guardar propio del borrador. ============ -->
+<!-- CONSERVAR Y SUBIR DESPUÉS: confirmación del descarte deliberado
+     de un registro conservado (la pinta y la atiende pendDiscardAsk /
+     pendDiscardWire; textos por i18n pendUp.*). Nada se borra sin
+     esta confirmación y ningún pendiente se borra solo. -->
+<div class="modal-backdrop" id="pend-up-confirm" style="display:none">
+  <div class="modal-card">
+    <h2 data-i18n="pendUp.discardTitle">Discard this saved entry?</h2>
+    <p class="photo-hint" data-i18n="pendUp.discardBody">It will not be uploaded. This cannot be undone.</p>
+    <div class="modal-foot">
+      <button type="button" class="btn-danger" id="pend-up-confirm-ok" data-i18n="pendUp.discard">Discard</button>
+      <span class="mf-spacer"></span>
+      <button type="button" class="btn-ghost" id="pend-up-confirm-no" data-i18n="client.close">Close</button>
+    </div>
+  </div>
+</div>
 <div class="modal-backdrop" id="nav-unsaved" style="display:none">
   <div class="modal-card">
     <h2 data-i18n="nav.unsavedTitle">Unsaved meal</h2>
@@ -2603,6 +2623,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261120-celebracion-dia"></script>
+<script type="module" src="app.js?v=20261119-conservar-subir"></script>
 </body>
 </html>
