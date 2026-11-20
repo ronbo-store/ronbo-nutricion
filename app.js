@@ -35619,6 +35619,20 @@ function trainChecksRead(planId) {
              marcas de AUTH-097 (sug/clr) conservan su saneado de
              siempre (no viajan en la restauración). */
           ...(s.pend === true ? { pend: true } : {}),
+          /* AUTH-528 · LA MARCA DE BORRADO (clr) SÍ viaja en
+             la restauración desde este paquete (su saneado de
+             AUTH-097 la dejaba fuera, como a las sug, que no
+             cambian): clr es la única señal de que la serie
+             quedó EN CERO a propósito — reps 0 y «Sin carga»
+             con la rueda (tfWheelSettleRow) — y sin ella la
+             serie vaciada resucitaba al recargar, que es justo
+             el momento en que una versión nueva entra, y la
+             cadena de sugeridas la rellenaba. Con clr leído, la
+             serie en cero de hoy deja de contar al entrar el
+             paquete, sin tocar nada más. El escritor del
+             cierre sigue sin copiarla: vive solo en el
+             borrador, como dot y pend. */
+          ...(s.clr === true ? { clr: true } : {}),
           /* AUTH-485 · LA MARCA DEL CÍRCULO (dot) sobrevive a la
              restauración del borrador como la de pendiente: es la
              declaración «hecha según el plan» de esa serie desde
@@ -41222,6 +41236,67 @@ function sessArticleClose() {
 function sessSetDone(s) {
   return !!s && s.pend !== true && s.dot === true;
 }
+/* ═══ AUTH-528 · LA SERIE EN CERO NO CUENTA (reporte y orden
+   de Ronald, 2026-11-20 12:00 CST: al no poder quitar su
+   serie 4 la dejó en cero — sin repeticiones y «Sin carga» —
+   porque hoy hace 3, pero el panel la seguía contando como
+   serie del ejercicio). Una serie está EN CERO cuando no
+   tiene NADA que ejecutar ni nada hecho:
+   — no está marcada (la marcada es historia: siempre
+     cuenta, como el registro ya guardado, que no se toca);
+   — no es una añadida pendiente (pend): esa ESPERA su marca
+     (AUTH-496) aunque nazca vacía;
+   — no tiene tiempo medido ni corriendo (secDone, secT0,
+     la cuenta cd de AUTH-502);
+   — no tiene repeticiones escritas ni carga puesta;
+   — y su tiempo ASIGNADO, si lo hay, manda sobre el vacío:
+     una serie por tiempo con segundos asignados cuenta
+     aunque le vacíen la carga (su criterio es el tiempo);
+   — el cero se declara por UNA de estas vías, las que la
+     propia app produce: la vaciaron con la rueda (clr — la
+     «marca de borrado» de tfWheelSettleRow: reps 0 y «Sin
+     carga» ES borrarla), trae un «0» escrito en las
+     repeticiones, o su propio texto planeado dice 0 (de
+     repeticiones o de segundos: «0», «0 seg», «0-0 seg»).
+   La serie planeada y sin tocar (su texto dice 12, sin
+   valores aún) NO es cero: es una serie por hacer. La serie
+   en cero no se pinta en el panel, no entra en la frontera
+   ni en el «todas marcadas» que finaliza el ejercicio, no
+   suma en la meta de tiempo y el dictado de AUTH-500 nunca
+   aterriza en ella. El conteo por repeticiones de AUTH-526
+   no cambia: una serie en cero nunca está «hecha». ═══ */
+function sessSetIsZero(ex, s) {
+  if (!s) return false;
+  if (s.dot === true) return false;
+  if (s.pend === true) return false;
+  if (typeof s.secDone === 'number' && s.secDone > 0) return false;
+  if (typeof s.secT0 === 'number' && s.secT0 > 0) return false;
+  if (s.cd && typeof s.cd === 'object') return false;
+  const rd = String(s.repsDone == null ? '' : s.repsDone).trim();
+  if (rd !== '' && rd !== '0') return false;
+  const lv = String(s.loadVal == null ? '' : s.loadVal).trim();
+  if (lv !== '') return false;
+  const crit = trainSetCriterion(ex || null, s);
+  if (crit && crit.kind === 'time' && crit.max > 0) return false;
+  if (s.clr === true) return true;
+  if (rd === '0') return true;
+  const rp = String(s.repsPlanned == null ? '' : s.repsPlanned).trim();
+  return /^0+(\s*[-–]\s*0+)?\s*(seg|sec|s)?$/i.test(rp);
+}
+/* «TODAS LAS QUE CUENTAN, MARCADAS»: el «todas» de AUTH-496
+   con la regla de AUTH-528 — las series en cero no esperan
+   marca y no bloquean el finalizar; hace falta al menos una
+   serie que cuente. */
+function sessSetsAllCountedDone(ex, chk) {
+  if (!chk || !Array.isArray(chk.sets) || !chk.sets.length) return false;
+  let any = false;
+  for (const s of chk.sets) {
+    if (sessSetIsZero(ex, s)) continue;
+    any = true;
+    if (!sessSetDone(s)) return false;
+  }
+  return any;
+}
 function sessSetsFrontier(chk) {
   if (!chk || !Array.isArray(chk.sets)) return 0;
   let n = 0;
@@ -41325,6 +41400,10 @@ function sessDotTap(plan, key, si, viaVoice) {
   if (!viaVoice && liveCd && liveCd.si === si) { sessCdTapLive(plan, key, si); return; }
   if (!viaVoice && liveCd) { delete liveCd.s.cd; SESS_CD_PAINT = ''; trainChecksPersist(plan.id); }
   const fr = sessSetsFrontier(chk);
+  /* AUTH-528: el ejercicio de la marca, para la regla de la
+     serie en cero en los bucles de marca y en el finalizar. */
+  let exTap = null;
+  try { const effP = trainEffectiveList(plan, Number(key.split(':')[0])); const itP = effP ? effP[Number(key.split(':')[1])] : null; exTap = itP ? itP.ex : null; } catch {}
   if (!viaVoice && si >= fr && chk.done !== true) {
     const sT = chk.sets[si];
     const diT = Number(key.split(':')[0]), eiT = Number(key.split(':')[1]);
@@ -41332,14 +41411,14 @@ function sessDotTap(plan, key, si, viaVoice) {
     const itT = effT ? effT[eiT] : null;
     const crit = sT ? trainTimedOf(itT ? itT.ex : null, sT) : null;
     if (crit && !(typeof sT.secT0 === 'number' && sT.secT0 > 0)) {
-      for (let j = fr; j < si; j++) sessDotMark(chk.sets[j]);
+      for (let j = fr; j < si; j++) { const sj = chk.sets[j]; if (sj && !sessSetIsZero(itT ? itT.ex : null, sj)) sessDotMark(sj); }
       trainChecksPersist(plan.id);
       sessCdStart(plan, key, si, crit);
       try { sessPillTick(); } catch {}
       return;
     }
   }
-  if (si >= fr) { for (let j = fr; j <= si; j++) sessDotMark(chk.sets[j]); }
+  if (si >= fr) { for (let j = fr; j <= si; j++) { const sj = chk.sets[j]; if (sj && !sessSetIsZero(exTap, sj)) sessDotMark(sj); } }
   else { for (let j = si; j < fr; j++) { const s = chk.sets[j]; if (s && s.dot === true) delete s.dot; } }
   trainChecksPersist(plan.id);
   /* ═══ AUTH-496 · EL ÚLTIMO CÍRCULO FINALIZA EL EJERCICIO
@@ -41361,7 +41440,11 @@ function sessDotTap(plan, key, si, viaVoice) {
      con las marcas ya puestas. «Todos los círculos» son
      todas las series que la fila enseña: una añadida y aún
      sin marcar también espera su marca. ═══ */
-  if (si >= fr && chk.done !== true && chk.sets.length && chk.sets.every(s => s && s.dot === true)) {
+  /* AUTH-528: el «todos los círculos» de AUTH-496 son todas
+     las series QUE CUENTAN — la serie en cero no se pinta y
+     no espera marca: con las demás marcadas, el ejercicio
+     finaliza igual. */
+  if (si >= fr && chk.done !== true && sessSetsAllCountedDone(exTap, chk)) {
     const fsA = TRAIN_FLOW[key] || null;
     if (fsA && (fsA.st === 'open' || fsA.st === 'paused')) {
       flowClockBank(key);
@@ -41514,8 +41597,12 @@ function sessCdComplete(plan, key, si, secs) {
   trainChecksPersist(plan.id);
   /* AUTH-496 · si era la ÚLTIMA serie sin marcar, el
      ejercicio finaliza por su vía exacta, como con el
-     toque que marca la última. */
-  if (chk.done !== true && chk.sets.length && chk.sets.every(x => x && x.dot === true)) {
+     toque que marca la última. AUTH-528: «la última» es la
+     última QUE CUENTA — una serie en cero tras ella no
+     bloquea el finalizar. */
+  let exCd = null;
+  try { const effC = trainEffectiveList(plan, Number(key.split(':')[0])); const itC = effC ? effC[Number(key.split(':')[1])] : null; exCd = itC ? itC.ex : null; } catch {}
+  if (chk.done !== true && sessSetsAllCountedDone(exCd, chk)) {
     const fsA = TRAIN_FLOW[key] || null;
     if (fsA && (fsA.st === 'open' || fsA.st === 'paused')) {
       flowClockBank(key);
@@ -41696,7 +41783,14 @@ function sessDotsHTML(curChk, ck, flowSt, ex) {
      marcas y la línea queda como siempre. */
   const wsets = (curChk.warmup && curChk.warmup.on === true && Array.isArray(curChk.warmup.sets)) ? curChk.warmup.sets : [];
   const flags = sets.map(s => sessSetDone(s));
-  const nextI = flags.indexOf(false);
+  /* AUTH-528: las series en cero no se pintan — la línea
+     enseña solo las que cuentan, con su índice de siempre
+     en el data-sess-dot (los índices del borrador no se
+     renumeran: la serie en cero sigue existiendo en la
+     tarjeta, donde sí se ve y se puede quitar o rellenar);
+     la «siguiente» es la primera que cuenta sin marcar. */
+  const zeroF = sets.map(s => sessSetIsZero(ex, s));
+  const nextI = flags.findIndex((f, i3) => !f && !zeroF[i3]);
   /* AUTH-500 · ESCUCHANDO: mientras la app escucha la frase
      del dictado, la banda de escucha ocupa el lugar de la
      línea entera (rótulo y fila), como la maqueta aprobada. */
@@ -41704,6 +41798,7 @@ function sessDotsHTML(curChk, ck, flowSt, ex) {
     return `<div class="sf-listen"><div class="sf-listen-waves" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="sf-listen-t">${esc(t('sess.voice.listening', { n: SESS_VOICE.si + 1 }))}</div><div class="sf-listen-ej">${esc(t('sess.voice.example'))}</div><div class="sf-listen-row"><button type="button" class="sf-listen-btn cancel" data-sess-voice-cancel="1">${esc(t('form.cancel'))}</button><button type="button" class="sf-listen-btn done" data-sess-voice-done="1">${esc(t('sess.voice.doneBtn'))}</button></div></div>`;
   }
   const dots = sets.map((s, si2) => {
+    if (zeroF[si2]) return '';   /* AUTH-528: la serie en cero no pinta círculo */
     /* AUTH-502 · EL CÍRCULO QUE CUENTA: el anillo SVG del
        mockup aprobado (r=19.5, circunferencia 122.5 que se
        vacía con el tiempo; el círculo sigue siendo 44×44)
@@ -41804,7 +41899,9 @@ function sessDotsHTML(curChk, ck, flowSt, ex) {
      las bandas (styles.css retira las reglas que lo
      ocultaban en favor de la línea retirada). */
   const gate = sessEditVisible();
-  const nSets = sets.length;
+  /* AUTH-528: la escalera de tamaños de la fila cuenta las
+     series PINTADAS (las que cuentan), no las del borrador. */
+  const nSets = zeroF.reduce((a, z) => a + (z ? 0 : 1), 0);
   const nTot = nSets + wsets.length;
   const editBtn = gate ? `<button type="button" class="sf-edit" data-sess-edit="${ck}" aria-label="${esc(t('sess.edit'))}"><span class="sf-edit-vis"><span class="sf-edit-word">${esc(t('sess.edit'))}</span><span class="sf-edit-pencil" aria-hidden="true">✎</span></span></button>` : '';
   const voiceBtn = gate ? `<button type="button" class="sf-voice" data-sess-voice="${ck}" aria-label="${esc(t('sess.voice.btn'))}"><span class="sf-voice-vis" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M4 10v4" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M9 7v10" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M14 4v16" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/><path d="M19 8v8" stroke="#10312b" stroke-width="3.4" stroke-linecap="round"/></svg></span></button>` : '';
@@ -41855,7 +41952,12 @@ function sessVoiceStart(ck) {
   if (!chk || !Array.isArray(chk.sets) || !chk.sets.length || chk.done === true) return;
   const fsA = TRAIN_FLOW[ck];
   if (!fsA || (fsA.st !== 'open' && fsA.st !== 'paused')) return;
-  const si = chk.sets.findIndex(s => !sessSetDone(s));
+  /* AUTH-528: la primera serie sin marcar QUE CUENTA — el
+     dictado nunca aterriza en una serie en cero (invisible
+     en el panel: lo dictado se perdería de vista). */
+  let exV = null;
+  try { const stV = trainBarState(); if (stV && (stV.di + ':' + stV.cur) === ck) exV = stV.eff[stV.cur].ex; } catch {}
+  const si = chk.sets.findIndex(s => !sessSetDone(s) && !sessSetIsZero(exV, s));
   if (si < 0) {
     /* D2: todo marcado — no se escucha ni se escribe nada;
        el aviso nace con el toque, visible y hablado. */
@@ -42464,6 +42566,7 @@ function sessGoalSec(ex, chk) {
   if (!chk || !Array.isArray(chk.sets) || !chk.sets.length) return 0;
   let tot = 0;
   for (let i = 0; i < chk.sets.length; i++) {
+    if (sessSetIsZero(ex, chk.sets[i])) continue;   /* AUTH-528: la serie en cero no suma ni anula la meta */
     const c = trainTimedOf(ex, chk.sets[i]);
     if (!c || !(c.max > 0)) return 0;
     tot += c.max;
@@ -45369,13 +45472,26 @@ function trainFlowSetsHTML(ex, key, chk) {
      cumple el mismo contrato que la hoja por su espejo:
      push de la serie pendiente, la sugerencia por campos y
      el guardado al acto. */
+  /* AUTH-528 · EL ✕ DE QUITAR SERIE LLEGA A LA TARJETA
+     (reporte y orden de Ronald, 2026-11-20 12:00 CST: en la
+     tarjeta había «+ Add set» pero ninguna forma de quitar
+     una serie — la decisión aparte que AUTH-427 dejó
+     pendiente, resuelta hoy): cada fila trae su ✕, el mismo
+     control de la hoja (tf-set-del) con el tamaño grande de
+     la casa en esta superficie (flow-set-del), visible solo
+     si queda al menos 1 serie — para quitar el ejercicio
+     entero ya existe su propio quitar. Quitar una serie
+     renumera las demás solas (las filas se pintan por
+     índice) y el borrador se guarda como cualquier edición.
+     Su cableado vive en trainFlowWire (data-flow-set-del),
+     espejo del de agregar. */
   const addRowF = (chk && Array.isArray(chk.sets) && sets.length < 12)
     ? `<div class="tf-sets-actions"><button type="button" class="btn-ghost btn-sm" data-flow-set-add="${key}">${t('train.sets.add')}</button></div>` : '';
   /* AUTH-495: el botón de plegado cierra el área, tras «+ Añadir serie». */
   const doneF = sets.length ? flowAreaDoneBtnHTML('sets', key) : '';
   return `${head}<div class="train-sets">${sets.map((s, si) => `
       <div class="train-set-row${s.pend === true ? ' is-sug' : ''}"><span class="train-set-n">${t('train.d.set')} ${si + 1}${s.repsPlanned ? ` · ${esc(s.repsPlanned)}` : ''}${s.pend === true ? ` <span class="tf-sug-tag">${esc(t('train.sets.suggested'))}</span>` : ''}</span>
-        <span class="tf-chips" data-tf-chips="card:${key}:${si}">${tfChipsHTML('card:' + key, si, s, ex)}</span></div>`).join('')}
+        <span class="tf-chips" data-tf-chips="card:${key}:${si}">${tfChipsHTML('card:' + key, si, s, ex)}</span>${sets.length > 1 ? `<button type="button" class="tf-set-del flow-set-del" data-flow-set-del="${key}:${si}" aria-label="${t('train.sets.remove')}">✕</button>` : ''}</div>`).join('')}
     </div>${addRowF}${doneF}`;
 }
 /* AUTH-458 · LA BANDA DE CIERRE, UNA SOLA PIEZA: la pinta
@@ -45935,6 +46051,22 @@ function trainFlowWire(box, plan) {
     if (chkA.sets.length >= 12) return;
     chkA.sets.push({ repsPlanned: '', repsDone: '', loadVal: '', pend: true });
     tfSuggestApplySets(chkA.sets);
+    trainChecksPersist(plan.id);
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-flow-set-del]').forEach(b => b.onclick = () => {
+    /* AUTH-528 · QUITAR SERIE EN LA TARJETA: el espejo del
+       agregar — splice sobre la marca viva, la sugerencia
+       por campos sobre la lista resultante, el guardado al
+       acto y el repintado del flujo. La última serie no se
+       quita (el pintor ni enseña su ✕ con una sola, y esta
+       guarda lo sostiene): para el ejercicio entero está
+       su propio quitar. */
+    const p = String(b.dataset.flowSetDel).split(':');
+    const chkD = TRAIN_CHECKS[p[0] + ':' + p[1]];
+    if (!chkD || !Array.isArray(chkD.sets) || chkD.sets.length <= 1) return;
+    chkD.sets.splice(Number(p[2]), 1);
+    tfSuggestApplySets(chkD.sets);
     trainChecksPersist(plan.id);
     loadMyTraining();
   });
@@ -67895,7 +68027,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261120-asignar-es-asignar';
+const PWA_SW_VERSION = '20261120-quitar-series';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
