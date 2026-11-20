@@ -6277,6 +6277,9 @@ en: {
   'train.cardio2.save': 'Save cardio ✓', 'train.cardio2.remove': 'Remove',
   'train.cardio2.needKcal': 'Enter the calories the machine showed.',
   'train.cardio2.line': '⏱️ Cardio today: {min} min', 'train.cardio2.lineKcal': ' · {kcal} kcal',
+  'train.cardio2.assignedChip': 'Assigned · done in the session panel', 'train.cardio2.doneChip': '✓ Done',
+  'train.cardio2.assignedLine': ' · Assigned: {min} min (not done yet)',
+  'train.pick.addedOk': '✓ Added: {name}',
   'train.cardio2.lineGoal': ' — those minutes count toward your goal of {goal} min',
   'train.cardio2.spec.incline': 'INCLINE · %', 'train.cardio2.spec.speed': 'AVG SPEED · KM/H',
   'train.cardio2.spec.spmSteps': 'STEPS/MIN', 'train.cardio2.spec.spmStrokes': 'STROKES/MIN',
@@ -6575,6 +6578,7 @@ en: {
   'sess.ofDay': '{p}% of the day',
   'sess.dayDone': 'Day completed', 'sess.dayDoneSum': '{n} of {m} exercises done', 'sess.celebTap': 'Tap the mascot to replay the confetti',
   'sess.doneCardioQ': 'Do you want to finish with cardio?', 'sess.doneCardioYes': 'Yes, do cardio', 'sess.doneFinishQ': 'Shall we wrap up for today?', 'sess.doneCardioDoing': 'Cardio in progress', 'sess.doneCardioResume': 'Continue with cardio',
+  'sess.cstage.warmLab': 'Warm-up cardio', 'sess.cstage.endLab': 'Final cardio', 'sess.cstage.assigned': 'Assigned: {min} min', 'sess.cstage.do': '✓ Done', 'sess.cstage.start': 'Start', 'sess.cstage.pause': 'Pause', 'sess.cstage.endDone': 'Cardio done — finishing now closes the day.', 'sess.cstage.notYet': 'Assigned — it only counts when you do it here.',
   'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel', 'sess.barFinish': 'Finish',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.cardioIncl': 'includes {min} min of cardio',
@@ -11725,6 +11729,9 @@ es: {
   'train.cardio2.save': 'Guardar cardio ✓', 'train.cardio2.remove': 'Quitar',
   'train.cardio2.needKcal': 'Escribe las calorías que marcó la máquina.',
   'train.cardio2.line': '⏱️ Cardio hoy: {min} min', 'train.cardio2.lineKcal': ' · {kcal} kcal',
+  'train.cardio2.assignedChip': 'Asignado · se hace en el panel', 'train.cardio2.doneChip': '✓ Hecho',
+  'train.cardio2.assignedLine': ' · Asignado: {min} min (aún no hecho)',
+  'train.pick.addedOk': '✓ Añadido: {name}',
   'train.cardio2.lineGoal': ' — esos minutos suman a tu meta de {goal} min',
   'train.cardio2.spec.incline': 'INCLINACIÓN · %', 'train.cardio2.spec.speed': 'VELOCIDAD MEDIA · KM/H',
   'train.cardio2.spec.spmSteps': 'PASOS/MIN', 'train.cardio2.spec.spmStrokes': 'PALADAS/MIN',
@@ -12023,6 +12030,7 @@ es: {
   'sess.ofDay': '{p}% del día',
   'sess.dayDone': 'Día completado', 'sess.dayDoneSum': '{n} de {m} ejercicios hechos', 'sess.celebTap': 'Toca la mascota para repetir el confeti',
   'sess.doneCardioQ': '¿Quieres hacer cardio para finalizar?', 'sess.doneCardioYes': 'Sí, hacer cardio', 'sess.doneFinishQ': '¿Finalizamos la jornada por hoy?', 'sess.doneCardioDoing': 'Cardio en curso', 'sess.doneCardioResume': 'Seguir con el cardio',
+  'sess.cstage.warmLab': 'Cardio de calentamiento', 'sess.cstage.endLab': 'Cardio final', 'sess.cstage.assigned': 'Asignado: {min} min', 'sess.cstage.do': '✓ Hecho', 'sess.cstage.start': 'Empezar', 'sess.cstage.pause': 'Pausar', 'sess.cstage.endDone': 'Cardio hecho — al finalizar se cierra la jornada.', 'sess.cstage.notYet': 'Asignado — solo cuenta cuando lo haces aquí.',
   'sess.barLabel': 'Barra de la sesión', 'sess.fullLabel': 'Panel de la sesión', 'sess.barFinish': 'Finalizar',
   'sess.totalTag': 'TOTAL DE LA SESIÓN', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'en pausa',
   'sess.cardioIncl': 'incluye {min} min de cardio',
@@ -35810,11 +35818,18 @@ function trainEditsRead(planId, iso) {
   } catch { return null; }
 }
 function trainEditsWrite(planId, ed, iso) {
+  /* CAND-523: devuelve si la escritura quedó hecha — el
+     gesto de agregar lo confirma en voz alta (ver
+     swapSheetApply): hasta este paquete un fallo de
+     almacenamiento se tragaba en silencio y la persona no
+     tenía forma de saber si su ejercicio entró o no. Los
+     demás llamantes ignoran el valor, como siempre. */
   try {
     if (ed && ((ed.swaps && Object.keys(ed.swaps).length) || (ed.added && ed.added.length) || (ed.removed && ed.removed.length) || (ed.order && ed.order.length)))
       localStorage.setItem(trainEditsKey(planId, iso), JSON.stringify(ed));
     else localStorage.removeItem(trainEditsKey(planId, iso));
-  } catch {}
+    return true;
+  } catch { return false; }
 }
 function trainEditsClear(planId, iso) { trainEditsWrite(planId, null, iso); }
 /* DÍA ACCIONABLE (2026-10-30, decisiones D1/D4 de Ronald): BASE DE
@@ -38395,8 +38410,16 @@ function swapSheetApply(plan, di, entry, iso) {
   const effIds = new Set(trainEffectiveList(plan, di, iso).map(it => it && it.ex && it.ex.exerciseId).filter(Boolean));
   const addedNew = !effIds.has(entry.id);
   if (addedNew) ed.added.push({ exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' });
-  trainEditsWrite(plan.id, ed, iso);
-  if (addedNew) trainAddPlaceFront(plan, di, iso, 1);   /* AUTH-490: el agregado nace al frente de los pendientes */
+  const okAdd = trainEditsWrite(plan.id, ed, iso);
+  if (addedNew) {
+    /* CAND-523 · EL AGREGAR SE CONFIRMA EN VOZ ALTA (el
+       fallo de Ronald, 2026-11-20: agregó ejercicios y no
+       aparecían, sin ninguna señal de si entraron): éxito
+       con el nombre, o error honesto si el dispositivo no
+       dejó guardar — nunca más un agregar mudo. */
+    if (okAdd) { trainAddPlaceFront(plan, di, iso, 1); toast(t('train.pick.addedOk', { name: libNameOf(entry) })); }   /* AUTH-490: el agregado nace al frente de los pendientes */
+    else toast(t('common.error'), true);
+  }
   swapSheetRepaintResults(plan, di, iso);
 }
 function swapSheetApplyVariant(plan, di, entry, vi, iso) {
@@ -38447,8 +38470,11 @@ function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
       if (withVar) rec.variantIndex = vi;
       ed.added.push(rec);
     }
-    trainEditsWrite(plan.id, ed, iso);
-    if (addedNewV) trainAddPlaceFront(plan, di, iso, 1);   /* AUTH-490: el agregado nace al frente de los pendientes */
+    const okAddV = trainEditsWrite(plan.id, ed, iso);
+    if (addedNewV) {
+      if (okAddV) { trainAddPlaceFront(plan, di, iso, 1); toast(t('train.pick.addedOk', { name: libNameOf(entry) })); }   /* AUTH-490: el agregado nace al frente de los pendientes · CAND-523: la confirmación en voz alta, como en el agregar simple */
+      else toast(t('common.error'), true);
+    }
     SWAP_ADD_FORMS_ID = null;
     swapSheetRepaintResults(plan, di, iso);
     return;
@@ -42340,6 +42366,7 @@ function sessFullSync(run) {
        (plegado y válido) o fue retirado, el estado pasa solo
        a 'after' en este latido. */
     if (SESS_DONE_CARDIO_KEY !== dKey) { SESS_DONE_CARDIO_KEY = dKey; SESS_DONE_CARDIO = ''; SESS_DONE_CARDIO_T = ''; }
+    if (SESS_CSTAGE_KEY !== dKey) { SESS_CSTAGE_KEY = dKey; SESS_CSTAGE_END_DONE = ''; }   /* CAND-523: el testigo del cardio final hecho en la etapa nace y muere con su día */
     let cardioValid = false;
     try { cardioValid = sessDoneCardioHasValid(dc.plan.id); } catch {}
     if (SESS_DONE_CARDIO === 'doing' && SESS_DONE_CARDIO_T) {
@@ -42352,8 +42379,20 @@ function sessFullSync(run) {
       ? trainCloseFormHTML(dc.plan.id, dc.di)
       : `<button type="button" class="sf-btn fin sf-done-open" data-sess-done-open="1">${esc(t('train.closeFinish'))}</button>`;
     const askCardio = SESS_DONE_CARDIO === '' && !cardioValid;
+    /* CAND-523 · LA ETAPA FINAL MANDA SOBRE LA PREGUNTA:
+       si hay un cardio final ASIGNADO, el panel lo trae
+       como última parada (no pregunta: lo presenta para
+       hacerlo); hecho en la etapa, el formulario de cierre
+       va sobre la etapa — el cardio cierra la jornada. La
+       pregunta de AUTH-516 queda para cuando no hay ningún
+       cardio final, asignado ni hecho. */
+    const eT = sessCStageEndT(dc.plan.id);
     let doneInner;
-    if (askCardio) {
+    if (eT) {
+      doneInner = sessCStageHTML(dc.plan, eT, 'end');
+    } else if (SESS_CSTAGE_END_DONE) {
+      doneInner = `<div class="sf-done-q">${esc(t('sess.cstage.endDone'))}</div>${doneForm}`;
+    } else if (askCardio) {
       doneInner = `<div class="sf-done-cardio"><div class="sf-done-q">${esc(t('sess.doneCardioQ'))}</div><div class="sf-btnrow"><button type="button" class="sf-btn ini" data-sess-cardio-yes="1">${esc(t('sess.doneCardioYes'))}</button><button type="button" class="sf-btn fin" data-sess-cardio-no="1">${esc(t('train.start.no'))}</button></div></div>`;
     } else if (SESS_DONE_CARDIO === 'doing') {
       doneInner = `<div class="sf-done-doing"><div class="sf-done-q">${esc(t('sess.doneCardioDoing'))}</div><button type="button" class="sf-btn ini sf-done-open" data-sess-cardio-resume="1">${esc(t('sess.doneCardioResume'))}</button></div>`;
@@ -42363,9 +42402,19 @@ function sessFullSync(run) {
       doneInner = doneForm;
     }
     const doneBlk = `<div class="sf-done"><div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div><div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: totalD, m: totalD }))} · <span class="sf-done-clock">00:00:00</span></div>${sessCelebHTML()}${doneInner}</div>`;   /* AUTH-521: la celebración vive entre el resumen y la pregunta/el cierre, sin bloquear ninguno */
-    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v')].join('|');
+    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-')].join('|');   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma */
     if (!SESS_FULL_SIG.startsWith('fdone')) sessDayDoneHook(dc);   /* AUTH-507: la celebración se engancha a la ENTRADA en el estado, no a cada latido */
     html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${msgBlk}${sessReflHTML()}${doneBlk}</div>${minBtn}</div>`;
+  } else if (sessCStageWarmT(run.planId)) {
+    /* CAND-523 · LA ETAPA DE CALENTAMIENTO: con cardio de
+       calentamiento ASIGNADO, el panel lo trae DE UNA VEZ
+       en su puesto — la primera parada, en vez de las
+       series del ejercicio en curso — con su tiempo y su
+       edición ahí mismo. Solo su «✓ Hecho» (o quitarlo)
+       devuelve el panel a los ejercicios. */
+    const planCS = (typeof MY_PLAN !== 'undefined' && MY_PLAN && MY_PLAN.id === run.planId) ? MY_PLAN : { id: run.planId };
+    sig = ['cstage', 'warm', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', 'CW' + sessCStageSig(run.planId, 'warm')].join('|');
+    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${sessCStageHTML(planCS, 'warm', 'warm')}${msgBlk}${sessReflHTML()}</div>${minBtn}</div>`;
   } else {
     const ck = st.di + ':' + st.cur;
     const curChk = st.checks[ck] || null;
@@ -42778,6 +42827,29 @@ function sessPanelWire(el, surface) {
       try { sessPillTick(); } catch {}
       return;
     }
+    /* CAND-523 · LOS GESTOS DE LA ETAPA DE CARDIO: hecho,
+       quitar, editar (la hoja de siempre, en modo etapa) y
+       la cuenta atrás — todos sobre el mismo borrador, con
+       la guarda de contexto de la casa. */
+    const csDone = ev.target.closest ? ev.target.closest('[data-sess-cstage-done]') : null;
+    const csDel = !csDone && ev.target.closest ? ev.target.closest('[data-sess-cstage-del]') : null;
+    const csEdit = !csDone && !csDel && ev.target.closest ? ev.target.closest('[data-sess-cstage-edit]') : null;
+    const csCd = !csDone && !csDel && !csEdit && ev.target.closest ? ev.target.closest('[data-sess-cstage-cd]') : null;
+    if (csDone || csDel || csEdit || csCd) {
+      const planC = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const stageEl = ev.target.closest ? ev.target.closest('[data-sess-cstage]') : null;
+      const TC = (csDone && csDone.dataset.sessCstageDone) || (csDel && csDel.dataset.sessCstageDel) || (csEdit && csEdit.dataset.sessCstageEdit) || (stageEl && stageEl.dataset.sessCstage) || '';
+      if (planC && TC && TRAIN_CHECKS_CTX === planC.id + '|' + todayISO()) {
+        try {
+          if (csDone) sessCStageSetDone(planC, TC);
+          else if (csDel) sessCStageRemove(planC, TC);
+          else if (csEdit) sessDoneCardioSheetOpen(planC, TC, true);
+          else if (csCd) sessCStageCdToggle(planC, TC);
+        } catch {}
+      }
+      try { sessPillTick(); } catch {}
+      return;
+    }
     const fin = ev.target.closest ? ev.target.closest('[data-pill-finish]') : null;
     const ini = !fin && ev.target.closest ? ev.target.closest('[data-pill-start]') : null;
     const pau = !fin && !ini && ev.target.closest ? ev.target.closest('[data-pill-pause]') : null;
@@ -43105,11 +43177,16 @@ let SESS_DONE_CARDIO_T = '';
 /* ¿El borrador de cardio de hoy contiene alguna entrada
    válida? (la puerta 2b del plan: el calentamiento hecho o
    cualquier añadido con máquina y minutos — la vista de
-   siempre, trainCardio2ViewOf). */
+   siempre, trainCardio2ViewOf).
+   CAND-523: «válida» pasa a significar HECHA en el panel —
+   una asignación de la vista del día ya no apaga la
+   pregunta ni cuenta como cardio del día; el cardio final
+   asignado lo presenta la etapa del panel (sessCStage*)
+   antes de llegar a esta puerta. */
 function sessDoneCardioHasValid(planId) {
   const doc = trainCardio2Read(planId);
-  if (trainCardio2ViewOf(doc.warm)) return true;
-  return (doc.extras || []).some(e => !!trainCardio2ViewOf(e));
+  if (trainCardio2DoneViewOf(doc.warm)) return true;
+  return (doc.extras || []).some(e => !!trainCardio2DoneExtraValid(e));
 }
 /* El punto del «sí» (testigo T): ¿ya toca pasar a 'after'?
    Sí si el punto ya no existe (retirado) o si quedó guardado
@@ -43134,11 +43211,11 @@ function sessDoneCardioPointAfter(planId, T) {
    confirmación del fin de jornada queda en el panel. El
    oyente propio corre en burbuja, DESPUÉS del onclick del
    cableado de siempre, que ya escribió el borrador. */
-function sessDoneCardioSheetOpen(plan, T) {
+function sessDoneCardioSheetOpen(plan, T, fromStage) {
   if (!plan || !T) return;
   const doc = trainCardio2Read(plan.id);
   const e = T === 'warm' ? doc.warm : (doc.extras || [])[Number(String(T).slice(1))];
-  if (!e) { SESS_DONE_CARDIO = 'after'; try { sessPillTick(); } catch {} return; }
+  if (!e) { if (!fromStage) SESS_DONE_CARDIO = 'after'; try { sessPillTick(); } catch {} return; }
   sessDoneCardioSheetClose();
   const sheet = document.createElement('div');
   sheet.id = 'done-cardio-sheet';
@@ -43157,7 +43234,11 @@ function sessDoneCardioSheetOpen(plan, T) {
       try { after = sessDoneCardioPointAfter(plan.id, T); } catch {}
       if (after) {
         sessDoneCardioSheetClose();
-        SESS_DONE_CARDIO = 'after';
+        /* CAND-523: desde una etapa del panel, guardar la
+           hoja solo la cierra y repinta la etapa — el estado
+           de la puerta de AUTH-516 no se toca (la etapa, no
+           la pregunta, manda en ese punto). */
+        if (!fromStage) SESS_DONE_CARDIO = 'after';
         try { sessPillTick(); } catch {}
       }
     }, 60);
@@ -43167,6 +43248,129 @@ function sessDoneCardioSheetClose() {
   const sheet = document.getElementById('done-cardio-sheet');
   if (sheet) sheet.remove();
   document.body.classList.remove('swap-sheet-open');
+}
+
+/* ═══ CAND-523 · LAS ETAPAS DE CARDIO DEL PANEL (diseño
+   objetivo de Ronald, 2026-11-20 09:35 CST): la vista del
+   día ASIGNA; el panel EJECUTA. Si hay cardio de
+   calentamiento asignado, el panel lo trae DE UNA VEZ en
+   su puesto — la primera parada, con su máquina, su tiempo
+   y su edición ahí mismo — en vez de las series de un
+   ejercicio. Y al terminar el último ejercicio, si hay un
+   cardio final asignado, VIENE EL CARDIO: es la última
+   parada y quien cierra la jornada es él — hecho el
+   cardio, el formulario de cierre va SOBRE la etapa. Nada
+   de esto cuenta antes de su «✓ Hecho»: los totales, el
+   cuadrito y el registro del día solo suman lo hecho
+   (trainCardio2Done*). La cuenta atrás de la etapa es
+   memoria de pantalla (como la de AUTH-502): suena la
+   alarma de AUTH-498 al llegar a cero y el «✓ Hecho»
+   queda a un toque, sin auto-marcar nada. ═══ */
+let SESS_CSTAGE_CD = null;       /* { T, goal, e, t0, f } — la cuenta de la etapa viva */
+let SESS_CSTAGE_IV = 0;
+let SESS_CSTAGE_END_DONE = '';   /* testigo 'x<i>' del cardio final hecho EN la etapa */
+let SESS_CSTAGE_KEY = '';        /* la clave del día de ese testigo (la disciplina de SESS_DONE_CARDIO_KEY) */
+function sessCStageWarmT(planId) {
+  const doc = trainCardio2Read(planId);
+  return (trainCardio2ViewOf(doc.warm) && trainCardio2StOf(doc.warm) !== 'd') ? 'warm' : '';
+}
+function sessCStageEndT(planId) {
+  const doc = trainCardio2Read(planId);
+  const xs = doc.extras || [];
+  for (let i = 0; i < xs.length; i++) if (trainCardio2ExtraValid(xs[i]) && trainCardio2StOf(xs[i]) !== 'd') return 'x' + i;
+  return '';
+}
+function sessCStageView(planId, T) {
+  const doc = trainCardio2Read(planId);
+  const e = T === 'warm' ? doc.warm : (doc.extras || [])[Number(String(T).slice(1))];
+  return e ? trainCardio2ViewOf(e) : null;
+}
+function sessCStageSig(planId, T) {
+  const v = T ? sessCStageView(planId, T) : null;
+  if (!v) return '-';
+  const cd = (SESS_CSTAGE_CD && SESS_CSTAGE_CD.T === T) ? SESS_CSTAGE_CD : null;
+  return T + ':' + v.machine + ':' + v.minutes + ':' + (cd ? (cd.f === 1 ? 'z' : (cd.t0 > 0 ? 'r' : 'p')) : '-');
+}
+function sessCStageCdElapsed(cd, now) {
+  let e = (cd && typeof cd.e === 'number' && cd.e > 0) ? cd.e : 0;
+  if (cd && typeof cd.t0 === 'number' && cd.t0 > 0) e += Math.max(0, ((typeof now === 'number' ? now : Date.now()) - cd.t0) / 1000);
+  return e;
+}
+function sessCStageCdRemain(cd, now) { return Math.max(0, Math.ceil(cd.goal - sessCStageCdElapsed(cd, now))); }
+function sessCStageCdArm() { if (!SESS_CSTAGE_IV) SESS_CSTAGE_IV = setInterval(sessCStageCdTick, 250); }
+function sessCStageCdTick() {
+  const cd = SESS_CSTAGE_CD;
+  if (!cd) { if (SESS_CSTAGE_IV) { clearInterval(SESS_CSTAGE_IV); SESS_CSTAGE_IV = 0; } return; }
+  const el = document.querySelector('[data-sess-cstage-left]');
+  if (!el) return;
+  if (cd.f === 1) { el.textContent = '0:00'; el.classList.add('alarm'); return; }
+  const rem = sessCStageCdRemain(cd);
+  el.textContent = trainTimerFmt(rem);
+  if (typeof cd.t0 === 'number' && cd.t0 > 0 && rem <= 0) {
+    cd.e = cd.goal; cd.t0 = null; cd.f = 1;
+    try { swAlertBeep(); } catch {}   /* AUTH-498: la misma alarma de la casa */
+    el.textContent = '0:00'; el.classList.add('alarm');
+    try { sessPillTick(); } catch {}
+  }
+}
+function sessCStageHTML(plan, T, kind) {
+  const v = sessCStageView(plan.id, T);
+  if (!v) return '';
+  const meta = trainCardio2Meta(v.machine);
+  const lab = kind === 'warm' ? t('sess.cstage.warmLab') : t('sess.cstage.endLab');
+  const cd = (SESS_CSTAGE_CD && SESS_CSTAGE_CD.T === T) ? SESS_CSTAGE_CD : null;
+  const left = cd ? (cd.f === 1 ? '0:00' : trainTimerFmt(sessCStageCdRemain(cd))) : trainTimerFmt(Math.round(v.minutes * 60));
+  const cdBtn = (cd && cd.f === 1) ? ''
+    : (cd && typeof cd.t0 === 'number' && cd.t0 > 0
+      ? `<button type="button" class="sf-btn stop" data-sess-cstage-cd="pause">${esc(t('sess.cstage.pause'))}</button>`
+      : `<button type="button" class="sf-btn ini" data-sess-cstage-cd="start">${esc(t('sess.cstage.start'))}</button>`);
+  return `<div class="sf-cstage" data-sess-cstage="${esc(T)}">`
+    + `<div class="sf-cstage-lab">${kind === 'warm' ? '🔥' : '🏁'} ${esc(lab)}</div>`
+    + `<div class="sf-cstage-name">${meta && meta.icon ? meta.icon + ' ' : ''}${esc(t('train.cardio2.machine.' + v.machine))}</div>`
+    + `<div class="sf-cstage-min">${esc(t('sess.cstage.assigned', { min: fmt(v.minutes) }))}</div>`
+    + `<div class="sf-cstage-left${cd && cd.f === 1 ? ' alarm' : ''}" data-sess-cstage-left>${left}</div>`
+    + `<div class="sf-cstage-note">${esc(t('sess.cstage.notYet'))}</div>`
+    + `<div class="sf-btnrow">${cdBtn}<button type="button" class="sf-btn fin" data-sess-cstage-done="${esc(T)}">${esc(t('sess.cstage.do'))}</button></div>`
+    + `<div class="sf-btnrow"><button type="button" class="sf-btn" data-sess-cstage-edit="${esc(T)}">${esc(t('train.cardio.edit'))}</button><button type="button" class="sf-btn quit" data-sess-cstage-del="${esc(T)}">${esc(t('train.cardio2.remove'))}</button></div>`
+    + `</div>`;
+}
+function sessCStageSetDone(plan, T) {
+  const doc = trainCardio2Read(plan.id);
+  const mark = e => e ? { ...e, st: 'd', folded: true } : e;
+  if (T === 'warm') { if (doc.warm) doc.warm = mark(doc.warm); }
+  else { const i = Number(String(T).slice(1)); if (doc.extras && doc.extras[i]) doc.extras[i] = mark(doc.extras[i]); }
+  trainCardio2Write(plan.id, doc);
+  if (T !== 'warm') SESS_CSTAGE_END_DONE = T;   /* sobre este cardio va el cierre de la jornada */
+  if (SESS_CSTAGE_CD && SESS_CSTAGE_CD.T === T) SESS_CSTAGE_CD = null;
+  try { sessPillTick(); } catch {}
+  try { loadMyTraining(); } catch {}
+}
+function sessCStageRemove(plan, T) {
+  const doc = trainCardio2Read(plan.id);
+  if (T === 'warm') doc.warm = null;
+  else { const i = Number(String(T).slice(1)); if (doc.extras && doc.extras[i]) doc.extras.splice(i, 1); }
+  trainCardio2Write(plan.id, doc);
+  if (SESS_CSTAGE_CD && SESS_CSTAGE_CD.T === T) SESS_CSTAGE_CD = null;
+  if (SESS_CSTAGE_END_DONE === T) SESS_CSTAGE_END_DONE = '';
+  try { sessPillTick(); } catch {}
+  try { loadMyTraining(); } catch {}
+}
+function sessCStageCdToggle(plan, T) {
+  const v = sessCStageView(plan.id, T);
+  if (!v) return;
+  if (!SESS_CSTAGE_CD || SESS_CSTAGE_CD.T !== T) {
+    SESS_CSTAGE_CD = { T, goal: Math.max(1, Math.round(v.minutes * 60)), e: 0, t0: Date.now(), f: 0 };
+    try { swAlertArm(); } catch {}   /* el sonido se arma dentro del gesto, como en AUTH-502 */
+  } else if (SESS_CSTAGE_CD.f === 1) {
+    return;
+  } else if (typeof SESS_CSTAGE_CD.t0 === 'number' && SESS_CSTAGE_CD.t0 > 0) {
+    SESS_CSTAGE_CD.e = sessCStageCdElapsed(SESS_CSTAGE_CD);
+    SESS_CSTAGE_CD.t0 = null;
+  } else {
+    SESS_CSTAGE_CD.t0 = Date.now();
+  }
+  sessCStageCdArm();
+  try { sessPillTick(); } catch {}
 }
 
 /* ═══ AUTH-488 · UN SOLO «INICIAR» (variante B de la maqueta,
@@ -47366,6 +47570,14 @@ function trainCardio2San(v) {
      contó por primera vez?) sobrevive al saneado; sin él,
      la entrada se lee como de antes de este paquete. */
   if (v.win === 0 || v.win === 1) out.win = v.win;
+  /* CAND-523 · ASIGNADO ≠ HECHO (modelo de Ronald, 2026-11-20):
+     el estado de ejecución de la entrada — 'd' solo cuando el
+     cardio se ejecutó/confirmó en el panel de sesión; 'a' o
+     ausente = asignado en la vista del día, aún no hecho. Los
+     borradores anteriores a este paquete no traen el campo y
+     se leen como asignados: nada cuenta sin pasar por el
+     panel. */
+  if (v.st === 'd') out.st = 'd'; else if (v.st === 'a') out.st = 'a';
   if (meta) for (const s of meta.spec) {
     const raw = (v.spec && typeof v.spec === 'object') ? Number(v.spec[s]) : NaN;
     if (isFinite(raw) && raw > 0) out.spec[s] = Math.min(raw, TRAIN_CARDIO2_SPECS[s].max);
@@ -47442,7 +47654,8 @@ function trainCardio2ViewOf(e) {
   const out = { machine: e.machine, minutes: Number(e.minutes),
     kcal: e.kcal != null ? Math.floor(Number(e.kcal)) : null,
     dist: meta.dist && e.dist != null ? Number(e.dist) : null, distUnit: meta.dist || null,
-    hr: e.hr != null ? Math.floor(Number(e.hr)) : null, spec: {}, photo: e.photo || null };
+    hr: e.hr != null ? Math.floor(Number(e.hr)) : null, spec: {}, photo: e.photo || null,
+    st: (e.st === 'd') ? 'd' : 'a' };   /* CAND-523: la vista lleva el estado — asignado o hecho */
   for (const s of meta.spec) if (e.spec && e.spec[s] != null) out.spec[s] = Number(e.spec[s]);
   if (e.lm) out.lm = e.lm;
   return out;
@@ -47451,13 +47664,34 @@ function trainCardio2ViewOf(e) {
    máquina, minutos y las calorías que marcó la máquina (los
    obligatorios del registro). */
 function trainCardio2ExtraValid(e) { const v = trainCardio2ViewOf(e); return (v && v.kcal != null) ? v : null; }
+/* CAND-523 · EL ESTADO DE UNA ENTRADA: 'd' solo si el panel
+   lo confirmó hecho; todo lo demás (incluido sin campo, el
+   legado) es 'a', asignado. Las vistas «hechas» son las de
+   siempre filtradas por ese estado: son las ÚNICAS que
+   cuentan en totales, en el cuadrito y en el cierre. */
+function trainCardio2StOf(e) { return (e && e.st === 'd') ? 'd' : 'a'; }
+function trainCardio2DoneViewOf(e) { const v = trainCardio2ViewOf(e); return (v && trainCardio2StOf(e) === 'd') ? v : null; }
+function trainCardio2DoneExtraValid(e) { const v = trainCardio2ExtraValid(e); return (v && trainCardio2StOf(e) === 'd') ? v : null; }
 function trainCardio2Totals(planId, iso) {
   const doc = trainCardio2Read(planId, iso);
   let min = 0, kcal = 0;
-  const w = trainCardio2ViewOf(doc.warm);
+  const w = trainCardio2DoneViewOf(doc.warm);
   if (w) { min += w.minutes; if (w.kcal) kcal += w.kcal; }
-  doc.extras.forEach(e => { const v = trainCardio2ExtraValid(e); if (v) { min += v.minutes; kcal += v.kcal; } });
+  doc.extras.forEach(e => { const v = trainCardio2DoneExtraValid(e); if (v) { min += v.minutes; kcal += v.kcal; } });
   return { min, kcal };
+}
+/* CAND-523 · LOS MINUTOS ASIGNADOS Y AÚN NO HECHOS (la vista
+   del día los enseña como asignación, nunca como conteo):
+   el calentamiento por su vista; los añadidos por su vista
+   (máquina y minutos — las calorías se confirman al
+   hacerlo, en el panel). */
+function trainCardio2AssignedMin(planId, iso) {
+  const doc = trainCardio2Read(planId, iso);
+  let min = 0;
+  const w = trainCardio2ViewOf(doc.warm);
+  if (w && trainCardio2StOf(doc.warm) !== 'd') min += w.minutes;
+  doc.extras.forEach(e => { const v = trainCardio2ViewOf(e); if (v && trainCardio2StOf(e) !== 'd') min += v.minutes; });
+  return min;
 }
 /* AUTH-482 · LOS MINUTOS QUE EL CUADRITO SUMA A SU TOTAL:
    la misma suma de arriba (las mismas vistas, la misma
@@ -47472,9 +47706,9 @@ function trainCardio2Totals(planId, iso) {
 function trainCardio2PillMin(planId, iso) {
   const doc = trainCardio2Read(planId, iso);
   let min = 0;
-  const w = trainCardio2ViewOf(doc.warm);
+  const w = trainCardio2DoneViewOf(doc.warm);   /* CAND-523: el cuadrito suma solo lo HECHO (y sin doble conteo de ventana, como siempre) */
   if (w && !(doc.warm && doc.warm.win === 1)) min += w.minutes;
-  doc.extras.forEach(e => { const v = trainCardio2ExtraValid(e); if (v && e.win !== 1) min += v.minutes; });
+  doc.extras.forEach(e => { const v = trainCardio2DoneExtraValid(e); if (v && e.win !== 1) min += v.minutes; });
   return min;
 }
 /* La proyección del calentamiento al bloque legado de
@@ -47513,9 +47747,12 @@ function trainCardio2ForClose(planId) {
   const doc = trainCardio2Read(planId);
   const list = [];
   let warmLegacy = null;
-  const w = trainCardio2ViewOf(doc.warm);
+  /* CAND-523: al registro del día solo entra el cardio
+     HECHO en el panel — lo asignado y no ejecutado no se
+     cuela en el cierre. */
+  const w = trainCardio2DoneViewOf(doc.warm);
   if (w) { warmLegacy = trainCardio2LegacyBlock(w); list.push({ ...trainCardio2BlockOf(w), warm: true }); }
-  doc.extras.forEach(e => { const v = trainCardio2ExtraValid(e); if (v) list.push(trainCardio2BlockOf(v)); });
+  doc.extras.forEach(e => { const v = trainCardio2DoneExtraValid(e); if (v) list.push(trainCardio2BlockOf(v)); });
   return { warmLegacy, list: list.length ? list : null };
 }
 function trainCardio2FromLogEntry(b) {
@@ -47542,11 +47779,16 @@ function trainCardio2Detail(v) {
    pendiente, fuera de este paquete). */
 function trainCardio2LineHTML(planId, iso) {
   const tot = trainCardio2Totals(planId, iso);
-  if (!(tot.min > 0)) return '';
+  const asg = trainCardio2AssignedMin(planId, iso);   /* CAND-523: lo asignado se anuncia como asignación, aparte del conteo */
+  if (!(tot.min > 0) && !(asg > 0)) return '';
   const goal = (typeof trainGoalMin === 'function') ? trainGoalMin() : null;
-  let s = esc(t('train.cardio2.line', { min: fmt(tot.min) }));
-  if (tot.kcal > 0) s += esc(t('train.cardio2.lineKcal', { kcal: fmt(tot.kcal) }));
-  if (goal != null) s += esc(t('train.cardio2.lineGoal', { goal }));
+  let s = '';
+  if (tot.min > 0) {
+    s = esc(t('train.cardio2.line', { min: fmt(tot.min) }));
+    if (tot.kcal > 0) s += esc(t('train.cardio2.lineKcal', { kcal: fmt(tot.kcal) }));
+    if (goal != null) s += esc(t('train.cardio2.lineGoal', { goal }));
+  }
+  if (asg > 0) s += esc(t('train.cardio2.assignedLine', { min: fmt(asg) }));
   return `<div class="cardio2-line">${s}</div>`;
 }
 /* Un campo numérico del registro: rótulo y rueda de la casa —
@@ -47606,7 +47848,13 @@ function trainCardio2WarmHTML(plan, di, iso, opts) {
   if (!w) return label + wrap(`<div class="cardio-hint">${esc(t('train.cardio.hintNo'))}</div>`);
   if (w.folded && view) {
     const metaF = trainCardio2Meta(view.machine);
-    return label + wrap(`<div class="cardio-sum">${metaF && metaF.icon ? `<span aria-hidden="true">${metaF.icon}</span>` : ''}<span>${esc(trainCardio2Detail(view))}</span><button type="button" class="cardio-edit" data-cardio2-edit="warm">${esc(t('train.cardio.edit'))}</button></div>` + moveBlockZoneHTML(plan, iso, view));
+    /* CAND-523: el resumen dice su estado — asignado (se
+       hace en el panel) o hecho; guardar aquí ya no finge
+       un hecho. */
+    const chip = view.st === 'd'
+      ? `<span class="cardio2-st is-done">${esc(t('train.cardio2.doneChip'))}</span>`
+      : `<span class="cardio2-st">${esc(t('train.cardio2.assignedChip'))}</span>`;
+    return label + wrap(`<div class="cardio-sum">${metaF && metaF.icon ? `<span aria-hidden="true">${metaF.icon}</span>` : ''}<span>${esc(trainCardio2Detail(view))}</span>${chip}<button type="button" class="cardio-edit" data-cardio2-edit="warm">${esc(t('train.cardio.edit'))}</button></div>` + moveBlockZoneHTML(plan, iso, view));
   }
   return label + wrap(trainCardio2FormHTML('warm', w, true));
 }
@@ -47642,7 +47890,12 @@ function trainCardio2ExtrasHTML(plan, di, iso, startNum) {
     const v = trainCardio2ViewOf(e);
     if (e.folded && v) {
       const meta = trainCardio2Meta(v.machine);
-      return `<div class="cardio-warm cardio2-folded" ${attrs}><div class="cardio-sum">${meta && meta.icon ? `<span aria-hidden="true">${meta.icon}</span>` : ''}<span>${(startNum || 1) + i} · ${esc(trainCardio2Detail(v))}</span><span class="cardio2-ok" aria-hidden="true">✓</span><button type="button" class="cardio-edit" data-cardio2-edit="${T}">${esc(t('train.cardio.edit'))}</button></div></div>`;
+      /* CAND-523: la ✓ de siempre solo si está HECHO en el
+         panel; si no, la etiqueta de asignado. */
+      const chip = v.st === 'd'
+        ? `<span class="cardio2-st is-done">${esc(t('train.cardio2.doneChip'))}</span>`
+        : `<span class="cardio2-st">${esc(t('train.cardio2.assignedChip'))}</span>`;
+      return `<div class="cardio-warm cardio2-folded" ${attrs}><div class="cardio-sum">${meta && meta.icon ? `<span aria-hidden="true">${meta.icon}</span>` : ''}<span>${(startNum || 1) + i} · ${esc(trainCardio2Detail(v))}</span>${chip}<button type="button" class="cardio-edit" data-cardio2-edit="${T}">${esc(t('train.cardio.edit'))}</button></div></div>`;
     }
     return `<div class="cardio-warm cardio2-point" ${attrs}><div class="cardio-warm-head"><span class="cardio-warm-title">➕ ${esc(t('train.cardio2.register'))}</span></div>${trainCardio2FormHTML(T, e, false)}</div>`;
   });
@@ -67321,7 +67574,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-conservar-subir';
+const PWA_SW_VERSION = '20261120-asignado-no-hecho';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
