@@ -40593,9 +40593,9 @@ function sessPillSync(run) {
     pillPaused = flowSt === 'paused';
     const total = st.eff.length;
     const doneN = st.eff.filter((_, ei) => { const c = st.checks[st.di + ':' + ei]; return !!(c && c.done === true); }).length;
-    const pct = total ? Math.round(100 * doneN / total) : 0;
+    const pct = Math.round(sessDayFracFine(st.plan, st.di, st.checks, st.eff) * 100);   /* AUTH-526: la franja de la píldora enseña LA MISMA fracción fina por repeticiones que la línea de la completa (sessDayFracFine) — las dos caras del panel no se contradicen; doneN queda solo como término de la firma */
     const tipPh = (typeof UDATA !== 'undefined' && UDATA && UDATA.photoURL) || '';
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', tipPh ? 'p' + tipPh.length : 'i:' + (((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '')), cMin].join('|');
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, 'P' + pct, run.label || '', tipPh ? 'p' + tipPh.length : 'i:' + (((typeof UDATA !== 'undefined' && UDATA && UDATA.name) || '')), cMin].join('|');
     const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
     /* AUTH-434 · LA MÁQUINA DE TRES ESTADOS EN LA
        PÍLDORA — la misma de la tarjeta, leída del mismo
@@ -42433,6 +42433,93 @@ function sessGoalSec(ex, chk) {
   }
   return tot;
 }
+/* ═══ AUTH-526 · LA BARRA AVANZA POR REPETICIONES (pedido
+   literal de Ronald, 2026-11-20 11:28 CST: «quiero que vaya
+   sumando por repetición: a medida que voy marcando clicks,
+   en esa misma medida se va organizando y haciendo todos
+   los cálculos»; su elección de las 11:32 CST: SOLO la barra
+   y el % más finos, SIN ningún número nuevo visible — la
+   línea «Ejercicio X de N» queda como está y no nace ningún
+   conteo de repeticiones en pantalla). SOLO cambia la
+   VISUALIZACIÓN del progreso en sessFullSync (la franja y
+   el % de la línea, en el ejercicio en curso y en el estado
+   de día completado): no se toca ningún registro, ni la
+   racha ponderada, ni qué cuenta como día completado, ni
+   el cierre; el avatar de la racha sigue SOBRE la barra.
+   EL MODELO: el día se divide en rebanadas iguales — una
+   por ejercicio del día (la lista efectiva) y una por cada
+   etapa de cardio PRESENTE (el calentamiento asignado y
+   el cardio final asignado, AUTH-523) — y la fracción del
+   día es la suma de las fracciones de las rebanadas ÷ el
+   número de rebanadas. Dentro de su rebanada, cada
+   ejercicio avanza por su fracción hecha:
+   – por repeticiones: las repeticiones de las series
+     MARCADAS ÷ las planeadas, con la meta de cada serie
+     según el borrador (trainSetCriterion sobre su
+     repsPlanned: en rangos manda el máximo, la misma meta
+     que la casa usa para el tiempo en AUTH-502/516);
+   – por tiempo: los segundos cumplidos de las series
+     marcadas (su secDone, sin pasar de la meta) ÷ los
+     segundos meta (la suma de los máximos, la de
+     sessGoalSec);
+   – sin criterio legible: por series marcadas, la caída
+     honesta de siempre.
+   Las series PENDIENTES (pend: sugeridas sin confirmar)
+   no cuentan en ningún lado — la misma lectura de
+   sessSetDone — y las de aproximación ni aparecen: viven
+   en chk.warmup.sets, fuera de chk.sets (AUTH-505/506:
+   no cuentan, como en el «X de N»). Un ejercicio sellado
+   (chk.done) vale su rebanada entera. El cardio SOLO suma
+   con su «✓ Hecho» (st 'd', AUTH-523): asignado suma 0,
+   pero su rebanada ya existe — con el calentamiento
+   asignado sin hacer, el día tiene una rebanada más y un
+   ejercicio de cuatro ya no vale un cuarto del día.
+   Barra y % pintan LA MISMA fracción: el entero de
+   siempre (Math.round) sobre esta fracción fina — en un
+   día de 4 ejercicios de 4×12, una serie marcada mueve la
+   línea a 6 % (6,25 redondeado). ═══ */
+function sessExFracFine(ex, chk) {
+  if (!chk) return 0;
+  if (chk.done === true) return 1;
+  const sets = (Array.isArray(chk.sets) ? chk.sets : []).filter(s => s && s.pend !== true);
+  if (!sets.length) return 0;
+  let timed = true, goalT = 0;
+  for (const s of sets) { const c = trainTimedOf(ex, s); if (!c || !(c.max > 0)) { timed = false; break; } goalT += c.max; }
+  if (timed && goalT > 0) {
+    let doneT = 0;
+    for (const s of sets) {
+      if (!sessSetDone(s)) continue;
+      const c = trainTimedOf(ex, s);
+      const sd = (typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0) ? Math.floor(s.secDone) : 0;
+      doneT += Math.min(sd, c.max);
+    }
+    return Math.min(1, doneT / goalT);
+  }
+  let goalR = 0, doneR = 0;
+  for (const s of sets) {
+    const c = trainSetCriterion(ex, s);
+    if (!c || c.kind !== 'reps' || !(c.max > 0)) continue;
+    goalR += c.max;
+    if (sessSetDone(s)) doneR += c.max;
+  }
+  if (goalR > 0) return Math.min(1, doneR / goalR);
+  return sets.reduce((a, s) => a + (sessSetDone(s) ? 1 : 0), 0) / sets.length;
+}
+function sessDayFracFine(plan, di, checks, eff) {
+  let slices = 0, sum = 0;
+  (Array.isArray(eff) ? eff : []).forEach((it, ei) => {
+    slices++;
+    sum += sessExFracFine(it && it.ex, checks ? checks[di + ':' + ei] : null);
+  });
+  let doc = null;
+  try { doc = trainCardio2Read(plan.id); } catch {}
+  if (doc) {
+    if (trainCardio2ViewOf(doc.warm)) { slices++; if (trainCardio2StOf(doc.warm) === 'd') sum += 1; }
+    const xs = (Array.isArray(doc.extras) ? doc.extras : []).filter(e => trainCardio2ExtraValid(e));
+    if (xs.length) { slices++; if (xs.every(e => trainCardio2StOf(e) === 'd')) sum += 1; }
+  }
+  return slices ? Math.min(1, sum / slices) : 0;
+}
 function sessFullSync(run) {
   const full = $('sess-full'); if (!full) return;
   sessFoldDaySync();   /* AUTH-491/494/504: cada día el Mensaje y la Reflexión nacen plegados */
@@ -42497,7 +42584,9 @@ function sessFullSync(run) {
     }
     const totalD = dc.eff.length;
     const headDone = `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.dayDone'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}</div>`;
-    const franjaDone = `<div class="sf-franja" aria-hidden="true"><i style="width:100%"></i>${sessPillTipHTML('calc(100% - 13px)')}</div><div class="sf-prog">${esc(t('train.guide.pos', { n: totalD, m: totalD }))} · ${esc(t('sess.ofDay', { p: 100 }))}</div>`;
+    const pctD = Math.round(sessDayFracFine(dc.plan, dc.di, dc.checks, dc.eff) * 100);   /* AUTH-526: en el cierre manda la misma fracción fina — con una etapa de cardio asignada aún sin hacer, la barra enseña su rebanada pendiente en vez de un 100 % que todavía no es; sin cardio pendiente (o ya hecho) vale 100, como siempre */
+    const flameD = pctD <= 8 ? '13px' : (pctD >= 92 ? 'calc(100% - 13px)' : pctD + '%');
+    const franjaDone = `<div class="sf-franja" aria-hidden="true"><i style="width:${pctD}%"></i>${sessPillTipHTML(flameD)}</div><div class="sf-prog">${esc(t('train.guide.pos', { n: totalD, m: totalD }))} · ${esc(t('sess.ofDay', { p: pctD }))}</div>`;
     const doneForm = SESS_DONE_FORM
       ? trainCloseFormHTML(dc.plan.id, dc.di)
       : `<button type="button" class="sf-btn fin sf-done-open" data-sess-done-open="1">${esc(t('train.closeFinish'))}</button>`;
@@ -42525,7 +42614,7 @@ function sessFullSync(run) {
       doneInner = doneForm;
     }
     const doneBlk = `<div class="sf-done"><div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div><div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: totalD, m: totalD }))} · <span class="sf-done-clock">00:00:00</span></div>${sessCelebHTML()}${doneInner}</div>`;   /* AUTH-521: la celebración vive entre el resumen y la pregunta/el cierre, sin bloquear ninguno */
-    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-')].join('|');   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma */
+    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-'), 'P' + pctD].join('|');   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma · AUTH-526: el % fino también — cuando la etapa se marca hecha, la barra repinta a su valor */
     if (!SESS_FULL_SIG.startsWith('fdone')) sessDayDoneHook(dc);   /* AUTH-507: la celebración se engancha a la ENTRADA en el estado, no a cada latido */
     html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${msgBlk}${sessReflHTML()}${doneBlk}</div>${minBtn}</div>`;
   } else if (sessCStageWarmT(run.planId)) {
@@ -42545,7 +42634,7 @@ function sessFullSync(run) {
     try { if (TRAIN_CHECKS_CTX === st.plan.id + '|' + todayISO() && TRAIN_FLOW[ck]) flowSt = TRAIN_FLOW[ck].st || ''; } catch {}
     const total = st.eff.length;
     const doneN = st.eff.reduce((a, _x, i2) => a + ((st.checks[st.di + ':' + i2] || {}).done === true ? 1 : 0), 0);
-    const pct = total ? Math.round(doneN * 100 / total) : 0;
+    const pct = Math.round(sessDayFracFine(st.plan, st.di, st.checks, st.eff) * 100);   /* AUTH-526: la fracción fina por repeticiones (sessDayFracFine) — doneN queda solo como término de la firma, ya no manda en la cifra */
     const flameLeft = pct <= 8 ? '13px' : (pct >= 92 ? 'calc(100% - 13px)' : pct + '%');
     const curName = trainExName(st.eff[st.cur].ex) || st.eff[st.cur].ex.name || '';
     const pos = t('train.guide.pos', { n: st.cur + 1, m: total });
@@ -67716,7 +67805,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261120-avatar-flotante';
+const PWA_SW_VERSION = '20261120-barra-por-repeticiones';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
