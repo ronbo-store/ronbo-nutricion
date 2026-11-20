@@ -5393,6 +5393,25 @@ en: {
   'aiDraft.noticeDate': 'You have a meal that was analyzed on {date} and is still waiting to be saved.',
   'aiDraft.review': 'Review it',
   'aiDraft.fromDate': 'Analyzed on {date}.',
+  'pendUp.aiSaved': 'Saved on this phone with its date and time. It will upload by itself when the service responds.',
+  'pendUp.chip': 'Pending upload',
+  'pendUp.notice': '{n} saved on this phone, waiting to upload',
+  'pendUp.view': 'View',
+  'pendUp.uploadNow': 'Upload now',
+  'pendUp.discard': 'Discard',
+  'pendUp.discardTitle': 'Discard this saved entry?',
+  'pendUp.discardBody': 'It will not be uploaded. This cannot be undone.',
+  'pendUp.uploadedOne': 'Your entry from {when} was uploaded.',
+  'pendUp.uploadedMany': '{n} saved entries were uploaded.',
+  'pendUp.stillDown': 'The service is not responding yet — your entry stays saved on this phone.',
+  'pendUp.notFound': 'The service could not recognize the food. Review it to log it another way.',
+  'pendUp.review': 'Review it',
+  'pendUp.aiPhoto': 'Meal photo',
+  'pendUp.aiText': 'Described meal',
+  'pendUp.aiAudio': 'Voice-note meal',
+  'pendUp.mealManual': 'Logged meal',
+  'pendUp.water': 'Water',
+  'pendUp.weight': 'Weight',
   'ai.introTitle': 'Analyze a meal from a photo',
   'ai.introTake': '📷 Take or choose the photo',
   /* AUTH-418: la clave conserva su nombre histórico; su texto
@@ -10822,6 +10841,25 @@ es: {
   'aiDraft.noticeDate': 'Tienes una comida analizada el {date} que aún espera ser guardada.',
   'aiDraft.review': 'Revisarla',
   'aiDraft.fromDate': 'Analizada el {date}.',
+  'pendUp.aiSaved': 'Quedó guardado en este teléfono con su fecha y su hora. Se subirá solo cuando el servicio responda.',
+  'pendUp.chip': 'Pendiente de subir',
+  'pendUp.notice': '{n} guardado(s) en este teléfono, esperando para subirse',
+  'pendUp.view': 'Ver',
+  'pendUp.uploadNow': 'Subir ahora',
+  'pendUp.discard': 'Descartar',
+  'pendUp.discardTitle': '¿Descartar este registro guardado?',
+  'pendUp.discardBody': 'No se subirá. Esto no se puede deshacer.',
+  'pendUp.uploadedOne': 'Se subió tu registro del {when}.',
+  'pendUp.uploadedMany': 'Se subieron {n} registros guardados.',
+  'pendUp.stillDown': 'El servicio aún no responde: tu registro sigue guardado en este teléfono.',
+  'pendUp.notFound': 'El servicio no reconoció la comida. Revísala para registrarla de otra forma.',
+  'pendUp.review': 'Revisarla',
+  'pendUp.aiPhoto': 'Foto de la comida',
+  'pendUp.aiText': 'Comida descrita',
+  'pendUp.aiAudio': 'Comida por nota de voz',
+  'pendUp.mealManual': 'Comida registrada',
+  'pendUp.water': 'Agua',
+  'pendUp.weight': 'Peso',
   'ai.introTitle': 'Analizar una comida desde una foto',
   'ai.introTake': '📷 Tomar o elegir la foto',
   /* AUTH-418: la clave conserva su nombre histórico; su texto
@@ -16480,6 +16518,10 @@ onAuthStateChanged(auth, async user => {
   /* D1/D2 (puntos 19–20): un borrador de análisis en texto que quedó
      esperando se restaura y se ofrece — sin llamar a la IA otra vez. */
   try { aiDraftRestore(); } catch {}
+  /* CONSERVAR Y SUBIR DESPUÉS: lo que quedó conservado en el
+     dispositivo se pinta en su sitio (aviso y diario) y se intenta
+     subir — al abrir la app es el primer disparador de la subida. */
+  try { pendBoot(); } catch {}
   startUserDocWatch(user.uid);
   appInstallSignal();
   /* AUTH-072: sincronización perezosa de trainer_notify — ancla:
@@ -25572,7 +25614,16 @@ async function waterAddToday(addMl) {
     const lab = $('dg-water-ml'); if (lab) lab.textContent = total + ' ml';
     const lab2 = $('nutri-water-ml'); if (lab2) lab2.textContent = total + ' ml';
     return total;
-  } catch { return null; }
+  } catch {
+    /* CONSERVAR Y SUBIR DESPUÉS: los ml no se pierden con el fallo —
+       quedan conservados en el dispositivo con su fecha y su hora y
+       se suman solos cuando el servicio responda (ver pendFlushWater:
+       la marca por clave impide sumarlos dos veces). El llamante
+       sigue recibiendo null y avisando del fallo, como siempre: nada
+       se finge guardado. */
+    try { pendWaterConserve(addMl); } catch {}
+    return null;
+  }
 }
 /* El +250 ml de la tarjeta fusionada: la función compartida. */
 async function fusedWaterAdd() {
@@ -28987,7 +29038,7 @@ function aiShapeR2(r2) {
 }
 function aiShow(html) { const p = $('ai-panel'); if (!p) return; p.style.display = ''; /* La hoja #food-ai lleva SU ✕ de la casa en la cabecera (puntos 19–20): la tarjeta del panel ya NO pinta una segunda ✕ — la de la hoja cierra y espera, sin descartar nada; el descarte vive en los botones «Descartar» de cada paso. */ p.innerHTML = html; /* Borrador restaurado de OTRO día (D1): la revisión dice su fecha de origen cuando no coincide con el día que muestra la ventana — el guardado cae en el día visible, como en todo registro. */ if (aiState && aiState.restored && aiState.draftDate && (aiState.step === 'questions' || aiState.step === 'draft') && (!$('dateSel') || $('dateSel').value !== aiState.draftDate)) { const note = document.createElement('p'); note.className = 'progress-hint'; note.textContent = t('aiDraft.fromDate', { date: dateName(aiState.draftDate) }); p.insertBefore(note, p.firstChild); } /* D1: cada pintado de la revisión re-sincroniza el borrador en texto y la insignia (aiDraftSync no persiste pasos sin resultado). */ try { aiDraftSync(); } catch {} }
 function aiClosePanel() { aiProgHide(); const p = $('ai-panel'); if (p) { p.style.display = 'none'; p.innerHTML = ''; } }
-function aiDiscard() { aiState = null; aiDraftClear(); aiClosePanel(); aiBadgeSync(); }
+function aiDiscard() { /* CONSERVAR Y SUBIR DESPUÉS: el descarte es deliberado — si este análisis tenía un pendiente conservado, el pendiente se retira con él (la salida manual también pasa por aquí: desde ese momento el formulario manual es el dueño del dato, y él mismo conserva si su escritura falla). */ const pk = aiState && aiState.pendKey; aiState = null; aiDraftClear(); aiClosePanel(); aiBadgeSync(); if (pk) { try { pendRemove(pk); } catch {} } }
 /* DESCARTE DEL USUARIO (puntos 19–20, P3): el aviso de «sin guardar»
    deja de cuidar la NAVEGACIÓN (cerrar la ventana, cambiar de
    pantalla o de pestaña ya no pierde nada — la revisión espera en
@@ -29159,6 +29210,445 @@ function aiDraftNoticeSync() {
   const op = $('ai-draft-notice-open'); if (op) op.onclick = () => { dockHome($('food-float')); foodOpenAi(); };
   const xx = $('ai-draft-notice-x'); if (xx) xx.onclick = () => { aiDraftNoticeDismissed = true; aiDraftNoticeSync(); };
 }
+
+/* ===== CONSERVAR Y SUBIR DESPUÉS (paquete «La app conserva y sube
+   después», orden de Ronald 2026-11-19 20:08) =====
+   EL CASO: al registrar una comida, la puerta de IA no pudo leer la
+   base de datos (cuota diaria agotada → 503 «door-unavailable») y la
+   entrada vivía solo en memoria: cerrar la app la perdía. Desde este
+   paquete, cuando un registro no puede completarse porque el
+   SERVICIO no está disponible (puerta caída, 5xx, sin conexión,
+   tiempo agotado, tope diario de IA o escritura rechazada por la
+   misma indisponibilidad), la app lo CONSERVA en el dispositivo con
+   su contenido completo, su tipo y la FECHA Y HORA EXACTAS en que la
+   persona lo hizo; se ve en su sitio como «Pendiente de subir»
+   (aviso en Inicio y tarjeta en el diario de su día — nunca se finge
+   guardado: los totales no lo incluyen) y, cuando el servicio vuelve
+   a responder (al abrir la app, al volver la conexión, al abrir
+   Comida o con «Subir ahora»), se completa y se sube SOLO, archivado
+   en su día y momento ORIGINALES. Sin duplicados: cada pendiente
+   lleva la clave del documento que creará (el saveId del análisis o
+   el id por huella del formulario) y la subida es setDoc sobre esa
+   clave, con guardia de existencia previa en las vías de IA y de
+   formulario; el agua suma dentro de una transacción que solo aplica
+   si su clave no está ya marcada en el documento del día. Nada se
+   borra solo: la persona puede descartar un pendiente a propósito,
+   con su hoja de confirmación.
+   DECLARACIÓN M8 (decisión de Ronald 2026-10-17: las fotos de comida
+   no se conservan y toda copia temporal indispensable se declara):
+   la cola guarda la foto (y la nota de voz) SOLO en el almacenamiento
+   local DEL DISPOSITIVO, como carga para repetir el análisis al
+   volver el servicio; la foto NUNCA entra en el registro (el
+   documento conserva solo la miniatura de 480 px de AUTH-418, como
+   en el flujo en vivo) y la copia local se borra al subirse el
+   registro o al descartarlo. La clave es por usuario. Si la carga
+   completa no cabe en el almacenamiento local, se conserva solo la
+   primera foto; si tampoco cabe, no se finge conservación.
+   DECLARACIÓN DE CONTADORES: los topes de IA los impone el Worker
+   por (usuario, día DE LA LLAMADA); un pendiente que se completa al
+   volver el servicio consume el cupo del día de la SUBIDA, no el del
+   día original — imputarlo al día original exigiría cambiar el
+   Worker y queda fuera de este paquete. El registro sí queda
+   archivado con su fecha y hora originales. Un pendiente frenado por
+   el tope no se reintenta en bucle: se marca con el día del tope y
+   espera al día siguiente.
+   ALCANCE: dentro — la comida por IA en el paso de identificación
+   (foto/texto/voz), el formulario manual de comida en registros
+   NUEVOS, el agua y el peso propio del formulario de Progreso.
+   Fuera, con su razón — las EDICIONES de comida (un editado viejo
+   aplicado tarde podría pisar un estado más nuevo del mismo
+   registro; el formulario conserva el dato en sesión), el cálculo y
+   la revisión de IA (ya conservados por el borrador en texto D1), el
+   cierre del día de entreno (ya conservado por sus borradores de
+   sesión en el dispositivo) y las demás superficies de IA (no
+   archivan un registro fechado). */
+const PEND_UP_LS = 'ronbofit-pending-uploads-';
+let pendFlushing = false;
+let pendNoticeDismissed = false;
+let pendDiscardKey = null;
+let pendDiscardWired = false;
+
+function pendUid() { try { return (auth.currentUser && auth.currentUser.uid) || null; } catch { return null; } }
+/* Lectura validada, con el patrón de aiDraftRead: cualquier resto
+   ilegible se trata como cola vacía, jamás como error. */
+function pendRead() {
+  const uid = pendUid(); if (!uid) return [];
+  try {
+    const raw = localStorage.getItem(PEND_UP_LS + uid);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(x => x && typeof x === 'object' && typeof x.key === 'string' && !!x.key && typeof x.kind === 'string' && isFinite(Number(x.atMs)) && typeof x.date === 'string' && !!x.date);
+  } catch { return []; }
+}
+function pendWrite(items) {
+  const uid = pendUid(); if (!uid) return false;
+  try { localStorage.setItem(PEND_UP_LS + uid, JSON.stringify(items)); return true; } catch { return false; }
+}
+/* Alta por clave: la misma clave jamás aparece dos veces en la cola. */
+function pendAdd(item) {
+  const items = pendRead().filter(x => x.key !== item.key);
+  items.push(item);
+  return pendWrite(items);
+}
+function pendRemove(key) {
+  const items = pendRead();
+  const next = items.filter(x => x.key !== key);
+  if (next.length !== items.length) pendWrite(next);
+  pendPaintAll();
+}
+/* Clasificación del error de la puerta para ESTE paquete: solo la
+   indisponibilidad y el tope conservan. El interruptor del
+   administrador (ai-disabled), la ventana de tipo corporal, la
+   respuesta ilegible (ai-badjson) y la forma inesperada
+   (ai-badshape) NO son indisponibilidad: el servicio respondió o
+   está apagado a propósito. */
+function pendAiErrKind(e) {
+  const m = (e && e.message) || '';
+  if (m === 'ai-cap') return 'cap';
+  if (m === 'ai-door-unavailable' || m === 'ai-timeout' || /^ai-\d{3}$/.test(m)) return 'down';
+  if (e instanceof TypeError) return 'down'; /* fetch rechazó: sin conexión */
+  return '';
+}
+/* Conserva la entrada del análisis cuya identificación acaba de
+   fallar por indisponibilidad. Devuelve true si quedó conservada y
+   marca el estado (pendKey/pendSaved) para que la tarjeta de error
+   lo diga y para que las salidas deliberadas retiren el pendiente. */
+function pendAiConserve(state, e) {
+  const kind = pendAiErrKind(e);
+  if (!kind || !state || !pendUid()) return false;
+  const item = { kind: 'ai', key: state.saveId, mode: state.mode, meal: state.meal,
+    date: ($('dateSel') && $('dateSel').value) || todayISO(), atMs: Date.now(), lang: LANG };
+  if (kind === 'cap') item.capDay = todayISO();
+  if (state.mode === 'photo') {
+    item.photos = (state.photos && state.photos.length) ? state.photos.slice() : (state.dataUrl ? [state.dataUrl] : []);
+    if (!item.photos.length) return false;
+  } else if (state.mode === 'text') {
+    item.descText = state.descText || '';
+    if (!item.descText) return false;
+  } else if (state.mode === 'audio') {
+    item.audioDataUrl = state.audioDataUrl || '';
+    if (!item.audioDataUrl) return false;
+  } else return false;
+  if (!pendAdd(item)) {
+    /* Sin sitio para la carga completa: se conserva la primera foto
+       (el análisis puede repetirse con ella); si tampoco cabe, no se
+       finge nada y la tarjeta de error queda como siempre. */
+    if (item.photos && item.photos.length > 1) {
+      item.photos = [item.photos[0]]; item.mediaTrimmed = true;
+      if (!pendAdd(item)) return false;
+    } else return false;
+  }
+  state.pendKey = item.key;
+  state.pendSaved = true;
+  pendPaintAll();
+  return true;
+}
+/* Conserva un registro NUEVO del formulario manual cuya escritura
+   acaba de fallar: los documentos ya construidos (uno, o el par del
+   reparto), sin createdAt — la subida lo repone con el momento
+   original conservado en el pendiente. */
+function pendMealConserve(docs, meal, label) {
+  if (!pendUid() || !docs || !docs.length) return false;
+  const item = { kind: 'meal', key: docs[0].id, docs, meal: meal || '', label: label || '',
+    date: (docs[0].data && docs[0].data.date) || todayISO(), atMs: Date.now() };
+  if (!pendAdd(item)) return false;
+  pendPaintAll();
+  return true;
+}
+/* Conserva los ml de agua cuya transacción acaba de fallar. La clave
+   es única por toque: cada toque es un pendiente propio y la marca
+   dentro del documento del día impide aplicarlo dos veces. */
+function pendWaterConserve(addMl) {
+  const uid = pendUid(); if (!uid) return;
+  const atMs = Date.now();
+  const item = { kind: 'water', key: 'water_' + uid + '_' + atMs.toString(36) + '_' + Math.random().toString(36).slice(2, 7),
+    ml: addMl, date: todayISO(), atMs };
+  if (pendAdd(item)) pendPaintAll();
+}
+/* Conserva el pesaje propio cuya escritura acaba de fallar (el
+   documento es uno por día: su clave ES el docId, idempotente). */
+function pendWeightConserve(docId, data, date) {
+  if (!pendUid() || !docId) return;
+  const item = { kind: 'weight', key: 'weight_' + docId, docId, data, date: date || todayISO(), atMs: Date.now() };
+  if (pendAdd(item)) pendPaintAll();
+}
+/* Si la subida de un análisis vuelve a chocar con el tope, el
+   pendiente se marca con el día del tope y no se reintenta hasta el
+   día siguiente; cualquier otro fallo lo deja tal cual, pendiente. */
+function pendAiFlushFail(item, e) {
+  if (pendAiErrKind(e) === 'cap') { item.capDay = todayISO(); try { pendAdd(item); } catch {} }
+}
+/* La subida de un análisis conservado: pasa por la IA como si fuera
+   en vivo — identificación con la carga conservada, preguntas con la
+   respuesta por omisión que el propio flujo pre-marca («skipped») y
+   cálculo — y el documento se construye EXACTAMENTE como en
+   aiSaveDirect, salvo la fecha (el día ORIGINAL del registro) y el
+   createdAt (el MOMENTO ORIGINAL, no el de la subida). */
+async function pendFlushAi(item, uid) {
+  if (item.capDay && item.capDay === todayISO()) return 'stay';
+  /* Nunca secuestrar una sesión de IA viva: si hay una llamada en
+     curso (paso 'loading') o la hoja del análisis está abierta, este
+     pendiente espera a la próxima corrida. Un borrador restaurado y
+     dormido (hoja cerrada, sin llamada en curso) no bloquea: la
+     subida no pinta nada y restaura el estado al terminar. */
+  if (aiState && (aiState.step === 'loading' || foodIsOpen('food-ai'))) return 'stay';
+  /* Guardia anti-duplicado: si el documento ya existe (se guardó por
+     otra vía con la misma clave), el pendiente ya cumplió. */
+  try { const s = await getDoc(doc(db, 'nutrition_meals', item.key)); if (s.exists()) { pendRemove(item.key); return 'gone'; } } catch { return 'stay'; }
+  let raw;
+  try {
+    raw = item.mode === 'text'
+      ? await aiCall('/identify-text', { description: item.descText, lang: item.lang || LANG })
+      : item.mode === 'audio'
+        ? await aiCall('/identify-audio', { audioDataUrl: item.audioDataUrl, lang: item.lang || LANG })
+        : await aiCall('/identify', (item.photos && item.photos.length === 1)
+          ? { imageDataUrl: item.photos[0], lang: item.lang || LANG }
+          : { images: item.photos, lang: item.lang || LANG });
+  } catch (e) { pendAiFlushFail(item, e); return 'stay'; }
+  const r1 = aiShapeR1(raw);
+  if (!r1) return 'stay';
+  r1.foods = aiMergeScaledDuplicates(r1.foods);
+  if (!r1.foods.length) { item.notfound = true; try { pendAdd(item); } catch {} pendPaintAll(); return 'stay'; }
+  const foods0 = r1.foods.map(aiFoodFromIdentify);
+  const answers = {};
+  (r1.questions || []).slice(0, 3).forEach(q => { answers[q.id] = 'skipped'; });
+  const calcFoods = foods0.filter(f => (f.name || '').trim()).map(f => {
+    const name = f.name.trim();
+    const out = { ...(f.src || {}), name, portion_g_estimate: Math.max(0, Math.round(aiEffGrams(f))), unit: f.unit === 'ml' ? 'ml' : 'g' };
+    if (!f.src || name !== (f.src.name || '') || !out.usda_query) out.usda_query = name;
+    return out;
+  });
+  if (!calcFoods.length) { item.notfound = true; try { pendAdd(item); } catch {} pendPaintAll(); return 'stay'; }
+  let r2;
+  try {
+    const raw2 = await aiCall('/calculate', { foods: calcFoods, answers, lang: item.lang || LANG });
+    r2 = aiShapeR2(raw2);
+    if (!r2) return 'stay';
+  } catch (e) { pendAiFlushFail(item, e); return 'stay'; }
+  let photoURL = '';
+  if (item.mode === 'photo' && item.photos && item.photos[0]) { try { photoURL = await aiPhotoThumb480(item.photos[0]); } catch { photoURL = ''; } }
+  /* Las fórmulas del documento (nombre, cantidad, desglose) leen el
+     estado global del análisis: se instala un estado sintético con
+     la revisión reconstruida y se restaura el anterior al terminar,
+     sin pintar nada en pantalla. */
+  const prevState = aiState;
+  let data;
+  aiState = { mode: item.mode, dataUrl: (item.photos && item.photos[0]) || null, photos: item.photos || null, thumbP: null,
+    descText: item.descText || '', audioDataUrl: null, step: 'draft', r1, answers, other: {}, foods: foods0, r2,
+    errStage: 'identify', meal: item.meal, metrics: null, metricsEdited: false, name: null, nameEdited: false,
+    cap: false, capLimit: null, disabled: false, doorDown: false, btWindow: false, btRenews: null,
+    saveError: false, saveId: item.key, split: null, pendKey: null, pendSaved: false };
+  try {
+    const tot = r2.totals || {};
+    const r1d = x => Math.round(num(x) * 10) / 10;
+    data = { ownerUid: uid, date: item.date, meal: item.meal, food: aiSuggestedName(), qty: aiQtyString(),
+      kcal: Math.round(num(tot.kcal)), prot: r1d(tot.prot), carb: r1d(tot.carb), sugar: r1d(tot.sugar), fat: r1d(tot.fat),
+      source: item.mode === 'text' ? 'ai-text' : item.mode === 'audio' ? 'ai-audio' : 'ai',
+      ai: { model: r2.model || 'gemini', rangeKcal: Array.isArray(r2.rangeKcal) ? r2.rangeKcal : [Math.round(num(tot.kcal) * 0.85), Math.round(num(tot.kcal) * 1.15)] },
+      createdAt: Timestamp.fromMillis(item.atMs) };
+    const fib = fiberOf(tot); if (fib != null) data.fiber = fib;
+    const itemsCand = itemsIfSquare(aiItemsCandidate(), data); if (itemsCand) data.items = itemsCand;
+    if (photoURL) data.photoURL = photoURL;
+  } finally { aiState = prevState; }
+  await setDoc(doc(db, 'nutrition_meals', item.key), data);
+  try { foodlibAutoCandidate(data); } catch {}
+  pendRemove(item.key);
+  return 'done';
+}
+/* La subida de un registro del formulario: guardia por documento y
+   escritura de los documentos conservados (lote si es reparto), con
+   el createdAt del momento original. */
+async function pendFlushMeal(item) {
+  const docs = item.docs || [];
+  if (!docs.length) return 'stay';
+  let allExist = true;
+  for (const d of docs) {
+    try { const s = await getDoc(doc(db, 'nutrition_meals', d.id)); if (!s.exists()) { allExist = false; break; } }
+    catch { return 'stay'; }
+  }
+  if (allExist) { pendRemove(item.key); return 'gone'; }
+  const withTs = d => ({ ...d.data, createdAt: Timestamp.fromMillis(item.atMs) });
+  if (docs.length > 1) {
+    const batch = writeBatch(db);
+    docs.forEach(d => batch.set(doc(db, 'nutrition_meals', d.id), withTs(d)));
+    await batch.commit();
+  } else {
+    await setDoc(doc(db, 'nutrition_meals', docs[0].id), withTs(docs[0]));
+  }
+  pendRemove(item.key);
+  return 'done';
+}
+/* La subida del agua: la MISMA transacción atómica del guardado en
+   vivo, con la marca de aplicado — si la clave ya está en el
+   documento del día, los ml ya se sumaron y no se suman otra vez. */
+async function pendFlushWater(item, uid) {
+  const ref = doc(db, 'nutrition_water', uid + '_' + item.date);
+  await runTransaction(db, async tx => {
+    const cur = await tx.get(ref);
+    const d0 = cur.exists() ? cur.data() : {};
+    if (d0.pq && d0.pq[item.key]) return;
+    const t2 = (Number(d0.ml) || 0) + (Number(item.ml) || 0);
+    tx.set(ref, { studentUid: uid, date: item.date, ml: t2, byUid: uid, byRole: 'alumno', updatedAt: serverTimestamp(), pq: { ...((d0 && d0.pq) || {}), [item.key]: true } }, { merge: true });
+  });
+  if (item.date === todayISO()) { try { await fusedWaterPaint(); } catch {} }
+  pendRemove(item.key);
+  return 'done';
+}
+/* La subida del pesaje: setDoc sobre su propio documento (uno por
+   día), con el updatedAt del momento original. */
+async function pendFlushWeight(item) {
+  await setDoc(doc(db, 'nutrition_weight', item.docId), { ...item.data, updatedAt: Timestamp.fromMillis(item.atMs) });
+  pendRemove(item.key);
+  return 'done';
+}
+/* La corrida de subida: serializada, del pendiente más viejo al más
+   nuevo; cada uno es independiente — si uno vuelve a fallar, sigue
+   conservado y la corrida sigue con los demás. Disparadores: el
+   arranque (pendBoot), el evento «online», la apertura de Comida y
+   el botón «Subir ahora» de cada tarjeta (onlyKey). */
+async function pendFlush(onlyKey) {
+  if (pendFlushing) return;
+  const uid = pendUid(); if (!uid) return;
+  const items = pendRead().slice().sort((a, b) => a.atMs - b.atMs);
+  if (!items.length) { pendPaintAll(); return; }
+  pendFlushing = true;
+  let uploaded = 0, changed = false, lastWhen = '';
+  try {
+    for (const item of items) {
+      if (onlyKey && item.key !== onlyKey) continue;
+      if (!pendRead().some(x => x.key === item.key)) continue; /* retirado durante la corrida */
+      let r = 'stay';
+      try {
+        if (item.kind === 'ai') r = await pendFlushAi(item, uid);
+        else if (item.kind === 'meal') r = await pendFlushMeal(item);
+        else if (item.kind === 'water') r = await pendFlushWater(item, uid);
+        else if (item.kind === 'weight') r = await pendFlushWeight(item);
+      } catch { r = 'stay'; }
+      if (r === 'done') { uploaded++; changed = true; lastWhen = pendWhenLabel(item); }
+      else if (r === 'gone') changed = true;
+    }
+  } finally { pendFlushing = false; }
+  pendPaintAll();
+  if (changed) { try { await loadAllKeepDate(($('dateSel') && $('dateSel').value) || todayISO()); } catch {} pendPaintAll(); }
+  if (onlyKey) {
+    if (uploaded) toast(t('pendUp.uploadedOne', { when: lastWhen }));
+    else {
+      const it = pendRead().find(x => x.key === onlyKey);
+      if (it) toast(it.capDay && it.capDay === todayISO() ? t('ai.limitNote') : t('pendUp.stillDown'), true);
+    }
+  } else if (uploaded === 1) toast(t('pendUp.uploadedOne', { when: lastWhen }));
+  else if (uploaded > 1) toast(t('pendUp.uploadedMany', { n: uploaded }));
+}
+/* La etiqueta de momento del pendiente: su día y su hora ORIGINALES,
+   con las fórmulas de la casa. */
+function pendWhenLabel(item) { return dateName(item.date) + ' · ' + mealTimeStr(item.atMs); }
+function pendTitle(item) {
+  if (item.kind === 'ai') {
+    const base = t(item.mode === 'text' ? 'pendUp.aiText' : item.mode === 'audio' ? 'pendUp.aiAudio' : 'pendUp.aiPhoto');
+    return item.meal ? base + ' · ' + mealName(item.meal) : base;
+  }
+  if (item.kind === 'meal') return (item.label || t('pendUp.mealManual')) + (item.meal ? ' · ' + mealName(item.meal) : '');
+  if (item.kind === 'water') return t('pendUp.water') + ' · +' + (Number(item.ml) || 0) + ' ml';
+  if (item.kind === 'weight') {
+    let w = '';
+    try { w = weightDisplayOf(item.data || {}); } catch {}
+    if (!w && item.data && item.data.weight != null) w = fmt(item.data.weight) + ' kg';
+    return t('pendUp.weight') + (w ? ' · ' + w : '');
+  }
+  return item.kind;
+}
+function pendCardHTML(it) {
+  const note = it.notfound ? `<div class="upend-note">${esc(t('pendUp.notFound'))}</div>` : '';
+  const mainBtn = it.notfound
+    ? `<button type="button" class="btn-main btn-sm" data-pend-review="${esc(it.key)}">${esc(t('pendUp.review'))}</button>`
+    : `<button type="button" class="btn-main btn-sm" data-pend-up="${esc(it.key)}">${esc(t('pendUp.uploadNow'))}</button>`;
+  return `<div class="upend-card"><div class="upend-top"><span class="upend-title">${esc(pendTitle(it))}</span><span class="upend-chip">${esc(t('pendUp.chip'))}</span></div><div class="upend-when">${esc(pendWhenLabel(it))}</div>${note}<div class="upend-actions">${mainBtn}<button type="button" class="btn-ghost btn-sm" data-pend-del="${esc(it.key)}">${esc(t('pendUp.discard'))}</button></div></div>`;
+}
+/* Las tarjetas del diario: los pendientes DEL DÍA que se está viendo,
+   al principio de su lista de consumido — en su sitio, con su fecha
+   y hora, sin sumarse a ningún total. Lo pinta render() tras pintar
+   el detalle del día y cualquier cambio de la cola. */
+function pendDiarySync(date) {
+  const body = $('detailBody'); if (!body) return;
+  const old = document.getElementById('pend-up-diary');
+  if (old) old.remove();
+  const items = pendRead().filter(x => x.date === date);
+  if (!items.length) return;
+  const box = document.createElement('div');
+  box.id = 'pend-up-diary';
+  box.innerHTML = items.slice().sort((a, b) => b.atMs - a.atMs).map(pendCardHTML).join('');
+  body.insertBefore(box, body.firstChild);
+  box.querySelectorAll('[data-pend-up]').forEach(b => { b.onclick = () => pendFlush(b.getAttribute('data-pend-up')); });
+  box.querySelectorAll('[data-pend-review]').forEach(b => { b.onclick = () => pendReview(b.getAttribute('data-pend-review')); });
+  box.querySelectorAll('[data-pend-del]').forEach(b => { b.onclick = () => pendDiscardAsk(b.getAttribute('data-pend-del')); });
+}
+/* El aviso de Inicio (espejo del aviso D2 del borrador): dice cuántos
+   registros esperan en el teléfono y «Ver» abre Comida en el día del
+   pendiente más viejo, en su lista. La ✕ lo retira por esta sesión;
+   los pendientes siguen en su sitio. */
+function pendNoticeSync() {
+  const box = $('pend-up-notice'); if (!box) return;
+  const items = pendRead();
+  if (!items.length || pendNoticeDismissed) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.innerHTML = `<span class="ai-draft-notice-txt">${esc(t('pendUp.notice', { n: items.length }))}</span><button type="button" class="btn-main btn-sm" id="pend-up-notice-open">${esc(t('pendUp.view'))}</button><button type="button" class="pend-close" id="pend-up-notice-x" aria-label="${esc(t('client.close'))}">✕</button>`;
+  box.style.display = '';
+  const op = $('pend-up-notice-open');
+  if (op) op.onclick = () => {
+    const it = pendRead().slice().sort((a, b) => a.atMs - b.atMs)[0];
+    if (!it) return;
+    dockHome($('food-float'));
+    try { foodShowOnly('float'); } catch {}
+    try { loadAllKeepDate(it.date); } catch {}
+    try { foodSetSub('consumido'); } catch {}
+  };
+  const xx = $('pend-up-notice-x');
+  if (xx) xx.onclick = () => { pendNoticeDismissed = true; pendNoticeSync(); };
+}
+function pendPaintAll() {
+  try { pendNoticeSync(); } catch {}
+  try { pendDiarySync(($('dateSel') && $('dateSel').value) || todayISO()); } catch {}
+}
+/* «Revisarla»: el servicio no reconoció la comida al reintentar — el
+   pendiente se carga en el panel vivo con SU MISMA clave (si la
+   persona lo guarda desde ahí, el documento es el de la clave y la
+   guardia de la cola lo retira sin duplicar), sobre su día original. */
+function pendReview(key) {
+  const it = pendRead().find(x => x.key === key);
+  if (!it || it.kind !== 'ai') return;
+  if (it.mode === 'photo' && !(it.photos && it.photos.length)) return;
+  try { loadAllKeepDate(it.date); } catch {}
+  if (it.mode === 'text') aiStartText(it.descText || '');
+  else if (it.mode === 'audio') aiStartAudio(it.audioDataUrl || '');
+  else aiStartPhotos(it.photos.slice());
+  if (aiState) { aiState.saveId = it.key; aiState.pendKey = it.key; aiState.pendSaved = true; }
+}
+/* El descarte deliberado, con su hoja de confirmación: nada se borra
+   solo y ningún pendiente caduca. */
+function pendDiscardAsk(key) {
+  pendDiscardKey = key;
+  pendDiscardWire();
+  const m = $('pend-up-confirm'); if (m) m.style.display = '';
+}
+function pendDiscardWire() {
+  if (pendDiscardWired) return;
+  const m = $('pend-up-confirm'); if (!m) return;
+  pendDiscardWired = true;
+  const close = () => { pendDiscardKey = null; m.style.display = 'none'; };
+  const ok = $('pend-up-confirm-ok');
+  if (ok) ok.onclick = () => { const k = pendDiscardKey; close(); if (k) pendRemove(k); };
+  const no = $('pend-up-confirm-no');
+  if (no) no.onclick = close;
+  m.addEventListener('click', e => { if (e.target === m) close(); });
+}
+/* Arranque del paquete en cada sesión: pinta lo que espera y corre
+   la primera subida. Lo invoca la entrada, junto a aiDraftRestore. */
+function pendBoot() {
+  try { pendDiscardWire(); } catch {}
+  pendPaintAll();
+  try { pendFlush(); } catch {}
+}
+try { window.addEventListener('online', () => { try { pendFlush(); } catch {} }); } catch {}
 
 function aiProgShow() {
   const el = $('ai-progress'); if (!el) return;
@@ -29806,7 +30296,7 @@ function aiNewSaveId() {
   return 'meal_' + Date.now().toString(36) + '_' + aiSaveSeq.toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
 function aiFreshState(mode) {
-  return { mode, dataUrl: null, photos: null, thumbP: null, descText: '', audioDataUrl: null, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, capLimit: null, disabled: false, doorDown: false, btWindow: false, btRenews: null, saveError: false, saveId: aiNewSaveId(), split: null };
+  return { mode, dataUrl: null, photos: null, thumbP: null, descText: '', audioDataUrl: null, step: 'loading', r1: null, answers: {}, other: {}, foods: null, r2: null, errStage: 'identify', meal: aiDefaultMeal(), metrics: null, metricsEdited: false, name: null, nameEdited: false, cap: false, capLimit: null, disabled: false, doorDown: false, btWindow: false, btRenews: null, saveError: false, saveId: aiNewSaveId(), split: null, pendKey: null, pendSaved: false };
 }
 /* Registra en el estado el tipo de corte que devolvió aiCall: tope
    diario (con el límite aplicable si el Worker lo dijo), interruptor
@@ -29917,9 +30407,13 @@ async function aiRunIdentify() {
     aiState.foods = r1.foods.map(aiFoodFromIdentify);
     (r1.questions || []).slice(0, 3).forEach(q => { if (!(q.id in aiState.answers)) aiState.answers[q.id] = 'skipped'; });
     if (!aiState.foods.length) { aiState.step = 'notfound'; aiRender(); return; }
+    /* CONSERVAR Y SUBIR DESPUÉS: si ESTE análisis nació de un
+       pendiente que al fin se completó a mano (su misma clave), el
+       pendiente ya cumplió: se retira antes de seguir el flujo. */
+    if (aiState.pendKey) { try { pendRemove(aiState.pendKey); } catch {} aiState.pendKey = null; aiState.pendSaved = false; }
     aiState.step = 'questions';
     aiRender();
-  } catch (e) { if (aiState) { aiState.step = 'error'; aiState.errStage = 'identify'; aiNoteError(e); aiRender(); } }
+  } catch (e) { if (aiState) { aiState.step = 'error'; aiState.errStage = 'identify'; aiNoteError(e); /* CONSERVAR Y SUBIR DESPUÉS: si el servicio no está disponible (puerta caída, 5xx, sin conexión, tiempo agotado o tope diario), la entrada queda conservada EN EL DISPOSITIVO con su fecha y hora exactas para subirse sola cuando el servicio responda; los demás errores conservan el comportamiento de siempre. */ try { pendAiConserve(aiState, e); } catch {} aiRender(); } }
 }
 async function aiCalculate() {
   if (!aiState || !aiState.r1) return;
@@ -30055,7 +30549,7 @@ function aiErrorCardHTML() {
   if (aiState.doorDown) {
     const canRetry = aiState.errStage !== 'identify' || aiHasInput();
     const retryBtn = canRetry ? `<button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button>` : '';
-    return { html: `${aiFaceRow(t('ai.doorUnavailable'), AI_FACE_DOWN)}<div class="ai-actions">${retryBtn}<button type="button" class="${canRetry ? 'btn-ghost' : 'btn-main'} btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
+    return { html: `${aiFaceRow(t('ai.doorUnavailable'), AI_FACE_DOWN)}${aiState.pendSaved ? `<p class="progress-hint">${esc(t('pendUp.aiSaved'))}</p>` : ''}<div class="ai-actions">${retryBtn}<button type="button" class="${canRetry ? 'btn-ghost' : 'btn-main'} btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
   }
   /* Ventana de 15 días del análisis de tipo corporal: el aviso dice
      CUÁNDO se renueva (fecha real que devolvió el Worker). */
@@ -30068,13 +30562,13 @@ function aiErrorCardHTML() {
     /* Con el límite aplicable conocido, el aviso lo NOMBRA y dice que
        se renueva mañana; sin él, el texto genérico de siempre. */
     const head = aiState.capLimit != null ? t('ai.capReachedN', { n: aiState.capLimit }) : t('ai.capReached');
-    return { html: `${aiFaceRow(head, AI_FACE_CAP)}<p class="progress-hint">${t('ai.limitNote')}</p><div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
+    return { html: `${aiFaceRow(head, AI_FACE_CAP)}<p class="progress-hint">${t('ai.limitNote')}</p>${aiState.pendSaved ? `<p class="progress-hint">${esc(t('pendUp.aiSaved'))}</p>` : ''}<div class="ai-actions"><button type="button" class="btn-main btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>`, extras: false };
   }
   const identify = aiState.errStage === 'identify';
   const canRetry = !identify || aiHasInput();
   const retryBtn = canRetry ? `<button type="button" class="btn-main btn-sm" id="ai-retry">${t('ai.retry')}</button>` : '';
   const extras = identify ? aiFailExtrasHTML(!canRetry) : '';
-  return { html: `<p class="progress-hint">${t('ai.failed')}</p><div class="ai-actions">${retryBtn}<button type="button" class="${canRetry ? 'btn-ghost' : 'btn-main'} btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>${extras}`, extras: identify };
+  return { html: `<p class="progress-hint">${t('ai.failed')}</p>${aiState.pendSaved ? `<p class="progress-hint">${esc(t('pendUp.aiSaved'))}</p>` : ''}<div class="ai-actions">${retryBtn}<button type="button" class="${canRetry ? 'btn-ghost' : 'btn-main'} btn-sm" id="ai-manual">${t('ai.continueManual')}</button><button type="button" class="btn-ghost btn-sm" id="ai-cancel">${t('ai.discard')}</button></div>${extras}`, extras: identify };
 }
 function aiWireErrorCard(extras) {
   const r = $('ai-retry'); if (r) r.onclick = aiRetry;
@@ -30453,7 +30947,7 @@ function foodShowOnly(which) {
   if (which === 'float') { try { renderPlanCard(); } catch {} }
 }
 function foodCloseAll() { foodShowOnly(null); }
-function foodOpenFloat() { foodShowOnly('float'); }
+function foodOpenFloat() { foodShowOnly('float'); /* CONSERVAR Y SUBIR DESPUÉS: abrir Comida es uno de los disparadores de la subida de pendientes. */ try { pendFlush(); } catch {} }
 function foodOpenText() { foodShowOnly('text'); const ta = $('food-text-desc'); if (ta) { try { ta.focus(); } catch {} } }
 function foodOpenHelp() { foodShowOnly('help'); }
 function foodOpenVoice() { foodShowOnly('voice'); }
@@ -31408,6 +31902,10 @@ document.addEventListener('click', e => {
      aquí y la cierra en el acto — la hoja se abría y se cerraba
      con el mismo toque. */
   const nz = $('ai-draft-notice'); if (nz && nz.contains(e.target)) return;
+  /* CONSERVAR Y SUBIR DESPUÉS: el aviso de pendientes (#pend-up-notice:
+     «Ver») abre el diario en la ventana de Comida — misma exclusión
+     que el aviso del borrador, por la misma razón. */
+  const np = $('pend-up-notice'); if (np && np.contains(e.target)) return;
   const nm = $('nav-unsaved'); if (nm && nm.contains(e.target)) return;
   foodCloseAll();
 });
@@ -57963,6 +58461,9 @@ function render(date) {
   ).join('');
   if (rows.length) html += `<div class="meal-row meal-row-total"><div class="meal-row-top"><span class="meal-row-when">${t('track.totalDay')}</span><span class="meal-row-kcal">${fmt(tot.kcal)} kcal</span></div><div class="meal-row-total-macros"><span style="color:#2563EB">${t('th.protShort')} ${fmt(tot.prot)} g</span> · <span style="color:#D97706">${t('th.carbShort')} ${fmt(tot.carb)} g</span> · <span style="color:#9333EA">${t('th.sugarShort')} ${fmt(tot.azuc)} g</span> · <span style="color:#DC2626">${t('th.fatShort')} ${fmt(tot.gras)} g</span></div></div>`;
   $('detailBody').innerHTML = html || `<div class="wempty">${t('track.emptyDay')}</div>`;
+  /* CONSERVAR Y SUBIR DESPUÉS: las tarjetas de los pendientes de
+     ESTE día van en su sitio, al principio del diario. */
+  try { pendDiarySync(date); } catch {}
   /* SIN TABLA «RESUMEN VS. METAS» EN LA VISTA PRINCIPAL (Ronald,
      2026-10-21 20:47: «Quiero ocultar esto mientras tanto también»,
      sobre la captura de la tabla): la tabla (Indicador / Consumo /
@@ -62047,7 +62548,31 @@ $('form-meal').addEventListener('submit', async e => {
         await setDoc(doc(db, 'nutrition_meals', idA), data);
       }
       if (!(aiDraft && aiDraft.saveId)) mealManualPending = null;
-    } catch (err) { failToast(err); return; }
+    } catch (err) {
+      /* CONSERVAR Y SUBIR DESPUÉS: si la escritura de un registro
+         NUEVO falló (el servicio no está disponible), el registro
+         queda conservado en el dispositivo con su fecha y su hora
+         para subirse solo cuando el servicio responda — cerrar la
+         app con el formulario abierto ya no lo pierde. Las
+         EDICIONES quedan fuera a propósito (un editado viejo
+         aplicado tarde podría pisar un estado más nuevo del mismo
+         registro): el formulario conserva el dato en sesión, como
+         siempre. El createdAt no viaja en la copia conservada: la
+         subida lo repone con el momento original del pendiente. */
+      try {
+        if (!(mealEditCtx && !aiDraft) && idA) {
+          const strip = d => { if (!d) return d; const c = { ...d }; delete c.createdAt; return c; };
+          const docs = splitOn
+            ? [{ id: idA, data: strip(dataA) }, { id: idA + '-b', data: strip(dataB) }]
+            : [{ id: idA, data: strip(data) }];
+          pendMealConserve(docs, data.meal, data.food);
+        }
+      } catch {}
+      failToast(err); return;
+    }
+    /* CONSERVAR Y SUBIR DESPUÉS: si este guardado aterrizó sobre la
+       clave de un pendiente conservado, el pendiente ya cumplió. */
+    try { if (idA) pendRemove(idA); } catch {}
     /* AUTH-291: la escritura ya aterrizó — si la edición trajo foto
        nueva, la foto anterior del registro se retira de Storage. */
     if (editReplacedPhoto) { try { await deleteObject(sRef(storage, editReplacedPhoto)); } catch {} }
@@ -62208,8 +62733,24 @@ $('form-weight').addEventListener('submit', async e => {
       try { console.warn('[ronbo] guardado de solo-peso denegado:', err.code); } catch {}
       toast(t('err.weightSaveDenied'), true);
     } else failToast(err);
+    /* CONSERVAR Y SUBIR DESPUÉS: el pesaje PROPIO queda conservado
+       en el dispositivo con su fecha y su hora para subirse solo
+       cuando el servicio responda. El de un CLIENTE no se conserva:
+       nadie sube en silencio el registro de otra persona — su
+       formulario queda abierto con el dato, como siempre. El
+       updatedAt no viaja en la copia: la subida lo repone con el
+       momento original del pendiente. */
+    try {
+      if (uid === auth.currentUser.uid) {
+        const d2 = { ...data }; delete d2.updatedAt;
+        pendWeightConserve(docId, d2, date);
+      }
+    } catch {}
     return;
   }
+  /* CONSERVAR Y SUBIR DESPUÉS: si había un pesaje conservado de este
+     mismo día, este guardado lo cumple y el pendiente se retira. */
+  try { pendRemove('weight_' + docId); } catch {}
   $('weight-modal').style.display = 'none';
   backReturn(true);
   e.target.reset();
@@ -66780,7 +67321,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261120-celebracion-dia';
+const PWA_SW_VERSION = '20261119-conservar-subir';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
