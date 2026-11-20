@@ -42348,7 +42348,33 @@ function sessHowRowHTML(ex) {
    minimizar de 30 × 30 (la excepción expresa de Ronald) lo
    reduce a la forma pequeña de siempre — la fila del panel
    en «Sonando…» — sin callar la voz, y tocar el rótulo de la
-   fila lo trae de vuelta. ═══ */
+   fila lo trae de vuelta.
+   ── AUTH-529 · EL AUDIO SIGUE CON LA PANTALLA BLOQUEADA
+   (reporte de Ronald el 2026-11-20 12:17 CST: escuchando
+   audio, al suspenderse/bloquearse el teléfono el sonido se
+   apagaba): las instrucciones suenan como un reproductor de
+   música de cara al sistema — el elemento de medios directo
+   de siempre (sin grafo, como dejó AUTH-525) y, donde el
+   navegador lo ofrece, la Media Session API: metadatos (el
+   ejercicio como título, «RONBO FIT» como artista y la
+   mascota como carátula), el estado de reproducción y los
+   manejadores play/pause/stop, para que el sistema lo trate
+   como música en curso: sigue sonando con la pantalla
+   bloqueada y se pausa o se sigue desde la pantalla de
+   bloqueo. Nada en la app pausa este audio por ocultarse la
+   página (ningún visibilitychange lo toca: verificado) y
+   esta pieza no añade ninguno: lo que Ronald pausa tocando
+   sigue pausando, y las puertas de siempre (ficha, cambio de
+   ejercicio, salida de la vista completa, fin de la sesión)
+   siguen deteniéndolo. El crossOrigin heredado de la era
+   del AnalyserNode se retira: sin grafo no hace falta CORS
+   y el elemento carga como medio plano, la ruta más robusta
+   para sonar en segundo plano. SIN cambios visuales.
+   LA REFLEXIÓN Y LAS LECTURAS NO VAN AQUÍ: su escucha es la
+   voz del teléfono (speechSynthesis, asstSpeak) — otro
+   mecanismo, que iOS apaga al bloquear y que ninguna API web
+   mantiene vivo en segundo plano; queda reportado como
+   bifurcación aparte para decisión de Ronald. ═══ */
 const SESS_AUDIO_BASE = 'https://ronbo-store.github.io/ronbo-nutri-assets/';
 const SESS_AUDIO_MASCOT = SESS_AUDIO_BASE + 'avatar-coach-virtual/web/guino-hablando.webp';
 const SESS_AUDIO_FORMS = new Set(['E001', 'E002', 'E003', 'E004', 'E004v1', 'E005', 'E006', 'E007', 'E008', 'E009', 'E010', 'E011', 'E012', 'E105', 'E105v1']);
@@ -42389,9 +42415,13 @@ const SESS_AUDIO_PILL_SVGS = '<svg class="ic-pause" width="13" height="13" viewB
 function sessAudioEnsure() {
   if (SESS_AUDIO.el) return;
   const el = new Audio();
-  el.crossOrigin = 'anonymous';
+  /* AUTH-529: fuera el crossOrigin de la era del AnalyserNode
+     (AUTH-518; el grafo murió en AUTH-525): sin grafo, el
+     elemento carga como medio plano — la ruta robusta para
+     que el sistema lo trate como música en curso. */
   el.preload = 'auto';
   SESS_AUDIO.el = el;
+  sessAudioMediaInit();
   const stage = document.createElement('div');
   stage.className = 'sf-austage';
   stage.id = 'sess-audio-stage';
@@ -42405,6 +42435,54 @@ function sessAudioEnsure() {
   el.addEventListener('loadedmetadata', sessAudioTime);
   el.addEventListener('ended', sessAudioFinish);
   el.addEventListener('error', sessAudioError);
+}
+/* AUTH-529 · LA MEDIA SESSION de las instrucciones: el
+   registro nace con el elemento (una sola vez) y la
+   sincronización acompaña a cada cambio de estado del
+   reproductor — sonar, pausar, detener, terminar — para que
+   la pantalla de bloqueo enseñe el ejercicio y «RONBO FIT»,
+   y sus botones manden sobre ESTE audio por los mismos
+   caminos de siempre (sessAudioPlay/Pause/Stop). Donde no
+   hay Media Session (navegador sin la API), todo sigue como
+   hoy: cada acceso va guardado. */
+function sessAudioMediaInit() {
+  try {
+    if (!('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    ms.setActionHandler('play', () => { if (SESS_AUDIO.st === 'paused') sessAudioPlay(); });
+    ms.setActionHandler('pause', () => { if (SESS_AUDIO.st === 'playing') sessAudioPause(); });
+    ms.setActionHandler('stop', () => { sessAudioStop(); try { sessPillTick(); } catch {} });
+    try { ms.setActionHandler('seekto', null); } catch {}
+  } catch {}
+}
+function sessAudioMediaSync() {
+  try {
+    if (!('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    if (SESS_AUDIO.key && SESS_AUDIO.st !== 'idle') {
+      ms.metadata = new MediaMetadata({
+        title: SESS_AUDIO.name || t('sess.listenFull'),
+        artist: 'RONBO FIT',
+        album: t('sess.listenFull'),
+        artwork: [{ src: SESS_AUDIO_MASCOT, type: 'image/webp' }]
+      });
+      ms.playbackState = SESS_AUDIO.st === 'playing' ? 'playing' : 'paused';
+    } else {
+      ms.playbackState = 'none';
+      ms.metadata = null;
+    }
+  } catch {}
+}
+/* La posición para la barra de la pantalla de bloqueo: la
+   alimenta el mismo latido del tiempo (timeupdate), sin
+   relojes nuevos. */
+function sessAudioMediaPos() {
+  try {
+    if (!('mediaSession' in navigator) || !navigator.mediaSession.setPositionState) return;
+    const el = SESS_AUDIO.el;
+    if (!el || !el.duration || !isFinite(el.duration)) return;
+    navigator.mediaSession.setPositionState({ duration: el.duration, playbackRate: el.playbackRate || 1, position: Math.min(el.currentTime || 0, el.duration) });
+  } catch {}
 }
 /* AUTH-525: el grafo de volumen (AnalyserNode) y el bucle
    que articulaba la boca YA NO EXISTEN — existían solo para
@@ -42464,6 +42542,7 @@ function sessAudioTime() {
   if (el.duration && isFinite(el.duration)) SESS_AUDIO.dur = el.duration;
   sessAudioRowPaint();
   sessAudioStagePaint(false);
+  sessAudioMediaPos();   /* AUTH-529: la posición de la pantalla de bloqueo sigue a este mismo latido */
 }
 function sessAudioPlay() {
   const el = SESS_AUDIO.el;
@@ -42473,6 +42552,7 @@ function sessAudioPlay() {
   SESS_AUDIO.seq++;
   sessAudioStagePaint(false);
   sessAudioRowPaint();
+  sessAudioMediaSync();   /* AUTH-529 */
   try { sessPillTick(); } catch {}
 }
 function sessAudioPause() {
@@ -42483,6 +42563,7 @@ function sessAudioPause() {
   SESS_AUDIO.seq++;
   sessAudioStagePaint(false);
   sessAudioRowPaint();
+  sessAudioMediaSync();   /* AUTH-529 */
   try { sessPillTick(); } catch {}
 }
 /* El toque en el botón redondo: si suena la forma en curso,
@@ -42523,6 +42604,7 @@ function sessAudioStop() {
   SESS_AUDIO.dur = 0;
   SESS_AUDIO.seq++;
   sessAudioStageSet(false);
+  sessAudioMediaSync();   /* AUTH-529: la pantalla de bloqueo se limpia al detener */
 }
 /* El fin del audio: el flotante enseña «Indicación
    terminada» y se retira solo por completo tras ≈1,2 s
@@ -42531,6 +42613,7 @@ function sessAudioStop() {
 function sessAudioFinish() {
   SESS_AUDIO.st = 'idle';
   SESS_AUDIO.seq++;
+  sessAudioMediaSync();   /* AUTH-529: al terminar, el sistema deja de enseñarlo como «sonando» */
   sessAudioStagePaint(true);
   sessAudioRowPaint();
   try { sessPillTick(); } catch {}
@@ -68027,7 +68110,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261120-quitar-series';
+const PWA_SW_VERSION = '20261120-audio-en-bloqueo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
