@@ -6751,6 +6751,39 @@ en: {
   'planai.saved': '✓ Your plan is saved and active.',
   'planai.savedHold': '✓ Your plan is saved. It turns on when you complete your health declaration.',
   'planai.dupEditor': 'The proposal repeats an exercise in one day, so it opened in the editor for you to fix it before saving.',
+  'planb.doorBtn': '🐾 Have the mascot build it step by step',
+  'planb.stepOf': 'Step {s} of 5', 'planb.dayOf': 'Day {d} of {n}',
+  'planb.qWhen': "Hi! I'm your coach. Let's build your plan together. First: when is this plan for?",
+  'planb.whenToday': 'Today', 'planb.whenTodaySub': 'One session, right now',
+  'planb.whenWeek': 'One week', 'planb.whenFortnight': 'Two weeks',
+  'planb.whenDaysSub': '{n} training days',
+  'planb.noImpose': 'You approve everything. Nothing is imposed.',
+  'planb.qHow': 'How do you want to train this day?',
+  'planb.modeGroups': 'By muscle groups', 'planb.modeParts': 'Upper / lower body',
+  'planb.pickGroup': 'CHOOSE THE GROUP FOR THIS DAY', 'planb.pickPart': 'CHOOSE THE PART FOR THIS DAY',
+  'planb.partUpper': 'Upper body', 'planb.partLower': 'Lower body',
+  'planb.grp.pecho': 'Chest', 'planb.grp.espalda': 'Back', 'planb.grp.pierna': 'Legs',
+  'planb.grp.hombro': 'Shoulders', 'planb.grp.biceps': 'Biceps', 'planb.grp.triceps': 'Triceps',
+  'planb.grp.gluteos': 'Glutes', 'planb.grp.core': 'Core',
+  'planb.qProps': 'These are my picks for {focus}. Accept the ones you like — swap any you don’t.',
+  'planb.working': 'The mascot is thinking…',
+  'planb.srcAi': 'Proposed by AI, inside your focus', 'planb.srcLocal': 'Built by the app, inside your focus',
+  'planb.badgeHist': 'WITH HISTORY', 'planb.badgeSeed': 'SUGGESTED WEIGHT',
+  'planb.lastTime': 'Your last time: {w}',
+  'planb.accept': 'Accept', 'planb.accepted': '✓ In your plan', 'planb.remove': 'Remove',
+  'planb.noLoad': 'No weight',
+  'planb.qCardio': 'Shall we bookend the day with cardio?',
+  'planb.cardioStart': '🔥 At the start', 'planb.cardioEnd': '❄️ At the end', 'planb.cardioNone': 'No cardio',
+  'planb.cardioAdd': 'Add cardio', 'planb.loadLab': 'Weight',
+  'planb.qDone': 'Your plan is ready!', 'planb.dayDone': 'Day {d} is ready!',
+  'planb.summaryLine': '{focus} · {n} exercises',
+  'planb.cardioStartTxt': 'start: {m}, {n} min', 'planb.cardioEndTxt': 'end: {m}, {n} min',
+  'planb.nextDay': 'Next day ›', 'planb.savePlan': 'Save plan',
+  'planb.keepNote': 'It stays in My plans, like any plan.',
+  'planb.continue': 'Continue', 'planb.back': '‹ Back',
+  'planb.needAccept': 'Accept at least 2 exercises to continue.',
+  'planb.errNone': 'No exercises were found for that focus. Try another group.',
+  'planb.planName': 'Mascot plan', 'planb.dayLabel': 'Day {n}',
   'train.lib.unavailable': '📚 The exercise library is unavailable right now (it may be empty or could not be loaded). You can keep typing exercises as free text — plans save normally.',
   'train.lib.photo': 'Photo', 'train.lib.video': 'Video',
   'train.video.noembed': 'This video can’t be played inside the app.',
@@ -12243,6 +12276,39 @@ es: {
   'planai.saved': '✓ Tu plan quedó guardado y activo.',
   'planai.savedHold': '✓ Tu plan quedó guardado. Se activa cuando completes tu declaración de salud.',
   'planai.dupEditor': 'La propuesta repite un ejercicio en un día, así que se abrió en el editor para que lo corrijas antes de guardar.',
+  'planb.doorBtn': '🐾 Que la mascota me lo arme paso a paso',
+  'planb.stepOf': 'Paso {s} de 5', 'planb.dayOf': 'Día {d} de {n}',
+  'planb.qWhen': '¡Hola! Soy tu entrenador. Armemos tu plan juntos. Primero: ¿para cuándo es?',
+  'planb.whenToday': 'Hoy', 'planb.whenTodaySub': 'Una sesión, ahora mismo',
+  'planb.whenWeek': 'Una semana', 'planb.whenFortnight': 'Dos semanas',
+  'planb.whenDaysSub': '{n} días de entrenamiento',
+  'planb.noImpose': 'Tú apruebas todo. Nada se impone.',
+  'planb.qHow': '¿Cómo quieres entrenar este día?',
+  'planb.modeGroups': 'Por grupos musculares', 'planb.modeParts': 'Parte superior e inferior',
+  'planb.pickGroup': 'ELIGE EL GRUPO PARA ESTE DÍA', 'planb.pickPart': 'ELIGE LA PARTE PARA ESTE DÍA',
+  'planb.partUpper': 'Parte superior', 'planb.partLower': 'Parte inferior',
+  'planb.grp.pecho': 'Pecho', 'planb.grp.espalda': 'Espalda', 'planb.grp.pierna': 'Pierna',
+  'planb.grp.hombro': 'Hombro', 'planb.grp.biceps': 'Bíceps', 'planb.grp.triceps': 'Tríceps',
+  'planb.grp.gluteos': 'Glúteos', 'planb.grp.core': 'Core',
+  'planb.qProps': 'Estas son mis propuestas para {focus}. Acepta las que te gusten y cambia las que no.',
+  'planb.working': 'La mascota está pensando…',
+  'planb.srcAi': 'Propuesto por la IA, dentro de tu foco', 'planb.srcLocal': 'Armado por la app, dentro de tu foco',
+  'planb.badgeHist': 'CON HISTORIAL', 'planb.badgeSeed': 'PESO SUGERIDO',
+  'planb.lastTime': 'Tu última vez: {w}',
+  'planb.accept': 'Aceptar', 'planb.accepted': '✓ En tu plan', 'planb.remove': 'Quitar',
+  'planb.noLoad': 'Sin peso',
+  'planb.qCardio': '¿Añadimos cardio al inicio y al final?',
+  'planb.cardioStart': '🔥 Al inicio', 'planb.cardioEnd': '❄️ Al final', 'planb.cardioNone': 'Sin cardio',
+  'planb.cardioAdd': 'Añadir cardio', 'planb.loadLab': 'Peso',
+  'planb.qDone': '¡Tu plan está listo!', 'planb.dayDone': '¡El día {d} está listo!',
+  'planb.summaryLine': '{focus} · {n} ejercicios',
+  'planb.cardioStartTxt': 'inicio: {m}, {n} min', 'planb.cardioEndTxt': 'final: {m}, {n} min',
+  'planb.nextDay': 'Siguiente día ›', 'planb.savePlan': 'Guardar plan',
+  'planb.keepNote': 'Queda en Mis planes, como cualquier plan.',
+  'planb.continue': 'Continuar', 'planb.back': '‹ Atrás',
+  'planb.needAccept': 'Acepta al menos 2 ejercicios para continuar.',
+  'planb.errNone': 'No se encontraron ejercicios para ese foco. Prueba con otro grupo.',
+  'planb.planName': 'Plan de la mascota', 'planb.dayLabel': 'Día {n}',
   'train.lib.unavailable': '📚 La biblioteca de ejercicios no está disponible ahora (puede estar vacía o no pudo cargarse). Puedes seguir escribiendo los ejercicios como texto libre: los planes se guardan con normalidad.',
   'train.lib.photo': 'Foto', 'train.lib.video': 'Video',
   'train.video.noembed': 'Este video no se puede reproducir dentro de la app.',
@@ -53096,6 +53162,7 @@ function planAiDoorRender(box) {
       <div class="pa-t">${esc(t('planai.doorTitle'))}</div>
       <div class="pa-d">${esc(t('planai.doorDesc'))}</div>
       <button type="button" class="btn-primary pa-btn" id="plan-ai-open">${esc(t('planai.doorBtn'))}</button>
+      <button type="button" class="btn-ghost pb-btn" id="plan-b-open">${esc(t('planb.doorBtn'))}</button>
     </div>
     <div class="plan-ai-folds">
       <button type="button" class="pl-fold" id="plan-ai-tpl"><span>${esc(t('planai.tplFold'))}</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
@@ -53103,6 +53170,7 @@ function planAiDoorRender(box) {
     </div>
     <div id="plan-ai-health"></div>`;
   host.querySelector('#plan-ai-open').onclick = () => planAiOpen();
+  host.querySelector('#plan-b-open').onclick = () => planbOpen();
   host.querySelector('#plan-ai-tpl').onclick = () => openPlanEditor(uid, null);
   host.querySelector('#plan-ai-self').onclick = () => openPlanEditor(uid, null);
   planAiDoorHealth(host);
@@ -54068,6 +54136,438 @@ function planAiEditFirst() {
   $('pl-title').value = c.title;
   planCtx.genSource = { kind: 'ai-plan', source: c.source, version: 'auth493', objective: (c.profile || {}).objective || '', level: (c.profile || {}).level || '', daysPerWeek: c.days.length };
   if (c.source === 'tpl' && c.tpl) planCtx.tplSource = { id: c.tpl.id, version: c.tpl.version };
+  planTouched = true;
+}
+
+/* ═══ AUTH-541 · CONSTRUCTOR DE PLANES CON LA MASCOTA ═══
+   Diseño aprobado por Ronald el 2026-11-21 (maqueta de 5
+   pantallas) + sus tres decisiones del mismo día:
+   (a) FOCO EN EL MOTOR: la propuesta se pide a /plan-propose
+       con el foco del día (el grupo elegido en la parrilla de la
+       maqueta — «Pierna» cubre Cuádriceps+Isquiotibiales+
+       Pantorrillas, la clasificación real de la biblioteca — o
+       la división superior/inferior) y singleDay; el Worker lo
+       exige en su forma y AQUÍ se re-verifica contra la ficha
+       (grupo_muscular_es). Si la IA no responde dentro del foco,
+       la app compone el día DETERMINISTA desde la biblioteca
+       (compuestos primero, bandas de la casa restrBandFor):
+       el respaldo también honra el foco.
+   (b) PESO SUGERIDO: con historial manda «Tu última vez»
+       (trainHistLoadsRows sobre los registros de la app); sin
+       historial, la TABLA CONSERVADORA por tipo de ejercicio
+       (TABLA-PESOS-SUGERIDOS.md del paquete: % del peso corporal
+       desde los estándares «sin entrenar» de Kilgore/ExRx al
+       50 %, banda baja del ACSM; sin fuente defendible → carga
+       fija mínima declarada; peso corporal sin otra carga → sin
+       semilla). La carga aceptada viaja en el plan como
+       dictLoad/dictLoadUnit — el MISMO mecanismo de las cargas
+       dictadas — y la sesión la precarga: la app aprende de la
+       carga real y la tabla solo siembra el primer día.
+   (c) HORIZONTE DÍA POR DÍA: hoy = 1 día; semana/dos semanas =
+       los días de entrenamiento por semana del nivel de la
+       persona (planAiProfile) × 1 o × 2, repitiendo el flujo
+       completo por día; al final se guarda UN plan con
+       durationPreset weekly/fortnightly y sessionsPerWeek.
+   El cardio de inicio/fin se guarda como ASIGNACIÓN normal del
+   día (trainCardio2, st:'a') en la fecha que el calendario del
+   plan (planCalDayIndex) asigna a cada día construido.
+   La puerta vive en la tarjeta existente de la propuesta
+   (planAiDoorRender) y el flujo en la misma hoja flotante. */
+let PLANB_CTX = null;
+const PLANB_CHIPS = [
+  { key: 'pecho', groups: ['Pecho'] },
+  { key: 'espalda', groups: ['Espalda'] },
+  { key: 'pierna', groups: ['Cuádriceps', 'Isquiotibiales', 'Pantorrillas'] },
+  { key: 'hombro', groups: ['Hombros'] },
+  { key: 'biceps', groups: ['Bíceps'] },
+  { key: 'triceps', groups: ['Tríceps'] },
+  { key: 'gluteos', groups: ['Glúteos'] },
+  { key: 'core', groups: ['Core'] }
+];
+const PLANB_PART_UPPER = ['Pecho', 'Espalda', 'Hombros', 'Bíceps', 'Tríceps'];
+const PLANB_PART_LOWER = ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas'];
+const PLANB_SEED_PCT = { pressH: 0.25, squat: 0.33, hinge: 0.40, row: 0.22, pullV: 0.20, pressV: 0.18, other: 0.20 };
+const PLANB_MACHINES = ['treadmill', 'bike', 'elliptical', 'stairs'];
+const planbR1 = x => Math.round(x * 10) / 10;
+
+function planbFocusGroups() {
+  const c = PLANB_CTX; if (!c) return [];
+  if (c.mode === 'parts') return c.part === 'upper' ? PLANB_PART_UPPER : c.part === 'lower' ? PLANB_PART_LOWER : [];
+  const chip = PLANB_CHIPS.find(x => x.key === c.chip);
+  return chip ? chip.groups : [];
+}
+function planbFocusLabel() {
+  const c = PLANB_CTX; if (!c) return '';
+  return c.mode === 'parts' ? t(c.part === 'upper' ? 'planb.partUpper' : 'planb.partLower') : t('planb.grp.' + c.chip);
+}
+function planbLocMap() {
+  const map = {};
+  for (const e of (LIB || [])) { const g = e && e.grupo_muscular_es; if (g && !map[g]) map[g] = libField(e, 'grupo_muscular') || g; }
+  return map;
+}
+/* La semilla de la tabla (decisión (b)): ver el documento del
+   paquete. Devuelve kg o null (peso corporal: sin semilla). */
+function planbSeedKg(entry) {
+  const c = PLANB_CTX; const bw = c ? c.bwKg : null;
+  const fams = autoEqFamilies(entry).filter(f => f !== 'corporal');
+  if (!fams.length) return null;
+  const fixedMin = () => fams.includes('barra') ? 20 : fams.includes('maquinas') ? 10 : fams.includes('poleas') ? 5 : fams.includes('kb') ? 8 : 2.5;
+  if (autoIsIsolation(entry)) {
+    if (fams.includes('mancuernas')) return 2.5;
+    if (fams.includes('poleas')) return 5;
+    if (fams.includes('maquinas')) return 10;
+    if (fams.includes('kb')) return 8;
+    if (fams.includes('barra')) return 20;
+    return 2.5;
+  }
+  if (!bw) return fixedMin();
+  const grp = entry.grupo_muscular_es || '';
+  const nm = libNorm((entry.nombre_es || '') + ' ' + (entry.nombre_en || ''));
+  let pct = PLANB_SEED_PCT.other;
+  if (grp === 'Pecho') pct = PLANB_SEED_PCT.pressH;
+  else if (grp === 'Hombros') pct = PLANB_SEED_PCT.pressV;
+  else if (grp === 'Espalda') pct = /jalon|pulldown|dominada|pullup|pull up/.test(nm) ? PLANB_SEED_PCT.pullV : PLANB_SEED_PCT.row;
+  else if (grp === 'Cuádriceps') pct = PLANB_SEED_PCT.squat;
+  else if (grp === 'Isquiotibiales') pct = PLANB_SEED_PCT.hinge;
+  else if (grp === 'Glúteos') pct = /hip thrust|peso muerto|deadlift|puente|bridge/.test(nm) ? PLANB_SEED_PCT.hinge : PLANB_SEED_PCT.other;
+  let kg = Math.floor(bw * pct / 0.5) * 0.5;
+  if (fams.includes('barra')) kg = Math.max(kg, 20);
+  if (fams.length === 1 && fams[0] === 'kb') kg = Math.min(kg, 16);
+  return kg >= 2.5 ? kg : 2.5;
+}
+function planbHistKg(entry) {
+  const c = PLANB_CTX; if (!c) return null;
+  try {
+    const rows = trainHistLoadsRows({ exerciseId: entry.id }, c.logs);
+    for (const r of rows) if (r && r.maxKg != null && r.maxKg > 0) return r.maxKg;
+  } catch {}
+  return null;
+}
+function planbMakeCard(id, sets, reps) {
+  const entry = LIB_BY_ID[id]; if (!entry) return null;
+  const hist = planbHistKg(entry);
+  const seed = hist == null ? planbSeedKg(entry) : null;
+  return { id, sets: String(sets), reps: String(reps), histKg: hist, seedKg: seed, loadKg: hist != null ? hist : seed, accepted: false };
+}
+/* El fondo del foco: biblioteca del grupo(s), nivel ≤ el de la
+   persona (misma regla que planAiCatalog); si el grupo es tan
+   pequeño que ni 4 fichas pasan el nivel, se amplía a todo el
+   grupo — declarado: mejor proponer la ficha real del grupo que
+   salirse del foco. Orden: compuestos primero, luego por id. */
+function planbPool() {
+  const c = PLANB_CTX; const groups = planbFocusGroups();
+  const rank = { principiante: 1, intermedio: 2, avanzado: 3 };
+  const mine = rank[c.profile.level] || 1;
+  const all = (LIB || []).filter(e => e && e.id && groups.includes(e.grupo_muscular_es));
+  let pool = all.filter(e => (rank[autoLevelOf(e)] || 1) <= mine);
+  if (pool.length < 4) pool = all;
+  return pool.slice().sort((a, b) => ((autoIsIsolation(a) ? 1 : 0) - (autoIsIsolation(b) ? 1 : 0)) || (a.id < b.id ? -1 : 1));
+}
+/* El respaldo determinista que honra el foco: un grupo → sus 5
+   primeras (compuestos primero); una parte → ronda entre sus
+   grupos hasta 6. Series/reps de las bandas de la casa. */
+function planbCompose() {
+  const c = PLANB_CTX; const pool = planbPool();
+  const byGroup = {};
+  for (const e of pool) (byGroup[e.grupo_muscular_es] = byGroup[e.grupo_muscular_es] || []).push(e);
+  const groups = planbFocusGroups().filter(g => byGroup[g] && byGroup[g].length);
+  const picked = [];
+  if (!groups.length) return [];
+  if (c.mode === 'groups' || groups.length === 1) {
+    for (const e of byGroup[groups[0]]) { if (picked.length >= 5) break; picked.push(e); }
+  } else {
+    let round = 0, added = true;
+    while (picked.length < 6 && added) {
+      added = false;
+      for (const g of groups) {
+        const cand = byGroup[g][round];
+        if (cand && !picked.includes(cand)) { picked.push(cand); added = true; if (picked.length >= 6) break; }
+      }
+      round++;
+    }
+  }
+  return picked.map(e => { const band = restrBandFor(e, e.grupo_muscular_es); return planbMakeCard(e.id, band.iso ? 3 : 4, band.min + '-' + band.max); }).filter(Boolean);
+}
+async function planbLoadProps() {
+  const c = PLANB_CTX; const bd = $('plan-ai-body'); if (!bd || !c) return;
+  bd.innerHTML = `<p class="progress-hint">${esc(t('planb.working'))}</p>`;
+  const pool = planbPool();
+  c.poolIds = pool.map(e => e.id);
+  const locMap = planbLocMap();
+  const catalog = pool.slice(0, 64).map(e => ({ id: e.id, name: libNameOf(e) || e.id, group: libField(e, 'grupo_muscular') || '', level: autoLevelOf(e) || 'principiante' }));
+  let cards = null, srcAi = false;
+  if (catalog.length >= 6) {
+    try {
+      const focus = { kind: c.mode === 'parts' ? 'part' : 'group', groups: planbFocusGroups().map(g => locMap[g] || g) };
+      if (c.mode === 'parts') focus.part = c.part;
+      const out = await aiCall('/plan-propose', {
+        lang: LANG,
+        profile: { objective: c.profile.objective, level: c.profile.level, daysPerWeek: c.profile.daysPerWeek, activityCat: c.profile.activityCat },
+        catalog, focus, singleDay: true
+      });
+      const days = planAiValidate(out);
+      const groups = planbFocusGroups();
+      if (days && days.length === 1 && days[0].exercises.every(x => groups.includes((LIB_BY_ID[x.exerciseId] || {}).grupo_muscular_es))) {
+        const made = days[0].exercises.map(x => planbMakeCard(x.exerciseId, x.sets, x.reps)).filter(Boolean);
+        if (made.length >= 2) { cards = made; srcAi = true; }
+      }
+    } catch { cards = null; }
+  }
+  if (!cards) { cards = planbCompose(); srcAi = false; }
+  c.props = cards || [];
+  c.srcAi = srcAi;
+  c.usedIds = new Set(c.props.map(p => p.id));
+  c.step = 3;
+  planbRender();
+}
+async function planbOpen() {
+  const fl = $('plan-ai-float'), bd = $('plan-ai-body');
+  if (!fl || !bd || !auth.currentUser) return;
+  fl.style.display = '';
+  bd.innerHTML = `<p class="progress-hint">${esc(t('planb.working'))}</p>`;
+  const x = $('plan-ai-x'); if (x) x.onclick = () => planAiClose();
+  const uid = auth.currentUser.uid;
+  try { await libEnsure(); } catch {}
+  const profile = await planAiProfile(uid);
+  const logs = await fetchLogs(uid).catch(() => []);
+  const bwKg = await plan21LastWeightKg(uid).catch(() => null);
+  PLANB_CTX = { uid, profile, logs, bwKg, step: 1, horizon: null, totalDays: 1, dayIdx: 0, built: [],
+    mode: 'groups', chip: null, part: null, props: [], poolIds: [], usedIds: new Set(), srcAi: false, editingId: null,
+    cardioWarm: { machine: 'treadmill', minutes: 10 }, cardioFinal: { machine: 'treadmill', minutes: 10 } };
+  planbRender();
+}
+function planbHeadHtml(q, celeb) {
+  const c = PLANB_CTX;
+  return `<div class="pb-head"><img class="pb-mascot${celeb ? ' big' : ''}" src="${celeb ? MASCOT_CELEB_URL : MASCOT_EXPECT_URL}" alt=""><div class="pb-bubble"><div class="pb-steps">${esc(t('planb.stepOf', { s: c.step }))}${c.totalDays > 1 ? ' · ' + esc(t('planb.dayOf', { d: c.dayIdx + 1, n: c.totalDays })) : ''}</div>${esc(q)}</div></div>`;
+}
+function planbRender() {
+  const bd = $('plan-ai-body'); if (!bd || !PLANB_CTX) return;
+  const c = PLANB_CTX;
+  if (c.step === 1) return planbRenderWhen(bd);
+  if (c.step === 2) return planbRenderHow(bd);
+  if (c.step === 3) return planbRenderProps(bd);
+  if (c.step === 4) return planbRenderCardio(bd);
+  return planbRenderDone(bd);
+}
+function planbRenderWhen(bd) {
+  const c = PLANB_CTX; const dpw = c.profile.daysPerWeek;
+  bd.innerHTML = `
+    ${planbHeadHtml(t('planb.qWhen'), false)}
+    <button type="button" class="pb-opt" data-pb-when="today"><span class="pb-opt-t">${esc(t('planb.whenToday'))}</span><span class="pb-opt-s">${esc(t('planb.whenTodaySub'))}</span></button>
+    <button type="button" class="pb-opt" data-pb-when="week"><span class="pb-opt-t">${esc(t('planb.whenWeek'))}</span><span class="pb-opt-s">${esc(t('planb.whenDaysSub', { n: dpw }))}</span></button>
+    <button type="button" class="pb-opt" data-pb-when="fortnight"><span class="pb-opt-t">${esc(t('planb.whenFortnight'))}</span><span class="pb-opt-s">${esc(t('planb.whenDaysSub', { n: dpw * 2 }))}</span></button>
+    <p class="pb-note">${esc(t('planb.noImpose'))}</p>`;
+  bd.querySelectorAll('[data-pb-when]').forEach(b => b.onclick = () => {
+    c.horizon = b.dataset.pbWhen;
+    c.totalDays = c.horizon === 'today' ? 1 : c.horizon === 'week' ? dpw : dpw * 2;
+    c.dayIdx = 0; c.built = []; c.step = 2;
+    planbRender();
+  });
+}
+function planbRenderHow(bd) {
+  const c = PLANB_CTX;
+  const sel = c.mode === 'groups'
+    ? `<div class="pb-sec">${esc(t('planb.pickGroup'))}</div><div class="pb-chips">${PLANB_CHIPS.map(ch => `<button type="button" class="pb-chip${c.chip === ch.key ? ' sel' : ''}" data-pb-chip="${ch.key}" aria-pressed="${c.chip === ch.key}">${esc(t('planb.grp.' + ch.key))}</button>`).join('')}</div>`
+    : `<div class="pb-sec">${esc(t('planb.pickPart'))}</div><div class="pb-chips"><button type="button" class="pb-chip${c.part === 'upper' ? ' sel' : ''}" data-pb-part="upper" aria-pressed="${c.part === 'upper'}">${esc(t('planb.partUpper'))}</button><button type="button" class="pb-chip${c.part === 'lower' ? ' sel' : ''}" data-pb-part="lower" aria-pressed="${c.part === 'lower'}">${esc(t('planb.partLower'))}</button></div>`;
+  bd.innerHTML = `
+    ${planbHeadHtml(t('planb.qHow'), false)}
+    <button type="button" class="pb-opt${c.mode === 'groups' ? ' sel' : ''}" data-pb-mode="groups"><span class="pb-opt-t">${esc(t('planb.modeGroups'))}</span></button>
+    <button type="button" class="pb-opt${c.mode === 'parts' ? ' sel' : ''}" data-pb-mode="parts"><span class="pb-opt-t">${esc(t('planb.modeParts'))}</span></button>
+    ${sel}
+    <div class="pb-nav"><button type="button" class="btn-ghost" id="pb-back">${esc(t('planb.back'))}</button><button type="button" class="btn-primary" id="pb-go">${esc(t('planb.continue'))}</button></div>`;
+  bd.querySelectorAll('[data-pb-mode]').forEach(b => b.onclick = () => { c.mode = b.dataset.pbMode; planbRender(); });
+  bd.querySelectorAll('[data-pb-chip]').forEach(b => b.onclick = () => { c.chip = b.dataset.pbChip; planbRender(); });
+  bd.querySelectorAll('[data-pb-part]').forEach(b => b.onclick = () => { c.part = b.dataset.pbPart; planbRender(); });
+  $('pb-back').onclick = () => { c.step = 1; planbRender(); };
+  $('pb-go').onclick = () => { if (!planbFocusGroups().length) return; planbLoadProps(); };
+}
+function planbCardHtml(p) {
+  const entry = LIB_BY_ID[p.id] || {};
+  const name = libNameOf(entry) || p.id;
+  const sub = (LANG === 'es' ? entry.nombre_en : entry.nombre_es) || '';
+  const unit = UNIT_PREFS.mass === 'lb' ? 'lb' : 'kg';
+  const badge = p.histKg != null ? `<span class="pb-badge hist">${esc(t('planb.badgeHist'))}</span>`
+    : (p.seedKg != null ? `<span class="pb-badge seed">${esc(t('planb.badgeSeed'))}</span>` : '');
+  const lastTxt = p.histKg != null ? `<div class="pb-sr">${esc(t('planb.lastTime', { w: planbR1(massToDisplay(p.histKg)) + ' ' + unit }))}</div>` : '';
+  const editing = PLANB_CTX && PLANB_CTX.editingId === p.id;
+  const loadVal = editing
+    ? `<span class="pb-load-val"><input type="number" inputmode="decimal" step="0.5" min="0" id="pb-load-in" value="${p.loadKg != null ? planbR1(massToDisplay(p.loadKg)) : ''}"></span>`
+    : `<button type="button" class="pb-load-val" data-pb-edit="${p.id}">${p.loadKg != null ? planbR1(massToDisplay(p.loadKg)) + ' ' + unit : esc(t('planb.noLoad'))} ✎</button>`;
+  return `<div class="pb-card${p.accepted ? ' acc' : ''}" data-pb-card="${p.id}">
+    <div class="pb-card-top">${entry.foto_url ? `<img class="pb-photo" src="${esc(entry.foto_url)}" alt="">` : '<div class="pb-photo"></div>'}<div><div class="pb-name">${esc(name)}</div>${sub ? `<div class="pb-sub">${esc(sub)}</div>` : ''}${badge}</div></div>
+    <div class="pb-sr">${esc(String(p.sets))} × ${esc(String(p.reps))}</div>
+    ${lastTxt}
+    <div class="pb-load"><span class="pb-load-lab">${esc(t('planb.loadLab'))}</span><button type="button" class="pb-step-btn" data-pb-minus="${p.id}" aria-label="−">−</button>${loadVal}<button type="button" class="pb-step-btn" data-pb-plus="${p.id}" aria-label="+">+</button></div>
+    <div class="pb-card-actions"><button type="button" class="btn-primary" data-pb-acc="${p.id}">${esc(p.accepted ? t('planb.accepted') : t('planb.accept'))}</button><button type="button" class="btn-ghost" data-pb-rm="${p.id}">${esc(t('planb.remove'))}</button></div>
+  </div>`;
+}
+function planbRenderProps(bd) {
+  const c = PLANB_CTX;
+  if (!c.props.length) {
+    bd.innerHTML = `${planbHeadHtml(t('planb.qHow'), false)}<p class="progress-hint">${esc(t('planb.errNone'))}</p><div class="pb-nav"><button type="button" class="btn-ghost" id="pb-back">${esc(t('planb.back'))}</button></div>`;
+    $('pb-back').onclick = () => { c.step = 2; planbRender(); };
+    return;
+  }
+  bd.innerHTML = `
+    ${planbHeadHtml(t('planb.qProps', { focus: planbFocusLabel() }), false)}
+    <span class="plan-ai-src">${esc(t(c.srcAi ? 'planb.srcAi' : 'planb.srcLocal'))}</span>
+    ${c.props.map(p => planbCardHtml(p)).join('')}
+    <div class="pb-nav"><button type="button" class="btn-ghost" id="pb-back">${esc(t('planb.back'))}</button><button type="button" class="btn-primary" id="pb-go">${esc(t('planb.continue'))}</button></div>`;
+  const stepKg = UNIT_PREFS.mass === 'lb' ? 5 * UNIT_LB_KG : 2.5;
+  const bump = (id, d) => {
+    const p = c.props.find(x => x.id === id); if (!p) return;
+    const cur = p.loadKg != null ? p.loadKg : (planbSeedKg(LIB_BY_ID[id]) || 0);
+    const next = Math.round((cur + d) * 100) / 100;
+    p.loadKg = next > 0 ? next : null;
+    planbRender();
+  };
+  bd.querySelectorAll('[data-pb-minus]').forEach(b => b.onclick = () => bump(b.dataset.pbMinus, -stepKg));
+  bd.querySelectorAll('[data-pb-plus]').forEach(b => b.onclick = () => bump(b.dataset.pbPlus, stepKg));
+  bd.querySelectorAll('[data-pb-edit]').forEach(b => b.onclick = () => { c.editingId = b.dataset.pbEdit; planbRender(); const inp = $('pb-load-in'); if (inp) { inp.focus(); inp.select(); } });
+  const inp = $('pb-load-in');
+  if (inp) inp.onchange = () => {
+    const p = c.props.find(x => x.id === c.editingId);
+    const v = Number(inp.value);
+    if (p) p.loadKg = isFinite(v) && v > 0 ? (UNIT_PREFS.mass === 'lb' ? v * UNIT_LB_KG : v) : null;
+    c.editingId = null;
+    planbRender();
+  };
+  bd.querySelectorAll('[data-pb-acc]').forEach(b => b.onclick = () => { const p = c.props.find(x => x.id === b.dataset.pbAcc); if (p) { p.accepted = !p.accepted; planbRender(); } });
+  bd.querySelectorAll('[data-pb-rm]').forEach(b => b.onclick = () => planbRemove(b.dataset.pbRm));
+  $('pb-back').onclick = () => { c.step = 2; planbRender(); };
+  $('pb-go').onclick = () => {
+    if (c.props.filter(p => p.accepted).length < 2) { toast(t('planb.needAccept'), true); return; }
+    c.step = 4; planbRender();
+  };
+}
+/* Quitar: la mascota ofrece otra del mismo foco (la siguiente
+   del fondo que aún no salió); si no queda reserva, la tarjeta
+   simplemente se va. */
+function planbRemove(id) {
+  const c = PLANB_CTX; if (!c) return;
+  const idx = c.props.findIndex(p => p.id === id);
+  if (idx < 0) return;
+  const reserveId = (c.poolIds || []).find(pid => !c.usedIds.has(pid));
+  if (reserveId) {
+    const entry = LIB_BY_ID[reserveId];
+    const band = restrBandFor(entry, entry.grupo_muscular_es);
+    const card = planbMakeCard(reserveId, band.iso ? 3 : 4, band.min + '-' + band.max);
+    if (card) { c.props.splice(idx, 1, card); c.usedIds.add(reserveId); planbRender(); return; }
+  }
+  c.props.splice(idx, 1);
+  planbRender();
+}
+function planbCardioBlockHtml(kind, val) {
+  const c = PLANB_CTX;
+  const title = kind === 'warm' ? t('planb.cardioStart') : t('planb.cardioEnd');
+  if (!val) return `<div class="pb-cardio off"><div class="pb-cardio-t">${esc(title)}</div><div class="pb-sr">${esc(t('planb.cardioNone'))}</div><button type="button" class="btn-ghost pb-none" data-pb-con="${kind}">${esc(t('planb.cardioAdd'))}</button></div>`;
+  return `<div class="pb-cardio"><div class="pb-cardio-t">${esc(title)}</div>
+    <div class="pb-machines">${PLANB_MACHINES.map(m => { const meta = trainCardio2Meta(m); return `<button type="button" class="pb-mach${val.machine === m ? ' sel' : ''}" data-pb-mach="${kind}:${m}">${meta ? meta.icon + ' ' : ''}${esc(t('train.cardio2.machine.' + m))}</button>`; }).join('')}</div>
+    <div class="pb-mins"><button type="button" class="pb-step-btn" data-pb-cmin="${kind}" aria-label="−">−</button><span class="pb-load-val">${esc(String(val.minutes))} min</span><button type="button" class="pb-step-btn" data-pb-cplus="${kind}" aria-label="+">+</button></div>
+    <button type="button" class="btn-ghost pb-none" data-pb-coff="${kind}">${esc(t('planb.cardioNone'))}</button></div>`;
+}
+function planbRenderCardio(bd) {
+  const c = PLANB_CTX;
+  bd.innerHTML = `
+    ${planbHeadHtml(t('planb.qCardio'), false)}
+    ${planbCardioBlockHtml('warm', c.cardioWarm)}
+    ${planbCardioBlockHtml('final', c.cardioFinal)}
+    <div class="pb-nav"><button type="button" class="btn-ghost" id="pb-back">${esc(t('planb.back'))}</button><button type="button" class="btn-primary" id="pb-go">${esc(t('planb.continue'))}</button></div>`;
+  bd.querySelectorAll('[data-pb-mach]').forEach(b => b.onclick = () => { const [k, m] = b.dataset.pbMach.split(':'); if (k === 'warm') c.cardioWarm.machine = m; else c.cardioFinal.machine = m; planbRender(); });
+  bd.querySelectorAll('[data-pb-cmin]').forEach(b => b.onclick = () => { const v = b.dataset.pbCmin === 'warm' ? c.cardioWarm : c.cardioFinal; if (v) { v.minutes = Math.max(5, v.minutes - 5); planbRender(); } });
+  bd.querySelectorAll('[data-pb-cplus]').forEach(b => b.onclick = () => { const v = b.dataset.pbCplus === 'warm' ? c.cardioWarm : c.cardioFinal; if (v) { v.minutes = Math.min(60, v.minutes + 5); planbRender(); } });
+  bd.querySelectorAll('[data-pb-coff]').forEach(b => b.onclick = () => { if (b.dataset.pbCoff === 'warm') c.cardioWarm = null; else c.cardioFinal = null; planbRender(); });
+  bd.querySelectorAll('[data-pb-con]').forEach(b => b.onclick = () => { const d = { machine: 'treadmill', minutes: 10 }; if (b.dataset.pbCon === 'warm') c.cardioWarm = d; else c.cardioFinal = d; planbRender(); });
+  $('pb-back').onclick = () => { c.step = 3; planbRender(); };
+  $('pb-go').onclick = () => {
+    const acc = c.props.filter(p => p.accepted);
+    c.built.push({ label: planbFocusLabel(), cards: acc, warm: c.cardioWarm, final: c.cardioFinal });
+    c.step = 5; planbRender();
+  };
+}
+function planbDaySummaryHtml(d, i) {
+  const parts = [`<b>${esc(t('planb.dayLabel', { n: i + 1 }))}</b> — ${esc(t('planb.summaryLine', { focus: d.label, n: d.cards.length }))}`];
+  const cl = [];
+  if (d.warm) cl.push(t('planb.cardioStartTxt', { m: t('train.cardio2.machine.' + d.warm.machine), n: d.warm.minutes }));
+  if (d.final) cl.push(t('planb.cardioEndTxt', { m: t('train.cardio2.machine.' + d.final.machine), n: d.final.minutes }));
+  if (cl.length) parts.push('🚶 ' + esc(cl.join(' · ')));
+  return `<div>${parts.join('<br>')}</div>`;
+}
+function planbRenderDone(bd) {
+  const c = PLANB_CTX;
+  const last = c.dayIdx >= c.totalDays - 1;
+  bd.innerHTML = `
+    ${planbHeadHtml(last ? t('planb.qDone') : t('planb.dayDone', { d: c.dayIdx + 1 }), true)}
+    <div class="pb-sum">${c.built.map((d, i) => planbDaySummaryHtml(d, i)).join('')}</div>
+    ${last ? `<p class="pb-note">${esc(t('planb.keepNote'))}</p><div class="pb-nav"><button type="button" class="btn-primary" id="pb-save">${esc(t('planb.savePlan'))}</button></div>`
+      : `<div class="pb-nav"><button type="button" class="btn-primary" id="pb-next">${esc(t('planb.nextDay'))}</button></div>`}`;
+  const nx = $('pb-next');
+  if (nx) nx.onclick = () => {
+    c.dayIdx++; c.mode = 'groups'; c.chip = null; c.part = null; c.props = []; c.usedIds = new Set(); c.editingId = null;
+    c.cardioWarm = { machine: 'treadmill', minutes: 10 }; c.cardioFinal = { machine: 'treadmill', minutes: 10 };
+    c.step = 2; planbRender();
+  };
+  const sv = $('pb-save');
+  if (sv) sv.onclick = () => planbSave();
+}
+/* El guardado: UN plan por las estructuras normales (la misma
+   forma e invariantes de planAiApprove: duplicados vedados,
+   puerta de salud, procedencia), con las cargas aceptadas como
+   dictLoad y el cardio como asignación trainCardio2 del día
+   que el calendario del plan asigna a cada día construido. */
+async function planbSave() {
+  const c = PLANB_CTX; if (!c || !c.built.length) return;
+  const uid = c.uid;
+  const days = c.built.map((d, i) => ({ label: d.label || t('planb.dayLabel', { n: i + 1 }), exercises: d.cards.map(p => {
+    const entry = LIB_BY_ID[p.id] || {};
+    const ex = { name: libNameOf(entry) || p.id, sets: String(p.sets), reps: String(p.reps), note: '', exerciseId: p.id, photoUrl: entry.foto_url || '', videoUrl: entry.video_youtube_url || '' };
+    if (p.loadKg != null && p.loadKg > 0) { ex.dictLoad = Math.round(p.loadKg * 100) / 100; ex.dictLoadUnit = 'kg'; }
+    return ex;
+  }) }));
+  if (planDupInDays(days)) { planbEditFirst(days); toast(t('planai.dupEditor'), true); return; }
+  const gate = await planGateState(uid);
+  const active = gate === 'valid';
+  const start = todayISO();
+  const preset = c.horizon === 'week' ? 'weekly' : c.horizon === 'fortnight' ? 'fortnightly' : null;
+  const data = {
+    clientUid: uid, title: t('planb.planName'), notes: '', days,
+    active, startsAt: start, endsAt: preset ? planEndFromPreset(start, preset) : start, durationPreset: preset,
+    createdBy: uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    healthHold: !active, holdAuto: !active,
+    genSource: { kind: 'ai-plan', source: 'builder', version: 'auth541', objective: c.profile.objective || '', level: c.profile.level || '', daysPerWeek: c.profile.daysPerWeek }
+  };
+  if (preset) data.sessionsPerWeek = c.profile.daysPerWeek;
+  if (!active) data.holdSince = serverTimestamp();
+  let ref;
+  try {
+    ref = await addDoc(collection(db, 'training_plans'), data);
+    if (active) {
+      const others = await fetchPlans(uid);
+      for (const o of others) if (o.id !== ref.id && o.active === true)
+        await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true });
+    }
+  } catch { toast(t('train.saveError'), true); return; }
+  const dpw = c.profile.daysPerWeek;
+  c.built.forEach((d, i) => {
+    if (!d.warm && !d.final) return;
+    const iso = c.horizon === 'today' ? start : planISOAddDays(start, Math.floor(i / dpw) * 7 + (i % dpw));
+    const cdoc = { warm: d.warm ? { machine: d.warm.machine, minutes: d.warm.minutes, st: 'a' } : null,
+      extras: d.final ? [{ machine: d.final.machine, minutes: d.final.minutes, st: 'a' }] : [] };
+    try { trainCardio2Write(ref.id, cdoc, iso); } catch {}
+  });
+  planAiClose();
+  toast(t(active ? 'planai.saved' : 'planai.savedHold'), !active);
+  loadMyTraining();
+}
+function planbEditFirst(days) {
+  const c = PLANB_CTX; if (!c) return;
+  planAiClose();
+  openPlanEditor(c.uid, null);
+  const daysBox = $('pl-days');
+  daysBox.innerHTML = '';
+  days.forEach(d => daysBox.appendChild(planDayRow(d)));
+  $('pl-title').value = t('planb.planName');
+  planCtx.genSource = { kind: 'ai-plan', source: 'builder', version: 'auth541', objective: c.profile.objective || '', level: c.profile.level || '', daysPerWeek: c.profile.daysPerWeek };
   planTouched = true;
 }
 
@@ -68727,7 +69227,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261121-lecturas-generos';
+const PWA_SW_VERSION = '20261121-constructor-mascota';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

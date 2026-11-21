@@ -7035,6 +7035,56 @@ textarea.gest-in { resize: none; }
 .plan-ai-day-body { border: 1px dashed #9db8b1; border-radius: 10px; padding: 8px 12px; margin: 6px 0 10px; font-size: 14px; line-height: 1.55; background: #fbfdfd; }
 .plan-ai-actions { margin-top: 12px; }
 .plan-ai-actions .btn-primary, .plan-ai-actions .btn-ghost { width: 100%; min-height: 52px; font-size: 16px; margin-top: 8px; }
+.plan-ai-card .pb-btn { width: 100%; min-height: 52px; margin-top: 8px; font-size: 16px; }
+/* ═══ AUTH-541 · CONSTRUCTOR DE PLANES CON LA MASCOTA ═══
+   La mascota pregunta paso a paso dentro de la misma hoja
+   flotante de la propuesta (decisiones de Ronald 2026-11-21:
+   foco en el motor, tabla conservadora de peso sugerido con
+   aprendizaje del historial, horizonte día por día). Controles
+   grandes de la casa; la mascota oficial en expectante durante
+   el flujo y en celebración al cerrar cada día. */
+.pb-head { display: flex; gap: 12px; align-items: flex-start; margin: 6px 0 12px; }
+.pb-mascot { width: 84px; height: 84px; object-fit: contain; flex: none; }
+.pb-mascot.big { width: 110px; height: 110px; }
+.pb-bubble { flex: 1; background: #f2faf8; border: 2px solid #0d9488; border-radius: 14px; padding: 10px 12px; font-size: 15px; line-height: 1.45; }
+.pb-steps { font-size: 12px; font-weight: 700; color: #0b6e63; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+.pb-opt { display: block; width: 100%; text-align: left; background: #fff; border: 2px solid #cbd5e1; border-radius: 14px; padding: 12px 14px; margin: 8px 0; min-height: 52px; font: inherit; cursor: pointer; }
+.pb-opt.sel { border-color: #0d9488; background: #f2faf8; }
+.pb-opt .pb-opt-t { font-size: 16.5px; font-weight: 800; display: block; }
+.pb-opt .pb-opt-s { font-size: 13px; color: #64748b; display: block; margin-top: 2px; }
+.pb-note { font-size: 13px; color: #64748b; margin: 10px 2px; }
+.pb-sec { font-size: 12.5px; font-weight: 800; color: #475569; letter-spacing: .05em; margin: 14px 0 6px; }
+.pb-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pb-chip { min-height: 48px; border: 2px solid #cbd5e1; background: #fff; border-radius: 12px; font: inherit; font-size: 15.5px; font-weight: 700; cursor: pointer; }
+.pb-chip.sel { border-color: #0d9488; background: #0d9488; color: #fff; }
+.pb-nav { display: flex; gap: 8px; margin-top: 14px; }
+.pb-nav .btn-primary, .pb-nav .btn-ghost { flex: 1; min-height: 52px; font-size: 16px; }
+.pb-card { border: 2px solid #d7e3df; border-radius: 14px; padding: 10px 12px; margin: 10px 0; background: #fff; }
+.pb-card.acc { border-color: #0d9488; background: #f2faf8; }
+.pb-card-top { display: flex; gap: 10px; align-items: center; }
+.pb-photo { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; flex: none; background: #e2e8f0; }
+.pb-name { font-size: 16px; font-weight: 800; line-height: 1.25; }
+.pb-sub { font-size: 12.5px; color: #64748b; }
+.pb-badge { display: inline-block; font-size: 11px; font-weight: 800; border-radius: 999px; padding: 3px 8px; margin-top: 4px; }
+.pb-badge.hist { background: #dcfce7; color: #166534; }
+.pb-badge.seed { background: #fef3c7; color: #92400e; }
+.pb-sr { font-size: 14.5px; margin-top: 8px; }
+.pb-load { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.pb-load-lab { font-size: 13px; color: #64748b; flex: 1; }
+.pb-step-btn { width: 44px; height: 44px; border-radius: 10px; border: 2px solid #0d9488; background: #fff; color: #0b6e63; font-size: 20px; font-weight: 800; cursor: pointer; flex: none; }
+.pb-load-val { min-width: 86px; text-align: center; font-size: 16.5px; font-weight: 800; }
+.pb-load-val input { width: 76px; font: inherit; font-size: 16.5px; font-weight: 800; text-align: center; border: 2px solid #0d9488; border-radius: 8px; padding: 6px 2px; }
+.pb-card-actions { display: flex; gap: 8px; margin-top: 10px; }
+.pb-card-actions .btn-primary, .pb-card-actions .btn-ghost { flex: 1; min-height: 48px; font-size: 15.5px; }
+.pb-cardio { border: 2px solid #d7e3df; border-radius: 14px; padding: 10px 12px; margin: 10px 0; }
+.pb-cardio.off { opacity: .55; }
+.pb-cardio-t { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+.pb-machines { display: flex; flex-wrap: wrap; gap: 8px; }
+.pb-mach { min-height: 44px; border: 2px solid #cbd5e1; background: #fff; border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+.pb-mach.sel { border-color: #0d9488; background: #0d9488; color: #fff; }
+.pb-mins { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.pb-none { width: 100%; min-height: 48px; margin-top: 8px; }
+.pb-sum { background: #f8fafc; border: 1px solid #d7e3df; border-radius: 12px; padding: 10px 12px; font-size: 14.5px; line-height: 1.6; margin: 10px 0; }
 
 /* ═══ AUTH-495 · EL BOTÓN «LISTO» DE CADA ÁREA DE SERIES
    (orden de Ronald, 2026-11-18): botón grande (52 px, por
