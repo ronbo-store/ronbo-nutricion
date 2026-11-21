@@ -42597,7 +42597,14 @@ function sessAudioEnsure() {
      que el sistema lo trate como música en curso. */
   el.preload = 'auto';
   SESS_AUDIO.el = el;
-  sessAudioMediaInit();
+  /* FUSIÓN AUTH-531 (re-anclaje sobre AUTH-529): el registro
+     de manejadores de Media Session es UNO solo — el
+     despachador de moveAudioMediaInit, que ya manda sobre
+     AMBOS reproductores nazca el que nazca primero. El
+     registro propio de AUTH-529 (sessAudioMediaInit) queda
+     retirado: el último setActionHandler sobrescribe al
+     anterior y los dos registros competirían. */
+  moveAudioMediaInit();
   const stage = document.createElement('div');
   stage.className = 'sf-austage';
   stage.id = 'sess-audio-stage';
