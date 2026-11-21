@@ -6057,6 +6057,7 @@ en: {
   'err.weightSaveDenied': 'Your weight couldn\'t be saved right now. What you typed stays in place — please try again in a moment.',
   'err.noConnection': 'No connection, or the service isn\'t available right now. Check your connection and try again.',
   'err.genericFail': 'Something went wrong. Please try again.',
+  'common.error': 'Something went wrong. Please try again.',
   'err.badCreds': 'Incorrect credentials.',
   'err.tooHeavy': 'The image is too heavy, try another one.',
   'err.uploadFail': 'Couldn\'t upload the photo.',
@@ -11510,6 +11511,7 @@ es: {
   'err.weightSaveDenied': 'Tu peso no se pudo guardar en este momento. Lo que tecleaste queda en su sitio: inténtalo de nuevo en un momento.',
   'err.noConnection': 'Sin conexión, o el servicio no está disponible ahora. Revisa tu conexión e inténtalo de nuevo.',
   'err.genericFail': 'Algo salió mal. Inténtalo de nuevo.',
+  'common.error': 'Algo salió mal. Inténtalo de nuevo.',
   'err.badCreds': 'Credenciales incorrectas.',
   'err.tooHeavy': 'La imagen es muy pesada, prueba con otra.',
   'err.uploadFail': 'No se pudo subir la foto.',
@@ -39210,10 +39212,17 @@ function dictSheetApply() {
     if (typeof r.load === 'number' && r.load > 0) { rec.load = r.load; rec.loadUnit = r.loadUnit === 'lb' ? 'lb' : 'kg'; }
     ed.added.push(rec);
   }
-  trainEditsWrite(D.plan.id, ed, D.iso);
+  const okDict = trainEditsWrite(D.plan.id, ed, D.iso);
+  /* CAND-535: el dictado confirma en voz alta como el resto de
+     vías desde AUTH-523 («✓ Añadido: {nombre}», con los nombres
+     de todo lo agregado) y si el guardado falla avisa con el
+     error honesto y la hoja queda abierta para reintentar —
+     hasta este paquete esta puerta guardaba en silencio. */
+  if (!okDict) { toast(t('common.error'), true); return; }
   trainAddPlaceFront(D.plan, D.di, D.iso, okRows.length);   /* AUTH-490: el bloque dictado nace al frente de los pendientes */
   dictSheetClose();
   loadMyTraining();
+  toast(t('train.pick.addedOk', { name: okRows.map(r => libNameOf(r.entry)).join(', ') }));
 }
 
 /* ═══════════ FOTO DE MÁQUINA → FICHA DE BIBLIOTECA
@@ -39610,8 +39619,14 @@ function mphPushAdded(D, rec0) {
   if (rec0.variantIndex != null) rec.variantIndex = rec0.variantIndex;
   if (typeof rec0.load === 'number' && rec0.load > 0) { rec.load = rec0.load; rec.loadUnit = rec0.loadUnit === 'lb' ? 'lb' : 'kg'; }
   ed.added.push(rec);
-  trainEditsWrite(D.plan.id, ed, D.iso);
-  trainAddPlaceFront(D.plan, D.di, D.iso, 1);   /* AUTH-490: el agregado nace al frente de los pendientes */
+  /* CAND-535: devuelve si la escritura quedó hecha, para que
+     la vía de la foto confirme en voz alta como el resto desde
+     AUTH-523; el frente solo se toca si el agregado quedó
+     guardado. El camino del borrador nuevo ignora el valor,
+     como siempre (su confirmación es mph.addedDraft). */
+  const okPush = trainEditsWrite(D.plan.id, ed, D.iso);
+  if (okPush) trainAddPlaceFront(D.plan, D.di, D.iso, 1);   /* AUTH-490: el agregado nace al frente de los pendientes */
+  return okPush;
 }
 
 async function mphSheetApply() {
@@ -39632,14 +39647,22 @@ async function mphSheetApply() {
       return;
     }
     const v = r.vi != null && Array.isArray(r.entry.variantes) ? r.entry.variantes[r.vi] : null;
-    mphPushAdded(D, {
+    const mphName = v && !v.es_estandar ? libNameOf(r.entry) + ' — ' + libField(v, 'nombre') : libNameOf(r.entry);
+    const okPhoto = mphPushAdded(D, {
       exerciseId: r.entry.id,
-      name: v && !v.es_estandar ? libNameOf(r.entry) + ' — ' + libField(v, 'nombre') : libNameOf(r.entry),
+      name: mphName,
       sets: r.sets, reps: r.reps, load: r.load, loadUnit: r.loadUnit,
       variantIndex: v && !v.es_estandar && Number.isInteger(r.vi) ? r.vi : null
     });
+    /* CAND-535: la foto/máquina confirma en voz alta como el
+       resto de vías desde AUTH-523 («✓ Añadido: {nombre}»); si
+       el guardado falla, error honesto y la hoja queda abierta
+       para reintentar — hasta este paquete esta puerta
+       guardaba en silencio. */
+    if (!okPhoto) { toast(t('common.error'), true); return; }
     mphSheetClose();
     loadMyTraining();
+    toast(t('train.pick.addedOk', { name: mphName }));
     return;
   }
   if (r.status !== 'new') return;
@@ -68426,7 +68449,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261121-cardio-suma';
+const PWA_SW_VERSION = '20261121-agregar-confirma';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
