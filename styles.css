@@ -4954,6 +4954,36 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .plan-auto-factor { font-size: 12.5px; font-weight: 800; color: #0f766e; white-space: nowrap; }
 .plan-list-sec { font-size: 12px; font-weight: 800; letter-spacing: .6px; color: #5b7a8c; margin: 12px 0 4px; }
 .plan-list-gt { font-size: 14px; font-weight: 800; color: #22303c; margin: 12px 0 2px; }
+.plan-list-cnt { margin-left: auto; font-size: 12.5px; font-weight: 700; color: #0f766e; background: #e6f4f1; border-radius: 999px; padding: 5px 10px; white-space: nowrap; }
+
+/* AUTH-480 · Modo compra de la lista: resumen fijo, filas-botón
+   con la casilla de la casa y la marca «ya lo tengo». */
+.plan-shop-start { width: 100%; min-height: 56px; font-size: 16.5px; margin-top: 16px; }
+.plan-shop-sum { position: sticky; top: 0; background: #fff; padding: 6px 0 10px; z-index: 2; }
+.plan-shop-big { font-size: 19px; font-weight: 800; color: #0f2e2a; }
+.plan-shop-bar { height: 10px; background: #e2eae7; border-radius: 999px; margin-top: 8px; overflow: hidden; }
+.plan-shop-bar i { display: block; height: 100%; background: #0d9488; border-radius: 999px; }
+.plan-shop-hide { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 4px; margin-top: 6px; background: none; border: none; font: inherit; font-size: 14.5px; font-weight: 700; color: #0f2e2a; cursor: pointer; }
+.plan-shop-track { width: 52px; height: 30px; border-radius: 999px; background: #cbd8d4; position: relative; flex: none; }
+.plan-shop-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: left .2s; }
+.plan-shop-hide[aria-pressed="true"] .plan-shop-track { background: #0d9488; }
+.plan-shop-hide[aria-pressed="true"] .plan-shop-track::after { left: 25px; }
+.plan-shop-row { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 4px 0; border-bottom: 1px solid #e8efec; box-sizing: border-box; }
+.plan-shop-main { flex: 1; display: flex; align-items: center; gap: 12px; min-height: 56px; background: none; border: none; font: inherit; text-align: left; cursor: pointer; padding: 4px; }
+.plan-shop-box { width: 32px; height: 32px; flex: none; border: 2.5px solid #0d9488; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 800; color: #fff; background: #fff; box-sizing: border-box; }
+.plan-shop-row.done .plan-shop-box { background: #0d9488; }
+.plan-shop-nm { font-size: 15.5px; font-weight: 700; color: #0f2e2a; line-height: 1.25; }
+.plan-shop-qt { display: block; font-size: 13px; font-weight: 400; color: #64748b; margin-top: 1px; }
+.plan-shop-row.done .plan-shop-nm, .plan-shop-row.done .plan-shop-qt { color: #64748b; }
+.plan-shop-row.bought .plan-shop-nm { text-decoration: line-through; }
+.plan-shop-row.done { opacity: .62; }
+.plan-shop-row.bought { opacity: .5; }
+.plan-shop-home { flex: none; min-width: 52px; min-height: 48px; border-radius: 12px; border: 2px solid #e2e8f0; background: #fff; font-size: 19px; cursor: pointer; }
+.plan-shop-home.on { background: #fdf3d8; border-color: #d9a514; }
+.plan-shop-foot { display: flex; gap: 8px; margin-top: 16px; }
+.plan-shop-share { flex: 1; min-height: 52px; }
+.plan-shop-reset { flex: 1; min-height: 52px; }
+.plan-shop-exit { width: 100%; min-height: 52px; margin-top: 10px; }
 .plan-auto-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 14px 0 4px; font-size: 13.5px; color: #40536a; }
 .plan-cook-sub { font-size: 13.5px; color: #7b8a97; line-height: 1.55; margin-bottom: 6px; }
 .plan-cook-q { font-size: 15px; font-weight: 800; color: #22303c; margin: 14px 0 8px; }

@@ -4597,6 +4597,18 @@ en: {
   'planau.aisleDairy': 'Dairy & eggs',
   'planau.aisleGrains': 'Grains, breads & legumes',
   'planau.aisleOther': 'Pantry & other',
+  'shops.items': '{n} items',
+  'shops.still': '{n} still to get',
+  'shops.stillOf': '{n} still to get · of {m}',
+  'shops.complete': 'Shopping complete! 🎉',
+  'shops.hideDone': 'Hide done',
+  'shops.startShop': '🛒 Start shopping',
+  'shops.share': 'Share',
+  'shops.startOver': 'Start over',
+  'shops.finish': 'Finish — back to my week',
+  'shops.haveIt': 'Already have it at home',
+  'shops.copied': 'List copied to clipboard',
+  'shops.shareFail': 'Could not share the list',
   'nutri.consentTitle': 'My food-care data',
   'nutri.consentHint': 'Only with your specific consent, your food coach can see: allergies, intolerances, declared conditions, relevant medications, cultural or religious preferences and vegetarianism. No diagnoses are made in the app: with a condition, you get a referral, never a medical diet.',
   'nutri.consentGive': 'Give my consent and save',
@@ -10051,6 +10063,18 @@ es: {
   'planau.aisleDairy': 'Lácteos y huevos',
   'planau.aisleGrains': 'Cereales, panes y legumbres',
   'planau.aisleOther': 'Despensa y otros',
+  'shops.items': '{n} productos',
+  'shops.still': 'te faltan {n}',
+  'shops.stillOf': 'Te faltan {n} · de {m}',
+  'shops.complete': '¡Compra completa! 🎉',
+  'shops.hideDone': 'Ocultar resueltos',
+  'shops.startShop': '🛒 Ir a comprar',
+  'shops.share': 'Compartir',
+  'shops.startOver': 'Empezar de nuevo',
+  'shops.finish': 'Terminar — volver a mi semana',
+  'shops.haveIt': 'Ya lo tengo en casa',
+  'shops.copied': 'Lista copiada al portapapeles',
+  'shops.shareFail': 'No se pudo compartir la lista',
   'nutri.consentTitle': 'Mis datos de alimentación',
   'nutri.consentHint': 'Solo con tu consentimiento específico, tu coach de alimentación puede ver: alergias, intolerancias, condiciones declaradas, medicamentos relevantes, preferencias culturales o religiosas y vegetarianismo. En la app no se hacen diagnósticos: ante una condición, recibes derivación, nunca una dieta médica.',
   'nutri.consentGive': 'Dar mi consentimiento y guardar',
@@ -68449,7 +68473,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261121-agregar-confirma';
+const PWA_SW_VERSION = '20261121-modo-compra';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -74083,6 +74107,10 @@ const PLANWK = { weekStart: null, showing: 'own', openDay: null, sc: null, edito
      automático resuelto, el catálogo cacheado, la lista desplegada
      y el candado de regeneración. */
   view: 'hoy', auto: null, catalog: null, listOpen: false, busy: false,
+  /* AUTH-480: el modo compra de la lista (abierto o no, y el
+     interruptor de ocultar resueltos). Las MARCAS no viven aquí:
+     viven en localStorage (bloque MODO COMPRA más abajo). */
+  shopMode: false, shopHide: false,
   /* AUTH-473: ids del catálogo cuyo detalle (ficha e ingredientes
      con gramos) ya se trajo de recipes/{id}/ficha/full en esta
      sesión; no se repite la lectura. */
@@ -74144,6 +74172,11 @@ function planSheetHTML() {
   const sc = PLANWK.sc || {};
   const structure = sc.structure || null;
   const baseGoals = structure && structure.days && structure.days.base ? structure.days.base.goals : null;
+  /* AUTH-480: en modo compra la hoja ES la lista — el resumen
+     fijo y las filas-botón sustituyen a las pestañas y a los
+     días (las marcas viven en localStorage; bloque MODO
+     COMPRA junto a planAutoListHTML). */
+  if (PLANWK.shopMode && isAuto && PLANWK.view === 'semana') return planShopHTML(auto);
   let h = planTabsHTML();
   /* AUTH-479: quien ya respondió la cocina pero no las tres
      preguntas del mecanismo ve UNA línea plegada que las abre;
@@ -74215,6 +74248,7 @@ function planPaintSheet() {
     PLANWK.weekStart = planISOAddDays(PLANWK.weekStart, delta);
     PLANWK.showing = 'own';
     PLANWK.listOpen = false;
+    PLANWK.shopMode = false;
     const hoy = todayISO(), fin = planISOAddDays(PLANWK.weekStart, 6);
     PLANWK.openDay = (hoy >= PLANWK.weekStart && hoy <= fin) ? hoy : null;
     planAutoEnsure(false).then(() => { if (PLANWK.auto && PLANWK.showing === 'own') PLANWK.showing = 'auto'; planPaintSheet(); });
@@ -74229,13 +74263,20 @@ function planPaintSheet() {
   on('plan-fix-ask', () => planFixAskOpen());
   on('plan-fix-off', () => planFixOff());
   on('plan-list-open', () => { PLANWK.listOpen = !PLANWK.listOpen; planPaintSheet(); });
+  on('plan-shop-start', () => { PLANWK.shopMode = true; planPaintSheet(); });
+  on('plan-shop-exit', () => { PLANWK.shopMode = false; planPaintSheet(); });
+  on('plan-shop-hide', () => { PLANWK.shopHide = !PLANWK.shopHide; planPaintSheet(); });
+  on('plan-shop-reset', () => { planShopReset(); planPaintSheet(); });
+  on('plan-shop-share', () => { planShopShare(); });
+  body.querySelectorAll('[data-shop-row]').forEach(b => { b.onclick = () => { const it = PLANSHOP.rows[Number(b.getAttribute('data-shop-row'))]; if (!it) return; const cur = (planShopLoad()[it.sess] || {})[it.key]; planShopSet(it.sess, it.key, cur === 'b' ? null : 'b'); planPaintSheet(); }; });
+  body.querySelectorAll('[data-shop-home]').forEach(b => { b.onclick = () => { const it = PLANSHOP.rows[Number(b.getAttribute('data-shop-home'))]; if (!it) return; const cur = (planShopLoad()[it.sess] || {})[it.key]; planShopSet(it.sess, it.key, cur === 'h' ? null : 'h'); planPaintSheet(); }; });
   body.querySelectorAll('[data-plan-dish]').forEach(b => { b.onclick = () => planDishOpen(b.getAttribute('data-plan-dish')); });
   body.querySelectorAll('[data-plan-add]').forEach(b => { b.onclick = () => planPickOpen(b.getAttribute('data-plan-add'), null); });
   body.querySelectorAll('[data-plan-addnew]').forEach(b => { b.onclick = () => planAddSlotOpen(b.getAttribute('data-plan-addnew')); });
   body.querySelectorAll('[data-plan-day]').forEach(b => { b.onclick = () => { const d = b.getAttribute('data-plan-day'); PLANWK.openDay = PLANWK.openDay === d ? null : d; planPaintSheet(); }; });
-  body.querySelectorAll('[data-plan-src]').forEach(b => { b.onclick = () => { PLANWK.showing = b.getAttribute('data-plan-src'); planPaintSheet(); }; });
-  body.querySelectorAll('[data-plan-view]').forEach(b => { b.onclick = () => { PLANWK.view = b.getAttribute('data-plan-view'); if (PLANWK.view === 'hoy') { const hoy = todayISO(); if (hoy >= PLANWK.weekStart && hoy <= planISOAddDays(PLANWK.weekStart, 6)) PLANWK.openDay = hoy; } planPaintSheet(); }; });
-  body.querySelectorAll('[data-plan-goto-week]').forEach(b => { b.onclick = () => { PLANWK.weekStart = b.getAttribute('data-plan-goto-week'); PLANWK.view = 'semana'; PLANWK.openDay = null; PLANWK.showing = 'own'; planAutoEnsure(false).then(() => { if (PLANWK.auto) PLANWK.showing = 'auto'; planPaintSheet(); }); }; });
+  body.querySelectorAll('[data-plan-src]').forEach(b => { b.onclick = () => { PLANWK.showing = b.getAttribute('data-plan-src'); PLANWK.shopMode = false; planPaintSheet(); }; });
+  body.querySelectorAll('[data-plan-view]').forEach(b => { b.onclick = () => { PLANWK.view = b.getAttribute('data-plan-view'); PLANWK.shopMode = false; if (PLANWK.view === 'hoy') { const hoy = todayISO(); if (hoy >= PLANWK.weekStart && hoy <= planISOAddDays(PLANWK.weekStart, 6)) PLANWK.openDay = hoy; } planPaintSheet(); }; });
+  body.querySelectorAll('[data-plan-goto-week]').forEach(b => { b.onclick = () => { PLANWK.weekStart = b.getAttribute('data-plan-goto-week'); PLANWK.view = 'semana'; PLANWK.openDay = null; PLANWK.showing = 'own'; PLANWK.shopMode = false; planAutoEnsure(false).then(() => { if (PLANWK.auto) PLANWK.showing = 'auto'; planPaintSheet(); }); }; });
   body.querySelectorAll('[data-plan-goto-day]').forEach(b => { b.onclick = () => { PLANWK.view = 'semana'; PLANWK.openDay = b.getAttribute('data-plan-goto-day'); planPaintSheet(); }; });
 }
 async function planOpenSheet() {
@@ -74258,7 +74299,10 @@ function planSheetOpenNow() {
   PLANWK.showing = 'own';
   PLANWK.view = 'hoy';
   PLANWK.listOpen = false;
+  PLANWK.shopMode = false;
+  PLANWK.shopHide = false;
   PLANWK.openDay = todayISO();
+  planShopPrune();
   /* PIEZA 3 · LAS ENTREGAS: si la apertura viene de un correo de
      entrega (?menu=), la hoja nace en lo entregado — la semana
      del paquete en vista Semana, con la lista abierta si el
@@ -74277,7 +74321,7 @@ function planSheetOpenNow() {
         const t0 = todayISO();
         PLANWK.openDay = (t0 >= lk.sem && t0 <= planISOAddDays(lk.sem, 6)) ? t0 : lk.sem;
       }
-      if (lk.kind === 'lista') PLANWK.listOpen = true;
+      if (lk.kind === 'lista') { PLANWK.listOpen = true; PLANWK.shopMode = true; }
     }
   }
   bd.style.display = ''; f.style.display = '';
@@ -74995,7 +75039,12 @@ function planAutoShopSections(days) {
     }
   }
   const secs = {};
-  for (const row of agg.values()) {
+  for (const [aggKey, row] of agg.entries()) {
+    /* AUTH-480: cada fila conserva su clave de agregación
+       (g:/q:/n: sobre el nombre normalizado) — es la llave con
+       la que el modo compra marca el producto una sola vez
+       aunque venga sumado de varios días. */
+    row.key = aggKey;
     const fam = mmItemFamily({ name: row.name });
     const aisle = MM_AISLE_OF[fam] || 'otros';
     const secId = (aisle === 'vegetales' || aisle === 'frutas') ? 'frutasVerduras' : aisle;
@@ -75006,7 +75055,7 @@ function planAutoShopSections(days) {
   for (const [id, key] of order) {
     const rows = (secs[id] || []).slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
     if (!rows.length) continue;
-    out.push({ title: t(key), rows: rows.map(r => ({ name: r.name,
+    out.push({ title: t(key), rows: rows.map(r => ({ name: r.name, key: r.key,
       qtyTxt: r.grams != null ? mmGramsText(r.grams) : (r.qty != null ? (Math.round(r.qty * 10) / 10) + (r.unit ? ' ' + r.unit : '') : '') })) });
   }
   return out;
@@ -75021,17 +75070,150 @@ function planAutoShopping(days, pattern) {
   return defs.map(g => ({ title: g.title, sections: planAutoShopSections(g.days) }));
 }
 function planAutoListHTML(autoDoc) {
-  const head = `<button type="button" class="plan-day-head" id="plan-list-open"><span class="plan-day-name">🛒 ${esc(t('planau.listTitle'))}</span><span class="plan-chev">${PLANWK.listOpen ? '▴' : '▾'}</span></button>`;
+  /* AUTH-480: la cabecera plegada dice cuánto falta (el conteo
+     sale del mismo derivado + las marcas locales del teléfono) y
+     la lista desplegada cierra con el botón de entrar a comprar. */
+  const data = planShopData(autoDoc);
+  const cnt = data.pending === data.total ? t('shops.items', { n: data.total }) : t('shops.still', { n: data.pending });
+  const head = `<button type="button" class="plan-day-head" id="plan-list-open"><span class="plan-day-name">🛒 ${esc(t('planau.listTitle'))}</span><span class="plan-list-cnt">${esc(cnt)}</span><span class="plan-chev">${PLANWK.listOpen ? '▴' : '▾'}</span></button>`;
   if (!PLANWK.listOpen) return head;
-  const groups = planAutoShopping(autoDoc.days || [], (autoDoc.auto || {}).cookPattern || 'semana');
   let h = head + `<div class="plan-list">`;
-  for (const g of groups) {
+  for (const g of data.groups) {
     h += `<div class="plan-list-gt">${esc(g.title)}</div>`;
     for (const sec of g.sections) {
       h += `<div class="plan-list-sec">${esc(sec.title)}</div>` + sec.rows.map(r => `<div class="plan-item"><span>${esc(r.name)}</span><span class="plan-item-g">${esc(r.qtyTxt)}</span></div>`).join('');
     }
   }
+  if (data.total > 0) h += `<button type="button" class="btn-primary plan-shop-start" id="plan-shop-start">${esc(t('shops.startShop'))}</button>`;
   return h + `</div>`;
+}
+/* ═══ AUTH-480 · MODO COMPRA de la lista del planificador ═══
+   Sobre la lista que AUTH-474 ya genera: filas-botón grandes
+   para marcar en el supermercado. Las marcas son un estado del
+   acto de comprar y viven SOLO en el teléfono (localStorage,
+   con los precedentes de la casa: el acumulado UC y los
+   borradores de IA por usuario): 0 escrituras en Firestore,
+   0 campos, 0 reglas, 0 Worker — y el entrenador no las ve.
+   Clave del producto = la clave de agregación de la fusión
+   (g:/q:/n:), así «Pechuga de pollo» sumada de tres días se
+   marca una sola vez. Clave del almacén: usuario + lunes de
+   la semana; dentro, por índice de sesión de cocina, un mapa
+   clave -> 'b' (comprado) | 'h' (ya lo tengo en casa). ═══ */
+const PLANSHOP_LS = 'ronbofit-shopmarks-v1:';
+const PLANSHOP = { rows: [] };
+function planShopStoreKey() {
+  const me = auth.currentUser && auth.currentUser.uid;
+  return PLANSHOP_LS + (me || 'anon') + ':' + (PLANWK.weekStart || '');
+}
+function planShopLoad() {
+  try { const j = JSON.parse(localStorage.getItem(planShopStoreKey()) || 'null'); return (j && typeof j === 'object') ? j : {}; } catch { return {}; }
+}
+function planShopSave(store) { try { localStorage.setItem(planShopStoreKey(), JSON.stringify(store)); } catch {} }
+/* Al abrir el planificador se borran las marcas de las semanas
+   anteriores a la actual (las de la semana en curso y las de
+   semanas futuras ya armadas se quedan). */
+function planShopPrune() {
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  const pre = PLANSHOP_LS + me + ':', cur = mmMondayOf(todayISO());
+  const dead = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(pre) && k.slice(pre.length) < cur) dead.push(k); }
+    for (const k of dead) localStorage.removeItem(k);
+  } catch {}
+}
+/* El derivado único del modo compra: los grupos de siempre
+   (planAutoShopping) cruzados con las marcas locales. De paso
+   PURGA las marcas de productos que ya no están en la lista
+   (la semana se rearmó): lo que sale, pierde su marca al
+   guardar; lo que sigue, la conserva (decisión D3). */
+function planShopData(autoDoc) {
+  const groups = planAutoShopping((autoDoc && autoDoc.days) || [], ((autoDoc && autoDoc.auto) || {}).cookPattern || 'semana');
+  const store = planShopLoad();
+  let total = 0, pending = 0, changed = false;
+  const marks = groups.map((g, gi) => {
+    const valid = new Set();
+    for (const sec of g.sections) for (const r of sec.rows) valid.add(r.key);
+    total += valid.size;
+    const raw = store[gi] || {};
+    const m = {};
+    for (const k of Object.keys(raw)) {
+      if (valid.has(k) && (raw[k] === 'b' || raw[k] === 'h')) m[k] = raw[k];
+      else changed = true;
+    }
+    pending += valid.size - Object.keys(m).length;
+    return m;
+  });
+  if (changed) { const clean = {}; marks.forEach((m, gi) => { if (Object.keys(m).length) clean[gi] = m; }); planShopSave(clean); }
+  return { groups, marks, total, pending };
+}
+function planShopSet(gi, key, state) {
+  const store = planShopLoad();
+  const m = store[gi] || (store[gi] = {});
+  if (state) m[key] = state; else delete m[key];
+  if (!Object.keys(m).length) delete store[gi];
+  planShopSave(store);
+}
+function planShopReset() { try { localStorage.removeItem(planShopStoreKey()); } catch {} }
+/* El texto para compartir: SOLO lo pendiente, con el mismo
+   formato del correo de entrega (dlShopText de AUTH-475):
+   grupo, sección con dos puntos y «· nombre — cantidad». */
+function planShopText(data) {
+  const lines = ['RONBO FIT — ' + t('planau.listTitle') + ' · ' + t('shops.still', { n: data.pending })];
+  data.groups.forEach((g, gi) => {
+    const secs = [];
+    for (const sec of g.sections) {
+      const rows = sec.rows.filter(r => !data.marks[gi][r.key]);
+      if (rows.length) secs.push({ title: sec.title, rows });
+    }
+    if (!secs.length) return;
+    lines.push('', g.title);
+    for (const sec of secs) { lines.push(' ' + sec.title + ':'); for (const r of sec.rows) lines.push('  · ' + r.name + (r.qtyTxt ? ' — ' + r.qtyTxt : '')); }
+  });
+  return lines.join('\n');
+}
+async function planShopShare() {
+  if (!PLANWK.auto) return;
+  const data = planShopData(PLANWK.auto);
+  if (!data.pending) return;
+  const text = planShopText(data);
+  if (navigator.share) {
+    try { await navigator.share({ title: t('planau.listTitle'), text }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(text); toast(t('shops.copied')); }
+  catch { toast(t('shops.shareFail'), true); }
+}
+/* El pintor del modo compra: resumen fijo arriba («Te faltan
+   N · de M» + barra), el interruptor de ocultar resueltos y
+   las filas-botón por sesión y sección. Lo resuelto se hunde
+   al final de SU sección conservando su orden; el comprado
+   se tacha y el «ya lo tengo» no (no se compró: ya estaba).
+   Cada fila registra su (sesión, clave) en PLANSHOP.rows y
+   los botones llevan el índice: el cableado no depende de
+   escapar claves en atributos. */
+function planShopHTML(autoDoc) {
+  const data = planShopData(autoDoc);
+  PLANSHOP.rows = [];
+  const done = data.total - data.pending;
+  let h = `<div class="plan-shop" id="plan-shop-wrap"><div class="plan-shop-sum"><div class="plan-shop-big">${data.pending === 0 && data.total > 0 ? esc(t('shops.complete')) : esc(t('shops.stillOf', { n: data.pending, m: data.total }))}</div><div class="plan-shop-bar"><i style="width:${data.total ? Math.round(done / data.total * 100) : 0}%"></i></div><button type="button" class="plan-shop-hide" id="plan-shop-hide" aria-pressed="${PLANWK.shopHide ? 'true' : 'false'}"><span class="plan-shop-track"></span><span>${esc(t('shops.hideDone'))}</span></button></div>`;
+  data.groups.forEach((g, gi) => {
+    let gh = '';
+    for (const sec of g.sections) {
+      const rows = sec.rows.map(r => ({ r, st: data.marks[gi][r.key] || 'p' }))
+        .filter(x => !(PLANWK.shopHide && x.st !== 'p'))
+        .sort((a, b) => (a.st === 'p' ? 0 : 1) - (b.st === 'p' ? 0 : 1));
+      if (!rows.length) continue;
+      gh += `<div class="plan-list-sec">${esc(sec.title)}</div>` + rows.map(x => {
+        const idx = PLANSHOP.rows.length; PLANSHOP.rows.push({ sess: gi, key: x.r.key });
+        const cls = 'plan-shop-row' + (x.st !== 'p' ? ' done' : '') + (x.st === 'b' ? ' bought' : '');
+        const box = x.st === 'b' ? '✓' : (x.st === 'h' ? '🏠' : '');
+        return `<div class="${cls}"><button type="button" class="plan-shop-main" data-shop-row="${idx}"><span class="plan-shop-box">${box}</span><span class="plan-shop-nm">${esc(x.r.name)}${x.r.qtyTxt ? `<span class="plan-shop-qt">${esc(x.r.qtyTxt)}</span>` : ''}</span></button><button type="button" class="plan-shop-home${x.st === 'h' ? ' on' : ''}" data-shop-home="${idx}" aria-pressed="${x.st === 'h' ? 'true' : 'false'}" aria-label="${esc(t('shops.haveIt'))}">🏠</button></div>`;
+      }).join('');
+    }
+    if (gh) h += `<div class="plan-list-gt">🛒 ${esc(g.title)}</div>` + gh;
+  });
+  h += `<div class="plan-shop-foot"><button type="button" class="btn-primary plan-shop-share" id="plan-shop-share" ${data.pending ? '' : 'disabled'}>${esc(t('shops.share'))}</button><button type="button" class="btn-ghost plan-shop-reset" id="plan-shop-reset">${esc(t('shops.startOver'))}</button></div><button type="button" class="btn-ghost plan-shop-exit" id="plan-shop-exit">${esc(t('shops.finish'))}</button></div>`;
+  return h;
 }
 function planAutoFootHTML() {
   const a = (PLANWK.auto && PLANWK.auto.auto) || {};
