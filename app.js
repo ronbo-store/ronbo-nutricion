@@ -42626,7 +42626,7 @@ function sessHowRowHTML(ex) {
    bifurcación aparte para decisión de Ronald. ═══ */
 const SESS_AUDIO_BASE = 'https://ronbo-store.github.io/ronbo-nutri-assets/';
 const SESS_AUDIO_MASCOT = SESS_AUDIO_BASE + 'avatar-coach-virtual/web/guino-hablando.webp';
-const SESS_AUDIO_FORMS = new Set(['E001', 'E002', 'E003', 'E004', 'E004v1', 'E005', 'E006', 'E007', 'E008', 'E009', 'E010', 'E011', 'E012', 'E105', 'E105v1']);
+const SESS_AUDIO_FORMS = new Set(['E001', 'E002', 'E003', 'E004', 'E004v1', 'E005', 'E006', 'E007', 'E008', 'E009', 'E010', 'E011', 'E012', 'E013', 'E013v1', 'E013v2', 'E013v3', 'E014', 'E015', 'E015v1', 'E016', 'E017', 'E018', 'E019', 'E020', 'E020v1', 'E020v2', 'E021', 'E021v1', 'E022', 'E022v1', 'E023', 'E024', 'E105', 'E105v1']);
 const SESS_AUDIO_WAVE_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#08351f" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M4 10v4M8.5 7v10M13 4v16M17.5 7v10M22 10v4" transform="translate(-1 0)"/></svg>';
 const SESS_AUDIO_PAUSE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="#3a2403" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>';
 let SESS_AUDIO = { key: '', name: '', st: 'idle', stage: false, seq: 0, cur: 0, dur: 0, el: null, endT: 0 };
@@ -68513,7 +68513,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261121-musculos';
+const PWA_SW_VERSION = '20261121-audios-tanda2';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
