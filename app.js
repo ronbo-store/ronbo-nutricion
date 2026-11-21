@@ -6194,6 +6194,13 @@ en: {
   'libg.recEs': 'How to grip it (Spanish)', 'libg.recEn': 'How to grip it (English)',
   'libg.pending': 'Grip pending',
   'libg.pendingHint': 'No type chosen: it still saves, marked as pending, and the sweep completes it.',
+  'libm.works': 'Works', 'libm.also': 'also',
+  'libm.abdominals': 'Abdominals', 'libm.abductors': 'Abductors', 'libm.adductors': 'Adductors',
+  'libm.biceps': 'Biceps', 'libm.calves': 'Calves', 'libm.chest': 'Chest',
+  'libm.forearms': 'Forearms', 'libm.glutes': 'Glutes', 'libm.hamstrings': 'Hamstrings',
+  'libm.lats': 'Lats', 'libm.lower_back': 'Lower back', 'libm.middle_back': 'Middle back',
+  'libm.neck': 'Neck', 'libm.quadriceps': 'Quadriceps', 'libm.shoulders': 'Shoulders',
+  'libm.traps': 'Trapezius', 'libm.triceps': 'Triceps',
   'train.tabVariants': 'Variants', 'train.variantLabel': 'Variant', 'plan.variantStd': 'Standard form',
   'train.today.weekSummary': 'This week: {x} of {y} sessions completed',
   'train.today.rotationNote': 'This plan follows a day order, not fixed weekdays — so no session is pinned to this date. The next sessions in the plan\'s order are:',
@@ -11660,6 +11667,13 @@ es: {
   'libg.recEs': 'Cómo se agarra (español)', 'libg.recEn': 'Cómo se agarra (inglés)',
   'libg.pending': 'Agarre pendiente',
   'libg.pendingHint': 'Sin tipo elegido: se guarda igual, marcado como pendiente, y el barrido lo completa.',
+  'libm.works': 'Trabaja', 'libm.also': 'también',
+  'libm.abdominals': 'Abdominales', 'libm.abductors': 'Abductores', 'libm.adductors': 'Aductores',
+  'libm.biceps': 'Bíceps', 'libm.calves': 'Pantorrillas', 'libm.chest': 'Pecho',
+  'libm.forearms': 'Antebrazos', 'libm.glutes': 'Glúteos', 'libm.hamstrings': 'Femorales',
+  'libm.lats': 'Dorsales', 'libm.lower_back': 'Espalda baja', 'libm.middle_back': 'Espalda media',
+  'libm.neck': 'Cuello', 'libm.quadriceps': 'Cuádriceps', 'libm.shoulders': 'Hombros',
+  'libm.traps': 'Trapecio', 'libm.triceps': 'Tríceps',
   'train.tabVariants': 'Variantes', 'train.variantLabel': 'Variante', 'plan.variantStd': 'Forma estándar',
   'train.today.weekSummary': 'Esta semana: {x} de {y} sesiones completadas',
   'train.today.rotationNote': 'Este plan sigue un orden de días, no días de semana fijos — por eso no hay una sesión fijada a esta fecha. Las próximas sesiones en el orden del plan son:',
@@ -50308,6 +50322,7 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
   /* CAMPO «AGARRE»: en la ficha (modo 'card') manda la base; en la
      sesión manda la forma activa (la variante elegida si la hay). */
   const gripHTML = gripLineHTML(entry, mode === 'card' ? null : vChosen, mode !== 'card');
+  const muscHTML = musclesLineHTML(entry);
   const vBlock = vChosen ? `<div class="excard-sec">${esc(t('train.variantLabel'))}: ${esc(libField(vChosen, 'nombre'))}</div>${libField(vChosen, 'cambio') ? excardStepsHTML(libField(vChosen, 'cambio')) : ''}${libField(vChosen, 'nota') ? `<p class="excard-text">${esc(libField(vChosen, 'nota'))}</p>` : ''}` : '';
   const how = entry ? libField(entry, 'como_se_hace') : '';
   const avoid = entry ? libField(entry, 'errores_a_evitar') : '';
@@ -50326,6 +50341,7 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
     <div class="excard-head">${group ? `<div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${metaLine}</div>
     ${trainPainCautionHTML(ex)}
     ${gripHTML}
+    ${muscHTML}
     ${mode === 'edit' ? trainLastTimeHTML(ex, allLogs, (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? TRAIN_FLOAT.iso : null) : ''}
     ${sessionHTML || ''}
     <div class="excard-tabs" role="tablist">
@@ -54126,6 +54142,30 @@ function gripLineHTML(entry, v, sess) {
   let rec = tipo === 'no_aplica' ? '' : libField(src, 'agarre');
   if (v && !rec && tipo !== 'no_aplica') rec = libField(entry, 'agarre');
   return `<div class="grip-line"><span class="grip-pill">${esc(t('libg.title'))}: ${esc(t('libg.' + tipo))}</span>${rec ? `<span class="grip-rec">${esc(rec)}</span>` : ''}</div>`;
+}
+/* ═══════════ CAMPO «MÚSCULOS» (AUTH-2026-11-15-479) ═══════════
+   Músculos principales y secundarios ESTRUCTURADOS de la ficha:
+   dos arreglos de códigos de la lista cerrada de 17 (el vocabulario
+   de free-exercise-db, dominio público; cruce aprobado por Ronald
+   el 2026-11-15). Campos: musculos_principales y
+   musculos_secundarios en la ficha. La versión en texto libre de
+   siempre (musculos_secundarios_es/en) NO se toca: sigue
+   alimentando la pestaña «Músculos». Solo las 105 fichas clase A
+   del cruce traen los campos nuevos; sin dato NO se pinta nada —
+   jamás un músculo heredado del grupo o inventado. */
+const MUSCLE_KEYS = ['abdominals', 'abductors', 'adductors', 'biceps', 'calves', 'chest', 'forearms', 'glutes', 'hamstrings', 'lats', 'lower back', 'middle back', 'neck', 'quadriceps', 'shoulders', 'traps', 'triceps'];
+function muscleName(code) { return t('libm.' + String(code).replace(/ /g, '_')); }
+function muscleListOf(o, field) { return (o && Array.isArray(o[field]) ? o[field] : []).filter(c => MUSCLE_KEYS.indexOf(c) >= 0); }
+/* Línea «Trabaja: … · también …» de la ficha, gemela de la del
+   agarre (misma fila y misma pastilla, justo debajo de ella): los
+   principales van en la pastilla y los secundarios como texto tras
+   ella. Sin principales válidos no hay línea. */
+function musclesLineHTML(entry) {
+  if (!entry) return '';
+  const prim = muscleListOf(entry, 'musculos_principales');
+  if (!prim.length) return '';
+  const sec = muscleListOf(entry, 'musculos_secundarios').filter(c => prim.indexOf(c) < 0);
+  return `<div class="grip-line"><span class="grip-pill">${esc(t('libm.works'))}: ${esc(prim.map(muscleName).join(', '))}</span>${sec.length ? `<span class="grip-rec">${esc(t('libm.also'))} ${esc(sec.map(muscleName).join(', '))}</span>` : ''}</div>`;
 }
 /* Pastillas del editor (controles de la casa, ≥44 px): un botón
    por tipo de la lista cerrada, el elegido con la clase sel. */
@@ -68473,7 +68513,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261121-modo-compra';
+const PWA_SW_VERSION = '20261121-musculos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
