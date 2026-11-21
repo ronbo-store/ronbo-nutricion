@@ -41259,7 +41259,12 @@ function moveAudioStart(e) {
   const body = moveBodyOf(e);
   const tx = body[LANG] || body.en || body.es || '';
   if (!tx) return;
-  try { if (typeof SESS_AUDIO !== 'undefined' && SESS_AUDIO.st !== 'idle') sessAudioStop(); } catch {}
+  /* Al detener la instrucción, quien llama repinta (el
+     contrato de sessAudioStop): sin este latido, la fila de
+     la instrucción se quedaba en «Sonando…» hasta el
+     siguiente latido de 1 s — el mismo repintado que hace
+     el despachador de «stop» de moveAudioMediaInit. */
+  try { if (typeof SESS_AUDIO !== 'undefined' && SESS_AUDIO.st !== 'idle') { sessAudioStop(); try { sessPillTick(); } catch {} } } catch {}
   moveAudioEnsure();
   MOVE_AUDIO.id = e.id;
   MOVE_AUDIO.lang = LANG;
