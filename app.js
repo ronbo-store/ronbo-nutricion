@@ -2239,9 +2239,15 @@ async function renderProfileView() {
       </button>
       <p class="progress-hint">${esc(t('eve.help'))}</p>
     </div>
+    <button type="button" class="readg-fold" id="myprof-readg-open"><span class="readg-fold-t">📚 ${esc(t('readg.title'))}</span><span class="readg-fold-sub">${esc(t('readg.doorSub'))}</span><span class="readg-fold-chev" aria-hidden="true">›</span></button>
   </div>`;
   const pb = $('myprof-photo-btn');
   if (pb) pb.addEventListener('click', () => { const f = $('avatar-file'); if (f) f.click(); });
+  /* AUTH-540: la puerta permanente de «Mis lecturas» — la
+     selección de géneros de lectura vive aquí, editable
+     siempre; en el panel azul solo se ofrece la primera vez. */
+  const rgd = $('myprof-readg-open');
+  if (rgd) rgd.addEventListener('click', () => { try { genreSheetOpen(); } catch {} });
   /* Selector de idioma de correo (AUTH-062, 2026-10-28): la
      preferencia vive en el campo mailLang del PROPIO documento y
      se guarda por la rama de perfil inofensivo (el delta de
@@ -6335,6 +6341,25 @@ en: {
   'move.famNameTip': 'Founded tip',
   'move.famNameClave': 'Reflective key',
   'move.famClave': 'REFLECTIVE KEY',
+  'readg.title': 'My readings',
+  'readg.doorSub': 'Choose the reading genres you want to receive',
+  'readg.sheetSub': 'Turn on the genres you like to read. Your reflection each day and the readings in your panel while you train will come only from your genres that are on.',
+  'readg.count': '{n} texts',
+  'readg.note': 'Every new text that joins the bank takes its genre and shows up here on its own. At least one genre always stays on: no one is left without their reflection.',
+  'readg.done': 'Done',
+  'readg.saved': '✓ Your reading genres are saved',
+  'readg.gCuento': 'Short stories',
+  'readg.gdCuento': 'Anthony de Mello · stories that make you think',
+  'readg.gClave': 'Reflective keys',
+  'readg.gdClave': 'LinkedIn articles by NO TUI TEO',
+  'readg.gLarga': 'Long readings',
+  'readg.gdLarga': 'Passages from Ronald\'s book, to read or listen to while you walk',
+  'readg.gCap': 'Capsules',
+  'readg.gdCap': '«8 keys to living in the present» · short pieces',
+  'readg.gMotiv': 'Motivation',
+  'readg.gdMotiv': 'Short texts to start with energy',
+  'readg.gTip': 'Practical tips',
+  'readg.gdTip': 'Short tips backed by science',
   'move.gestTitle': 'Content manager · While you move',
   'move.gestHint': 'The cards that rotate while your students move. Everything you save here applies instantly, with no deployments — just like today.',
   'move.gestCards': 'cards',
@@ -11808,6 +11833,25 @@ es: {
   'move.famNameTip': 'Consejo con fundamento',
   'move.famNameClave': 'Clave reflexiva',
   'move.famClave': 'CLAVE REFLEXIVA',
+  'readg.title': 'Mis lecturas',
+  'readg.doorSub': 'Elige los géneros de lectura que quieres recibir',
+  'readg.sheetSub': 'Enciende los géneros que te gusta leer. Tu reflexión de cada día y las lecturas de tu panel mientras entrenas saldrán solo de tus géneros encendidos.',
+  'readg.count': '{n} textos',
+  'readg.note': 'Cada texto nuevo que entre en el banco se suma a su género y aparece aquí solo. Siempre queda al menos un género encendido: nadie se queda sin su reflexión.',
+  'readg.done': 'Listo',
+  'readg.saved': '✓ Tus géneros de lectura quedaron guardados',
+  'readg.gCuento': 'Cuentos breves',
+  'readg.gdCuento': 'Anthony de Mello · cuentos que hacen pensar',
+  'readg.gClave': 'Claves reflexivas',
+  'readg.gdClave': 'Artículos de LinkedIn de NO TUI TEO',
+  'readg.gLarga': 'Lecturas largas',
+  'readg.gdLarga': 'Fragmentos del libro de Ronald, para leer o escuchar caminando',
+  'readg.gCap': 'Cápsulas',
+  'readg.gdCap': '«8 claves para vivir en el presente» · piezas cortas',
+  'readg.gMotiv': 'Motivación',
+  'readg.gdMotiv': 'Textos cortos para arrancar con ánimo',
+  'readg.gTip': 'Consejos prácticos',
+  'readg.gdTip': 'Consejos cortos con fundamento científico',
   'move.gestTitle': 'Gestor de contenido · Mientras te mueves',
   'move.gestHint': 'Las tarjetas que rotan mientras tus alumnos se mueven. Todo lo que guardes aquí se aplica al instante, sin despliegues — igual que hoy.',
   'move.gestCards': 'tarjetas',
@@ -41065,7 +41109,7 @@ function sessBarSync(run) {
 const SESS_REFL_LONG = 240;
 function sessReflOfDay() {
   let act = [];
-  try { act = moveActive(); } catch {}
+  try { act = moveActiveSel(); } catch {}   /* AUTH-540: la reflexión sale de los géneros elegidos */
   if (!act.length) return null;
   const parts = todayISO().split('-').map(Number);
   if (parts.length !== 3 || !parts[0]) return null;
@@ -43028,8 +43072,8 @@ function sessFullSync(run) {
   if (!st && !dc) {
     /* Sin estado del día: reloj, día, mensaje y reflexión —
        ningún ejercicio inventado. */
-    sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', 'AU' + SESS_AUDIO.seq + ':' + SESS_AUDIO.st].join('|');
-    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${msgBlk}${sessReflHTML()}</div>${minBtn}</div>`;
+    sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', 'AU' + SESS_AUDIO.seq + ':' + SESS_AUDIO.st, 'RG' + (moveGenreSelSaved() ? '1' : '0')].join('|');   /* AUTH-540: la puerta de géneros entra en la firma */
+    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${msgBlk}${sessReflBlockHTML()}</div>${minBtn}</div>`;
   } else if (!st) {
     /* AUTH-507 · DÍA COMPLETO: el nulo de trainBarState es
        porque el día está HECHO, no porque falte estado — el
@@ -43097,9 +43141,9 @@ function sessFullSync(run) {
       doneInner = doneForm;
     }
     const doneBlk = `<div class="sf-done"><div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div><div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: totalD, m: totalD }))} · <span class="sf-done-clock">00:00:00</span></div>${sessCelebHTML()}${doneInner}</div>`;   /* AUTH-521: la celebración vive entre el resumen y la pregunta/el cierre, sin bloquear ninguno */
-    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-'), 'P' + pctD].join('|');   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma · AUTH-526: el % fino también — cuando la etapa se marca hecha, la barra repinta a su valor */
+    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-'), 'P' + pctD, 'RG' + (moveGenreSelSaved() ? '1' : '0')].join('|');   /* AUTH-540 */   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma · AUTH-526: el % fino también — cuando la etapa se marca hecha, la barra repinta a su valor */
     if (!SESS_FULL_SIG.startsWith('fdone')) sessDayDoneHook(dc);   /* AUTH-507: la celebración se engancha a la ENTRADA en el estado, no a cada latido */
-    html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${msgBlk}${sessReflHTML()}${doneBlk}</div>${minBtn}</div>`;
+    html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${msgBlk}${sessReflBlockHTML()}${doneBlk}</div>${minBtn}</div>`;
   } else if (sessCStageWarmT(run.planId)) {
     /* CAND-523 · LA ETAPA DE CALENTAMIENTO: con cardio de
        calentamiento ASIGNADO, el panel lo trae DE UNA VEZ
@@ -43108,8 +43152,8 @@ function sessFullSync(run) {
        edición ahí mismo. Solo su «✓ Hecho» (o quitarlo)
        devuelve el panel a los ejercicios. */
     const planCS = (typeof MY_PLAN !== 'undefined' && MY_PLAN && MY_PLAN.id === run.planId) ? MY_PLAN : { id: run.planId };
-    sig = ['cstage', 'warm', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', 'CW' + sessCStageSig(run.planId, 'warm')].join('|');
-    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${sessCStageHTML(planCS, 'warm', 'warm')}${msgBlk}${sessReflHTML()}</div>${minBtn}</div>`;
+    sig = ['cstage', 'warm', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', 'CW' + sessCStageSig(run.planId, 'warm'), 'RG' + (moveGenreSelSaved() ? '1' : '0')].join('|');   /* AUTH-540 */
+    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${sessCStageHTML(planCS, 'warm', 'warm')}${msgBlk}${sessReflBlockHTML()}</div>${minBtn}</div>`;
   } else {
     const ck = st.di + ':' + st.cur;
     const curChk = st.checks[ck] || null;
@@ -43164,8 +43208,8 @@ function sessFullSync(run) {
     const cdTerm = cdLive ? 'C' + cdLive.si + ':' + (cdLive.cd.f === 1 ? 'z' : (sessCdElapsed(cdLive.cd) < SESS_CD_PREP ? 'p' : 'r')) : '';
     const warmTerm = curChk && curChk.warmup && curChk.warmup.on === true && Array.isArray(curChk.warmup.sets) ? 'W' + curChk.warmup.sets.map(s2 => (s2 && s2.dot === true ? 1 : 0) + ':' + (s2 && s2.loadVal != null ? String(s2.loadVal) : '')).join(',') : 'W-';   /* AUTH-505: la aproximación entra en la firma — encender el bloque, cambiar su lista o tocar una marca «A» repinta la línea una vez · AUTH-511: sus cargas también — lo que la rueda escriba en una fila de aproximación repinta su cara */
     const loadTerm = curChk && Array.isArray(curChk.sets) ? 'L' + curChk.sets.map(s2 => (s2 && s2.loadVal != null ? String(s2.loadVal) : '') + (s2 && s2.clr === true ? 'c' : '')).join(',') : 'L-';   /* AUTH-511: las cargas de las series de trabajo entran en la firma — son la cara de los círculos y la referencia del cálculo de la aproximación: lo que la rueda o la tarjeta escriban repinta la línea en el siguiente latido */
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm, warmTerm, loadTerm, 'G' + goalSec, 'AU' + SESS_AUDIO.seq + ':' + SESS_AUDIO.st + ':' + (SESS_AUDIO.key || '-')].join('|');   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace · AUTH-516: el término G trae la meta de tiempo del ejercicio en curso — si cambia el ejercicio o su criterio, la línea repinta una vez; el segundo a segundo lo sigue pintando el tick en sitio, sin tocar la meta · AUTH-518: el término AU trae el estado del audio — sonar, pausar, terminar o detenerse repintan una vez; el segundo a segundo del tiempo lo pinta sessAudioRowPaint en sitio, sin repintar */
-    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm, warmTerm, loadTerm, 'G' + goalSec, 'AU' + SESS_AUDIO.seq + ':' + SESS_AUDIO.st + ':' + (SESS_AUDIO.key || '-'), 'RG' + (moveGenreSelSaved() ? '1' : '0')].join('|');   /* AUTH-540 */   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace · AUTH-516: el término G trae la meta de tiempo del ejercicio en curso — si cambia el ejercicio o su criterio, la línea repinta una vez; el segundo a segundo lo sigue pintando el tick en sitio, sin tocar la meta · AUTH-518: el término AU trae el estado del audio — sonar, pausar, terminar o detenerse repintan una vez; el segundo a segundo del tiempo lo pinta sessAudioRowPaint en sitio, sin repintar */
+    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflBlockHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
   }
   if (sig !== SESS_FULL_SIG) {
     SESS_FULL_SIG = sig;
@@ -43611,6 +43655,18 @@ document.addEventListener('click', ev => {
   const b = (ev.target && ev.target.closest) ? ev.target.closest('[data-sess-view]') : null;
   if (!b) return;
   sessViewSet(b.dataset.sessView);
+});
+/* AUTH-540: las puertas de la selección de géneros — la del
+   panel azul (data-genre-open) y los controles de la hoja —
+   viven en un solo oyente de documento, como los de la hoja
+   del artículo. */
+document.addEventListener('click', ev => {
+  const b = (ev.target && ev.target.closest) ? ev.target.closest('[data-genre-open], [data-genre-tgl], [data-genre-done], [data-genre-close]') : null;
+  if (!b) return;
+  if (b.hasAttribute('data-genre-open')) { try { genreSheetOpen(); } catch {} return; }
+  if (b.hasAttribute('data-genre-tgl')) { try { genreToggle(b.dataset.genreTgl); } catch {} return; }
+  if (b.hasAttribute('data-genre-done')) { try { genreSheetDone(); } catch {} return; }
+  if (b.hasAttribute('data-genre-close')) { try { genreSheetClose(); } catch {} }
 });
 /* La hoja del artículo: abrir (desde la línea de la
    completa), cerrar y escuchar viven en un solo oyente. */
@@ -47217,6 +47273,164 @@ async function moveLoad() {
 function moveActive() {
   return moveSanEntries(moveEntries()).filter(e => !e.pendiente);
 }
+
+/* ═══ AUTH-540 · LA SELECCIÓN DE GÉNEROS DE LECTURA
+   (diseño de Ronald, 2026-11-21, con su corrección expresa
+   «No las lecturas, la selección»): lo que la persona elige
+   no son lecturas sueltas — son los GÉNEROS de lectura que
+   quiere recibir en su panel en cada entrenamiento. La
+   reflexión de hoy y la rotación de «Mientras te mueves»
+   salen SOLO de los géneros encendidos. El género de cada
+   pieza se DERIVA de sus campos vivos, como los títulos de
+   AUTH-460: las familias motiv y tip son género propio; la
+   familia clave se parte por su fuente (los cuentos de
+   Anthony de Mello son «Cuentos breves»; el resto, «Claves
+   reflexivas»); la familia cap se parte por su largo con el
+   umbral de la casa (SESS_REFL_LONG): la pieza larga es
+   «Lecturas largas» y la corta, «Cápsulas». La selección
+   vive en el campo readingGenres del PROPIO documento
+   (lista cerrada de géneros encendidos; el delta de reglas
+   del paquete admite solo esa forma) y nace SIN ELEGIR:
+   sin campo guardado no hay filtro — todo el banco — y la
+   puerta de la selección se ofrece UNA vez en el panel
+   azul; guardada la elección, la puerta del panel se retira
+   y la selección queda editable para siempre en «Mi
+   perfil». Si la lista guardada dejara el banco vacío (el
+   banco cambió tras elegir), manda el banco entero: nadie
+   se queda sin su reflexión. ═══ */
+const MOVE_GENRES = ['cuento', 'clave', 'larga', 'cap', 'motiv', 'tip'];
+const MOVE_GENRE_META = {
+  cuento: { ic: '📖', name: 'readg.gCuento', desc: 'readg.gdCuento' },
+  clave: { ic: '🧭', name: 'readg.gClave', desc: 'readg.gdClave' },
+  larga: { ic: '📚', name: 'readg.gLarga', desc: 'readg.gdLarga' },
+  cap: { ic: '🌿', name: 'readg.gCap', desc: 'readg.gdCap' },
+  motiv: { ic: '🔥', name: 'readg.gMotiv', desc: 'readg.gdMotiv' },
+  tip: { ic: '✅', name: 'readg.gTip', desc: 'readg.gdTip' }
+};
+function moveGenreOf(e) {
+  if (!e || !e.fam) return '';
+  if (e.fam === 'motiv') return 'motiv';
+  if (e.fam === 'tip') return 'tip';
+  if (e.fam === 'clave') return /anthony de mello/i.test(e.src || '') ? 'cuento' : 'clave';
+  if (e.fam === 'cap') {
+    const b = moveBodyOf(e);
+    return Math.max((b.en || '').length, (b.es || '').length) > SESS_REFL_LONG ? 'larga' : 'cap';
+  }
+  return '';
+}
+/* La selección GUARDADA (null = aún no elegida): solo los
+   géneros de la lista cerrada, en el orden de la hoja. */
+function moveGenreSelSaved() {
+  const v = (typeof UDATA !== 'undefined' && UDATA) ? UDATA.readingGenres : null;
+  if (!Array.isArray(v)) return null;
+  return MOVE_GENRES.filter(g => v.indexOf(g) >= 0);
+}
+/* Los géneros que mandan (null = sin filtro: nunca eligió
+   o su lista quedó vacía — el banco entero). */
+function moveGenreOn() {
+  const s = moveGenreSelSaved();
+  return (s && s.length) ? s : null;
+}
+/* El banco activo que la persona RECIBE: el de siempre,
+   filtrado por sus géneros cuando eligió. */
+function moveActiveSel() {
+  const act = moveActive();
+  const on = moveGenreOn();
+  if (!on) return act;
+  const f = act.filter(e => on.indexOf(moveGenreOf(e)) >= 0);
+  return f.length ? f : act;
+}
+/* El conteo vivo por género (las piezas activas de hoy):
+   el número que la hoja enseña junto a cada interruptor. */
+function moveGenreCounts() {
+  const c = {};
+  for (const g of MOVE_GENRES) c[g] = 0;
+  for (const e of moveActive()) { const g = moveGenreOf(e); if (g && g in c) c[g]++; }
+  return c;
+}
+/* ── LA PUERTA DEL PANEL AZUL: una línea plegada junto a
+   la Reflexión, SOLO mientras la selección no se ha hecho
+   (la primera vez, para hacerla); guardada la elección, no
+   vuelve a aparecer en el panel — su casa permanente es
+   «Mi perfil». ── */
+function sessGenreDoorHTML() {
+  if (moveGenreSelSaved()) return '';
+  return `<button type="button" class="sf-card sf-foldcard" data-genre-open="1"><span class="sf-fold-ic" aria-hidden="true">📚</span><span class="sf-fold-lab">${esc(t('readg.title'))}</span><span class="sf-fold-txt">${esc(t('readg.doorSub'))}</span><span class="sf-fold-chev" aria-hidden="true">›</span></button>`;
+}
+function sessReflBlockHTML() {
+  return sessReflHTML() + sessGenreDoorHTML();
+}
+/* ── LA HOJA «MIS LECTURAS» (la maqueta v3 aprobada): un
+   interruptor grande por género con su conteo vivo. El
+   borrador vive en memoria; «Listo» guarda la lista en el
+   propio documento por la rama de perfil de siempre — si
+   el guardado falla, la hoja sigue abierta y el error se
+   dice con failToast: jamás un guardado fingido. Apagar el
+   último género encendido no se puede: la hoja lo deja
+   encendido (nadie se queda sin su reflexión). ── */
+let READG_DRAFT = null;
+function genreSheetOpen() {
+  READG_DRAFT = new Set(moveGenreOn() || MOVE_GENRES);
+  genreSheetSync();
+}
+function genreSheetClose() {
+  if (!READG_DRAFT && !document.getElementById('readg-float')) return;
+  READG_DRAFT = null;
+  genreSheetSync();
+}
+function genreSheetSync() {
+  let fl = document.getElementById('readg-float');
+  if (!READG_DRAFT) {
+    if (fl) fl.remove();
+    try { coverSync(); } catch {}
+    return;
+  }
+  if (!fl) {
+    fl = document.createElement('div');
+    fl.id = 'readg-float';
+    fl.className = 'readg-float';
+    fl.setAttribute('role', 'dialog');
+    fl.setAttribute('aria-label', t('readg.title'));
+    document.body.appendChild(fl);
+    fl.addEventListener('click', e => { if (e.target === fl) genreSheetClose(); });
+  }
+  const counts = moveGenreCounts();
+  const rows = MOVE_GENRES.map(g => {
+    const m = MOVE_GENRE_META[g];
+    const on = READG_DRAFT.has(g);
+    return `<div class="readg-row${on ? '' : ' off'}"><div class="readg-rt"><b>${m.ic} ${esc(t(m.name))}</b><span>${esc(t(m.desc))} · ${esc(t('readg.count', { n: counts[g] }))}</span></div><button type="button" class="readg-sw${on ? ' on' : ''}" data-genre-tgl="${g}" role="switch" aria-checked="${on ? 'true' : 'false'}" aria-label="${esc(t(m.name))}"><i></i></button></div>`;
+  }).join('');
+  fl.innerHTML = `<div class="readg-sheet">
+    <div class="readg-head"><h3>${esc(t('readg.title'))}</h3><button type="button" class="readg-x" data-genre-close="1" aria-label="${esc(t('move.close'))}">✕</button></div>
+    <p class="readg-sub">${esc(t('readg.sheetSub'))}</p>
+    ${rows}
+    <p class="readg-note">${esc(t('readg.note'))}</p>
+    <button type="button" class="readg-done" data-genre-done="1">${esc(t('readg.done'))}</button>
+  </div>`;
+  try { coverSync(); } catch {}
+}
+function genreToggle(g) {
+  if (!READG_DRAFT || !MOVE_GENRES.includes(g)) return;
+  if (READG_DRAFT.has(g)) {
+    if (READG_DRAFT.size <= 1) return;
+    READG_DRAFT.delete(g);
+  } else READG_DRAFT.add(g);
+  genreSheetSync();
+}
+async function genreSheetDone() {
+  if (!READG_DRAFT || !READG_DRAFT.size) return;
+  const list = MOVE_GENRES.filter(g => READG_DRAFT.has(g));
+  const me = (typeof auth !== 'undefined' && auth) ? auth.currentUser : null;
+  if (!me) { genreSheetClose(); return; }
+  try {
+    await setDoc(doc(db, 'users', me.uid), { readingGenres: list }, { merge: true });
+    UDATA = { ...UDATA, readingGenres: list };
+    genreSheetClose();
+    toast(t('readg.saved'));
+    try { SESS_FULL_SIG = ''; sessPillTick(); } catch {}
+    try { if (MOVE.open) { MOVE.rot = moveRotation(MOVE.house); if (MOVE.idx >= MOVE.rot.length) MOVE.idx = 0; moveRepaint(sessRunning()); } } catch {}
+  } catch (e) { failToast(e); }
+}
 function moveNextNames() {
   try {
     const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
@@ -47232,7 +47446,7 @@ function moveNextNames() {
   } catch { return []; }
 }
 function moveRotation(house) {
-  const act = moveActive();
+  const act = moveActiveSel();   /* AUTH-540: la rotación sale de los géneros elegidos */
   const byFam = MOVE_FAMS.map(f => act.filter(e => e.fam === f));
   const cards = [];
   for (let i = 0; ; i++) {
@@ -68513,7 +68727,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261121-audios-e204-e205';
+const PWA_SW_VERSION = '20261121-lecturas-generos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

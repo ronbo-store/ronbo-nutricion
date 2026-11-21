@@ -7261,3 +7261,35 @@ textarea.gest-in { resize: none; }
 .myplans-list .plan-row-c:has(.ok-badge) { background: #effaf3; border: 1px solid #cfe8d8; border-radius: 16px; padding: 12px; margin-bottom: 8px; }
 .myplans-list .plan-row-c:has(.ok-badge) .plan-row-c-main b { font-size: 17px; }
 .myplans-newbtn { width: 100%; margin-top: 12px; min-height: 52px; font-size: 16px; }
+
+/* ===== AUTH-540 · «MIS LECTURAS» — LA SELECCIÓN DE GÉNEROS =====
+   La hoja de la maqueta v3 aprobada (2026-11-21): velo y hoja
+   inferior de la familia de AUTH-530, un interruptor grande
+   por género con su conteo vivo, y el botón «Listo» verde de
+   la maqueta. La puerta de «Mi perfil» es la línea plegada de
+   la casa (una sola línea, 52 px); la del panel azul reusa la
+   línea plegada del propio panel (.sf-foldcard), sin CSS
+   nuevo. El interruptor mide 58×34 como la maqueta y su zona
+   de toque se extiende a 44 px de alto con ::after. */
+.readg-float { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 60; display: flex; align-items: flex-end; justify-content: center; }
+.readg-sheet { background: #fff; width: min(430px, 100%); max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; border-radius: 24px 24px 0 0; padding: 18px 16px calc(16px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; box-shadow: 0 -12px 34px rgba(15, 23, 42, .25); }
+.readg-head { display: flex; align-items: center; gap: 10px; }
+.readg-head h3 { font-size: 19px; font-weight: 800; color: #14201f; margin: 0; flex: 1 1 auto; min-width: 0; }
+.readg-x { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #e3e8ea; background: #f4f6f7; color: #33475b; font: inherit; font-size: 15px; cursor: pointer; }
+.readg-sub { color: #52605d; font-size: 13px; line-height: 1.45; margin: 4px 0 2px; }
+.readg-row { display: flex; align-items: center; gap: 12px; background: #f8fbfa; border: 1px solid #e5e7eb; border-radius: 14px; padding: 12px 14px; margin-top: 10px; min-height: 64px; box-sizing: border-box; }
+.readg-row.off { opacity: .62; }
+.readg-rt { flex: 1 1 auto; min-width: 0; }
+.readg-rt b { font-size: 16px; line-height: 1.25; display: block; color: #14201f; }
+.readg-rt span { color: #52605d; font-size: 12.5px; display: block; margin-top: 2px; line-height: 1.35; }
+.readg-sw { width: 58px; height: 34px; border-radius: 20px; background: #c3cedb; position: relative; flex: none; border: none; padding: 0; cursor: pointer; font: inherit; }
+.readg-sw::after { content: ''; position: absolute; inset: -5px 0; }
+.readg-sw i { position: absolute; top: 3px; left: 3px; width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, .25); transition: left .15s ease; }
+.readg-sw.on { background: #1fae4a; }
+.readg-sw.on i { left: 27px; }
+.readg-note { color: #52605d; font-size: 12.5px; margin-top: 12px; line-height: 1.5; }
+.readg-done { width: 100%; border: none; border-radius: 14px; padding: 15px; font-size: 16.5px; font-weight: 800; background: linear-gradient(180deg, #35c759, #1fae4a); color: #fff; margin-top: 14px; min-height: 54px; cursor: pointer; font-family: inherit; }
+.readg-fold { display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; text-align: left; background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 12px 13px; font-family: inherit; min-height: 52px; cursor: pointer; margin-top: 12px; }
+.readg-fold-t { flex: none; font-size: 15.5px; font-weight: 800; color: #0b7a6e; }
+.readg-fold-sub { flex: 1 1 auto; min-width: 0; text-align: right; font-size: 12.5px; font-weight: 600; color: #52605d; }
+.readg-fold-chev { flex: none; font-size: 20px; font-weight: 900; color: #0b7a6e; line-height: 1; }
