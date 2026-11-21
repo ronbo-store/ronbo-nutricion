@@ -25306,7 +25306,13 @@ function gmiDayData() {
       const base = (typeof GOALS !== 'undefined' && GOALS) || {};
       if (base.carb > 0 && goals.carb > 0 && goals.carb !== base.carb) dayNote = t('gmi.dayNote.' + view.dayLevel, { carb: fmt(goals.carb), base: fmt(base.carb) });
     }
-    return { iso, goals, dayLevel: view.dayLevel || 'base', tot, pct: Math.round(tot.kcal / goals.kcal * 100), left: goals.kcal - tot.kcal, dayNote };
+    /* AUTH-533: el % y lo que queda se miden contra el
+       PRESUPUESTO del día — la meta del motor + las kcal del
+       cardio hecho (cardioBudgetKcal) —; la meta del motor
+       (goals) queda intacta para todo lo demás. */
+    const cBonus = cardioBudgetKcal(iso);
+    const kBudget = goals.kcal + cBonus;
+    return { iso, goals, dayLevel: view.dayLevel || 'base', tot, pct: Math.round(tot.kcal / kBudget * 100), left: kBudget - tot.kcal, dayNote, kcalBudget: kBudget, cardioKcal: cBonus };
   } catch { return null; }
 }
 function gmiRingSVG(pct) {
@@ -25424,7 +25430,7 @@ function fusedStatusText(left) {
    la meta, como en los dos anillos que sustituye. */
 function fusedRingSVG(d) {
   const C = 2 * Math.PI * 62;
-  const frac = Math.max(0, Math.min(d.tot.kcal / d.goals.kcal, 1));
+  const frac = Math.max(0, Math.min(d.tot.kcal / (d.kcalBudget != null ? d.kcalBudget : d.goals.kcal), 1));   /* AUTH-533: el arco mide contra el presupuesto (meta + cardio hecho) */
   const over = d.left < 0;
   return `<svg class="dg-ring-svg" viewBox="0 0 150 150" aria-hidden="true">
     <circle cx="75" cy="75" r="62" fill="none" stroke="#E9ECEF" stroke-width="14"/>
@@ -25452,13 +25458,19 @@ function fusedStreakChip(streak) {
    (gmiDayData) — las mismas cifras que pinta la cabecera. */
 function fusedTodayData(gmiD) {
   const today = todayISO();
-  const goalFn = key => (key === 'carb' || key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(key, today) : goalOf(key);
+  const goalFnBase = key => (key === 'carb' || key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(key, today) : goalOf(key);
+  /* AUTH-533: sin metas fundadas (sin gmiD), el vistazo mide
+     también contra el presupuesto: su goalFn de kcal suma el
+     aporte del cardio hecho a la meta base. c.goals conserva
+     la meta pelada (de ella deriva la meta de fibra, como
+     siempre). */
+  const goalFn = key => { const v = goalFnBase(key); return (key === 'kcal' && v != null) ? v + cardioBudgetKcal(today) : v; };
   const c = glanceCompute(MEALS, today, goalFn, streakDayValue);
-  c.goals = { kcal: goalFn('kcal'), prot: goalFn('prot'), carb: goalFn('carb'), azuc: goalFn('azuc'), gras: goalFn('gras') };
+  c.goals = { kcal: goalFnBase('kcal'), prot: goalFnBase('prot'), carb: goalFnBase('carb'), azuc: goalFnBase('azuc'), gras: goalFnBase('gras') };
   if (gmiD && gmiIsToday(gmiD.iso)) {
     c.tot = gmiD.tot;
     c.goals = { kcal: gmiD.goals.kcal, prot: gmiD.goals.prot, carb: gmiD.goals.carb, azuc: gmiD.goals.azuc, gras: gmiD.goals.gras };
-    c.kcalGoal = gmiD.goals.kcal;
+    c.kcalGoal = gmiD.kcalBudget != null ? gmiD.kcalBudget : gmiD.goals.kcal;   /* AUTH-533: el presupuesto, no la meta pelada */
     c.remaining = Math.round(gmiD.left);
     c.pct = gmiD.pct;
   }
@@ -25823,7 +25835,7 @@ function gmiSummaryParts(d) {
 function gmiWindowHTML(d) {
   const c = gmiCombo();
   let h = `<div class="gmi-chips">${gmiChipsInner(d, c)}</div>`;
-  h += `<div class="gmi-hero">${gmiRingSVG(d.pct)}<div class="gmi-hero-side"><div class="gmi-hero-kcal">${esc(t('gmi.ofKcal', { a: fmt(d.tot.kcal), b: fmt(d.goals.kcal) }))}</div>${gmiLeftHTML(d, 'div')}</div></div>`;
+  h += `<div class="gmi-hero">${gmiRingSVG(d.pct)}<div class="gmi-hero-side"><div class="gmi-hero-kcal">${esc(t('gmi.ofKcal', { a: fmt(d.tot.kcal), b: fmt(d.kcalBudget != null ? d.kcalBudget : d.goals.kcal) }))}</div>${gmiLeftHTML(d, 'div')}</div></div>`;   /* AUTH-533: el denominador es el presupuesto del día */
   if (c) {
     h += gmiObjBoxHTML(c, 'div');
     const s = gmiSummaryParts(d);
@@ -25831,7 +25843,7 @@ function gmiWindowHTML(d) {
        solo el párrafo, generado por plantilla como siempre. */
     if (s) h += `<div class="gmi-sumbox"><p class="gmi-sumbox-t">${esc(s.intent)} ${esc(s.route)}${s.lag ? ' ' + esc(s.lag) : ''}</p></div>`;
   }
-  h += `<div class="gmi-bars">` + METRICS.map(m => gmiBarHTML(m, d.tot[m.key], d.goals[m.key], true)).join('') + gmiFiberBarHTML(d) + `</div>`;
+  h += `<div class="gmi-bars">` + METRICS.map(m => gmiBarHTML(m, d.tot[m.key], (m.key === 'kcal' && d.kcalBudget != null) ? d.kcalBudget : d.goals[m.key], true)).join('') + gmiFiberBarHTML(d) + `</div>`;   /* AUTH-533: la barra de kcal va contra el presupuesto */
   h += `<p class="gmi-found">${esc(t('gmi.foundNote'))}</p>`;
   return h;
 }
@@ -48375,6 +48387,29 @@ function trainCardio2Totals(planId, iso) {
   doc.extras.forEach(e => { const v = trainCardio2DoneExtraValid(e); if (v) { min += v.minutes; if (v.kcal) kcal += v.kcal; } });   /* CAND-527: las calorías de un añadido hecho pueden no existir — suman solo si están */
   return { min, kcal };
 }
+/* AUTH-533 · LAS CALORÍAS DEL CARDIO HECHO SUMAN AL PRESUPUESTO
+   DEL DÍA (decisión de Ronald del 2026-11-21, que REVIERTE el
+   comportamiento vigente desde AUTH-481): el presupuesto de
+   comida de un día es su meta + las kcal del cardio marcado
+   HECHO en el panel (st 'd', las únicas que trainCardio2Totals
+   cuenta). El cardio solo ASIGNADO no suma; al desmarcar o
+   quitar un cardio hecho, su aporte desaparece de esta suma y
+   el presupuesto vuelve solo. La lectura ÚNICA del aporte: el
+   plan activo (MY_PLAN, la misma resolución del motor de metas
+   para el nivel del día) y el borrador de esa fecha; sin plan o
+   sin cardio hecho, 0 — la meta pelada de siempre. Todas las
+   superficies del presupuesto (el anillo y la ventana de Metas
+   de hoy, los anillos del día en el diario y su detalle, y el %
+   del diario semanal) leen de aquí: ninguna recalcula por su
+   cuenta. */
+function cardioBudgetKcal(iso) {
+  try {
+    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+    if (!plan || !plan.id) return 0;
+    const tot = trainCardio2Totals(plan.id, iso || (typeof todayISO === 'function' ? todayISO() : undefined));
+    return (tot && tot.kcal > 0) ? tot.kcal : 0;
+  } catch { return 0; }
+}
 /* CAND-523 · LOS MINUTOS ASIGNADOS Y AÚN NO HECHOS (la vista
    del día los enseña como asignación, nunca como conteo):
    el calentamiento por su vista; los añadidos por su vista
@@ -48469,9 +48504,11 @@ function trainCardio2Detail(v) {
 }
 /* LA LÍNEA DEL DÍA: los minutos de cardio del día y su gasto,
    con el recordatorio de que esos minutos suman a la meta de
-   tiempo. Las calorías se ENSEÑAN como gasto de actividad; no
-   se suman a lo que la persona puede comer (decisión de Ronald
-   pendiente, fuera de este paquete). */
+   tiempo. Las calorías se ENSEÑAN aquí como gasto de actividad;
+   desde AUTH-533 (decisión de Ronald del 2026-11-21) las del
+   cardio HECHO además SUMAN al presupuesto de comida del día
+   — ese cómputo vive en cardioBudgetKcal y en las superficies
+   del presupuesto, no en esta línea. */
 function trainCardio2LineHTML(planId, iso) {
   const tot = trainCardio2Totals(planId, iso);
   const asg = trainCardio2AssignedMin(planId, iso);   /* CAND-523: lo asignado se anuncia como asignación, aparte del conteo */
@@ -58376,7 +58413,7 @@ function foodWeekDiaryModel(date) {
     const list = (MEALS[iso] || []).slice().sort((a, b) => (a.createdAtMs || 0) - (b.createdAtMs || 0));
     const tot = list.length ? totals(iso) : null;
     return { iso, meals: list, kcal: tot ? tot.kcal : null,
-      pct: (tot && goal) ? Math.round((tot.kcal / goal) * 100) : null };
+      pct: (tot && goal) ? Math.round((tot.kcal / (goal + cardioBudgetKcal(iso))) * 100) : null };   /* AUTH-533: el % del día va contra su presupuesto (meta + cardio hecho de ESE día) */
   });
 }
 function foodWeekDiaryHTML(date) {
@@ -58549,7 +58586,8 @@ function openRingDetail(key, date) {
           <div class="ring-contrib total"><span class="rc-food"><b>TOTAL</b></span><span class="rc-val">${fmt(val)} ${m.unit}</span></div></div>`
       : `<p class="ring-detail-empty">${t('rings.noContrib')}</p>`;
   $('ring-detail-title').innerHTML = `${m.icon} ${t('metric.' + m.key)}`;
-  const gDay = (m.key === 'carb' || m.key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(m.key, date) : undefined;
+  let gDay = (m.key === 'carb' || m.key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(m.key, date) : undefined;
+  if (m.key === 'kcal') { const g = goalOf('kcal'); gDay = (g == null) ? undefined : g + cardioBudgetKcal(date); }   /* AUTH-533: el detalle de kcal compara contra el presupuesto del día */
   $('ring-detail-body').innerHTML = ringSVG(m, val, gDay) + statusBox(m, val, gDay) +
     `<h3 class="ring-contrib-title">${t('rings.contributions')}</h3>` + legend;
   $('ring-detail-backdrop').style.display = '';
@@ -59456,7 +59494,8 @@ function render(date) {
   closeRingDetail(); // un re-render (otra fecha, otro idioma) cierra el detalle abierto: no queda ventana con datos de otro día
   closeGmiDetail(); // Ídem la ventana del anillo maestro de metas: jamás datos de otro día ni de otro idioma
   $('rings').innerHTML = METRICS.map(m => {
-    const goal = (m.key === 'carb' || m.key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(m.key, date) : goalOf(m.key);
+    let goal = (m.key === 'carb' || m.key === 'gras') && typeof goalOfDay === 'function' ? goalOfDay(m.key, date) : goalOf(m.key);
+    if (m.key === 'kcal' && goal != null) goal = goal + cardioBudgetKcal(date);   /* AUTH-533: el anillo de kcal del día va contra el presupuesto (meta + cardio hecho) */
     /* Sub compacto: con meta «consumo/meta» (la unidad solo en gramos;
        en calorías el rótulo ya dice la métrica y «kcal» no cabe a
        390 px); sin meta, consumo + unidad, como el anillo grande. */
@@ -68387,7 +68426,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261120-cronometro-mas5';
+const PWA_SW_VERSION = '20261121-cardio-suma';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
