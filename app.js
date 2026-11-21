@@ -38227,6 +38227,22 @@ let SWAP_PRESET_GROUP = null;
    swapCardHTML para nacer marcando «✓ Añadido» las tarjetas ya
    presentes. null fuera de ese modo: en «cambiar» no marca. */
 let SWAP_EFF_IDS = null;
+/* CAND-527 · EL CANDADO ES POR FORMA EXACTA, NO POR FAMILIA
+   (el «enredo loco» de Ronald, 2026-11-20: con el Cruce en
+   polea alta ya en su día, el selector le marcaba «✓ Added»
+   también TODAS sus variantes y no le dejaba agregar ninguna
+   — el candado miraba el exerciseId de la familia). La clave
+   de una forma: el exerciseId y su variantIndex (sin
+   variantIndex = la forma base, -1). «Ya en tu sesión» solo
+   lo está la forma exacta presente; cualquier otra forma de
+   la misma ficha se puede agregar. Lo calcula
+   swapSheetResultsHTML junto a SWAP_EFF_IDS y lo leen las
+   tarjetas y los dos caminos de guardado del «agregar». */
+let SWAP_EFF_FORMS = null;
+function swapFormKey(id, vi) { return id ? id + '|' + (Number.isInteger(vi) ? vi : -1) : null; }
+function swapEffFormsOf(plan, di, iso) {
+  return new Set(trainEffectiveList(plan, di, iso).map(it => (it && it.ex) ? swapFormKey(it.ex.exerciseId, it.ex.variantIndex) : null).filter(Boolean));
+}
 /* AUTH-2026-11-12-424: vista de FORMAS dentro del selector en modo
    «agregar» — el id de la ficha cuyas formas (base + variantes) se
    están eligiendo, o null en la lista normal. Tocar la tarjeta de
@@ -38320,8 +38336,12 @@ function swapCardHTML(ex, opts) {
      está en la sesión vista (SWAP_EFF_IDS: la lista efectiva del
      día) nace marcada «✓ Añadido» con su etiqueta y DESACTIVADA —
      el espejo del editor de rutinas (AUTH-325): sin duplicados
-     posibles desde la propia tarjeta. En «cambiar» nada cambia. */
-  const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_IDS && SWAP_EFF_IDS.has(ex.id));
+     posibles desde la propia tarjeta. En «cambiar» nada cambia.
+     CAND-527: la tarjeta principal representa la FORMA BASE de
+     la ficha — nace marcada solo si ESA forma está en el día
+     (SWAP_EFF_FORMS); si la que está es una variante, la base
+     se puede agregar, y al revés. */
+  const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_FORMS && SWAP_EFF_FORMS.has(swapFormKey(ex.id, -1)));
   /* AUTH-424: en «agregar», la tarjeta de un ejercicio CON variantes
      dice «Elegir» y no «Agregar»: tocarla abre la vista de formas
      (base o variante) antes de confirmar el agregado. */
@@ -38337,9 +38357,9 @@ function swapCardHTML(ex, opts) {
      formas, o teclear el nombre exacto en el buscador. Cada forma
      es la tarjeta de siempre (swapVariantPickCardHTML, la de los
      aciertos del buscador) y guarda por el camino de siempre
-     (swapSheetApplyVariantPick, con el candado AUTH-340: si la
-     ficha ya está en el día, la forma nace desactivada como la
-     base). La tarjeta base conserva su «Elegir» y la vista de
+     (swapSheetApplyVariantPick, con el candado por FORMA de
+     CAND-527: la forma nace desactivada solo si ESA forma ya
+     está en el día). La tarjeta base conserva su «Elegir» y la vista de
      formas queda como puerta alternativa; en «cambiar» y en
      «warm» nada cambia. */
   if (TRAIN_PICK && TRAIN_PICK.kind === 'add') {
@@ -38368,15 +38388,20 @@ function swapVariantCardHTML(entry, v, vi) {
    variantIndex, como siempre). Mismo patrón visual que dictCardHTML:
    nombre «Ficha — Variante», foto de la variante con respaldo a la
    base y etiqueta de variante; la base se rotula «Forma estándar».
-   En modo «agregar», si la ficha ya está en la sesión la tarjeta
-   nace desactivada «✓ Añadido», como las demás (AUTH-340). */
+   En modo «agregar», si ESA FORMA ya está en la sesión la tarjeta
+   nace desactivada «✓ Añadido», como las demás (AUTH-340; el
+   candado por forma exacta es de CAND-527). */
 function swapVariantPickCardHTML(entry, v, vi) {
   const name = v ? libNameOf(entry) + ' — ' + libField(v, 'nombre') : libNameOf(entry);
   const sub = v ? [libField(v, 'cambio'), libField(v, 'enfasis')].filter(Boolean).join(' · ')
     : [libField(entry, 'equipo'), libField(entry, 'nivel')].filter(Boolean).join(' · ');
   const photo = (v && v.foto_url) || entry.foto_url || '';
   const th = !photo ? ytThumbOf((v && v.video_youtube_url) || entry.video_youtube_url) : '';
-  const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_IDS && SWAP_EFF_IDS.has(entry.id));
+  /* CAND-527: el candado de la tarjeta de forma es por la
+     FORMA EXACTA de la tarjeta (su variantIndex; la base,
+     -1) — no por la familia: una variante de una ficha ya
+     presente nace ACTIVA y se puede agregar. */
+  const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_FORMS && SWAP_EFF_FORMS.has(swapFormKey(entry.id, vi)));
   const btn = inSession ? t('train.n09.mybAddedBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'warm' ? t('train.warm.pickBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap')));
   const tag = v ? `<span class="swap-card-tag">${esc(t('train.swap.variantTag'))}</span>` : `<span class="swap-card-tag">${esc(t('plan.variantStd'))}</span>`;
   return `<button type="button" class="swap-card swap-card-variant${inSession ? ' is-added' : ''}" data-swap-variant-pick="${esc(entry.id)}" data-swap-variant-vi="${vi}"${inSession ? ' disabled aria-disabled="true"' : ''}>
@@ -38397,6 +38422,8 @@ function swapSheetResultsHTML(plan, di, iso) {
   const eff = trainEffectiveList(plan, di, iso);
   SWAP_EFF_IDS = TRAIN_PICK && TRAIN_PICK.kind === 'add'
     ? new Set(eff.map(it => (it && it.ex && it.ex.exerciseId)).filter(Boolean)) : null;
+  SWAP_EFF_FORMS = TRAIN_PICK && TRAIN_PICK.kind === 'add'
+    ? new Set(eff.map(it => (it && it.ex) ? swapFormKey(it.ex.exerciseId, it.ex.variantIndex) : null).filter(Boolean)) : null;
   const target = TRAIN_PICK && (TRAIN_PICK.kind === 'swap' || TRAIN_PICK.kind === 'replace-add') ? eff[TRAIN_PICK.idx] : null;
   const tEntry = target && target.ex && target.ex.exerciseId ? (LIB_BY_ID[target.ex.exerciseId] || null) : null;
   /* AUTH-424: con la vista de formas abierta (modo «agregar»), los
@@ -38509,7 +38536,10 @@ function swapSheetApply(plan, di, entry, iso) {
     const effR = trainEffectiveList(plan, di, iso);
     const itR = effR[TRAIN_PICK.idx];
     if (!itR || itR.kind !== 'add') { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); return; }
-    const dupR = effR.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && x.ex.exerciseId && x.ex.exerciseId === entry.id);
+    /* CAND-527: el duplicado es la FORMA exacta elegida (aquí,
+       la base) en otro puesto — otra forma de la misma ficha
+       no bloquea el cambio. */
+    const dupR = effR.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && swapFormKey(x.ex.exerciseId, x.ex.variantIndex) === swapFormKey(entry.id, -1));
     if (dupR) { toast(t('train.pick.inSession')); return; }
     const addPos = effR.slice(0, TRAIN_PICK.idx).filter(x => x.kind === 'add').length;
     const old = (Array.isArray(ed.added) ? ed.added : [])[addPos];
@@ -38544,8 +38574,10 @@ function swapSheetApply(plan, di, entry, iso) {
      La sesión de detrás se repinta al cerrar, como en el editor:
      todas las vías de cierre (✕, «Listo», gesto del dock) pasan
      por loadMyTraining. */
-  const effIds = new Set(trainEffectiveList(plan, di, iso).map(it => it && it.ex && it.ex.exerciseId).filter(Boolean));
-  const addedNew = !effIds.has(entry.id);
+  /* CAND-527: el segundo candado también es por forma — este
+     camino agrega la FORMA BASE: solo la bloquea la misma
+     forma base ya presente, no una variante de la ficha. */
+  const addedNew = !swapEffFormsOf(plan, di, iso).has(swapFormKey(entry.id, -1));
   if (addedNew) ed.added.push({ exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' });
   const okAdd = trainEditsWrite(plan.id, ed, iso);
   if (addedNew) {
@@ -38587,8 +38619,9 @@ function swapSheetApplyVariant(plan, di, entry, vi, iso) {
    de swapSheetApply/swapSheetApplyVariant para las tarjetas
    data-swap-variant-pick: en «agregar» empuja la entrada CON
    variantIndex y la hoja se queda abierta (con el candado de
-   duplicados de AUTH-340 por exerciseId: la misma ficha con otra
-   variante cuenta como el mismo ejercicio y no entra dos veces);
+   duplicados de AUTH-340 — por FORMA EXACTA desde CAND-527:
+   la misma ficha con otra variante SÍ puede entrar; lo que no
+   entra dos veces es la misma forma);
    en «cambiar» escribe swaps[slot] con variantIndex; en
    «cambiar sobre un añadido» sustituye en su puesto conservando
    series/reps/peso y con su candado de duplicados. vi = -1, un
@@ -38600,8 +38633,10 @@ function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
   const withVar = !!(v && !v.es_estandar && libField(v, 'nombre'));
   if (TRAIN_PICK.kind === 'add') {
     const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
-    const effIds = new Set(trainEffectiveList(plan, di, iso).map(it => it && it.ex && it.ex.exerciseId).filter(Boolean));
-    const addedNewV = !effIds.has(entry.id);
+    /* CAND-527: el candado mira la forma elegida (con su
+       variantIndex; la estándar y la base son la misma forma,
+       -1) contra las formas presentes — no la familia. */
+    const addedNewV = !swapEffFormsOf(plan, di, iso).has(swapFormKey(entry.id, withVar ? vi : -1));
     if (addedNewV) {
       const rec = { exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' };
       if (withVar) rec.variantIndex = vi;
@@ -38634,7 +38669,9 @@ function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
     const effR = trainEffectiveList(plan, di, iso);
     const itR = effR[TRAIN_PICK.idx];
     if (!itR || itR.kind !== 'add') { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); return; }
-    const dupR = effR.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && x.ex.exerciseId && x.ex.exerciseId === entry.id);
+    /* CAND-527: el duplicado es la FORMA exacta elegida en
+       otro puesto — otra forma de la misma ficha no bloquea. */
+    const dupR = effR.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && swapFormKey(x.ex.exerciseId, x.ex.variantIndex) === swapFormKey(entry.id, withVar ? vi : -1));
     if (dupR) { toast(t('train.pick.inSession')); return; }
     const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
     const addPos = effR.slice(0, TRAIN_PICK.idx).filter(x => x.kind === 'add').length;
@@ -43411,6 +43448,17 @@ function sessDoneCardioPointAfter(planId, T) {
   if (e.folded !== true) return false;
   return T === 'warm' ? !!trainCardio2ViewOf(e) : !!trainCardio2ExtraValid(e);
 }
+/* CAND-527: el punto quedó GUARDADO COMO ASIGNACIÓN — existe
+   (o fue retirado) y está plegado. Es la condición de cierre
+   de la hoja cuando se abre desde una etapa del panel (su
+   [Editar]): ahí se edita la asignación, no se registra un
+   hecho, y las calorías no son la puerta. */
+function sessDoneCardioPointFolded(planId, T) {
+  const doc = trainCardio2Read(planId);
+  const e = T === 'warm' ? doc.warm : (doc.extras || [])[Number(String(T).slice(1))];
+  if (!e) return true;
+  return e.folded === true;
+}
 /* LA HOJA DEL CARDIO DEL «SÍ»: el formulario del punto
    (trainCardio2FormHTML) con su cableado de siempre
    (trainCardio2Wire) en la hoja flotante de la casa sobre el
@@ -43432,7 +43480,13 @@ function sessDoneCardioSheetOpen(plan, T, fromStage) {
   const sheet = document.createElement('div');
   sheet.id = 'done-cardio-sheet';
   sheet.className = 'swap-sheet done-cardio-sheet';
-  sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('train.cardio2.register'))}</span><button type="button" class="swap-sheet-x" data-done-cardio-close="1" aria-label="✕">✕</button></div><div class="cardio-warm cardio2-point" data-cardio2-plan="${esc(plan.id)}" data-cardio2-iso="${esc(todayISO())}">${trainCardio2FormHTML(T, e, false)}</div>`;
+  /* CAND-527: la hoja tiene DOS oficios y el formulario lo
+     declara en su raíz — registro de un hecho (la pregunta de
+     AUTH-516: data-cardio2-exec, el guardar exige las
+     calorías, como siempre) o edición de la ASIGNACIÓN desde
+     una etapa del panel (fromStage: guardar = máquina y
+     minutos, y la hoja se cierra con el punto plegado). */
+  sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('train.cardio2.register'))}</span><button type="button" class="swap-sheet-x" data-done-cardio-close="1" aria-label="✕">✕</button></div><div class="cardio-warm cardio2-point" data-cardio2-plan="${esc(plan.id)}" data-cardio2-iso="${esc(todayISO())}"${fromStage ? '' : ' data-cardio2-exec="1"'}>${trainCardio2FormHTML(T, e, false, !!fromStage)}</div>`;
   document.body.appendChild(sheet);
   document.body.classList.add('swap-sheet-open');
   sheet.querySelectorAll('[data-done-cardio-close]').forEach(b => b.onclick = () => sessDoneCardioSheetClose());
@@ -43443,7 +43497,10 @@ function sessDoneCardioSheetOpen(plan, T, fromStage) {
     if (!tg.closest('[data-cardio2-save]') && !tg.closest('[data-cardio2-del]')) return;
     setTimeout(() => {
       let after = false;
-      try { after = sessDoneCardioPointAfter(plan.id, T); } catch {}
+      /* CAND-527: desde una etapa, «guardado» es la
+         asignación plegada; desde la pregunta, la validez
+         de registro de siempre (sessDoneCardioPointAfter). */
+      try { after = fromStage ? sessDoneCardioPointFolded(plan.id, T) : sessDoneCardioPointAfter(plan.id, T); } catch {}
       if (after) {
         sessDoneCardioSheetClose();
         /* CAND-523: desde una etapa del panel, guardar la
@@ -43489,7 +43546,12 @@ function sessCStageWarmT(planId) {
 function sessCStageEndT(planId) {
   const doc = trainCardio2Read(planId);
   const xs = doc.extras || [];
-  for (let i = 0; i < xs.length; i++) if (trainCardio2ExtraValid(xs[i]) && trainCardio2StOf(xs[i]) !== 'd') return 'x' + i;
+  /* CAND-527: la etapa final presenta el cardio ASIGNADO por
+     su validez de asignación (máquina y minutos, la vista) —
+     exigir aquí las calorías (la validez de registro) dejaba
+     fuera de la última parada justo al cardio que la vista
+     del día asignó sin ejecutar, y el panel nunca lo ofrecía. */
+  for (let i = 0; i < xs.length; i++) if (trainCardio2ViewOf(xs[i]) && trainCardio2StOf(xs[i]) !== 'd') return 'x' + i;
   return '';
 }
 function sessCStageView(planId, T) {
@@ -47847,7 +47909,12 @@ function trainCardio2Write(planId, doc, iso) {
          usa; es solo del cuadrito (trainCardio2PillMin). */
       const running = !!trainChronoRead(planId);
       if (s.warm && s.warm.win == null && trainCardio2ViewOf(s.warm)) s.warm.win = running ? 1 : 0;
-      s.extras.forEach(e => { if (e.win == null && trainCardio2ExtraValid(e)) e.win = running ? 1 : 0; });
+      /* CAND-527: el sello de los añadidos nace con la
+         ASIGNACIÓN (máquina y minutos), como el del
+         calentamiento — un cardio asignado sin calorías y
+         hecho en el panel cuenta al hacerlo, y su sello es
+         el del momento en que la asignación nació. */
+      s.extras.forEach(e => { if (e.win == null && trainCardio2ViewOf(e)) e.win = running ? 1 : 0; });
       if (!s.warm && !s.extras.length) localStorage.removeItem(trainCardio2Key(planId, iso));
       else localStorage.setItem(trainCardio2Key(planId, iso), JSON.stringify(s));
     }
@@ -47883,13 +47950,20 @@ function trainCardio2ExtraValid(e) { const v = trainCardio2ViewOf(e); return (v 
    cuentan en totales, en el cuadrito y en el cierre. */
 function trainCardio2StOf(e) { return (e && e.st === 'd') ? 'd' : 'a'; }
 function trainCardio2DoneViewOf(e) { const v = trainCardio2ViewOf(e); return (v && trainCardio2StOf(e) === 'd') ? v : null; }
-function trainCardio2DoneExtraValid(e) { const v = trainCardio2ExtraValid(e); return (v && trainCardio2StOf(e) === 'd') ? v : null; }
+/* CAND-527: lo HECHO en el panel cuenta por su vista
+   (máquina y minutos); las calorías suman cuando existen —
+   son un dato de ejecución opcional en el panel, no la
+   condición de que el cardio hecho cuente. La validez de
+   REGISTRO (trainCardio2ExtraValid, con calorías) sigue
+   mandando donde siempre mandó: la puerta de la hoja del
+   «sí hice cardio» (sessDoneCardioPointAfter). */
+function trainCardio2DoneExtraValid(e) { const v = trainCardio2ViewOf(e); return (v && trainCardio2StOf(e) === 'd') ? v : null; }
 function trainCardio2Totals(planId, iso) {
   const doc = trainCardio2Read(planId, iso);
   let min = 0, kcal = 0;
   const w = trainCardio2DoneViewOf(doc.warm);
   if (w) { min += w.minutes; if (w.kcal) kcal += w.kcal; }
-  doc.extras.forEach(e => { const v = trainCardio2DoneExtraValid(e); if (v) { min += v.minutes; kcal += v.kcal; } });
+  doc.extras.forEach(e => { const v = trainCardio2DoneExtraValid(e); if (v) { min += v.minutes; if (v.kcal) kcal += v.kcal; } });   /* CAND-527: las calorías de un añadido hecho pueden no existir — suman solo si están */
   return { min, kcal };
 }
 /* CAND-523 · LOS MINUTOS ASIGNADOS Y AÚN NO HECHOS (la vista
@@ -48017,12 +48091,17 @@ function trainCardio2StepFieldHTML(T, f, label, val, isSplit) {
    específicos de la máquina tras «Más datos ›» (nacen
    plegados, la regla de crecimiento de la casa), la foto del
    panel siempre visible y el guardar grande. */
-function trainCardio2FormHTML(T, e, isWarm) {
+function trainCardio2FormHTML(T, e, isWarm, assign) {
   const meta = trainCardio2Meta(e.machine);
   const pills = TRAIN_CARDIO2_MACHINES.map(m => `<button type="button" data-cardio2-t="${T}" data-cardio2-machine="${m.id}" aria-pressed="${e.machine === m.id ? 'true' : 'false'}" class="${e.machine === m.id ? 'is-sel' : ''}">${m.icon ? m.icon + ' ' : ''}${esc(t('train.cardio2.machine.' + m.id))}</button>`).join('');
   const F = [];
   F.push(trainCardio2StepFieldHTML(T, 'minutes', t('train.cardio.minutes'), e.minutes, false));
-  F.push(trainCardio2StepFieldHTML(T, 'kcal', isWarm ? t('train.cardio.kcal') : t('train.cardio2.kcalReq'), e.kcal, false));
+  /* CAND-527: el rótulo de las calorías dice la verdad del
+     contexto — en ASIGNACIÓN (la vista del día, la edición
+     desde la etapa) son un dato opcional, como en el
+     calentamiento; el rótulo de obligatorias queda solo
+     para el registro de un hecho (la hoja del «sí»). */
+  F.push(trainCardio2StepFieldHTML(T, 'kcal', (isWarm || assign) ? t('train.cardio.kcal') : t('train.cardio2.kcalReq'), e.kcal, false));
   if (meta && meta.dist) F.push(trainCardio2StepFieldHTML(T, 'dist', t(meta.dist === 'm' ? 'train.cardio.distM' : 'train.cardio.distKm'), e.dist, false));
   F.push(trainCardio2StepFieldHTML(T, 'hr', t('train.cardio2.hr'), e.hr, false));
   let specHTML = '';
@@ -48109,7 +48188,7 @@ function trainCardio2ExtrasHTML(plan, di, iso, startNum) {
         : `<span class="cardio2-st">${esc(t('train.cardio2.assignedChip'))}</span>`;
       return `<div class="cardio-warm cardio2-folded" ${attrs}><div class="cardio-sum">${meta && meta.icon ? `<span aria-hidden="true">${meta.icon}</span>` : ''}<span>${(startNum || 1) + i} · ${esc(trainCardio2Detail(v))}</span>${chip}<button type="button" class="cardio-edit" data-cardio2-edit="${T}">${esc(t('train.cardio.edit'))}</button></div></div>`;
     }
-    return `<div class="cardio-warm cardio2-point" ${attrs}><div class="cardio-warm-head"><span class="cardio-warm-title">➕ ${esc(t('train.cardio2.register'))}</span></div>${trainCardio2FormHTML(T, e, false)}</div>`;
+    return `<div class="cardio-warm cardio2-point" ${attrs}><div class="cardio-warm-head"><span class="cardio-warm-title">➕ ${esc(t('train.cardio2.register'))}</span></div>${trainCardio2FormHTML(T, e, false, true)}</div>`;   /* CAND-527: la vista del día ASIGNA — el formulario lo declara */
   });
   parts.push(`<button type="button" class="cardio2-add" data-train-add-open="1" ${attrs}>${esc(t('train.day.addExercise'))}</button>`);
   return parts.join('');
@@ -48261,7 +48340,18 @@ function trainCardio2Wire(box) {
     if (!e) return;
     if (!e.machine) { toast(t('train.cardio.needMode'), true); return; }
     if (!(e.minutes > 0)) { toast(t('train.cardio.needMin'), true); return; }
-    if (T !== 'warm' && !(e.kcal > 0)) { toast(t('train.cardio2.needKcal'), true); return; }
+    /* CAND-527 · ASIGNAR ES ASIGNAR (el bloqueo de Ronald,
+       2026-11-20: guardar la ASIGNACIÓN del cardio final le
+       exigía «las calorías que marcó la máquina» como si ya
+       lo hubiera hecho): las calorías solo se exigen donde
+       se REGISTRA UN HECHO — la hoja del «sí hice cardio»,
+       cuya raíz trae data-cardio2-exec. En la vista del día
+       y en la edición desde la etapa del panel, guardar una
+       asignación pide únicamente máquina y minutos; los
+       datos de ejecución se capturan en el panel al hacerlo
+       (o quedan opcionales ahí). */
+    const root527 = b.closest('[data-cardio2-plan]');
+    if (T !== 'warm' && root527 && root527.dataset.cardio2Exec === '1' && !(e.kcal > 0)) { toast(t('train.cardio2.needKcal'), true); return; }
     setE(doc, T, { ...e, folded: true });
     trainCardio2Write(c.planId, doc, c.iso);
     loadMyTraining();
@@ -67805,7 +67895,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261120-barra-por-repeticiones';
+const PWA_SW_VERSION = '20261120-asignar-es-asignar';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
