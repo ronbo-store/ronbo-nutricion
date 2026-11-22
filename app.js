@@ -68204,8 +68204,8 @@ function shareTodayData() {
   if (!plan) { try { diRows = trainTodayDiEffective(planRows, null); } catch (e) { diRows = null; } }
   if (diRows != null && (diRows === -1 || (Array.isArray(planRows.days) && planRows.days[diRows]))) {
     const loads = shareTodayLastLoads(iso);
-    trainEffectiveList(planRows, diRows, iso).forEach(it => {
-      const ex = it && it.ex; if (!ex) return;
+    const pushRow = ex => {
+      if (!ex) return;
       const name = trainExName(ex) || ex.name || '';
       const key = ex.exerciseId ? 'id:' + ex.exerciseId : ('nm:' + goalsNorm(name));
       rows.push({
@@ -68214,7 +68214,40 @@ function shareTodayData() {
         photo: trainExPhoto(ex) || '',
         last: (key in loads) ? loads[key] : null,
       });
-    });
+    };
+    /* EL DÍA GUARDADO MANDA EN LA TARJETA (diagnóstico del
+       2026-11-19 sobre la captura de Ronald de las 13:45): la
+       tarjeta componía sus filas del plan del día + el borrador
+       local de la sesión (trainEffectiveList), pero al cerrar la
+       sesión el cierre RETIRA ese borrador a propósito
+       (trainEditsClear: «los cambios de hoy ya viven en el
+       registro») — y todo lo agregado a mano durante la sesión,
+       que vive SOLO en el borrador, desaparecía de la tarjeta:
+       su día quedó guardado con 4 ejercicios y la tarjeta pintó
+       1, el único ejercicio del día del plan. Desde este paquete:
+       si hoy ya tiene registro cerrado (hecho o parcial) de ESTE
+       plan y ESTE día, las filas salen del DÍA GUARDADO — las
+       filas visibles del día cerrado de la casa
+       (trainHistRowsVisible: el día del plan emparejado con lo
+       hecho + lo agregado suelto, sin los quitados) y solo las
+       filas CON hecho —. Sin registro cerrado, la composición de
+       siempre (plan + borrador) no cambia en nada. Solo lectura:
+       MY_LOGS ya viaja en memoria; Firestore delta cero. */
+    let savedLog = null;
+    if (typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) {
+      savedLog = MY_LOGS.find(l => l && l.planId === planRows.id && l.date === iso && l.dayIndex === diRows
+        && (trainLogStatus(l) === 'done' || trainLogStatus(l) === 'partial')
+        && Array.isArray(l.exercisesDone) && l.exercisesDone.length > 0) || null;
+    }
+    if (savedLog) {
+      const daySaved = (Array.isArray(planRows.days) && planRows.days[diRows]) || {};
+      trainHistRowsVisible(daySaved, savedLog).forEach(r => {
+        if (!r || !r.de || r.de.done === false) return;
+        pushRow(r.ex);
+      });
+    } else {
+      trainEffectiveList(planRows, diRows, iso).forEach(it => pushRow(it && it.ex));
+    }
   }
   /* AUTH-362 — DÍA LIBRE ASIGNADO, y solo él: (a) el día mapeado
      trae freeDay === true (el descanso que el entrenador marcó en
@@ -69860,7 +69893,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261121-progresion';
+const PWA_SW_VERSION = '20261119-tarjeta-dia-guardado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
