@@ -6133,6 +6133,7 @@ en: {
   'train.swap.resultsTitle': 'Results', 'train.swap.noResults': 'No exercises match that search.',
   'train.swap.presetEmpty': 'There are no exercises of this type in the library yet.',
   'train.swap.allGroups': 'See the whole library',
+  'train.swap.groupsTitle': 'Muscle groups',
   'train.swap.addBtn': 'Add',
   'train.pick.inSession': 'Already in your session',
   'train.pick.scan': '📷 Scan a machine',
@@ -11658,6 +11659,7 @@ es: {
   'train.swap.resultsTitle': 'Resultados', 'train.swap.noResults': 'Ningún ejercicio coincide con esa búsqueda.',
   'train.swap.presetEmpty': 'Todavía no hay ejercicios de este tipo en la biblioteca.',
   'train.swap.allGroups': 'Ver toda la biblioteca',
+  'train.swap.groupsTitle': 'Grupos musculares',
   'train.swap.addBtn': 'Agregar',
   'train.pick.inSession': 'Ya está en tu sesión',
   'train.pick.scan': '📷 Escanear una máquina',
@@ -38884,8 +38886,52 @@ function swapPresetRowHTML() {
   if (!TRAIN_PICK || TRAIN_PICK.kind !== 'add') return '';
   const btns = SWAP_PRESET_KEYS.map(g =>
     `<button type="button" class="swap-preset-btn${SWAP_PRESET_GROUP === g ? ' is-active' : ''}" data-swap-preset="${g}">${t(SWAP_PRESET_LABEL[g])}</button>`).join('');
-  const all = SWAP_PRESET_GROUP ? `<div class="swap-presets-all"><button type="button" class="swap-preset-all" data-swap-preset-clear="1">${t('train.swap.allGroups')}</button></div>` : '';
-  return `<div class="swap-presets">${btns}</div>${all}`;
+  /* AUTH-543: la línea «← Ver toda la biblioteca» ya no vive aquí:
+     vive bajo la parrilla de grupos (la maqueta aprobada), que es
+     donde la fila de atajos y la parrilla comparten el mismo
+     estado (SWAP_PRESET_GROUP). El gesto no cambia: un toque y
+     se vuelve a la biblioteca entera sin cerrar la hoja. */
+  return `<div class="swap-presets">${btns}</div>`;
+}
+/* AUTH-543 · LA PARRILLA DE GRUPOS MUSCULARES (maqueta aprobada
+   por Ronald el 2026-11-21, tras su reporte «no puedo ver todos
+   los grupos de músculos para elegir los mejores ejercicios»):
+   los botones son los grupos REALES de la biblioteca cargada —
+   las secciones de libSections(LIB), en el orden de la casa
+   (LIB_GROUP_ORDER, el de la maqueta) — y el conteo de cada
+   botón es el VIVO de su sección (sec.items.length, calculado
+   al pintar: nada escrito a mano, sigue siendo verdad cuando
+   la biblioteca crece). La sección sin grupo (key '') no es un
+   grupo muscular y no lleva botón: se llega a ella por «ver
+   toda la biblioteca», como a todo lo demás. Con un grupo
+   activo, la línea «← Ver toda la biblioteca» va bajo la
+   parrilla (la de la maqueta) y el botón activo se llena y
+   lleva ✓. La parrilla es UNA pieza compartida: la pinta el
+   selector de la sesión, el del editor de planes y los pasos
+   «elegir de la biblioteca» del dictado y de la foto — cada
+   superficie le pasa SU atributo de botón y de limpieza y
+   guarda SU estado; el filtrado, en cada una, es el de
+   siempre (la sección de ese grupo). */
+function libGroupGridHTML(activeKey, btnAttr, clearAttr) {
+  if (!LIB || !LIB.length) return '';
+  const secs = libSections(LIB).filter(sec => sec.key);
+  if (!secs.length) return '';
+  const btns = secs.map(sec => {
+    const on = !!activeKey && sec.key === activeKey;
+    return `<button type="button" class="swap-group-btn${on ? ' is-active' : ''}" ${btnAttr}="${esc(sec.key)}" aria-pressed="${on ? 'true' : 'false'}">${esc(sec.label)} <span class="swap-group-n">${sec.items.length}</span>${on ? ' ✓' : ''}</button>`;
+  }).join('');
+  const all = activeKey ? `<div class="swap-presets-all"><button type="button" class="swap-preset-all" ${clearAttr}="1">← ${esc(t('train.swap.allGroups'))}</button></div>` : '';
+  return `<div class="swap-groups-label">${esc(t('train.swap.groupsTitle'))}</div><div class="swap-groups-grid">${btns}</div>${all}`;
+}
+/* La parrilla del selector de la sesión comparte el estado de
+   los atajos (SWAP_PRESET_GROUP): tocar un grupo filtra por el
+   camino de siempre (la sección de ese grupo en
+   swapSheetResultsHTML); tocar el grupo activo lo apaga y se
+   vuelve a toda la biblioteca. Solo modo «agregar», como los
+   atajos y como la maqueta. */
+function swapGroupsHTML() {
+  if (!TRAIN_PICK || TRAIN_PICK.kind !== 'add') return '';
+  return libGroupGridHTML(SWAP_PRESET_GROUP, 'data-swap-group', 'data-swap-group-clear');
 }
 /* AUTH-340: la cuenta del pie del selector en modo «agregar» —
    los ejercicios agregados a la sesión de ESA fecha (la capa de
@@ -38948,6 +38994,25 @@ function swapSheetWireResults(plan, di, iso) {
     SWAP_ADD_FORMS_ID = null;
     swapSheetRepaintResults(plan, di, iso);
   });
+  /* AUTH-543: los botones de la parrilla fijan el grupo (el
+     mismo estado de los atajos) limpiando la búsqueda, como
+     hacen los atajos; tocar el grupo activo lo apaga. La línea
+     bajo la parrilla limpia el filtro, igual que la antigua de
+     los atajos (data-swap-preset-clear sigue cableada por si
+     alguna vista la pinta). */
+  sheet.querySelectorAll('[data-swap-group]').forEach(b => b.onclick = () => {
+    const k = b.dataset.swapGroup || null;
+    SWAP_PRESET_GROUP = (k && k !== SWAP_PRESET_GROUP) ? k : null;
+    SWAP_ADD_FORMS_ID = null;
+    SWAP_QUERY = '';
+    const sI = sheet.querySelector('#swap-search'); if (sI) sI.value = '';
+    swapSheetRepaintResults(plan, di, iso);
+  });
+  sheet.querySelectorAll('[data-swap-group-clear]').forEach(b => b.onclick = () => {
+    SWAP_PRESET_GROUP = null;
+    SWAP_ADD_FORMS_ID = null;
+    swapSheetRepaintResults(plan, di, iso);
+  });
 }
 function swapSheetRepaintResults(plan, di, iso) {
   const sheet = document.getElementById('swap-sheet');
@@ -38956,6 +39021,8 @@ function swapSheetRepaintResults(plan, di, iso) {
   if (box) box.innerHTML = swapSheetResultsHTML(plan, di, iso);
   const slot = sheet.querySelector('#swap-presets-slot');
   if (slot) slot.innerHTML = swapPresetRowHTML();
+  const gslot = sheet.querySelector('#swap-groups-slot');
+  if (gslot) gslot.innerHTML = swapGroupsHTML();
   const cnt = sheet.querySelector('#swap-pick-count');
   if (cnt) cnt.textContent = swapPickCountText(plan, iso);
   swapSheetWireResults(plan, di, iso);
@@ -39010,6 +39077,7 @@ function swapSheetSync(plan, di, iso) {
     <div id="swap-presets-slot">${swapPresetRowHTML()}</div>
     ${TRAIN_PICK.kind === 'add' ? `<button type="button" class="swap-scan-btn" data-swap-scan="1">${t('train.pick.scan')}</button>` : ''}
     </div>
+    <div id="swap-groups-slot">${swapGroupsHTML()}</div>
     <div id="swap-results" class="pick-results">${swapSheetResultsHTML(plan, di, iso)}</div>
     ${TRAIN_PICK.kind === 'add' ? `<div class="myb-pick-foot"><span class="myb-pick-count" id="swap-pick-count">${esc(swapPickCountText(plan, iso))}</span><button type="button" class="myb-pick-done" data-swap-close="1">${esc(t('train.n09.mybDone'))}</button></div>` : ''}`;
   sheet.querySelectorAll('[data-swap-close]').forEach(b => b.onclick = () => { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); });
@@ -39209,10 +39277,17 @@ function dictPickResultsHTML(D) {
     return `<div class="swap-sec-title">${esc(t('train.swap.resultsTitle'))}</div>` +
       (hits.length ? hits.map(hit => dictCardHTML(hit.ex, hit.vi, `data-dict-libpick="${esc(hit.ex.id)}"`)).join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
   }
+  /* AUTH-543: con un grupo de la parrilla activo, la lista es
+     solo su sección (la búsqueda, como siempre, manda sobre el
+     filtro). */
+  if (D.pickGroup) {
+    const secs = libSections(LIB).filter(sec => sec.key === D.pickGroup);
+    if (secs.length) return secs.map(sec => `<div class="swap-sec-title">${esc(sec.label)}</div>` + sec.items.map(ex => dictCardHTML(ex, null, `data-dict-libpick="${esc(ex.id)}"`)).join('')).join('');
+  }
   return libSections(LIB).map(sec => `<div class="swap-sec-title">${esc(sec.label)}</div>` + sec.items.map(ex => dictCardHTML(ex, null, `data-dict-libpick="${esc(ex.id)}"`)).join('')).join('');
 }
 function dictSheetOpen(plan, di, iso) {
-  TRAIN_DICT = { plan, di, iso: iso || todayISO(), step: 'input', text: '', rows: [], pickRow: -1, pickQuery: '' };
+  TRAIN_DICT = { plan, di, iso: iso || todayISO(), step: 'input', text: '', rows: [], pickRow: -1, pickQuery: '', pickGroup: null };
   dictSheetSync();
   /* PISO B: la hoja ya NO roba el foco al abrir — su puerta es la
      mascota (dictar); el teclado se abre cuando él toca la caja,
@@ -39232,7 +39307,7 @@ function wireDictLibPicks(sheet) {
     const ex = LIB_BY_ID[b.dataset.dictLibpick];
     const row = D.rows[D.pickRow];
     if (ex && row) { row.entry = ex; row.vi = null; row.status = 'ok'; }
-    D.step = 'confirm'; D.pickRow = -1; D.pickQuery = '';
+    D.step = 'confirm'; D.pickRow = -1; D.pickQuery = ''; D.pickGroup = null;
     dictSheetSync();
   });
 }
@@ -39267,7 +39342,7 @@ function dictSheetSync() {
       <p class="dict-kb-hint">${esc(t('dict.kbHint'))}</p>
       <div class="dict-actions"><button type="button" class="btn-primary" data-dict-review="1">${esc(t('dict.review'))}</button></div>`;
   } else if (D.step === 'pick') {
-    body = `<div class="swap-search-row"><input type="text" id="dict-pick-search" placeholder="${esc(t('train.prop.searchPh'))}" value="${esc(D.pickQuery || '')}"></div><div id="dict-pick-results">${dictPickResultsHTML(D)}</div>`;
+    body = `<div class="swap-search-row"><input type="text" id="dict-pick-search" placeholder="${esc(t('train.prop.searchPh'))}" value="${esc(D.pickQuery || '')}"></div><div id="dict-groups-slot">${libGroupGridHTML(D.pickGroup, 'data-dict-group', 'data-dict-group-clear')}</div><div id="dict-pick-results">${dictPickResultsHTML(D)}</div>`;
   } else {
     body = dictConfirmHTML(D) +
       `<p class="progress-hint">${esc(t('dict.unresolved'))}</p>
@@ -39330,7 +39405,7 @@ function dictSheetSync() {
     dictSheetSync();
   });
   sheet.querySelectorAll('[data-dict-pick]').forEach(b => b.onclick = () => {
-    D.pickRow = Number(b.dataset.dictPick); D.pickQuery = ''; D.step = 'pick';
+    D.pickRow = Number(b.dataset.dictPick); D.pickQuery = ''; D.pickGroup = null; D.step = 'pick';
     dictSheetSync();
   });
   const ps = sheet.querySelector('#dict-pick-search');
@@ -39339,6 +39414,24 @@ function dictSheetSync() {
     const box = sheet.querySelector('#dict-pick-results');
     if (box) { box.innerHTML = dictPickResultsHTML(D); wireDictLibPicks(sheet); }
   };
+  /* AUTH-543: la parrilla de este paso — tocar un grupo filtra
+     la lista a su sección; tocar el activo (o la línea de
+     volver) lo apaga. */
+  const wireDictGroups = () => {
+    const repaint = () => {
+      const box = sheet.querySelector('#dict-pick-results');
+      if (box) { box.innerHTML = dictPickResultsHTML(D); wireDictLibPicks(sheet); }
+      const gs = sheet.querySelector('#dict-groups-slot');
+      if (gs) { gs.innerHTML = libGroupGridHTML(D.pickGroup, 'data-dict-group', 'data-dict-group-clear'); wireDictGroups(); }
+    };
+    sheet.querySelectorAll('[data-dict-group]').forEach(b => b.onclick = () => {
+      const k = b.dataset.dictGroup || null;
+      D.pickGroup = (k && k !== D.pickGroup) ? k : null;
+      repaint();
+    });
+    sheet.querySelectorAll('[data-dict-group-clear]').forEach(b => b.onclick = () => { D.pickGroup = null; repaint(); });
+  };
+  wireDictGroups();
   wireDictLibPicks(sheet);
   const back = sheet.querySelector('[data-dict-back]');
   if (back) back.onclick = () => { D.step = 'input'; dictSheetSync(); };
@@ -39432,7 +39525,7 @@ function mphCatalog() {
 
 function mphSheetOpen(plan, di, iso) {
   if (typeof LIB === 'undefined' || !LIB || !LIB.length) { toast(t('train.lib.unavailable'), true); return; }
-  TRAIN_PHOTO = { plan, di, iso: iso || todayISO(), step: 'busy', row: null, file: null, err: null, pickFrom: 'confirm', pickQuery: '', busy: false };
+  TRAIN_PHOTO = { plan, di, iso: iso || todayISO(), step: 'busy', row: null, file: null, err: null, pickFrom: 'confirm', pickQuery: '', pickGroup: null, busy: false };
   mphPickFile();
 }
 
@@ -39562,6 +39655,12 @@ function mphPickResultsHTML(D) {
     return `<div class="swap-sec-title">${esc(t('train.swap.resultsTitle'))}</div>` +
       (hits.length ? hits.map(hit => dictCardHTML(hit.ex, hit.vi, `data-mph-libpick="${esc(hit.ex.id)}" data-mph-libpick-vi="${hit.vi != null ? hit.vi : ''}"`)).join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
   }
+  /* AUTH-543: con un grupo de la parrilla activo, la lista es
+     solo su sección (la búsqueda manda sobre el filtro). */
+  if (D.pickGroup) {
+    const secs = libSections(LIB).filter(sec => sec.key === D.pickGroup);
+    if (secs.length) return secs.map(sec => `<div class="swap-sec-title">${esc(sec.label)}</div>` + sec.items.map(ex => dictCardHTML(ex, null, `data-mph-libpick="${esc(ex.id)}" data-mph-libpick-vi=""`)).join('')).join('');
+  }
   return libSections(LIB).map(sec => `<div class="swap-sec-title">${esc(sec.label)}</div>` + sec.items.map(ex => dictCardHTML(ex, null, `data-mph-libpick="${esc(ex.id)}" data-mph-libpick-vi=""`)).join('')).join('');
 }
 
@@ -39573,7 +39672,7 @@ function wireMphLibPicks(sheet) {
     if (!ex || !D.row) return;
     const viRaw = b.dataset.mphLibpickVi;
     D.row = { ...D.row, status: 'ok', entry: ex, vi: viRaw === '' || viRaw == null ? null : Number(viRaw), conf: null, candidates: null };
-    D.step = 'confirm'; D.pickQuery = '';
+    D.step = 'confirm'; D.pickQuery = ''; D.pickGroup = null;
     mphSheetSync();
   });
 }
@@ -39615,7 +39714,7 @@ function mphSheetSync() {
       <div class="dict-row-btns"><button type="button" class="btn-secondary btn-sm" data-mph-pick="1">${esc(t('dict.pickFromLib'))}</button><button type="button" class="btn-ghost btn-sm" data-mph-retake="1">${esc(t('mph.retake'))}</button></div></div>`;
     if (!D.row) D.row = { status: 'new', nameEs: '', nameEn: '', groupEs: '', groupEn: '', sets: '3', reps: '10', load: null, loadUnit: 'kg', vi: null, readEs: '', readEn: '' };
   } else if (D.step === 'pick') {
-    body = `<div class="swap-search-row"><input type="text" id="mph-pick-search" placeholder="${esc(t('train.prop.searchPh'))}" value="${esc(D.pickQuery || '')}"></div><div id="mph-pick-results">${mphPickResultsHTML(D)}</div>`;
+    body = `<div class="swap-search-row"><input type="text" id="mph-pick-search" placeholder="${esc(t('train.prop.searchPh'))}" value="${esc(D.pickQuery || '')}"></div><div id="mph-groups-slot">${libGroupGridHTML(D.pickGroup, 'data-mph-group', 'data-mph-group-clear')}</div><div id="mph-pick-results">${mphPickResultsHTML(D)}</div>`;
   } else {
     const r = D.row;
     const canApply = !!r && (r.status === 'ok' || r.status === 'new');
@@ -39628,7 +39727,7 @@ function mphSheetSync() {
   if (closeBtn) closeBtn.onclick = () => {
     /* Como en el dictado: en el paso de elegir a mano, la ✕ vuelve
        al paso anterior; no se pierde lo ya leído por un toque. */
-    if (D.step === 'pick') { D.step = D.pickFrom; D.pickQuery = ''; mphSheetSync(); }
+    if (D.step === 'pick') { D.step = D.pickFrom; D.pickQuery = ''; D.pickGroup = null; mphSheetSync(); }
     else mphSheetClose();
   };
   sheet.querySelectorAll('[data-mph-num]').forEach(inp => {
@@ -39652,7 +39751,7 @@ function mphSheetSync() {
     mphSheetSync();
   });
   sheet.querySelectorAll('[data-mph-pick]').forEach(b => b.onclick = () => {
-    D.pickFrom = D.step; D.pickQuery = ''; D.step = 'pick';
+    D.pickFrom = D.step; D.pickQuery = ''; D.pickGroup = null; D.step = 'pick';
     mphSheetSync();
   });
   const ps = sheet.querySelector('#mph-pick-search');
@@ -39661,6 +39760,22 @@ function mphSheetSync() {
     const box = sheet.querySelector('#mph-pick-results');
     if (box) { box.innerHTML = mphPickResultsHTML(D); wireMphLibPicks(sheet); }
   };
+  /* AUTH-543: la parrilla de este paso, como en el dictado. */
+  const wireMphGroups = () => {
+    const repaint = () => {
+      const box = sheet.querySelector('#mph-pick-results');
+      if (box) { box.innerHTML = mphPickResultsHTML(D); wireMphLibPicks(sheet); }
+      const gs = sheet.querySelector('#mph-groups-slot');
+      if (gs) { gs.innerHTML = libGroupGridHTML(D.pickGroup, 'data-mph-group', 'data-mph-group-clear'); wireMphGroups(); }
+    };
+    sheet.querySelectorAll('[data-mph-group]').forEach(b => b.onclick = () => {
+      const k = b.dataset.mphGroup || null;
+      D.pickGroup = (k && k !== D.pickGroup) ? k : null;
+      repaint();
+    });
+    sheet.querySelectorAll('[data-mph-group-clear]').forEach(b => b.onclick = () => { D.pickGroup = null; repaint(); });
+  };
+  wireMphGroups();
   wireMphLibPicks(sheet);
   const retake = sheet.querySelectorAll('[data-mph-retake]');
   retake.forEach(b => b.onclick = () => { D.row = null; D.err = null; D.file = null; mphPickFile(); });
@@ -57154,10 +57269,10 @@ function mybSheetRender() {
    no se toca: su conducta en su casa queda como está — la
    permanencia vive solo aquí porque el destino es otro estado
    (el borrador MYB, no el plan del día). ── */
-let MYB_PICK = null;   // { di, q, added: Set<exerciseId> }
+let MYB_PICK = null;   // { di, q, grp, added: Set<exerciseId> } — grp: el grupo de la parrilla (AUTH-543)
 function mybPickOpen(di) {
   if (!MYB || !MYB.days[di]) return;
-  MYB_PICK = { di, q: '', added: new Set() };
+  MYB_PICK = { di, q: '', grp: null, added: new Set() };
   mybPickRender();
 }
 function mybPickClose() {
@@ -57180,6 +57295,13 @@ function mybPickResultsHTML() {
     const hits = libSearch(q);
     return `<div class="swap-sec-title">${esc(t('train.swap.resultsTitle'))}</div>` +
       (hits.length ? hits.map(ex => mybPickCardHTML(ex)).join('') : `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`);
+  }
+  /* AUTH-543: con un grupo de la parrilla activo, la lista es
+     solo su sección (la búsqueda manda sobre el filtro, como
+     en el selector de la sesión). */
+  if (MYB_PICK.grp) {
+    const secs = libSections(LIB).filter(sec => sec.key === MYB_PICK.grp);
+    if (secs.length) return secs.map(sec => `<div class="swap-sec-title">${esc(sec.label)}</div>` + sec.items.map(ex => mybPickCardHTML(ex)).join('')).join('');
   }
   return libSections(LIB).map(sec => `<div class="swap-sec-title">${esc(sec.label)}</div>` + sec.items.map(ex => mybPickCardHTML(ex)).join('')).join('');
 }
@@ -57209,10 +57331,33 @@ function mybPickRender() {
     <span class="myb-ctx">${esc(ctx)}</span>
     <div class="swap-search-row"><input type="text" id="myb-pick-search" placeholder="${esc(t('train.prop.searchPh'))}" autocomplete="off" value="${esc(MYB_PICK.q)}"></div>
     </div>
+    <div id="myb-groups-slot">${libGroupGridHTML(MYB_PICK.grp, 'data-myb-group', 'data-myb-group-clear')}</div>
     <div id="myb-pick-results" class="pick-results">${mybPickResultsHTML()}</div>
     <div class="myb-pick-foot"><span class="myb-pick-count" id="myb-pick-count">${esc(mybPickCountText())}</span><button type="button" class="myb-pick-done" data-mybpick-close="1">${esc(t('train.n09.mybDone'))}</button></div>`;
   const close = () => { mybPickClose(); mybSheetRender(); };
   sheet.querySelectorAll('[data-mybpick-close]').forEach(b => b.onclick = close);
+  /* AUTH-543: la parrilla del editor — tocar un grupo filtra
+     la lista a su sección; tocar el activo (o la línea de
+     volver) lo apaga. La ranura se repinta con el estado y se
+     vuelve a cablear, como los resultados. */
+  const wireGroups = () => {
+    sheet.querySelectorAll('[data-myb-group]').forEach(b => b.onclick = () => {
+      const k = b.dataset.mybGroup || null;
+      MYB_PICK.grp = (k && k !== MYB_PICK.grp) ? k : null;
+      const box = sheet.querySelector('#myb-pick-results');
+      if (box) { box.innerHTML = mybPickResultsHTML(); wire(); }
+      const gs = sheet.querySelector('#myb-groups-slot');
+      if (gs) { gs.innerHTML = libGroupGridHTML(MYB_PICK.grp, 'data-myb-group', 'data-myb-group-clear'); wireGroups(); }
+    });
+    sheet.querySelectorAll('[data-myb-group-clear]').forEach(b => b.onclick = () => {
+      MYB_PICK.grp = null;
+      const box = sheet.querySelector('#myb-pick-results');
+      if (box) { box.innerHTML = mybPickResultsHTML(); wire(); }
+      const gs = sheet.querySelector('#myb-groups-slot');
+      if (gs) { gs.innerHTML = libGroupGridHTML(MYB_PICK.grp, 'data-myb-group', 'data-myb-group-clear'); wireGroups(); }
+    });
+  };
+  wireGroups();
   const wire = () => {
     sheet.querySelectorAll('[data-mybpick-pick]').forEach(b => b.onclick = () => {
       const entry = LIB_BY_ID[b.dataset.mybpickPick];
@@ -69227,7 +69372,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261121-constructor-mascota';
+const PWA_SW_VERSION = '20261121-selector-grupos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

@@ -2419,6 +2419,17 @@ body.swap-sheet-open .share-fab, body.swap-sheet-open .help-fab, body.swap-sheet
 .swap-preset-btn.is-active { background: #0d9488; border-color: #0d9488; color: #fff; }
 .swap-presets-all { text-align: center; margin-bottom: 2px; }
 .swap-preset-all { border: none; background: none; color: #0f766e; font-size: 14px; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 6px 8px; }
+/* AUTH-543: la parrilla de grupos musculares de los selectores
+   de biblioteca (maqueta aprobada): píldoras con el lenguaje de
+   .swap-preset-btn en rejilla de tres columnas; el botón activo
+   se llena como el atajo activo y su conteo es el vivo de la
+   sección. */
+.swap-groups-label { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #0f766e; margin: 12px 0 8px; }
+.swap-groups-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.swap-group-btn { min-height: 48px; padding: 4px 6px; border-radius: 999px; border: 1.5px solid #0d9488; background: #fff; color: #0f766e; font-size: 14px; font-weight: 800; line-height: 1.15; cursor: pointer; font-family: inherit; text-align: center; }
+.swap-group-btn .swap-group-n { font-weight: 700; opacity: .6; }
+.swap-group-btn.is-active { background: #0d9488; border-color: #0d9488; color: #fff; }
+.swap-group-btn.is-active .swap-group-n { opacity: .85; }
 .swap-sec-title { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #0f766e; margin: 16px 0 8px; }
 .swap-card { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; text-align: left; padding: 9px 10px; margin-bottom: 8px; border: 1px solid #d7e3e1; border-radius: 14px; background: #fff; font: inherit; cursor: pointer; }
 .swap-card:active { background: #f0fdfa; }
