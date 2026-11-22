@@ -3970,7 +3970,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261122-modo-espejo');
+  const mod = await import('./i18n-' + l + '.js?v=20261122-hilo-tranquilo');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -59224,7 +59224,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261122-modo-espejo';
+const PWA_SW_VERSION = '20261122-hilo-tranquilo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -60749,6 +60749,7 @@ function swMainAction() {
   else { STOPW.startAt = Date.now(); STOPW.running = true; swAlertBase(); swAlertPrime(); swKick(); }
   swSave();
   swPaint();
+  swTickSync();
 }
 function swLapAction() {
   const el = swElapsed(); if (el <= 0) return;
@@ -60761,6 +60762,7 @@ function swResetAction() {
   STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = []; STOPW.alertK = 0; STOPW.alertPend = 0;
   swSave();
   swPaint();
+  swTickSync();
 }
 function swSideAction(side) {
   if (STOPW.running) { if (side === 'left') swLapAction(); else swResetAction(); }
@@ -60773,12 +60775,14 @@ function swOpenTool() {
   swAlertPrime();
   swPaint(); swKick();
   swMiniPaint(); // AUTH-457: con la pantalla abierta, la pieza se retira
+  swTickSync();
 }
 function swHideTool() {
   const ov = $('sw-overlay'); if (!ov) return;
   STOPW.open = false;
   if (STOPW.raf) { cancelAnimationFrame(STOPW.raf); STOPW.raf = 0; }
   ov.style.display = 'none';
+  swTickSync();
 }
 /* MINIMIZAR (AUTH-457): esconder la pantalla SIN detener nada —
    lo que la ✕ hacía hasta AUTH-456. El cronómetro sigue
@@ -60902,6 +60906,28 @@ function swFabPaint() {
      reescribe entero en cada pintado y la borraría. */
   fab.classList.toggle('sw-fab-yield', swMiniAlive());
 }
+/* L-6 «HILO TRANQUILO» (AUTH-552): el latido de 250 ms del
+   cronómetro libre ya no corre para siempre. Solo vive cuando
+   hay algo que latir: el cronómetro corriendo (el tiempo del
+   disco y de la pieza se mueve, y los avisos por intervalo se
+   calculan en este latido cuando la pantalla está cerrada) o
+   la pieza minimizada visible (corriendo o en pausa con
+   tiempo: su estacionamiento sigue a la píldora de la sesión
+   en todos sus estados). En cualquier otro estado — a cero,
+   o en pausa con la pantalla abierta, que se pinta por sus
+   propios gestos y su rAF — el hilo duerme: no queda vivo
+   ningún intervalo de 250 ms. El cuerpo del latido es el de
+   siempre, palabra por palabra, y cada gesto que cambia el
+   estado (Iniciar/Pausar/Seguir, Reiniciar, abrir, esconder)
+   resincroniza el hilo al final de su propio camino. */
+let SW_TICK_IV = 0;
+function swTickBody() { if (!STOPW.open) { swFabPaint(); swMiniPaint(); } swAlertCheck(); }
+function swTickWanted() { return STOPW.running || swMiniAlive(); }
+function swTickSync() {
+  const want = swTickWanted();
+  if (want && !SW_TICK_IV) { swTickBody(); SW_TICK_IV = setInterval(swTickBody, 250); }
+  else if (!want && SW_TICK_IV) { clearInterval(SW_TICK_IV); SW_TICK_IV = 0; }
+}
 (function swInit() {
   swRestore();
   swAlertLoad();
@@ -60909,7 +60935,7 @@ function swFabPaint() {
   document.querySelectorAll('[data-sw-alert]').forEach(b => b.addEventListener('click', () => swAlertSet(Number(b.dataset.swAlert))));
   document.querySelectorAll('[data-sw-alert-plus]').forEach(b => b.addEventListener('click', swAlertPlus));
   swFabPaint(); swMiniPaint();
-  setInterval(() => { if (!STOPW.open) { swFabPaint(); swMiniPaint(); } swAlertCheck(); }, 250);
+  swTickSync();
   const x = $('sw-close'); if (x) x.addEventListener('click', swTerminateTool);
   const mn = $('sw-min'); if (mn) mn.addEventListener('click', swMinimizeTool);
   const mm = $('sw-mini-main'); if (mm) mm.addEventListener('click', swOpenTool);
