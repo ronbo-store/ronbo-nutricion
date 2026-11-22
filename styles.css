@@ -5135,6 +5135,28 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .train-ex-compact .train-ex-side { flex-direction: row; align-items: center; }
 .train-ex-last { width: 100%; font-size: 12.5px; line-height: 1.35; color: #5b6b82; }
 .train-ex-last-lab { font-weight: 700; }
+/* AUTH-544 · SUGERENCIAS DE PROGRESIÓN: la línea plegada y su
+   despliegue en la tarjeta (los colores de la maqueta aprobada),
+   la línea de «Próxima vez» y el anuncio de una línea en la
+   banda de cierre. Controles de 48-52 px, como manda la casa. */
+.prog-sug { width: 100%; margin-top: 8px; }
+.prog-fold { width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 13px; background: rgba(6,40,44,.45); border: 1.5px solid rgba(139,224,78,.65); border-radius: 12px; font-size: 14.5px; font-weight: 800; color: #d9ffb0; cursor: pointer; text-align: left; }
+.prog-fold .prog-chev { color: #8be04e; font-size: 17px; font-weight: 900; }
+.prog-open { margin-top: 8px; background: rgba(6,40,44,.55); border: 1.5px solid rgba(139,224,78,.8); border-radius: 14px; padding: 13px; }
+.prog-tag { font-size: 10.5px; letter-spacing: 1.6px; font-weight: 800; color: #8be04e; text-transform: uppercase; }
+.prog-title { font-size: 17px; font-weight: 900; margin: 4px 0 6px; color: #fff; }
+.prog-why { font-size: 13.5px; line-height: 1.55; color: #eaffea; margin: 0; }
+.prog-chips { display: flex; gap: 7px; flex-wrap: wrap; margin: 10px 0 4px; }
+.prog-chip { background: rgba(139,224,78,.18); border: 1px solid rgba(139,224,78,.55); color: #eaffd0; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 5px 10px; }
+.prog-chip.grey { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.35); color: #e6fffa; }
+.prog-goal { font-size: 13px; color: #ffe9a8; margin: 8px 0 0; line-height: 1.5; }
+.prog-btns { display: flex; gap: 9px; margin-top: 12px; }
+.prog-apply { flex: 1.5; background: #22c55e; color: #fff; border: none; border-radius: 13px; min-height: 52px; font-size: 16px; font-weight: 900; cursor: pointer; }
+.prog-no { flex: 1; background: rgba(255,255,255,.14); color: #fff; border: 1.5px solid rgba(255,255,255,.55); border-radius: 13px; min-height: 52px; font-size: 15px; font-weight: 800; cursor: pointer; }
+.prog-never { font-size: 11.5px; color: #c9f2ec; margin-top: 9px; text-align: center; }
+.prog-next { width: 100%; margin-top: 8px; font-size: 13px; font-weight: 700; color: #ffe9a8; }
+.prog-close { margin: 8px 0; padding: 9px 12px; border-radius: 10px; background: rgba(34,197,94,.14); border: 1px solid rgba(34,197,94,.45); color: #166534; font-size: 13.5px; font-weight: 700; }
+
 .train-day-dressed .train-ex-last { color: rgba(255,255,255,.82); }
 .train-ex-compact .train-ex-move { flex-basis: auto; width: 100%; margin-top: 0; }
 @media (max-width: 480px) {

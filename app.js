@@ -6260,6 +6260,38 @@ en: {
   'train.histRec.loadToday': 'Weight today',
   'train.lastTime.card': 'Last time', 'train.lastTime.first': 'first time',
   'train.lastTime.legacy': 'log without set detail', 'train.lastTime.max': 'max',
+  'prog.tag': 'Progression suggestion',
+  'prog.foldUp': '💡 Suggestion: time to move up',
+  'prog.foldDown': '💡 Suggestion: ease the load down',
+  'prog.foldRepeat': '💡 Suggestion: repeat this load once more',
+  'prog.foldGoal': '💡 Your next step: complete the reps',
+  'prog.foldReps': '💡 Suggestion: time to add reps',
+  'prog.upTitle': 'Time to move the weight up',
+  'prog.upWhy': 'You completed {sets} × {top} at {load} — the top of your range — two sessions in a row. That is the signal: this load has become too light.',
+  'prog.upGoal': 'At {load} your goal goes back to {min} reps per set first, and from there you build back up toward {max}.',
+  'prog.bigJump': 'Heads up: this step is a big jump (over 10%), so your reps will drop quite a bit at first — that is normal.',
+  'prog.apply': 'Apply: {load}',
+  'prog.notNow': 'Not now',
+  'prog.neverAuto': 'The app never applies on its own. With "Not now", this note only returns if you earn it again.',
+  'prog.repeatTitle': 'Top reached — now consolidate it',
+  'prog.repeatWhy': 'You completed {sets} × {top} at {load} two sessions in a row, but the effort was at the limit (RPE {rpe}). Repeat {load} once more and own it with a better feeling before moving up.',
+  'prog.repeatBtn': 'Got it: repeat {load}',
+  'prog.downTitle': 'This load is above your range right now',
+  'prog.downWhy': 'In your last two sessions at {load}, more than half of the sets fell below {min} reps. Dropping one step, to {new}, puts you back inside your range.',
+  'prog.downGoal': 'At {load} the goal is your full range again: {min}–{max} per set.',
+  'prog.goalTitle': 'Before more weight: complete the reps',
+  'prog.goalWhy': 'Your last session was {reps}. Your range goes up to {max}: when you hit {max} on every set two sessions in a row, it will be time to move the load up.',
+  'prog.goalShort': 'Set {n} came up short: {got} of {max}.',
+  'prog.repsGoalTitle': 'Time to add reps',
+  'prog.repsGoalWhy': 'You completed {sets} × {top} with no added load two sessions in a row. The next step is reps: aim for {goal} per set.',
+  'prog.nextTime': 'Next time: {load} · goal {min}–{max}',
+  'prog.closeLine': '💡 New suggestion for next time: move {name} up ›',
+  'prog.closeLineDown': '💡 New suggestion for next time: ease {name} down ›',
+  'prog.closeLineRepeat': '💡 New suggestion for next time: repeat {name} once more ›',
+  'prog.sessionChip': 'Session {n} · {sets} × {top} · {load} ✓',
+  'prog.feelOk': 'Effort: manageable ✓',
+  'prog.feelHard': 'Effort: at the limit',
+  'prog.applied': 'Saved: next time, {load}',
   /* INICIAR EJERCICIO + RUEDAS + APROXIMACIÓN (complemento de la
      ficha — 2026-10-30; maqueta v2 aprobada por Ronald): el botón
      de inicio, las ruedas de scroll (sin teclado) y el bloque de
@@ -11786,6 +11818,38 @@ es: {
   'train.histRec.loadToday': 'Peso hoy',
   'train.lastTime.card': 'Última vez', 'train.lastTime.first': 'primera vez',
   'train.lastTime.legacy': 'registro sin detalle de series', 'train.lastTime.max': 'máx',
+  'prog.tag': 'Sugerencia de progresión',
+  'prog.foldUp': '💡 Sugerencia: es momento de subir',
+  'prog.foldDown': '💡 Sugerencia: bajar un paso la carga',
+  'prog.foldRepeat': '💡 Sugerencia: repetir esta carga una vez más',
+  'prog.foldGoal': '💡 Tu próximo paso: completar las repeticiones',
+  'prog.foldReps': '💡 Sugerencia: es momento de sumar repeticiones',
+  'prog.upTitle': 'Es momento de subir el peso',
+  'prog.upWhy': 'Completaste {sets} × {top} con {load} — el tope de tu rango — dos sesiones seguidas. Esa es la señal: esta carga ya te queda corta.',
+  'prog.upGoal': 'Con {load} tu meta vuelve primero a {min} repeticiones por serie, y desde ahí vuelves a construir hacia {max}.',
+  'prog.bigJump': 'Ojo: este paso es un salto grande (más del 10%), así que al principio tus repeticiones bajarán bastante: es normal.',
+  'prog.apply': 'Aplicar: {load}',
+  'prog.notNow': 'Ahora no',
+  'prog.neverAuto': 'La app nunca aplica sola. Con «Ahora no», este aviso solo vuelve si te lo ganas otra vez.',
+  'prog.repeatTitle': 'Tope alcanzado: ahora a consolidarlo',
+  'prog.repeatWhy': 'Completaste {sets} × {top} con {load} dos sesiones seguidas, pero el esfuerzo fue al límite (RPE {rpe}). Repite {load} una vez más y domínala con mejor sensación antes de subir.',
+  'prog.repeatBtn': 'Entendido: repetir {load}',
+  'prog.downTitle': 'Esta carga hoy te queda por encima del rango',
+  'prog.downWhy': 'En tus dos últimas sesiones con {load}, más de la mitad de las series quedaron por debajo de {min} repeticiones. Bajar un paso, a {new}, te devuelve a trabajar dentro de tu rango.',
+  'prog.downGoal': 'Con {load} la meta vuelve a ser tu rango completo: {min}–{max} por serie.',
+  'prog.goalTitle': 'Antes de subir peso: completa las repeticiones',
+  'prog.goalWhy': 'Tu última sesión fue {reps}. Tu rango llega a {max}: cuando hagas {max} en todas las series dos sesiones seguidas, será momento de subir la carga.',
+  'prog.goalShort': 'La serie {n} quedó corta: {got} de {max}.',
+  'prog.repsGoalTitle': 'Es momento de sumar repeticiones',
+  'prog.repsGoalWhy': 'Completaste {sets} × {top} sin carga añadida dos sesiones seguidas. El siguiente paso es por repeticiones: busca {goal} por serie.',
+  'prog.nextTime': 'Próxima vez: {load} · meta {min}–{max}',
+  'prog.closeLine': '💡 Nueva sugerencia para la próxima: subir {name} ›',
+  'prog.closeLineDown': '💡 Nueva sugerencia para la próxima: bajar {name} ›',
+  'prog.closeLineRepeat': '💡 Nueva sugerencia para la próxima: repetir {name} una vez más ›',
+  'prog.sessionChip': 'Sesión {n} · {sets} × {top} · {load} ✓',
+  'prog.feelOk': 'Sensación: manejable ✓',
+  'prog.feelHard': 'Sensación: al límite',
+  'prog.applied': 'Guardado: la próxima, {load}',
   /* INICIAR EJERCICIO + RUEDAS + APROXIMACIÓN (complemento de la
      ficha — 2026-10-30; maqueta v2 aprobada por Ronald): el botón
      de inicio, las ruedas de scroll (sin teclado) y el bloque de
@@ -43321,8 +43385,9 @@ function sessFullSync(run) {
     } else {
       doneInner = doneForm;
     }
-    const doneBlk = `<div class="sf-done"><div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div><div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: totalD, m: totalD }))} · <span class="sf-done-clock">00:00:00</span></div>${sessCelebHTML()}${doneInner}</div>`;   /* AUTH-521: la celebración vive entre el resumen y la pregunta/el cierre, sin bloquear ninguno */
-    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-'), 'P' + pctD, 'RG' + (moveGenreSelSaved() ? '1' : '0')].join('|');   /* AUTH-540 */   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma · AUTH-526: el % fino también — cuando la etapa se marca hecha, la barra repinta a su valor */
+    const progAnn = progCloseAnnounceHTML(dc);   /* AUTH-544: el anuncio de progresión del cierre, evaluado sobre las marcas de hoy como sesión sintética */
+    const doneBlk = `<div class="sf-done"><div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div><div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: totalD, m: totalD }))} · <span class="sf-done-clock">00:00:00</span></div>${sessCelebHTML()}${progAnn}${doneInner}</div>`;   /* AUTH-521: la celebración vive entre el resumen y la pregunta/el cierre, sin bloquear ninguno */
+    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-'), 'P' + pctD, 'RG' + (moveGenreSelSaved() ? '1' : '0'), 'PG' + progCloseKeys(dc).join(',')].join('|');   /* AUTH-540 */   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma · AUTH-526: el % fino también — cuando la etapa se marca hecha, la barra repinta a su valor */
     if (!SESS_FULL_SIG.startsWith('fdone')) sessDayDoneHook(dc);   /* AUTH-507: la celebración se engancha a la ENTRADA en el estado, no a cada latido */
     html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${msgBlk}${sessReflBlockHTML()}${doneBlk}</div>${minBtn}</div>`;
   } else if (sessCStageWarmT(run.planId)) {
@@ -46738,6 +46803,7 @@ function trainExCompactHTML(ex, di, ei, mode, de, mv) {
   </div>
     ${figs}
     ${trainLastTimeCardHTML(ex, mode)}
+    ${mode === 'edit' ? progSuggestionHTML(ex, di, ei) : ''}
     ${mode === 'edit' ? trainFlowHTML(ex, di, ei) : ''}
     ${mode === 'edit' && mv && !(chk && chk.done === true) ? `<div class="train-ex-move"><span class="train-ex-pos">${(Number.isInteger(mv.pos) ? mv.pos : ei) + 1}</span><span class="train-ex-poslab">${esc(t('train.move.spot'))}</span><span class="train-ex-arrows"><button type="button" class="train-ex-arrow" data-train-move="${di}:${ei}:-1" aria-label="${esc(t('train.custom.moveUp'))}"${mvUpOff ? ' disabled' : ''}>↑</button><button type="button" class="train-ex-arrow" data-train-move="${di}:${ei}:1" aria-label="${esc(t('train.custom.moveDown'))}"${mvDownOff ? ' disabled' : ''}>↓</button></span><button type="button" class="train-ex-grip" data-train-grip="${ei}" aria-label="${esc(t('train.custom.move'))}">⠿</button></div>` : ''}
   </div>`;
@@ -50529,6 +50595,406 @@ function trainLastTimeCardHTML(ex, mode) {
   return `<div class="train-ex-last">${head} · ${esc(r.dateShort)}: ${esc(segs.join(' · '))}</div>`;
 }
 
+/* ═══ AUTH-544 · SUGERENCIAS DE PROGRESIÓN (diseño aprobado por
+   Ronald el 2026-11-21 sobre el FUNDAMENTO y la maqueta de
+   propuesta-progresion-2026-11-17: progresión doble con puerta
+   2×2 del ACSM — primero se agotan las repeticiones del rango
+   con la misma carga; solo entonces se sube un escalón y la
+   meta vuelve a la parte baja del rango. La app sugiere con el
+   porqué en números; la persona decide; LA APP NUNCA APLICA
+   SOLA). Todo se calcula con los datos propios de la persona
+   ya guardados en la app (sus registros, vía MY_LOGS_ALL): sin
+   IA externa y sin lecturas nuevas; la única escritura es la
+   decisión de la persona sobre su propio plan.
+   LA IDENTIDAD del realizado y el filtro de variantes espejan
+   a trainLastTimeSession/trainHistLoadsRows: por exerciseId
+   del realizado (o por nombre exacto solo si ninguno trae id),
+   y la separación es solo entre dos variantes distintas y
+   ambas anotadas. ═══ */
+const PROG_OPEN = new Set();   /* pliegue de la sugerencia por identidad (solo pantalla) */
+function progIdentKey(ex) {
+  if (!ex) return '';
+  const vi = Number.isInteger(ex.variantIndex) ? ex.variantIndex : '';
+  return (ex.exerciseId != null && ex.exerciseId !== '') ? 'id:' + String(ex.exerciseId) + '|v:' + vi : 'n:' + String(ex.name || '') + '|v:' + vi;
+}
+/* Todas las instancias del ejercicio (identidad+variante) en
+   el plan: la decisión se persiste en TODAS, para que la
+   próxima sesión — caiga en el día que caiga — la encuentre. */
+function progPlanInstances(plan, ex) {
+  const key = progIdentKey(ex);
+  const out = [];
+  ((plan && plan.days) || []).forEach((d, di) => ((d && d.exercises) || []).forEach((x, ei) => { if (progIdentKey(x) === key) out.push({ di, ei, ex: x }); }));
+  return out;
+}
+/* Las sesiones del ejercicio, de la más reciente a la más
+   antigua: una por registro (la primera aparición que casa),
+   solo de registros hechos o parciales, excluyendo la fecha
+   dada (la de hoy: su registro aún no existe o ya no es «la
+   vez pasada»). */
+function progSessionsOf(ex, allLogs, excludeIso) {
+  const id = ex && ex.exerciseId ? String(ex.exerciseId) : null;
+  const name = ex && !id ? String(ex.name || '') : null;
+  if (!id && !name) return [];
+  const entryH = id ? (LIB_BY_ID[id] || null) : null;
+  const varsH = entryH && Array.isArray(entryH.variantes) && entryH.variantes.length ? entryH.variantes : null;
+  const viEx = ex && Number.isInteger(ex.variantIndex) ? ex.variantIndex : null;
+  const viActive = !!(varsH && viEx != null && varsH[viEx] && !varsH[viEx].es_estandar);
+  const logs = (Array.isArray(allLogs) ? [...allLogs] : []).sort((a, b) => String((b && b.date) || '').localeCompare(String((a && a.date) || '')));
+  const out = [];
+  for (const log of logs) {
+    if (!log || (excludeIso && log.date === excludeIso)) continue;
+    const st = trainLogStatus(log);
+    if (st !== 'done' && st !== 'partial') continue;
+    const list = Array.isArray(log.exercisesDone) ? log.exercisesDone : [];
+    for (const e of list) {
+      if (!e || e.done === false) continue;
+      const match = id ? (e.exerciseId != null && String(e.exerciseId) === id)
+        : (e.exerciseId == null && e.name != null && String(e.name) === name);
+      if (!match) continue;
+      const ev = varsH ? (Number.isInteger(e.variantIndex) ? e.variantIndex : null) : null;
+      if (viActive && ev !== null && ev !== viEx) continue;
+      out.push({ date: log.date, entry: e });
+      break;
+    }
+  }
+  return out;
+}
+/* El juicio de UNA sesión: «transparente» cuando no trae
+   números que juzgar (sin series, o ninguna serie con
+   repeticiones escritas: la sesión «según el plan» del
+   FUNDAMENTO — ni cuenta ni rompe la racha); «parcial» cuando
+   trae números pero no alcanzan las series del plan (no abre
+   ninguna puerta y sí interrumpe la racha: no demostró el
+   trabajo completo). Sesión juzgable: series con repeticiones
+   >= las del plan; su carga L es la única de sus series
+   (dispersión <= 0,5 kg; las series sin carga escrita no
+   inventan otra) o 0 si ninguna trae carga; cargas mezcladas
+   = sesión válida que no abre la puerta y rompe la racha. */
+function progClassify(entry, crit, plannedSets) {
+  const sets = entry && Array.isArray(entry.sets) ? entry.sets : null;
+  if (!sets) return { transparent: true };
+  const judged = [];
+  for (const s of sets) {
+    if (!s) continue;
+    if (s.repsDone == null || s.repsDone === '') continue;
+    const rv = Number(s.repsDone);
+    if (!isFinite(rv)) continue;
+    judged.push({ reps: rv, kg: (typeof s.loadKg === 'number' && isFinite(s.loadKg)) ? s.loadKg : null });
+  }
+  if (!judged.length) return { transparent: true };
+  const rpe = (typeof entry.rpe === 'number' && isFinite(entry.rpe)) ? entry.rpe : null;
+  if (judged.length < plannedSets) return { transparent: false, partial: true, judged, L: 0, mixed: false, top: false, belowHeavy: false, rpe };
+  const loads = judged.filter(j => j.kg != null).map(j => j.kg);
+  let L = 0, mixed = false;
+  if (loads.length) {
+    const mn = Math.min(...loads), mx = Math.max(...loads);
+    if (mx - mn > 0.5) mixed = true; else L = mx;
+  }
+  const top = !mixed && judged.every(j => j.reps >= crit.max);
+  const belowN = judged.filter(j => j.reps < crit.min).length;
+  const belowHeavy = !mixed && belowN * 2 > judged.length;
+  return { transparent: false, partial: false, judged, L, mixed, top, belowHeavy, rpe };
+}
+/* EL ESCALÓN, en la unidad de visualización de la persona
+   (la tabla del FUNDAMENTO §4): mancuernas = el siguiente par
+   (+5 lb / +2,5 kg por mano, aplicado a la carga registrada,
+   que es la de la mano); barra = +5 lb en total / +2,5 kg;
+   máquina o polea de tren inferior = +10 lb / +5 kg, y de
+   tren superior o aislamiento = el menor; kettlebell = el
+   menor (declarado); sin familia con carga = el menor. Sin
+   carga registrada ni familia que la admita (peso corporal
+   puro): null — la progresión es por repeticiones (+2 sobre
+   el tope), no por carga. Familias por autoEqFamilies, en el
+   orden mancuernas -> barra -> máquinas/poleas -> kb. */
+function progStepKg(ex, L) {
+  const entry = ex && ex.exerciseId ? (LIB_BY_ID[ex.exerciseId] || null) : null;
+  const fams = entry ? autoEqFamilies(entry) : [];
+  const lb = UNIT_PREFS.mass === 'lb';
+  const stepFor = lbVal => massToCanonical(lb ? lbVal : lbVal / 2);
+  const small = () => stepFor(5);
+  if (fams.includes('mancuernas')) return small();
+  if (fams.includes('barra')) return stepFor(5);
+  if (fams.includes('maquinas') || fams.includes('poleas')) {
+    const grp = entry ? (entry.grupo_muscular_es || '') : '';
+    return PLANB_PART_LOWER.includes(grp) ? stepFor(10) : small();
+  }
+  if (fams.includes('kb')) return small();
+  return L > 0 ? small() : null;
+}
+/* EL VEREDICTO, con la prioridad A/C > D > B del diseño:
+   A = 2 sesiones seguidas en el tope con la misma L y sin
+   freno -> subir un escalón. C = la misma racha pero alguna
+   de las 2 sesiones que abren la puerta cerró con RPE >= 9,5
+   (el registro guarda el RPE entero 1-10 — de su selector o
+   de las caras del cierre —; la regla se codifica >= 9,5)
+   -> repetir L. D = 2 seguidas con la misma L y más de la
+   mitad de las series bajo el mínimo -> bajar un escalón (el
+   RPE no interviene). B = la última sesión válida quedó
+   dentro del rango con alguna serie bajo el tope -> meta de
+   repeticiones, sin botón. Racha de 1 en el tope: nada.
+   Los ejercicios por tiempo (criterio kind 'time') quedan
+   fuera: su progresión es de duración, no de carga. */
+function progVerdict(ex, allLogs, excludeIso, extraClassified) {
+  const crit = trainSetCriterion(ex, null);
+  if (!crit || crit.kind === 'time') return null;
+  const planned = trainPlannedSets(ex);
+  let seq = progSessionsOf(ex, allLogs, excludeIso).map(s => progClassify(s.entry, crit, planned));
+  if (Array.isArray(extraClassified) && extraClassified.length) seq = extraClassified.concat(seq);
+  seq = seq.filter(s => s && !s.transparent);
+  if (!seq.length) return null;
+  const s1 = seq[0];
+  if (s1.partial || s1.mixed) return null;
+  const sameL = (s, L) => !s.mixed && !s.partial && Math.abs(s.L - L) <= 0.5;
+  if (s1.top) {
+    const L = s1.L;
+    let n = 0; for (const s of seq) { if (s.top && sameL(s, L)) n++; else break; }
+    if (n < 2) return null;
+    const door = seq.slice(0, 2);
+    const hard = door.map(s => s.rpe).filter(r => r != null && r >= 9.5);
+    const stepKg = progStepKg(ex, L);
+    if (hard.length) return { kind: 'C', L, n, crit, stepKg, s1, door, rpe: Math.max(...hard) };
+    return { kind: 'A', L, n, crit, stepKg, s1, door };
+  }
+  if (s1.belowHeavy) {
+    const L = s1.L;
+    let n = 0; for (const s of seq) { if (s.belowHeavy && sameL(s, L)) n++; else break; }
+    if (n < 2 || !(L > 0)) return null;
+    const stepKg = progStepKg(ex, L);
+    if (stepKg == null || L - stepKg <= 0) return null;
+    return { kind: 'D', L, n, crit, stepKg, s1, door: seq.slice(0, 2) };
+  }
+  if (s1.judged.some(j => j.reps < crit.max)) return { kind: 'B', L: s1.L, n: 1, crit, stepKg: null, s1, door: [s1] };
+  return null;
+}
+/* LA DECISIÓN PERSISTIDA manda sobre el aviso: progDec
+   {kg, n, kind} suprime el veredicto mientras el conteo de
+   sesiones que lo ganaron a esa carga no supere n; cuando
+   otra sesión en el tope (o bajo el mínimo) se registra, el
+   conteo crece y la sugerencia vuelve — la regla de «Ahora
+   no» del FUNDAMENTO, simétrica para «Aplicar». */
+function progSuppressed(planEx, v) {
+  const dec = planEx && planEx.progDec && typeof planEx.progDec === 'object' ? planEx.progDec : null;
+  if (!dec || !v) return false;
+  return Math.abs(num(dec.kg) - v.L) <= 0.5 && v.n <= num(dec.n);
+}
+/* «Próxima vez»: la carga aplicada (progNext) se anuncia en
+   la tarjeta hasta que una sesión válida la usa de verdad. */
+function progNextPending(ex, planEx) {
+  const pn = planEx && planEx.progNext && typeof planEx.progNext === 'object' ? num(planEx.progNext.kg) : 0;
+  if (!(pn > 0)) return null;
+  const crit = trainSetCriterion(ex, null);
+  if (!crit || crit.kind === 'time') return null;
+  const planned = trainPlannedSets(ex);
+  const used = progSessionsOf(ex, MY_LOGS_ALL, null).some(s => {
+    const c = progClassify(s.entry, crit, planned);
+    return !c.transparent && !c.partial && !c.mixed && Math.abs(c.L - pn) <= 0.5;
+  });
+  return used ? null : pn;
+}
+function progDoorChips(v) {
+  const parts = (v.door || []).map((s, i) => `<span class="prog-chip">${esc(t('prog.sessionChip', { n: i + 1, sets: s.judged.length, top: v.crit.max, load: fmtMass(v.L) }))}</span>`);
+  const rpes = (v.door || []).map(s => s.rpe).filter(r => r != null);
+  if (rpes.length) parts.push(`<span class="prog-chip grey">${esc(t(Math.max(...rpes) >= 9.5 ? 'prog.feelHard' : 'prog.feelOk'))}</span>`);
+  return parts.join('');
+}
+function progVerdictHTML(ex, di, ei, v) {
+  const keyDE = di + ':' + ei;
+  const open = PROG_OPEN.has(progIdentKey(ex));
+  const crit = v.crit;
+  let foldKey, title, why = '', chips = '', goal = '', btns = '';
+  if (v.kind === 'A' && v.stepKg != null) {
+    const newKg = v.L + v.stepKg;
+    foldKey = 'prog.foldUp'; title = t('prog.upTitle');
+    why = t('prog.upWhy', { sets: v.s1.judged.length, top: crit.max, load: fmtMass(v.L) });
+    chips = progDoorChips(v);
+    goal = t('prog.upGoal', { load: fmtMass(newKg), min: crit.min, max: crit.max });
+    if (v.L > 0 && v.stepKg / v.L > 0.10) goal += ' ' + t('prog.bigJump');
+    btns = `<button type="button" class="prog-apply" data-prog-apply="${keyDE}">${esc(t('prog.apply', { load: fmtMass(newKg) }))}</button><button type="button" class="prog-no" data-prog-no="${keyDE}">${esc(t('prog.notNow'))}</button>`;
+  } else if (v.kind === 'A') {
+    /* Sin carga que subir (peso corporal, L = 0): la meta es
+       +2 repeticiones sobre el tope — se anuncia, no se aplica. */
+    foldKey = 'prog.foldReps'; title = t('prog.repsGoalTitle');
+    why = t('prog.repsGoalWhy', { sets: v.s1.judged.length, top: crit.max, goal: crit.max + 2 });
+  } else if (v.kind === 'C') {
+    foldKey = 'prog.foldRepeat'; title = t('prog.repeatTitle');
+    why = t('prog.repeatWhy', { sets: v.s1.judged.length, top: crit.max, load: fmtMass(v.L), rpe: v.rpe });
+    chips = progDoorChips(v);
+    btns = `<button type="button" class="prog-apply" data-prog-apply="${keyDE}">${esc(t('prog.repeatBtn', { load: fmtMass(v.L) }))}</button><button type="button" class="prog-no" data-prog-no="${keyDE}">${esc(t('prog.notNow'))}</button>`;
+  } else if (v.kind === 'D') {
+    const newKg = v.L - v.stepKg;
+    foldKey = 'prog.foldDown'; title = t('prog.downTitle');
+    why = t('prog.downWhy', { load: fmtMass(v.L), min: crit.min, new: fmtMass(newKg) });
+    goal = t('prog.downGoal', { load: fmtMass(newKg), min: crit.min, max: crit.max });
+    btns = `<button type="button" class="prog-apply" data-prog-apply="${keyDE}">${esc(t('prog.apply', { load: fmtMass(newKg) }))}</button><button type="button" class="prog-no" data-prog-no="${keyDE}">${esc(t('prog.notNow'))}</button>`;
+  } else {
+    foldKey = 'prog.foldGoal'; title = t('prog.goalTitle');
+    why = t('prog.goalWhy', { reps: v.s1.judged.map(j => j.reps).join(' · '), max: crit.max });
+    const shortI = v.s1.judged.findIndex(j => j.reps < crit.max);
+    if (shortI >= 0) why += ' ' + t('prog.goalShort', { n: shortI + 1, got: v.s1.judged[shortI].reps, max: crit.max });
+  }
+  const fold = `<button type="button" class="prog-fold" data-prog-toggle="${keyDE}" aria-expanded="${open ? 'true' : 'false'}"><span>${esc(t(foldKey))}</span><span class="prog-chev" aria-hidden="true">${open ? '⌄' : '›'}</span></button>`;
+  if (!open) return `<div class="prog-sug">${fold}</div>`;
+  const body = `<div class="prog-open"><div class="prog-tag">${esc(t('prog.tag'))}</div><div class="prog-title">${esc(title)}</div><p class="prog-why">${esc(why)}</p>${chips ? `<div class="prog-chips">${chips}</div>` : ''}${goal ? `<p class="prog-goal">🎯 ${esc(goal)}</p>` : ''}${btns ? `<div class="prog-btns">${btns}</div><div class="prog-never">${esc(t('prog.neverAuto'))}</div>` : ''}</div>`;
+  return `<div class="prog-sug">${fold}${body}</div>`;
+}
+function progNextLineHTML(ex, kg) {
+  const crit = trainSetCriterion(ex, null);
+  if (!crit) return '';
+  return `<div class="prog-next">🎯 ${esc(t('prog.nextTime', { load: fmtMass(kg), min: crit.min, max: crit.max }))}</div>`;
+}
+/* LA LÍNEA EN LA TARJETA (bajo «Última vez», la superficie
+   única del diseño: la pintan la vista del día y la tarjeta
+   de foco del guiado, que comparten trainExCompactHTML en
+   modo edit). Solo para ejercicios del plan de la persona y
+   solo con sus registros ya leídos — sin historial, silencio:
+   el motor solo habla cuando tiene números. */
+function progSuggestionHTML(ex, di, ei) {
+  try {
+    if (typeof MY_PLAN === 'undefined' || !MY_PLAN) return '';
+    if (typeof MY_LOGS_ALL === 'undefined' || !Array.isArray(MY_LOGS_ALL)) return '';
+    const insts = progPlanInstances(MY_PLAN, ex);
+    if (!insts.length) return '';
+    const planEx = insts[0].ex;
+    const v = progVerdict(ex, MY_LOGS_ALL, todayISO());
+    const vLive = (v && !progSuppressed(planEx, v)) ? v : null;
+    if (vLive && vLive.kind !== 'B') return progVerdictHTML(ex, di, ei, vLive);
+    const pn = progNextPending(ex, planEx);
+    if (pn != null) return progNextLineHTML(ex, pn);
+    if (vLive) return progVerdictHTML(ex, di, ei, vLive);
+    return '';
+  } catch { return ''; }
+}
+/* Al aplicar, las marcas de hoy del ejercicio (las que aún no
+   están hechas) refrescan su precarga: las series cuyo
+   loadVal esté vacío o sea exactamente la precarga anterior
+   reciben la nueva; un valor tecleado a mano NUNCA se pisa. */
+function progRefreshTodayChecks(plan, di, identKey, oldPreload, newPreload) {
+  if (typeof TRAIN_CHECKS === 'undefined') return;
+  if (TRAIN_CHECKS_CTX !== plan.id + '|' + todayISO()) return;
+  let changed = false;
+  trainEffectiveList(plan, di).forEach((it, ei) => {
+    if (it.kind !== 'plan' || progIdentKey(it.ex) !== identKey) return;
+    const chk = TRAIN_CHECKS[di + ':' + ei];
+    if (!chk || chk.done === true || !Array.isArray(chk.sets)) return;
+    chk.sets.forEach(s => {
+      if (!s) return;
+      const lv = (s.loadVal == null ? '' : String(s.loadVal));
+      if (lv === '' || (oldPreload !== '' && lv === oldPreload)) {
+        if (lv !== newPreload) { s.loadVal = newPreload; changed = true; }
+      }
+    });
+  });
+  if (changed) trainChecksPersist(plan.id);
+}
+/* LA DECISIÓN DE LA PERSONA (Aplicar / Ahora no): se escribe
+   en el plan con la disciplina de restrWritePlanDay —
+   re-lectura fresca del documento, instantánea previa y
+   escritura fusionada {days, updatedAt} — marcando TODAS las
+   instancias del ejercicio: progDec siempre; al aplicar una
+   subida o una bajada, además progNext y la carga aceptada
+   como dictLoad/dictLoadUnit (el mecanismo de las cargas
+   dictadas: trainDefaultSets la precarga sola la próxima
+   sesión). Consolidar (C) no mueve la carga: solo persiste
+   la decisión. Sin toque de la persona, no cambia ni un
+   número. */
+async function progDecide(plan, di, ei, apply) {
+  const it = trainEffectiveList(plan, di)[ei];
+  if (!it || it.kind !== 'plan') return;
+  const ex = it.ex;
+  const v = progVerdict(ex, MY_LOGS_ALL, todayISO());
+  if (!v || (v.kind !== 'A' && v.kind !== 'C' && v.kind !== 'D')) return;
+  if (v.kind === 'A' && v.stepKg == null) return;
+  const insts = progPlanInstances(plan, ex);
+  if (!insts.length) return;
+  if (progSuppressed(insts[0].ex, v)) return;
+  const newKg = v.kind === 'A' ? v.L + v.stepKg : (v.kind === 'D' ? v.L - v.stepKg : v.L);
+  const oldPreload = (trainDefaultSets(ex)[0] || {}).loadVal || '';
+  const storedLoad = uRound1(massToDisplay(newKg));
+  const newPreload = (trainDefaultSets({ ...ex, dictLoad: storedLoad, dictLoadUnit: UNIT_PREFS.mass })[0] || {}).loadVal || '';
+  const ref = doc(db, 'training_plans', plan.id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const prev = snap.data();
+  const days = JSON.parse(JSON.stringify(prev.days || []));
+  const key = progIdentKey(ex);
+  let touched = 0;
+  days.forEach(d => ((d && d.exercises) || []).forEach(x => {
+    if (progIdentKey(x) !== key) return;
+    x.progDec = { kg: v.L, n: v.n, kind: apply ? v.kind : 'no' };
+    if (apply && (v.kind === 'A' || v.kind === 'D')) { x.progNext = { kg: newKg }; x.dictLoad = storedLoad; x.dictLoadUnit = UNIT_PREFS.mass; }
+    touched++;
+  }));
+  if (!touched) return;
+  await addDoc(collection(db, 'training_plans'), { ...prev, isSnapshot: true, sourcePlanId: plan.id, snapshotAt: serverTimestamp(), active: false });
+  await setDoc(ref, { days, updatedAt: serverTimestamp() }, { merge: true });
+  plan.days = days;
+  if (apply && (v.kind === 'A' || v.kind === 'D')) {
+    progRefreshTodayChecks(plan, di, key, oldPreload, newPreload);
+    try { toast(t('prog.applied', { load: fmtMass(newKg) })); } catch {}
+  }
+  loadMyTraining();
+}
+/* LA SESIÓN SINTÉTICA DEL CIERRE: la sesión de hoy aún no es
+   un registro (nace al confirmar el cierre), pero sus marcas
+   ya están — se proyectan a la forma del registro con el
+   mismo mapeo del escritor del registro (fuera las series
+   pend; repeticiones numéricas; la carga tecleada a kg
+   canónico con su par original). */
+function progSyntheticEntry(ex, c) {
+  const wsets = (Array.isArray(c.sets) ? c.sets : []).filter(s => !(s && s.pend === true));
+  if (!wsets.length) return null;
+  const sets = wsets.map(s => {
+    const out = { repsPlanned: String(s.repsPlanned || '') };
+    const rd = num(s.repsDone);
+    if (s.repsDone !== '' && s.repsDone != null && !isNaN(rd)) out.repsDone = rd;
+    const lv = parseFloat(s.loadVal);
+    if (s.loadVal !== '' && s.loadVal != null && isFinite(lv) && lv >= 0) { out.loadKg = massToCanonical(lv); out.loadOriginal = lv; out.loadUnitOriginal = UNIT_PREFS.mass; }
+    return out;
+  });
+  const e = { done: true };
+  if (ex.exerciseId) e.exerciseId = ex.exerciseId; else if (ex.name) e.name = ex.name;
+  if (Number.isInteger(ex.variantIndex)) e.variantIndex = ex.variantIndex;
+  if (c.rpe) e.rpe = c.rpe;
+  e.sets = sets;
+  return e;
+}
+/* EL ANUNCIO EN LA BANDA DE CIERRE: cuando la sesión de hoy
+   — evaluada como sesión sintética sobre las marcas — cierra
+   la puerta de una sugerencia, la banda lo anuncia en una
+   línea; la decisión se toma en la tarjeta, no a mitad del
+   cierre. Sin superficie de mensaje del Coach en este
+   paquete: no existe un canal entrenador->alumno donde
+   entregarla sin infraestructura nueva (declarado). */
+function progCloseEval(dc) {
+  const out = [];
+  try {
+    if (typeof MY_LOGS_ALL === 'undefined' || !Array.isArray(MY_LOGS_ALL)) return out;
+    (dc.eff || []).forEach((it, ei) => {
+      if (!it || it.kind !== 'plan') return;
+      const c = dc.checks[dc.di + ':' + ei];
+      if (!c || c.done !== true) return;
+      const ex = it.ex;
+      const insts = progPlanInstances(dc.plan, ex);
+      if (!insts.length) return;
+      const crit = trainSetCriterion(ex, null);
+      if (!crit || crit.kind === 'time') return;
+      const entry = progSyntheticEntry(ex, c);
+      if (!entry) return;
+      const cls = progClassify(entry, crit, trainPlannedSets(ex));
+      if (cls.transparent || cls.partial) return;
+      const v = progVerdict(ex, MY_LOGS_ALL, todayISO(), [cls]);
+      if (!v || (v.kind !== 'A' && v.kind !== 'C' && v.kind !== 'D')) return;
+      if (progSuppressed(insts[0].ex, v)) return;
+      out.push({ key: progIdentKey(ex), kind: v.kind, name: trainExName(ex) || ex.name || '' });
+    });
+  } catch {}
+  return out;
+}
+function progCloseKeys(dc) { return progCloseEval(dc).map(x => x.key + ':' + x.kind); }
+function progCloseAnnounceHTML(dc) {
+  return progCloseEval(dc).map(x => `<div class="prog-close">${esc(t(x.kind === 'A' ? 'prog.closeLine' : x.kind === 'D' ? 'prog.closeLineDown' : 'prog.closeLineRepeat', { name: x.name }))}</div>`).join('');
+}
+
 /* LA VEZ PASADA POR SERIE (AUTH-2026-11-05-257 — decisión de
    Ronald del 2026-11-05, que revisita D-H2 SOLO para la última
    sesión y SOLO como referencia visible entrenando): escaneo puro
@@ -52131,6 +52597,28 @@ async function loadMyTraining() {
     if (trainMoveFlowHits(diV, eiV, eiV + dirV)) return;
     if (trainSessionReorder(plan, diV, eiV, eiV + dirV)) loadMyTraining();
   });
+  /* AUTH-544 · SUGERENCIAS DE PROGRESIÓN: el pliegue abre y
+     cierra en su sitio (estado de pantalla por identidad); los
+     botones deciden sobre el plan de la persona por
+     progDecide — la única escritura del paquete, y solo tras
+     su toque. */
+  box.querySelectorAll('[data-prog-toggle]').forEach(b => b.onclick = () => {
+    const [diP, eiP] = String(b.dataset.progToggle).split(':').map(Number);
+    const itP = trainEffectiveList(plan, diP)[eiP];
+    if (!itP) return;
+    const kP = progIdentKey(itP.ex);
+    if (PROG_OPEN.has(kP)) PROG_OPEN.delete(kP); else PROG_OPEN.add(kP);
+    loadMyTraining();
+  });
+  box.querySelectorAll('[data-prog-apply]').forEach(b => b.onclick = () => {
+    const [diP, eiP] = String(b.dataset.progApply).split(':').map(Number);
+    progDecide(plan, diP, eiP, true).catch(() => { try { toast(t('common.error'), true); } catch {} });
+  });
+  box.querySelectorAll('[data-prog-no]').forEach(b => b.onclick = () => {
+    const [diP, eiP] = String(b.dataset.progNo).split(':').map(Number);
+    progDecide(plan, diP, eiP, false).catch(() => {});
+  });
+
   /* AUTH-413 · El asa discreta de las paradas del recorrido
      al nacer: el gesto se arma sobre el asa con las mismas
      guardas del de la lista (un solo arrastre a la vez entre
@@ -69372,7 +69860,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261121-selector-grupos';
+const PWA_SW_VERSION = '20261121-progresion';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
