@@ -54776,10 +54776,11 @@ function r21Paint() {
     h += `<h3 class="wiz-h">${esc(t('r21.exTitle'))}</h3><div class="wiz-body">`;
     if (b) {
       h += `<p class="wiz-expl">${esc(b.form === 5 ? t('plan21.sheetForm5') : t('plan21.sheetForm4'))} · ${esc(t('plan21.sheetStart', { a: plan21DateLabel(b.startsAt), b: plan21DateLabel(b.endsAt) }))}</p>`;
-      h += b.days.slice(0, 7).map(d => {
-        if (d.freeDay) return `<div class="r21-day r21-rest"><b>${esc(plan21DateLabel(d.dateISO))}</b><span>${esc(t('plan21.restDay'))}</span></div>`;
-        const exs = (d.exs || []).map(ex => `<div class="r21-ex"><img src="${esc(libThumbSrc({ foto_url: ex.photoUrl || '' }))}" alt="" loading="lazy" onerror="libThumbErr(this)"><span class="r21-ex-n">${esc(ex.name || '')}</span><span class="r21-ex-s">${esc(String(ex.sets))} × ${esc(String(ex.reps))}</span></div>`).join('');
-        return `<div class="r21-day"><div class="r21-day-h"><b>${esc(plan21DateLabel(d.dateISO))}</b><span>${esc(d.label || '')}</span></div>${exs}</div>`;
+      h += b.days.slice(0, 7).map((d, ix) => {
+        const iso = planISOAddDays(b.startsAt, ix);
+        if (d.freeDay) return `<div class="r21-day r21-rest"><b>${esc(plan21DateLabel(iso))}</b><span>${esc(t('plan21.restDay'))}</span></div>`;
+        const exs = (d.exercises || []).map(ex => `<div class="r21-ex"><img src="${esc(libThumbSrc({ foto_url: ex.photoUrl || '' }))}" alt="" loading="lazy" onerror="libThumbErr(this)"><span class="r21-ex-n">${esc(ex.name || '')}</span><span class="r21-ex-s">${esc(String(ex.sets))} × ${esc(String(ex.reps))}</span></div>`).join('');
+        return `<div class="r21-day"><div class="r21-day-h"><b>${esc(plan21DateLabel(iso))}</b><span>${esc(d.label || '')}</span></div>${exs}</div>`;
       }).join('');
       if (b.notes) h += `<p class="wiz-note">${esc(b.notes)}</p>`;
     }
