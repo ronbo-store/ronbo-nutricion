@@ -8736,6 +8736,28 @@ en: {
   'chal.p21Tag': 'Challenge · 21 days',
   'chal.p21Desc': 'A complete program for beginners: training and food for 21 days. It adapts to your available days and your equipment, and week 1 calibrates your loads.',
   'chal.p21ViewBtn': 'View my plan',
+  'chal.activeLbl': 'The active challenge',
+  'chal.p21IncTrainB': 'Training, organized:',
+  'chal.p21IncTrain': '4–5 sessions a week, with your rest days placed for you.',
+  'chal.p21IncFoodB': 'Meals, organized:',
+  'chal.p21IncFood': 'a meal plan for the same 21 days, with its weekly shopping list.',
+  'chal.p21RoutineTtl': 'This is your routine',
+  'chal.p21SessN': 'Session {n}',
+  'chal.p21RoutineNote': 'The full routine is 5 sessions that repeat over the 21 days, at your pace: week 1 calibrates your loads, with no invented weights.',
+  'chal.p21StartBtn': 'Start the challenge',
+  'chal.p21ActiveKick': 'Your active challenge · Keep going!',
+  'chal.p21WeekOf': 'Week {w} of 3',
+  'chal.p21PctDone': '{p}% done',
+  'chal.p21NextWeek': 'Next week: week {w}',
+  'chal.p21WeekTtl': 'This week · Week {n}',
+  'chal.p21Today': 'TODAY',
+  'chal.p21AskSub': 'It is organized for next week. If it is going well, keep it; if you want variety, I bring you two different proposals to choose from.',
+  'chal.p21WaitTitle': 'Your challenge is being prepared',
+  'chal.p21WaitNote': 'There is nothing for you to do here for now. As soon as it is ready, this same tab will show your plan.',
+  'chal.p21DoneSub': 'You completed the 21-day beginner plan. Well done!',
+  'chal.p21SumDays': '21 of 21 days',
+  'chal.p21SumSessions': '{n} sessions trained',
+  'chal.p21SumWeeks': '3 of 3 weeks',
   'chal.featuredTag': '⭐ Featured',
   'chal.assignedBy': 'Assigned by {name} · {date}',
   'chal.repoPrograms': 'Programs',
@@ -14295,6 +14317,28 @@ es: {
   'chal.p21Tag': 'Reto · 21 días',
   'chal.p21Desc': 'Un programa completo para principiantes: entrenamiento y alimentación durante 21 días. Se adapta a tus días disponibles y a tu equipo, y la primera semana calibra tus cargas.',
   'chal.p21ViewBtn': 'Ver mi plan',
+  'chal.activeLbl': 'El reto activo',
+  'chal.p21IncTrainB': 'Entrenamiento organizado:',
+  'chal.p21IncTrain': '4–5 sesiones por semana, con tus descansos ya colocados.',
+  'chal.p21IncFoodB': 'Alimentación organizada:',
+  'chal.p21IncFood': 'un plan de comidas para los mismos 21 días, con su lista de compras semanal.',
+  'chal.p21RoutineTtl': 'Así es tu rutina',
+  'chal.p21SessN': 'Sesión {n}',
+  'chal.p21RoutineNote': 'La rutina completa son 5 sesiones que se repiten durante los 21 días, a tu ritmo: la primera semana calibra tus cargas, sin pesos inventados.',
+  'chal.p21StartBtn': 'Empezar el reto',
+  'chal.p21ActiveKick': 'Tu reto activo · ¡A seguir!',
+  'chal.p21WeekOf': 'Semana {w} de 3',
+  'chal.p21PctDone': '{p}% completado',
+  'chal.p21NextWeek': 'La semana que viene: semana {w}',
+  'chal.p21WeekTtl': 'Esta semana · Semana {n}',
+  'chal.p21Today': 'HOY',
+  'chal.p21AskSub': 'Ya está organizada para la semana que viene. Si va bien, se queda; si quieres variar, te traigo dos propuestas distintas para que elijas.',
+  'chal.p21WaitTitle': 'Tu reto se está preparando',
+  'chal.p21WaitNote': 'Por ahora no tienes que hacer nada aquí. En cuanto esté listo, esta misma pestaña te mostrará tu plan.',
+  'chal.p21DoneSub': 'Completaste el plan de 21 días para principiantes. ¡Buen trabajo!',
+  'chal.p21SumDays': '21 de 21 días',
+  'chal.p21SumSessions': '{n} sesiones entrenadas',
+  'chal.p21SumWeeks': '3 de 3 semanas',
   'chal.featuredTag': '⭐ Destacado',
   'chal.assignedBy': 'Asignado por {name} · {date}',
   'chal.repoPrograms': 'Programas',
@@ -54500,6 +54544,16 @@ function plan21MealNames(day) {
 /* --- La tarjeta del plan en la vista del alumno (D7·D8·D9) --- */
 const PLAN21_ENSURED = {};
 let PLAN21_CARD_BUSY = false;
+/* AUTH-547: cálculo PURO de la pregunta D9 vencida — la usan la
+   tarjeta del plan en Entreno y el héroe de Retos: una sola regla,
+   dos superficies. checks = mapa weekStart → doc plan21Check. */
+function plan21AskDue(plan, checks, dayIx) {
+  if (!plan || plan.active !== true || dayIx < 7 || dayIx > 20) return null;
+  const mondays = plan21Mondays(plan);
+  for (let k = 1; k <= 2; k++) if (dayIx >= 7 * k && !checks[mondays[k]]) return { n: k + 1, monday: mondays[k] };
+  return null;
+}
+
 async function plan21CardRender(plan) {
   const host = $('p21-slot'); if (!host || !plan || PLAN21_CARD_BUSY) return;
   const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
@@ -54531,22 +54585,19 @@ async function plan21CardRender(plan) {
        en nutrition_progress y la pregunta no vuelve. */
     let ask = null;
     if (plan.active === true && dayIx >= 7 && dayIx <= 20) {
-      const mondays = plan21Mondays(plan);
       let checks = {};
       try {
         const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', me), where('kind', '==', 'plan21Check')));
         snap.forEach(d => { const v = d.data(); if (v && v.planId === plan.id) checks[v.weekStart] = v; });
       } catch {}
-      for (let k = 1; k <= 2; k++) {
-        if (dayIx >= 7 * k && !checks[mondays[k]]) { ask = { n: k + 1, monday: mondays[k] }; break; }
-      }
+      ask = plan21AskDue(plan, checks, dayIx);
+    }
       if (ask) {
         h += `<div class="p21-ask"><p><b>${esc(t('plan21.askWeekQ', { n: ask.n }))}</b></p>
           <div class="p21-ask-row"><button type="button" class="btn-primary btn-sm" id="p21-ask-ok">${esc(t('plan21.askOk'))}</button>
           <button type="button" class="btn-ghost btn-sm" id="p21-ask-vary">${esc(t('plan21.askVary'))}</button></div>
           <div id="p21-cands"></div></div>`;
       }
-    }
     /* D8: la única salida ofrecida al terminar. */
     if (dayIx > 20) {
       let nextPending = false;
@@ -54591,8 +54642,8 @@ async function plan21CardRender(plan) {
   } catch {}
   PLAN21_CARD_BUSY = false;
 }
-async function plan21AskVary(plan, ask) {
-  const host = $('p21-cands'); if (!host) return;
+async function plan21AskVary(plan, ask, hostId) {
+  const host = $(hostId || 'p21-cands'); if (!host) return;
   host.innerHTML = `<div class="wempty compact">${esc(t('train.loading'))}</div>`;
   const ctx = await plan21WeekInputs(ask.monday);
   if (!ctx) { host.innerHTML = `<p class="progress-hint">${esc(t('plan21.askNeedSetup'))}</p>`; return; }
@@ -54609,6 +54660,7 @@ async function plan21AskVary(plan, ask) {
     try { await plan21SaveWeek(ask.monday, ctx, gen); await plan21WriteCheck(plan, ask.monday, { answer: 'varied', chosenGen: gen }); } catch {}
     toast(t('plan21.askChosen'));
     plan21CardRender(plan);
+    try { if (NAV_TAB === 'challenges') chalRenderPaint(); } catch {}
   });
 }
 
@@ -69906,7 +69958,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261122-sinonimos-2';
+const PWA_SW_VERSION = '20261122-retos-unica';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -74037,20 +74089,168 @@ function chalPlan21CardHTML(opts = {}) {
     ${inner}
   </div>`;
 }
+/* ══ AUTH-547 «Pestaña única de Retos» ═══════════════════════════
+   La pestaña muestra UNA sola cosa: el reto activo, en sus cuatro
+   momentos. Los retos de conteo, las medallas y el historial dejan
+   de pintarse aquí — solo presentación: ningún dato se borra, no
+   se toca ninguna colección y las reglas no cambian. El proveedor
+   de estado de hoy es el Plan 21 días (AUTH-503/505, su misma
+   lógica chalPlan21State); cuando otro reto sea el activo ocupará
+   este mismo sitio. Las funciones de cajitas/hojas de AUTH-518
+   quedan en el código, sin pintar en esta pestaña. ════════════ */
+function chalActiveProvider() { return { kind: 'plan21' }; }
+
+function chalActiveHTML() {
+  const prov = chalActiveProvider();
+  if (prov.kind === 'plan21') return chalP21HeroHTML();
+  return '';
+}
+
+/* Miniatura de la rutina: las tres primeras ranuras de las sesiones
+   A (Torso y Pierna) resueltas con plan21Resolve — las mismas
+   fichas titulares que el plan usa — con nombre y foto de la
+   biblioteca viva. Sin biblioteca cargada, la sesión va sin fotos. */
+function chalP21MiniHTML() {
+  const out = [];
+  [['TA', 1], ['PA', 2]].forEach(([code, n]) => {
+    const sess = PLAN21_SESSIONS.find(s => s.code === code); if (!sess) return;
+    const figs = [];
+    for (const slot of sess.slots.slice(0, 3)) {
+      const r = plan21Resolve(slot, WIZ_EQ_FAMS);
+      const ex = (r && r.id) ? LIB_BY_ID[r.id] : null;
+      if (!ex || !ex.foto_url) continue;
+      const th = libThumbSrc(ex.foto_url);
+      const img = th !== ex.foto_url
+        ? `<img src="${esc(th)}" alt="" loading="lazy" decoding="async" data-full="${esc(ex.foto_url)}" onerror="libThumbErr(this)">`
+        : `<img src="${esc(ex.foto_url)}" alt="" loading="lazy" decoding="async">`;
+      figs.push(`<figure>${img}<figcaption>${esc(libNameOf(ex))}</figcaption></figure>`);
+    }
+    out.push(`<div class="chal-mini"><div class="chal-mini-h">${esc(t('chal.p21SessN', { n }))} · ${esc(t('plan21.sess' + code))}</div><div class="chal-mini-row">${figs.join('')}</div></div>`);
+  });
+  return out.join('');
+}
+
+/* La semana en curso del plan: entrenos y descansos, con ✔ en los
+   días ya cumplidos (entreno con registro cerrado, o descanso ya
+   pasado) y la marca de hoy. Sin culpas: un entreno pasado sin
+   registro no lleva ninguna marca. */
+function chalP21WeekHTML(plan, dayIx) {
+  const wk = Math.floor(dayIx / 7);
+  const today = todayISO();
+  const trainDates = (CHAL.ownData && CHAL.ownData.trainDates) || new Set();
+  let rows = '';
+  for (let j = 0; j < 7; j++) {
+    const ix = wk * 7 + j;
+    const d = plan.days && plan.days[ix]; if (!d) continue;
+    const iso = planISOAddDays(plan.startsAt, ix);
+    const isToday = iso === today;
+    const done = iso < today && (d.freeDay || trainDates.has(iso));
+    rows += `<div class="chal-wkrow${d.freeDay ? ' rest' : ''}${isToday ? ' today' : ''}"><span class="chal-wd">${esc(plan21DayName(plan21Weekday(iso)))}</span><span class="chal-ws">${esc(d.label || '')}${isToday ? ` · ${esc(t('chal.p21Today'))}` : ''}</span><span class="chal-wst">${done ? '✔️' : (isToday ? '📍' : '')}</span></div>`;
+  }
+  return `<div class="chal-secttl">${esc(t('chal.p21WeekTtl', { n: wk + 1 }))}</div>` + rows;
+}
+
+function chalP21HeroHTML() {
+  const st = CHAL.p21 || { state: 'none' };
+  const head = `<div class="chal-kick">${esc(t('chal.activeLbl'))}</div><h3 class="chal-hero-name">${esc(t('plan21.title'))}</h3><span class="chal-tag">${esc(t('chal.p21Tag'))}</span>`;
+  /* Momento 3 — en espera (salud o propuesta al entrenador): el
+     aviso honesto de AUTH-503/505, sin botón. */
+  if (st.state === 'hold' || st.state === 'sent') {
+    return `<div class="chal-hero chal-statecard"><div class="chal-state-ic" aria-hidden="true">⏳</div>${head}<div class="chal-state-ttl">${esc(t('chal.p21WaitTitle'))}</div><p class="chal-state-body">${esc(t(st.state === 'hold' ? 'plan21.startedHold' : 'plan21.sentTrainer'))}</p><p class="chal-state-note">${esc(t('chal.p21WaitNote'))}</p></div>`;
+  }
+  /* Momento 4 — terminado: el cierre y la única salida al
+     siguiente nivel (D8). Sin botón de repetir. */
+  if (st.state === 'done' && st.plan) {
+    const plan = st.plan;
+    const face = SESS_CELEB_URLS[sessCelebIdxFor(todayISO())];
+    let nSess = 0;
+    const td = (CHAL.ownData && CHAL.ownData.trainDates) || new Set();
+    td.forEach(iso => { if (iso >= plan.startsAt && iso <= plan.endsAt) nSess++; });
+    return `<div class="chal-hero chal-donecard"><img class="chal-done-face" src="${face}" alt="" aria-hidden="true" onerror="this.remove()"><div class="chal-done-ttl">${esc(t('plan21.finished'))}</div><p class="chal-done-sub">${esc(t('chal.p21DoneSub'))}</p><div class="chal-sum"><div>📅 ${esc(t('chal.p21SumDays'))}</div><div>🏋️ ${esc(t('chal.p21SumSessions', { n: nSess }))}</div><div>🗓️ ${esc(t('chal.p21SumWeeks'))}</div></div><div class="chal-nextcard"><div class="chal-next-ttl">${esc(t('plan21.exitTitle'))}</div><p class="chal-next-body">${esc(t('plan21.exitBody'))}</p><div id="chal-p21-exit-wrap"><button type="button" class="btn-primary chal-hero-btn" id="chal-p21-exit">${esc(t('plan21.exitBtn'))}</button></div></div></div>`;
+  }
+  /* Momento 2 — en curso: día, barra, la semana y la pregunta D9
+     en su momento (la rellena chalP21AskPaint). */
+  if (st.state === 'active' && st.plan) {
+    const plan = st.plan, dayIx = st.dayIx;
+    if (dayIx < 0) {
+      return `<div class="chal-hero">${head}<p class="chal-hero-hint">${esc(t('plan21.sheetStart', { date: plan21DateLabel(plan.startsAt), date2: plan21DateLabel(plan.endsAt) }))}</p><button type="button" class="btn-primary chal-hero-btn" data-chal-act="p21view">${esc(t('chal.p21ViewBtn'))}</button></div>`;
+    }
+    const wk = Math.floor(dayIx / 7) + 1;
+    const pct = Math.round((dayIx + 1) / 21 * 100);
+    return `<div class="chal-hero"><div class="chal-kick">${esc(t('chal.p21ActiveKick'))}</div><h3 class="chal-hero-name">${esc(t('plan21.title'))}</h3><div class="chal-big">${esc(t('plan21.dayOf', { x: dayIx + 1 }))}</div><div class="chal-hbar"><i style="width:${pct}%"></i></div><div class="chal-bar-lbl"><span>${esc(t('chal.p21WeekOf', { w: wk }))}</span><span>${esc(t('chal.p21PctDone', { p: pct }))}</span></div>${chalP21WeekHTML(plan, dayIx)}${dayIx >= 7 && dayIx <= 20 ? `<div id="chal-p21-ask"></div>` : ''}${wk < 3 ? `<div class="chal-next">${esc(t('chal.p21NextWeek', { w: wk + 1 }))}</div>` : ''}<button type="button" class="btn-primary chal-hero-btn" data-chal-act="p21view">${esc(t('chal.p21ViewBtn'))}</button></div>`;
+  }
+  /* Momento 1 — sin empezar: qué incluye en dos líneas, la rutina
+     en miniatura y el botón grande que abre LA MISMA hoja de
+     arranque de AUTH-503 (data-chal-act="p21start"). */
+  return `<div class="chal-hero">${head}<div class="chal-inc"><p>💪 <b>${esc(t('chal.p21IncTrainB'))}</b> ${esc(t('chal.p21IncTrain'))}</p><p>🍽️ <b>${esc(t('chal.p21IncFoodB'))}</b> ${esc(t('chal.p21IncFood'))}</p></div><div class="chal-secttl">${esc(t('chal.p21RoutineTtl'))}</div><div id="chal-p21-mini">${chalP21MiniHTML()}</div><p class="chal-mini-note">${esc(t('chal.p21RoutineNote'))}</p><button type="button" class="btn-primary chal-hero-btn" data-chal-act="p21start">${esc(t('chal.p21StartBtn'))}</button></div>`;
+}
+
+/* La pregunta D9 en el héroe: mismo cálculo (plan21AskDue), misma
+   escritura (plan21WriteCheck) y mismas propuestas (plan21AskVary)
+   que la tarjeta del plan en Entreno — ningún mecanismo nuevo. */
+async function chalP21AskPaint() {
+  const host = $('chal-p21-ask'); if (!host) return;
+  const st = CHAL.p21; if (!st || st.state !== 'active' || !st.plan) return;
+  const plan = st.plan, dayIx = st.dayIx, me = chalMe(); if (!me) return;
+  let checks = {};
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', me), where('kind', '==', 'plan21Check')));
+    snap.forEach(d => { const v = d.data(); if (v && v.planId === plan.id) checks[v.weekStart] = v; });
+  } catch { return; }
+  const ask = plan21AskDue(plan, checks, dayIx);
+  const host2 = $('chal-p21-ask'); if (!host2 || !ask) return;
+  host2.innerHTML = `<div class="chal-foodq"><div class="chal-foodq-q">🍽️ ${esc(t('plan21.askWeekQ', { n: ask.n }))}</div><p class="chal-foodq-sub">${esc(t('chal.p21AskSub'))}</p><div class="chal-foodq-btns"><button type="button" class="btn-primary" id="chal-p21-ask-ok">${esc(t('plan21.askOk'))}</button><button type="button" class="btn-ghost" id="chal-p21-ask-vary">${esc(t('plan21.askVary'))}</button></div><div id="chal-p21-cands"></div></div>`;
+  const okB = $('chal-p21-ask-ok'), vaB = $('chal-p21-ask-vary');
+  if (okB) okB.onclick = async () => { okB.disabled = true; try { await plan21WriteCheck(plan, ask.monday, { answer: 'ok' }); await plan21AutoEnsureWeek(ask.monday, null); } catch {} toast(t('plan21.askKept')); chalRenderPaint(); };
+  if (vaB) vaB.onclick = () => plan21AskVary(plan, ask, 'chal-p21-cands');
+}
+
+/* Salida D8 desde el héroe: la MISMA puerta que la tarjeta del
+   plan — planAiOpen si la persona se autogestiona; si no, la
+   propuesta plan21Next al entrenador, con la misma forma. */
+async function chalP21Exit() {
+  const st = CHAL.p21; if (!st || !st.plan) return;
+  const plan = st.plan, me = chalMe(); if (!me) return;
+  if (plan21SelfManaged()) { planAiOpen(); return; }
+  try {
+    await setDoc(doc(db, 'nutrition_progress', `${me}_p21next_${Date.now()}`), { kind: 'planProposal', ownerUid: me, uid: me, planId: plan.id, planTitle: plan.title || '', type: 'plan21Next', sourceTemplateId: PLAN21_TPL_ID, note: '', status: 'pending', createdAt: serverTimestamp() });
+    toast(t('plan21.exitSent'));
+  } catch { toast(t('train.saveError'), true); }
+  chalRenderPaint();
+}
+
+/* Cablea el botón de salida del momento 4; si ya hay una propuesta
+   de siguiente nivel pendiente, el botón se sustituye por el
+   aviso — como en la tarjeta del plan. */
+async function chalP21DonePaint() {
+  const wrap = $('chal-p21-exit-wrap'); if (!wrap) return;
+  const st = CHAL.p21; if (!st || st.state !== 'done' || !st.plan) return;
+  const plan = st.plan, me = chalMe(); if (!me) return;
+  const btn = $('chal-p21-exit');
+  if (btn) btn.onclick = () => chalP21Exit();
+  if (plan21SelfManaged()) return;
+  let pend = false;
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', me), where('kind', '==', 'planProposal')));
+    snap.forEach(d => { const v = d.data(); if (v && v.type === 'plan21Next' && v.planId === plan.id && v.status === 'pending') pend = true; });
+  } catch {}
+  const wrap2 = $('chal-p21-exit-wrap');
+  if (pend && wrap2) wrap2.innerHTML = `<p class="progress-hint">${esc(t('plan21.exitSent'))}</p>`;
+}
+
 function chalRenderPaint() {
   const body = $('chal-body'); if (!body) return;
-  chalBoxesPaint();
   if (!auth.currentUser) { body.innerHTML = ''; return; }
   if (CHAL.loadError) { body.innerHTML = `<div class="wempty">${esc(t('chal.loadError'))}</div>`; return; }
   if (!CHAL.loaded) { body.innerHTML = `<div class="wempty">${esc(t('train.loading'))}</div>`; return; }
-  /* AUTH-518: la página corta — la intro de siempre y SOLO el
-     reto destacado. Mis retos, Mis medallas y el repositorio
-     entero viven en las hojas de las tres cajitas de la línea
-     de «Volver»; nada de lo de hoy se pierde, se mueve. */
-  body.innerHTML = `<p class="progress-hint">${esc(t('chal.intro'))}</p>` + chalFeaturedHTML();
-  /* Si hay una hoja de cajita abierta, se repinta con el estado
-     nuevo: las acciones de siempre la mantienen al día. */
-  if (CHAL_SHEET && CHAL_SHEET.box) chalSheetPaint();
+  /* AUTH-547: la pestaña pinta SOLO el reto activo. */
+  body.innerHTML = chalActiveHTML();
+  const st = CHAL.p21;
+  if (st && st.state === 'active') chalP21AskPaint();
+  if (st && st.state === 'done') chalP21DonePaint();
+  /* La miniatura necesita la biblioteca: si aún no cargó, al
+     llegar se repinta la pestaña (una sola vez por carga). */
+  if (st && st.state === 'none' && LIB_STATE !== 'ok' && LIB_STATE !== 'unavailable') libEnsure().then(() => { try { if (NAV_TAB === 'challenges') chalRenderPaint(); } catch {} });
 }
 function chalManageHTML() {
   const me = chalMe();
