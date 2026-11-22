@@ -55586,7 +55586,20 @@ const LIB_SYNONYMS = [
   { es: ['aductores', 'aduccion'], en: ['adductors', 'adduction', 'hip adduction'] },
   { es: ['abductores', 'abduccion'], en: ['abductors', 'abduction', 'hip abduction'] },
   { es: ['subida al cajon', 'subidas al cajon'], en: ['step-up', 'step up', 'step-ups', 'step ups'] },
-  { es: ['paseo del granjero', 'caminata del granjero', 'granjero'], en: ["farmer's walk", 'farmers walk', 'farmer walk'] }
+  { es: ['paseo del granjero', 'caminata del granjero', 'granjero'], en: ["farmer's walk", 'farmers walk', 'farmer walk'] },
+  { es: ['salto al cajon', 'saltos al cajon', 'salto a la caja', 'saltos a la caja'], en: ['box jump', 'box jumps'] },
+  { es: ['rueda abdominal'], en: ['ab wheel', 'ab roller'] },
+  { es: ['muscle up', 'muscle up en anillas'], en: ['muscleup', 'muscle up', 'muscle-up'] },
+  { es: ['molino', 'molino de viento'], en: ['windmill', 'kettlebell windmill'] },
+  { es: ['lenador', 'lenador en polea'], en: ['woodchopper', 'wood chopper', 'woodchoppers', 'cable woodchopper'] },
+  { es: ['antebrazos', 'antebrazo', 'muneca'], en: ['forearms', 'forearm', 'wrist'] },
+  { es: ['tibial anterior', 'elevacion inversa de talones'], en: ['tibialis', 'reverse calf raise', 'reverse calf raises'] },
+  { es: ['pull-through en polea'], en: ['pullthrough', 'pull through', 'cable pull through'] },
+  { es: ['elevacion gluteo-femoral', 'gluteo-femoral'], en: ['glute ham raise', 'glute-ham raise', 'ghr'] },
+  { es: ['toques de talon', 'toques de talones'], en: ['heel taps', 'heel tap', 'heel touches'] },
+  { es: ['levantada turca'], en: ['turkish get up', 'turkish get-up', 'tgu', 'get up'] },
+  { es: ['tiron alto sumo', 'tiron alto'], en: ['sumo high pull', 'high pull'] },
+  { es: ['barra hexagonal', 'peso muerto con barra hexagonal'], en: ['trap bar', 'hex bar', 'trap bar deadlift'] }
 ];
 const LIB_SYN_TOKEN = i => '\u0001' + i + '\u0001';
 const LIB_SYN_PHRASES = (() => {
@@ -69893,7 +69906,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261119-tarjeta-dia-guardado';
+const PWA_SW_VERSION = '20261122-sinonimos-2';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
