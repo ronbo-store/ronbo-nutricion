@@ -3970,7 +3970,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261122-un-idioma');
+  const mod = await import('./i18n-' + l + '.js?v=20261122-modo-espejo');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -59224,7 +59224,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261122-un-idioma';
+const PWA_SW_VERSION = '20261122-modo-espejo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -68832,7 +68832,7 @@ function mpRenderHome() {
 
 /* ---------- Hojas (sábanas) ---------- */
 function mpSheetOpen(id) { const el = $(id); if (el) el.style.display = ''; try { coverSync(); } catch {} }
-function mpSheetClose(id) { const el = $(id); if (el) el.style.display = 'none'; try { coverSync(); } catch {} }
+function mpSheetClose(id) { if (id === 'mp-tests') { try { fitRunStop(); } catch {} } const el = $(id); if (el) el.style.display = 'none'; try { coverSync(); } catch {} }
 /* Registro en el gestor central de cubiertas (pase a producción):
    las hojas del módulo se cierran por la vía forzada del gesto del
    dock (navClosePagesForce, AUTH-312) y con Escape, como las demás
@@ -71466,6 +71466,7 @@ function fitTestCardHTML(test, fx, cardioOff) {
 function fitRunStop() {
   if (FIT_RUN && FIT_RUN.timer) { clearInterval(FIT_RUN.timer); FIT_RUN.timer = 0; }
   fitMetroOff();
+  fitCamStopAll();
 }
 let FIT_AUDIO = null;
 function fitMetroOff() { if (FIT_RUN && FIT_RUN.metroInt) { clearInterval(FIT_RUN.metroInt); FIT_RUN.metroInt = 0; } if (FIT_RUN) FIT_RUN.metroOn = false; }
@@ -71491,13 +71492,14 @@ function fitRunStart(test, seq) {
   const fx = fitEffects(gate.state === 'decl' ? gate.conds : []);
   const ch = fitVariantChoices(test, fx, gate.state === 'decl');
   fitRunStop();
-  FIT_RUN = { test, variant: ch.fixed || ch.list[0], choices: ch, fx, phase: 'prep', acc: 0, t0: 0, running: false, timer: 0, metroOn: false, metroInt: 0, seq: Array.isArray(seq) ? seq : null };
+  FIT_RUN = { test, variant: ch.fixed || ch.list[0], choices: ch, fx, phase: 'prep', acc: 0, t0: 0, running: false, timer: 0, metroOn: false, metroInt: 0, camValue: null, camUsed: false, seq: Array.isArray(seq) ? seq : null };
   fitRunPaint();
 }
 function fitRunPaint() {
   const body = $('mp-tests-body'); if (!body || !FIT_RUN) return;
   const R = FIT_RUN, test = R.test, fx = R.fx;
   const back = `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-fit-act="home">‹ ${esc(t('fit.back'))}</button></div>`;
+  if (R.phase === 'camnotice' || R.phase === 'camload' || R.phase === 'camerr' || R.phase === 'cam') { fitCamPaint(back); return; }
   if (R.phase === 'prep') {
     const chips = R.choices.list.length > 1 ? `<span class="mp-lab">${esc(t('fit.variant'))}</span><div class="mp-seg">${R.choices.list.map(v => `<button type="button" class="mp-seg-b${R.variant === v ? ' on' : ''}" data-fit-act="variant" data-v="${v}">${esc(t('fit.var.' + v))}</button>`).join('')}</div>` : (R.choices.fixed ? `<p class="progress-hint">${esc(t('fit.variant'))}: ${esc(t('fit.var.' + R.choices.fixed))}</p>` : '');
     body.innerHTML = back + `<h4 class="mp-sec">${esc(t('fit.t.' + test))}</h4>
@@ -71507,7 +71509,8 @@ function fitRunPaint() {
       <p class="fit-stop">🛑 ${esc(t('fit.stopRules'))}</p>
       ${fx.notes.map(k => `<p class="progress-hint">⚠️ ${esc(t(k))}</p>`).join('')}
       <p class="progress-hint">${esc(t('fit.t.' + test + '.src'))}</p>
-      <div class="eval-actions"><button type="button" class="btn-primary" data-fit-act="begin">${esc(t('fit.startBtn'))}</button>${R.seq ? `<button type="button" class="btn-ghost" data-fit-act="skip">${esc(t('fit.skip'))}</button>` : ''}</div>`;
+      <div class="eval-actions"><button type="button" class="btn-primary" data-fit-act="begin">${esc(t('fit.startBtn'))}</button>${R.seq ? `<button type="button" class="btn-ghost" data-fit-act="skip">${esc(t('fit.skip'))}</button>` : ''}</div>
+      ${fitCamSupported(test) ? `<div class="eval-actions"><button type="button" class="btn-ghost" data-fit-act="cam">${esc(t('fit.cam.btn'))}</button></div>` : ''}`;
     return;
   }
   if (R.phase === 'run' || R.phase === 'pulse') {
@@ -71524,10 +71527,11 @@ function fitRunPaint() {
     return;
   }
   if (R.phase === 'input') {
-    const preset = test === 'plank' ? String(Math.floor(R.acc)) : '';
+    const preset = test === 'plank' ? String(Math.floor(R.acc)) : (R.camValue != null ? String(R.camValue) : '');
     const unitKey = 'fit.unit.' + (FIT_UNIT[test] || 'reps');
     body.innerHTML = back + `<h4 class="mp-sec">${esc(t('fit.t.' + test))}</h4>
       <p class="progress-hint">${esc(t('fit.var.' + R.variant))}${test === 'plank' ? ' · ' + esc(fitValTxt({ test, value: Math.floor(R.acc) })) : ''}</p>
+      ${R.camUsed ? `<p class="progress-hint">📷 ${esc(t('fit.cam.srcNote'))}</p>` : ''}
       <label class="mp-lab" for="fit-value">${esc(t('fit.value.' + (FIT_UNIT[test] || 'reps')))} (${esc(t(unitKey))})</label>
       <input type="number" id="fit-value" class="fit-value" inputmode="numeric" min="0" step="1" value="${preset}">
       <div class="eval-actions"><button type="button" class="btn-primary" data-fit-act="save" data-complete="1">${esc(t('fit.save'))}</button>
@@ -71579,6 +71583,7 @@ async function fitRunSave(complete) {
   if (!(v > 0) || v > maxV) { if (err) { err.textContent = t('fit.errValue'); err.style.display = ''; } return; }
   const data = { ownerUid: me, kind: 'fitTest', test: FIT_RUN.test, variant: FIT_RUN.variant, value: v,
     unit: FIT_UNIT[FIT_RUN.test], date: todayISO(), complete: !!complete, source: 'self', createdAt: serverTimestamp() };
+  if (FIT_RUN.camUsed) data.via = 'camera';
   try {
     const id = me + '_fit_' + Date.now();
     await setDoc(doc(db, 'nutrition_progress', id), data);
@@ -71593,6 +71598,304 @@ async function fitRunSave(complete) {
     if (seq && seq.length) { const nxt = seq[0]; if (nxt !== doneTest) fitRunStart(nxt, seq.slice(1)); else fitRunStart(seq[0], seq.slice(1)); }
     else mpFitPaint();
   } catch { if (err) { err.textContent = t('fit.saveErr'); err.style.display = ''; } toast(t('fit.saveErr'), true); }
+}
+/* ---------- MODO ESPEJO (AUTH-2026-11-22-551): conteo con cámara
+   dentro de la batería de pruebas — fase 1: flexiones, plancha y
+   sentarse-y-levantarse. Estimación de pose EN el propio teléfono
+   con TensorFlow.js 4.22.0 + pose-detection 2.1.3 + MoveNet
+   SinglePose Lightning, todo vendored en el repo (pose-LICENSES.md)
+   y cargado SOLO al abrir este modo — nunca en el arranque normal.
+   PRIVACIDAD (no negociable): se procesan únicamente los puntos
+   del esqueleto; ningún fotograma se captura, se guarda, se sube
+   ni sale del aparato (este módulo no hace red ni capturas). El
+   aviso se muestra antes de activar la cámara la primera vez y el
+   permiso lo pide el sistema. Sin cámara o sin permiso, la batería
+   sigue a mano como siempre. El resultado se guarda por la misma
+   puerta de siempre (fitRunSave) con via:'camera' cuando la
+   cámara contó; la variante registrada es la de siempre.
+   REGLAS DE CONTEO (declaradas; ángulos en grados sobre los puntos
+   de MoveNet, lado del cuerpo que mejor se ve, histéresis y tiempo
+   mínimo entre repeticiones; si el seguimiento se pierde el conteo
+   se CONGELA — nunca se inventa una repetición — y a los 8 s
+   seguidos sin ver a la persona el conteo termina y pasa a la
+   revisión manual de siempre):
+   · Flexiones: ángulo del codo. «Arriba» > 155°, «abajo» < 105°;
+     una repetición = bajar y volver a arriba. Mínimo 700 ms.
+   · Sentarse y levantarse: ángulo de la rodilla. «De pie» > 155°,
+     «sentado» < 115°; una repetición = sentarse y levantarse del
+     todo. Mínimo 800 ms. La ventana es la de siempre (60 s).
+   · Plancha: el tiempo solo avanza con el cuerpo en posición
+     (ángulo de tronco hombro-cadera-tobillo > 150°, hombro y
+     tobillo a altura parecida — vista lateral — y la cadera sin
+     caer fuera de la banda entre ambos). Si la posición se rompe
+     más de 2 s seguidos, la prueba termina con el tiempo
+     aguantado; el tope es el de siempre (fx.plankCap).
+   La corrección de técnica por ejercicio queda FUERA de esta
+   fase: solo cuentan el conteo, el cronómetro y los avisos
+   universales de parada de siempre (fit.stopRules, visibles). */
+const FIT_CAM_TESTS = ['pushup', 'plank', 'sts1min'];
+const FIT_CAM_BONES = [[5, 6], [5, 7], [7, 9], [6, 8], [8, 10], [5, 11], [6, 12], [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [0, 1], [0, 2], [1, 3], [2, 4]];
+let FIT_CAM = null;          // sesión de cámara viva — solo memoria
+let fitCamLibsPromise = null, fitCamDetector = null;
+function fitCamSupported(test) { return FIT_CAM_TESTS.includes(test); }
+function fitCamConsent() { try { return localStorage.getItem('ronbofit-mirror-consent-v1') === '1'; } catch { return false; } }
+function fitCamSetConsent() { try { localStorage.setItem('ronbofit-mirror-consent-v1', '1'); } catch {} }
+function fitCamLoadScript(src) {
+  return new Promise(res => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = () => res(true); s.onerror = () => res(false);
+    document.head.appendChild(s);
+  });
+}
+function fitCamLoadLibs() {
+  if (window.tf && window.poseDetection) return Promise.resolve(true);
+  if (!fitCamLibsPromise) {
+    fitCamLibsPromise = (async () => {
+      if (!window.tf && !await fitCamLoadScript('tf-4.22.0.min.js')) return false;
+      if (!window.poseDetection && !await fitCamLoadScript('pose-detection-2.1.3.min.js')) return false;
+      return !!(window.tf && window.poseDetection);
+    })();
+  }
+  return fitCamLibsPromise;
+}
+async function fitCamGetDetector() {
+  if (fitCamDetector) return fitCamDetector;
+  if (window.__fitCamDetectorOverride) { fitCamDetector = await window.__fitCamDetectorOverride(); return fitCamDetector; }
+  const pd = window.poseDetection;
+  fitCamDetector = await pd.createDetector(pd.SupportedModels.MoveNet, { modelType: pd.movenet.modelType.SINGLEPOSE_LIGHTNING, modelUrl: 'pose-movenet/model.json' });
+  return fitCamDetector;
+}
+function fitCamStopStream(C) { if (C && C.stream) { try { C.stream.getTracks().forEach(tr => tr.stop()); } catch {} C.stream = null; } }
+function fitCamStopAll() {
+  const C = FIT_CAM; if (!C) return;
+  C.on = false;
+  if (C.raf) { try { cancelAnimationFrame(C.raf); } catch {} C.raf = 0; }
+  fitCamStopStream(C);
+  const v = $('fit-cam-video'); if (v) { try { v.srcObject = null; } catch {} }
+  FIT_CAM = null;
+}
+function fitCamStart() {
+  if (!FIT_RUN || !fitCamSupported(FIT_RUN.test)) return;
+  if (!fitCamConsent()) { FIT_RUN.phase = 'camnotice'; fitRunPaint(); return; }
+  fitCamBegin();
+}
+async function fitCamBegin() {
+  if (!FIT_RUN) return;
+  FIT_RUN.phase = 'camload';
+  fitRunPaint();
+  const C = FIT_CAM = { stream: null, raf: 0, busy: false, on: true, count: 0, state: null, lastRepAt: 0, t0: 0,
+    holdAcc: 0, started: false, inPos: false, outSince: 0, lostSince: 0, lost: false, lastTs: 0, voice: false, detectorReady: false, dynKey: '' };
+  try {
+    if (!window.__fitCamDetectorOverride) {
+      if (!await fitCamLoadLibs()) throw new Error('libs');
+      try { await window.tf.ready(); } catch {}
+    }
+    if (FIT_CAM !== C) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('nocam');
+    C.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+    if (FIT_CAM !== C) { fitCamStopStream(C); return; }
+    const det = await fitCamGetDetector();
+    if (FIT_CAM !== C) return;
+    if (!det) throw new Error('detector');
+    C.detectorReady = true;
+    FIT_RUN.phase = 'cam';
+    fitRunPaint();
+    const v = $('fit-cam-video');
+    if (v) { v.srcObject = C.stream; try { await v.play(); } catch {} }
+    if (FIT_CAM !== C) return;
+    C.lastTs = performance.now();
+    fitCamLoop();
+  } catch {
+    if (FIT_CAM === C) fitCamStopAll();
+    if (FIT_RUN && FIT_RUN.phase === 'camload') { FIT_RUN.phase = 'camerr'; fitRunPaint(); }
+  }
+}
+function fitCamPaint(back) {
+  const body = $('mp-tests-body'); if (!body || !FIT_RUN) return;
+  const R = FIT_RUN, test = R.test;
+  const head = back + `<h4 class="mp-sec">${esc(t('fit.t.' + test))}</h4>`;
+  if (R.phase === 'camnotice') {
+    body.innerHTML = head + `<h4 class="mp-sec">📷 ${esc(t('fit.cam.noticeTitle'))}</h4>
+      <p>${esc(t('fit.cam.notice'))}</p>
+      <p class="fit-stop">🛑 ${esc(t('fit.stopRules'))}</p>
+      <div class="eval-actions"><button type="button" class="btn-primary" data-fit-act="camactivate">${esc(t('fit.cam.activate'))}</button>
+      <button type="button" class="btn-ghost" data-fit-act="camcancel">${esc(t('fit.cam.back'))}</button></div>`;
+    return;
+  }
+  if (R.phase === 'camload') {
+    body.innerHTML = head + `<p class="progress-hint">📷 ${esc(t('fit.cam.loading'))}</p>`;
+    return;
+  }
+  if (R.phase === 'camerr') {
+    body.innerHTML = head + `<div class="fit-notice"><p>${esc(t('fit.cam.err'))}</p></div>
+      <div class="eval-actions"><button type="button" class="btn-primary" data-fit-act="cammanual">${esc(t('fit.cam.manual'))}</button>
+      <button type="button" class="btn-ghost" data-fit-act="camcancel">${esc(t('fit.cam.back'))}</button></div>`;
+    return;
+  }
+  body.innerHTML = head + `<p class="progress-hint">📷 ${esc(t('fit.cam.place.' + test))}</p>
+    <div class="fit-camwrap"><video id="fit-cam-video" class="fit-camvideo" playsinline muted autoplay></video><canvas id="fit-cam-canvas" class="fit-camcanvas"></canvas></div>
+    <p class="fit-camlost" id="fit-cam-lost" style="display:none">${esc(t('fit.cam.lost'))}</p>
+    <div class="fit-timer" id="fit-cam-big">${test === 'plank' ? '0:00' : '0'}</div>
+    <p class="fit-camsub" id="fit-cam-sub">${esc(test === 'plank' ? t('fit.cam.outPos') : t('fit.cam.counted'))}</p>
+    <p class="fit-stop">🛑 ${esc(t('fit.stopRules'))}</p>
+    <div class="eval-actions">
+      <button type="button" class="btn-primary" data-fit-act="camfinish">${esc(t('fit.stopBtn'))}</button>
+      <button type="button" class="btn-ghost" data-fit-act="cammanual">${esc(t('fit.cam.manual'))}</button>
+      ${test !== 'plank' ? `<button type="button" class="btn-ghost btn-sm" data-fit-act="camvoice">${esc(t('fit.cam.voice'))}</button>` : ''}
+    </div>`;
+}
+async function fitCamLoop() {
+  const C = FIT_CAM; if (!C || !C.on) return;
+  const v = $('fit-cam-video');
+  if (!v || !FIT_RUN || FIT_RUN.phase !== 'cam') return;
+  if (!C.busy && v.readyState >= 2) {
+    C.busy = true;
+    try {
+      const poses = fitCamDetector ? await fitCamDetector.estimatePoses(v, { flipHorizontal: false }) : [];
+      if (FIT_CAM !== C || !C.on) return;
+      fitCamFrame(poses && poses[0] ? poses[0].keypoints : null, v);
+    } catch {}
+    C.busy = false;
+  }
+  if (FIT_CAM === C && C.on && FIT_RUN && FIT_RUN.phase === 'cam') C.raf = requestAnimationFrame(fitCamLoop);
+}
+function fitCamAng(a, b, c) {
+  if (!a || !b || !c) return null;
+  const v1x = a.x - b.x, v1y = a.y - b.y, v2x = c.x - b.x, v2y = c.y - b.y;
+  const m1 = Math.hypot(v1x, v1y), m2 = Math.hypot(v2x, v2y);
+  if (!m1 || !m2) return null;
+  let cs = (v1x * v2x + v1y * v2y) / (m1 * m2);
+  cs = Math.max(-1, Math.min(1, cs));
+  return Math.acos(cs) * 180 / Math.PI;
+}
+function fitCamPick(kps, sides) {
+  const sc = tr => ((kps[tr[0]].score || 0) + (kps[tr[1]].score || 0) + (kps[tr[2]].score || 0)) / 3;
+  const use = sc(sides[0]) >= sc(sides[1]) ? sides[0] : sides[1];
+  return [kps[use[0]], kps[use[1]], kps[use[2]]];
+}
+function fitCamFrame(rawKps, v) {
+  const C = FIT_CAM, R = FIT_RUN; if (!C || !R) return;
+  const now = performance.now();
+  const dt = Math.min(0.1, Math.max(0, (now - C.lastTs) / 1000)); C.lastTs = now;
+  const test = R.test;
+  const vw = (v && v.videoWidth) || 1, vh = (v && v.videoHeight) || 1;
+  const kps = rawKps ? rawKps.map(k => ({ x: k.x / vw, y: k.y / vh, score: k.score || 0 })) : null;
+  const need = test === 'pushup' ? [5, 6, 7, 8, 9, 10, 11, 12] : test === 'sts1min' ? [11, 12, 13, 14, 15, 16] : [5, 6, 11, 12, 15, 16];
+  let ok = !!kps;
+  if (ok) { for (const i of need) { if (!kps[i] || kps[i].score < 0.3) { ok = false; break; } } }
+  if (!ok) {
+    if (!C.lostSince) C.lostSince = now;
+    C.lost = true;
+    fitCamPaintDyn();
+    if (now - C.lostSince > 8000) fitCamFinish(true);
+    return;
+  }
+  C.lostSince = 0; C.lost = false;
+  if (test === 'pushup') fitCamPushup(kps, now);
+  else if (test === 'sts1min') fitCamSts(kps, now);
+  else if (test === 'plank') { if (fitCamPlank(kps, now, dt)) return; }
+  if (test === 'sts1min' && C.started && (now - C.t0) / 1000 >= FIT_DUR.sts1min) { fitCamFinish(false); return; }
+  fitCamPaintDyn();
+  fitCamDraw(kps);
+}
+function fitCamPushup(kps, now) {
+  const C = FIT_CAM;
+  const ang = fitCamAng(...fitCamPick(kps, [[5, 7, 9], [6, 8, 10]]));
+  if (ang == null) return;
+  if (!C.started) { C.started = true; C.t0 = now; }
+  if (ang > 155) {
+    if (C.state === 'down' && now - C.lastRepAt >= 700) { C.count++; C.lastRepAt = now; fitCamSay(C.count); }
+    C.state = 'up';
+  } else if (ang < 105) C.state = 'down';
+}
+function fitCamSts(kps, now) {
+  const C = FIT_CAM;
+  const ang = fitCamAng(...fitCamPick(kps, [[11, 13, 15], [12, 14, 16]]));
+  if (ang == null) return;
+  if (!C.started) { C.started = true; C.t0 = now; }
+  if (ang > 155) {
+    if (C.state === 'sit' && now - C.lastRepAt >= 800) { C.count++; C.lastRepAt = now; fitCamSay(C.count); }
+    C.state = 'stand';
+  } else if (ang < 115) C.state = 'sit';
+}
+function fitCamPlank(kps, now, dt) {
+  const C = FIT_CAM, R = FIT_RUN;
+  const pts = fitCamPick(kps, [[5, 11, 15], [6, 12, 16]]);
+  const trunk = fitCamAng(pts[0], pts[1], pts[2]);
+  if (trunk == null) return false;
+  const sh = pts[0], hip = pts[1], ank = pts[2];
+  const inPos = trunk > 150 && Math.abs(sh.y - ank.y) < 0.22 && hip.y > Math.min(sh.y, ank.y) - 0.06 && hip.y < Math.max(sh.y, ank.y) + 0.16;
+  if (inPos) {
+    if (!C.started) { C.started = true; C.t0 = now; }
+    C.outSince = 0;
+    C.holdAcc += dt;
+    C.inPos = true;
+    if (C.holdAcc >= R.fx.plankCap) { C.holdAcc = R.fx.plankCap; fitCamFinish(false); return true; }
+  } else {
+    C.inPos = false;
+    if (C.started) {
+      if (!C.outSince) C.outSince = now;
+      else if (now - C.outSince > 2000) { fitCamFinish(false); return true; }
+    }
+  }
+  return false;
+}
+function fitCamPaintDyn() {
+  const C = FIT_CAM, R = FIT_RUN; if (!C || !R) return;
+  let big, sub;
+  if (R.test === 'plank') {
+    const s = Math.floor(C.holdAcc);
+    big = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    sub = t(C.inPos ? 'fit.cam.inPos' : 'fit.cam.outPos');
+  } else {
+    big = String(C.count);
+    sub = t('fit.cam.counted') + (R.test === 'sts1min' && C.started ? ' · ' + Math.max(0, Math.ceil(FIT_DUR.sts1min - (performance.now() - C.t0) / 1000)) + ' s' : '');
+  }
+  const key = big + '|' + sub + '|' + (C.lost ? '1' : '0');
+  if (C.dynKey === key) return;
+  C.dynKey = key;
+  const bEl = $('fit-cam-big'); if (bEl) bEl.textContent = big;
+  const sEl = $('fit-cam-sub'); if (sEl) sEl.textContent = sub;
+  const lEl = $('fit-cam-lost'); if (lEl) lEl.style.display = C.lost ? '' : 'none';
+}
+function fitCamDraw(kps) {
+  const cv = $('fit-cam-canvas'); if (!cv || !kps) return;
+  const v = $('fit-cam-video'); if (!v) return;
+  const w = v.videoWidth || 640, h = v.videoHeight || 480;
+  if (cv.width !== w) cv.width = w;
+  if (cv.height !== h) cv.height = h;
+  const ctx = cv.getContext('2d'); if (!ctx) return;
+  ctx.clearRect(0, 0, w, h);
+  ctx.lineWidth = Math.max(2, w / 160);
+  ctx.strokeStyle = 'rgba(46, 204, 113, .9)';
+  ctx.fillStyle = 'rgba(46, 204, 113, 1)';
+  const P = i => { const k = kps[i]; return k && k.score >= 0.3 ? [k.x * w, k.y * h] : null; };
+  ctx.beginPath();
+  for (const pr of FIT_CAM_BONES) { const pa = P(pr[0]), pb = P(pr[1]); if (pa && pb) { ctx.moveTo(pa[0], pa[1]); ctx.lineTo(pb[0], pb[1]); } }
+  ctx.stroke();
+  for (let i = 0; i < kps.length; i++) { const p = P(i); if (p) { ctx.beginPath(); ctx.arc(p[0], p[1], Math.max(3, w / 110), 0, Math.PI * 2); ctx.fill(); } }
+}
+function fitCamSay(n) {
+  const C = FIT_CAM; if (!C || !C.voice || !n) return;
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const syn = window.speechSynthesis;
+    syn.cancel();
+    const u = new SpeechSynthesisUtterance(String(n));
+    u.lang = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en-US' : 'es-ES';
+    syn.speak(u);
+  } catch {}
+}
+function fitCamFinish(autoLost) {
+  const C = FIT_CAM, R = FIT_RUN;
+  fitCamStopAll();
+  if (!R) return;
+  if (R.test === 'plank') R.acc = C ? C.holdAcc : 0;
+  else if (C) R.camValue = C.count;
+  if (C && C.started) R.camUsed = true;
+  R.phase = 'input';
+  fitRunPaint();
+  if (autoLost) toast(t('fit.cam.lostEnd'));
 }
 function fitNextInSeq() {
   if (!FIT_RUN) return;
@@ -71617,6 +71920,12 @@ document.addEventListener('click', e => {
   else if (act === 'finish') fitRunToInput();
   else if (act === 'skip') fitNextInSeq();
   else if (act === 'metro') fitMetroToggle();
+  else if (act === 'cam') fitCamStart();
+  else if (act === 'camactivate') { fitCamSetConsent(); fitCamBegin(); }
+  else if (act === 'camcancel') { fitCamStopAll(); if (FIT_RUN) { FIT_RUN.phase = 'prep'; fitRunPaint(); } }
+  else if (act === 'camfinish') fitCamFinish(false);
+  else if (act === 'cammanual') { if (FIT_RUN && FIT_RUN.phase === 'cam') fitCamFinish(false); else if (FIT_RUN) { fitCamStopAll(); FIT_RUN.phase = 'input'; fitRunPaint(); } }
+  else if (act === 'camvoice') { if (FIT_CAM) { FIT_CAM.voice = !FIT_CAM.voice; b.textContent = t('fit.cam.voice') + (FIT_CAM.voice ? ' ✓' : ''); if (FIT_CAM.voice && FIT_CAM.count > 0) fitCamSay(FIT_CAM.count); } }
   else if (act === 'save') fitRunSave(b.dataset.complete === '1');
 });
 /* La serie del entrenador (decisión 3): mpTrainerLoad recoge los
