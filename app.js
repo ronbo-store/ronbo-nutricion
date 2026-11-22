@@ -6558,6 +6558,33 @@ en: {
   'plan21.sessTB': 'Torso B',
   'plan21.sessPB': 'Legs B',
   'plan21.sessTC': 'Technique + Core',
+  'r21.coverPromise': 'Training and meals, organized around you in a single 21-day plan.',
+  'r21.coverLoginNote': 'First you sign in or create your account — the same account as always. Before that, nothing is saved.',
+  'r21.startBtn': 'I want to start',
+  'r21.qYear': 'What year were you born?',
+  'r21.skipYear': 'If you skip it, your plan starts on the most careful setting.',
+  'r21.qWeight': 'How much do you weigh today?',
+  'r21.skipWeight': 'If you skip it, your plan is born anyway — with a visible note inside the plan saying it would adapt better if you weighed and measured yourself.',
+  'r21.qHeight': 'How tall are you?',
+  'r21.skipHeight': 'If you skip it and other data is missing too, your meals start from the house’s provisional figure of 1,500 kcal until you complete your data.',
+  'r21.skipDays': 'If you skip it, your plan uses the standard pattern (Mon · Tue · Thu · Fri), and you can move it later from your plan.',
+  'r21.skipEq': 'If you skip it, your plan is built as if you had a full gym — and it says so in the plan’s notes. You can change it whenever you want.',
+  'r21.skipGoal': 'If you skip it, your meals follow the strongest founded weight-loss option until you set your goal.',
+  'r21.skipBtn': 'Skip',
+  'r21.exTitle': 'This is what your routine could look like',
+  'r21.exSub': 'An example built with your data. Nothing is saved yet: your real plan is created when you activate it, in the next step.',
+  'r21.exFood': 'Your meals are organized from your goal and are born with the plan, week by week.',
+  'r21.exBegin': 'Begin',
+  'r21.termsTitle': 'Terms and conditions',
+  'r21.termsIntro': 'To activate your challenge, accept the house’s terms — the same text as your account (version {v}).',
+  'r21.termsCheck': 'I have read and I accept the terms and conditions.',
+  'r21.warnPlanT': 'You have a plan in progress',
+  'r21.warnPlanB': 'When your challenge becomes active, your current plan («{title}») is deactivated and the 21-Day Challenge becomes your active plan. Your previous plan is not deleted: it stays saved, deactivated.',
+  'r21.activateBtn': 'Accept and activate',
+  'r21.activating': 'Activating…',
+  'r21.doneTitle': 'Your challenge is active!',
+  'r21.doneDay1': 'Day 1 of 21',
+  'r21.understood': 'Got it',
   'train.markDone': 'Done today', 'train.doneToday': 'Done today ✓', 'train.undo': 'Undo',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
   'train.chronoStart': '▶ Start workout',
@@ -12138,6 +12165,33 @@ es: {
   'plan21.sessTB': 'Torso B',
   'plan21.sessPB': 'Pierna B',
   'plan21.sessTC': 'Técnica + Core',
+  'r21.coverPromise': 'Entrenamiento y alimentación, organizados alrededor de ti en un solo plan de 21 días.',
+  'r21.coverLoginNote': 'Primero entras o creas tu cuenta — la cuenta de siempre. Antes de eso no se guarda nada.',
+  'r21.startBtn': 'Quiero empezar',
+  'r21.qYear': '¿En qué año naciste?',
+  'r21.skipYear': 'Si lo saltas, tu plan arranca en el ajuste más cuidadoso.',
+  'r21.qWeight': '¿Cuánto pesas hoy?',
+  'r21.skipWeight': 'Si lo saltas, tu plan nace igual — con un aviso visible dentro del plan de que se adaptaría mejor si te pesaras y te midieras.',
+  'r21.qHeight': '¿Cuánto mides?',
+  'r21.skipHeight': 'Si lo saltas y también faltan otros datos, tus comidas parten de la cifra provisional de la casa de 1.500 kcal hasta que completes tus datos.',
+  'r21.skipDays': 'Si lo saltas, tu plan usa el patrón estándar (lun · mar · jue · vie), y podrás moverlo después desde tu plan.',
+  'r21.skipEq': 'Si lo saltas, tu plan se arma como si tuvieras gimnasio completo — y lo deja escrito en las notas del plan. Puedes cambiarlo cuando quieras.',
+  'r21.skipGoal': 'Si lo saltas, tus comidas siguen la opción fundada más fuerte para bajar de peso hasta que fijes tu meta.',
+  'r21.skipBtn': 'Saltar',
+  'r21.exTitle': 'Así podría ser tu rutina',
+  'r21.exSub': 'Un ejemplo armado con tus datos. Todavía no se guarda nada: tu plan de verdad se crea al activarlo, en el paso siguiente.',
+  'r21.exFood': 'Tus comidas se organizan desde tu meta y nacen con el plan, semana a semana.',
+  'r21.exBegin': 'Comenzar',
+  'r21.termsTitle': 'Términos y condiciones',
+  'r21.termsIntro': 'Para activar tu reto, acepta los términos de la casa — el mismo texto de tu cuenta (versión {v}).',
+  'r21.termsCheck': 'Leí y acepto los términos y condiciones.',
+  'r21.warnPlanT': 'Tienes un plan en curso',
+  'r21.warnPlanB': 'Cuando tu reto quede activo, tu plan en curso («{title}») se desactiva y el Reto 21 días pasa a ser tu plan activo. Tu plan anterior no se borra: queda guardado, desactivado.',
+  'r21.activateBtn': 'Aceptar y activar',
+  'r21.activating': 'Activando…',
+  'r21.doneTitle': '¡Tu reto está activo!',
+  'r21.doneDay1': 'Día 1 de 21',
+  'r21.understood': 'Entendido',
   'train.markDone': 'Hecho hoy', 'train.doneToday': 'Hecho hoy ✓', 'train.undo': 'Deshacer',
   /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): cronómetro y cierre. */
   'train.chronoStart': '▶ Iniciar entrenamiento',
@@ -16562,6 +16616,9 @@ onAuthStateChanged(auth, async user => {
        URL y se pinta el aviso de confirmación pendiente, para que
        quien abre su enlace de confirmación VEA qué paso sigue. */
     try { captureSignupLinks(); signupPaintConfirmHint(); } catch {}
+    /* AUTH-549: con el enlace del reto en la URL, la portada del
+       carrusel se ve SIN cuenta, sobre la pantalla de acceso. */
+    try { retoCoverMaybeShow(); } catch {}
     $('auth-view').style.display = '';
     $('app-view').style.display = 'none';
     $('actions-dock').style.display = 'none';
@@ -16834,6 +16891,10 @@ onAuthStateChanged(auth, async user => {
      hoy, la semana del paquete o su lista), una sola vez. Sin
      enlace, esta costura no hace nada. */
   try { menuLinkApply(); } catch {}
+  /* AUTH-549: el enlace del reto (?reto=21) abre el carrusel de
+     entrada una sola vez, antes que cualquier otra ventana: es
+     la puerta por la que la persona vino. */
+  try { retoLinkApply(); } catch {}
   /* ALERTA DE LA VÍSPERA: con la sesión ya cargada (plan y metas en
      memoria tras loadAll), la evaluación de la ventana de mañana
      exigente corre UNA vez, sin lecturas nuevas. */
@@ -29098,6 +29159,12 @@ function captureSignupLinks() {
        y no se captura nada. */
     const menu = q.get('menu');
     if (menu && ['hoy', 'semana', 'lista'].includes(menu)) { try { sessionStorage.setItem('rf-link-menu', JSON.stringify({ kind: menu, sem: q.get('sem') || '' })); } catch {} captured = true; }
+    /* AUTH-549: el enlace de publicidad del reto (?reto=21) se
+       captura igual que los demás: la portada del carrusel se
+       pinta sin sesión y el carrusel completo se reanuda tras el
+       acceso (retoLinkApply en la cola de la sesión). */
+    const reto = q.get('reto');
+    if (reto) { try { sessionStorage.setItem('rf-link-reto', reto); } catch {} captured = true; }
     if (captured) { try { history.replaceState(null, '', location.pathname); } catch {} }
   } catch {}
 }
@@ -53048,7 +53115,7 @@ function renderPropTemplates() {
   box.querySelectorAll('[data-prop-tpl-edit]').forEach(b => b.onclick = () => { const tpl = TPL_BY_ID[b.dataset.propTplEdit]; if (tpl) mybOpenEdit(tpl); });
   box.querySelectorAll('[data-prop-tpl-del]').forEach(b => b.onclick = () => tplDelete(b.dataset.propTplDel));
   box.querySelectorAll('[data-prop-ex]').forEach(b => b.onclick = () => propOpenForm({ exerciseId: b.dataset.propEx, fromTemplateId: b.dataset.propTpl || null }));
-  box.querySelectorAll('[data-p21-start]').forEach(b => b.onclick = () => plan21OpenSheet());
+  box.querySelectorAll('[data-p21-start]').forEach(b => b.onclick = () => r21Open('catalogo'));
 }
 function propTplCardHTML(tpl) {
   const open = PROP_TPL_OPEN.has(tpl.id);
@@ -54388,6 +54455,393 @@ async function plan21Start() {
     try { await plan21AfterStart({ id: res.id, startsAt: built.startsAt, endsAt: built.endsAt, active: res.active }); } catch {}
     loadMyTraining();
   } catch { toast(t('train.saveError'), true); if (go) go.disabled = false; }
+}
+/* ════════════════════════════════════════════════════════════
+   AUTH-549 · CARRUSEL DE ENTRADA AL RETO 21 DÍAS
+   El flujo de Ronald (2026-11-22), pantalla por pantalla:
+   1) portada (se ve SIN cuenta; sin sesión no se guarda nada),
+   2) el logeo de siempre (la bifurcación ocurre en el acceso),
+   3) los datos — solo los necesarios y SOLO los que faltan:
+      quien ya los tiene registrados no los vuelve a ver; cada
+      página escribe por la MISMA puerta del asistente AUTH-382
+      (evaluación, peso, availDays, equipFamilies, meta) y
+      saltar conserva las consecuencias decididas (D7/D10),
+   4) el ejemplo — la rutina resuelta por la MISMA plan21Build
+      de AUTH-503, presentada como previa: aún no nace el plan,
+   5) términos + activación — el consentimiento por la
+      maquinaria legal de la casa (consentBatch, sin almacén
+      paralelo) y el plan nace por el arranque ÚNICO de
+      AUTH-503 (plan21Start con su hoja en memoria): su puerta
+      de salud, su D9/D10 y la desactivación del plan en curso
+      de plan21CreatePlan (el anterior queda guardado,
+      desactivado; jamás se borra),
+   6) la celebración (o la espera honesta: en espera de salud o
+      enviado al entrenador, con los textos de siempre).
+   Puertas (E1): ?reto=21, el botón de la pestaña de Retos y la
+   tarjeta del catálogo — las tres abren ESTE carrusel.
+   ════════════════════════════════════════════════════════════ */
+let R21 = null;
+const R21_DATA_ORDER = ['anio', 'peso', 'estatura', 'dias', 'equipo', 'meta'];
+function r21MissingList(inp) {
+  const u = (inp && inp.udata) || {}, a = (inp && inp.assessment) || {}, miss = [];
+  if (!(Number(a.birthYear) > 0)) miss.push('anio');
+  if (!(inp && inp.hasWeight)) miss.push('peso');
+  if (!(Number(a.heightCm) > 0)) miss.push('estatura');
+  if (plan21AvailDays(inp).length < 4) miss.push('dias');
+  if (!Array.isArray(u.equipFamilies) || !u.equipFamilies.length) miss.push('equipo');
+  if (!['bajar', 'mantener', 'ganar'].includes(u.goalObjective || '')) miss.push('meta');
+  return R21_DATA_ORDER.filter(k => miss.includes(k));
+}
+function r21FreshState(source, preLogin) {
+  return { source: source || 'retos', step: 'cover', preLogin: !!preLogin, steps: [], sidx: 0,
+    inp: null, days: new Set(), eq: new Set(), selObj: '', built: null,
+    activePlan: null, termsOk: false, busy: false, outcome: null, actError: false };
+}
+async function r21Open(source, opts = {}) {
+  const fl = $('reto21-float'); if (!fl) return;
+  if (!auth.currentUser) { retoCoverMaybeShow(); return; }
+  const me = auth.currentUser.uid;
+  let st = null;
+  try { st = await chalPlan21State(me); } catch {}
+  if (st && st.state !== 'none') { try { navOpenPage('challenges'); } catch {} return; }
+  R21 = r21FreshState(source, false);
+  fl.style.display = '';
+  const x = $('reto21-x'); if (x) x.onclick = () => r21Close();
+  if (opts.skipCover) { await r21EnterData(); return; }
+  r21Paint();
+}
+function retoCoverMaybeShow() {
+  if (auth.currentUser) return;
+  let flag = null;
+  try { flag = sessionStorage.getItem('rf-link-reto'); } catch {}
+  if (flag !== '21') return;
+  const fl = $('reto21-float'); if (!fl) return;
+  R21 = r21FreshState('link', true);
+  fl.style.display = '';
+  const x = $('reto21-x'); if (x) x.onclick = () => r21Close();
+  r21Paint();
+}
+function retoLinkApply() {
+  if (!auth.currentUser) return;
+  let v = null;
+  try { v = sessionStorage.getItem('rf-link-reto'); if (v) sessionStorage.removeItem('rf-link-reto'); } catch {}
+  if (v !== '21') return;
+  let stage = null;
+  try { stage = sessionStorage.getItem('rf-reto-stage'); if (stage) sessionStorage.removeItem('rf-reto-stage'); } catch {}
+  r21Open('link', { skipCover: stage === 'datos' });
+}
+function r21Close() {
+  const fl = $('reto21-float'); if (fl) fl.style.display = 'none';
+  if (R21 && R21.preLogin) { try { sessionStorage.removeItem('rf-link-reto'); sessionStorage.removeItem('rf-reto-stage'); } catch {} }
+  R21 = null;
+  try { if (typeof NAV_TAB !== 'undefined' && NAV_TAB === 'challenges') chalLoad(true).then(() => { try { chalRenderPaint(); chalCardSyncPaint(); } catch {} }); } catch {}
+}
+async function r21CoverStart() {
+  if (!R21 || R21.busy) return;
+  if (R21.preLogin || !auth.currentUser) {
+    /* Pantalla 2 (el logeo): debajo queda la pantalla de acceso
+       de siempre; al entrar, retoLinkApply reanuda en los datos. */
+    try { sessionStorage.setItem('rf-reto-stage', 'datos'); } catch {}
+    const fl = $('reto21-float'); if (fl) fl.style.display = 'none';
+    R21 = null;
+    return;
+  }
+  await r21EnterData();
+}
+async function r21EnterData() {
+  if (!R21 || !auth.currentUser) return;
+  const me = auth.currentUser.uid;
+  R21.busy = true; r21PaintLoading();
+  try {
+    await libEnsure();
+    const inp = await plan21FetchInputs(me);
+    R21.inp = inp;
+    R21.days = new Set(plan21AvailDays(inp));
+    R21.eq = new Set(((inp.udata || {}).equipFamilies || []).filter(f => WIZ_EQ_FAMS.includes(f)));
+    R21.selObj = (inp.udata || {}).goalObjective || '';
+    const miss = r21MissingList(inp);
+    R21.steps = [...miss, 'ejemplo', 'terminos'];
+    R21.sidx = 0;
+    R21.step = miss.length ? miss[0] : 'ejemplo';
+    if (R21.step === 'ejemplo') await r21BuildExample();
+  } catch { R21.step = 'ejemplo'; R21.steps = ['ejemplo', 'terminos']; R21.sidx = 0; }
+  R21.busy = false;
+  r21Paint();
+}
+async function r21BuildExample() {
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  try { await faComputeMine(me); } catch {}
+  try { await goalsEngineRun('base'); } catch {}
+  const inp = await plan21FetchInputs(me);
+  R21.inp = inp;
+  R21.built = plan21Build(inp, plan21StartISO(inp));
+}
+async function r21PrepTerms() {
+  const me = auth.currentUser && auth.currentUser.uid;
+  R21.activePlan = null;
+  if (!me) return;
+  try {
+    const plans = await fetchPlans(me);
+    R21.activePlan = (plans || []).find(p => p && p.active === true) || null;
+  } catch {}
+}
+async function r21GotoStep(n) {
+  if (!R21) return;
+  R21.actError = false;
+  R21.sidx = n;
+  R21.step = R21.steps[n] || 'terminos';
+  if (R21.step === 'ejemplo') { R21.busy = true; r21PaintLoading(); try { await r21BuildExample(); } catch {} R21.busy = false; }
+  if (R21.step === 'terminos') { R21.busy = true; try { await r21PrepTerms(); } catch {} R21.busy = false; }
+  r21Paint();
+}
+function r21Back() {
+  if (!R21 || R21.busy) return;
+  if (R21.step === 'cover') return;
+  if (R21.sidx > 0) { R21.sidx--; R21.step = R21.steps[R21.sidx]; r21Paint(); }
+  else { R21.step = 'cover'; r21Paint(); }
+}
+async function r21DataNext() {
+  if (!R21 || R21.busy) return;
+  const saver = { anio: r21SaveYear, peso: r21SaveWeight, estatura: r21SaveHeight, dias: r21SaveDays, equipo: r21SaveEq, meta: r21SaveGoal }[R21.step];
+  if (saver) {
+    R21.busy = true;
+    const okSave = await saver();
+    R21.busy = false;
+    if (!okSave) { r21Paint(); return; }
+  }
+  await r21GotoStep(R21.sidx + 1);
+}
+async function r21DataSkip() { if (!R21 || R21.busy) return; await r21GotoStep(R21.sidx + 1); }
+/* Las seis escrituras de datos: las mismas puertas y las mismas
+   formas del asistente de arranque (AUTH-382). */
+async function r21SaveYear() {
+  const el = $('r21-by'); if (!el || !el.value) return true;
+  const by = parseInt(el.value, 10), maxY = new Date().getFullYear() - 18;
+  if (!Number.isInteger(by) || by < 1900 || by > maxY) { toast(t('fa.errBy', { max: maxY }), true); return false; }
+  const uid = auth.currentUser.uid;
+  try {
+    const payload = { birthYear: by, updatedAt: serverTimestamp(), updatedBy: uid };
+    await setDoc(doc(db, 'users', uid, 'assessment', 'current'), payload, { merge: true });
+    if (typeof MY_ASMT !== 'undefined' && MY_ASMT) MY_ASMT.doc = { ...((MY_ASMT && MY_ASMT.doc) || {}), ...payload };
+  } catch (e) { failToast(e); return false; }
+  return true;
+}
+async function r21SaveWeight() {
+  const el = $('r21-w'); if (!el) return true;
+  const wDisp = num(el.value), wCanon = massToCanonical(wDisp);
+  if (!(wDisp > 0) || !(wCanon >= 20 && wCanon <= 400)) { toast(t('units.errWeightRange'), true); return false; }
+  const uid = auth.currentUser.uid, date = todayISO();
+  try {
+    const wData = { ownerUid: uid, date, weight: wCanon, weightOriginal: wDisp, weightUnitOriginal: UNIT_PREFS.mass, fat: 0, muscle: 0, water: 0, visceral: 0, notes: '', updatedAt: serverTimestamp() };
+    await setDoc(doc(db, 'nutrition_weight', uid + '_' + date), wData);
+    const rec = { id: uid + '_' + date, date, weight: wCanon, weightOriginal: wDisp, weightUnitOriginal: UNIT_PREFS.mass, fat: 0, muscle: 0, water: 0, visceral: 0, notes: '' };
+    const ex = WEIGHTS.findIndex(w => w.id === rec.id);
+    if (ex >= 0) WEIGHTS[ex] = rec; else WEIGHTS.push(rec);
+    WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1);
+  } catch (e) { failToast(e); return false; }
+  return true;
+}
+async function r21SaveHeight() {
+  const el = $('r21-h'); if (!el || !el.value) return true;
+  const h = Math.round(num(el.value));
+  if (!(h >= 50 && h <= 250)) { toast(t('fa.errH'), true); return false; }
+  const uid = auth.currentUser.uid;
+  try {
+    const payload = { heightCm: h, updatedAt: serverTimestamp(), updatedBy: uid };
+    await setDoc(doc(db, 'users', uid, 'assessment', 'current'), payload, { merge: true });
+    if (typeof MY_ASMT !== 'undefined' && MY_ASMT) MY_ASMT.doc = { ...((MY_ASMT && MY_ASMT.doc) || {}), ...payload };
+  } catch (e) { failToast(e); return false; }
+  return true;
+}
+async function r21SaveDays() {
+  const arr = WIZ_DAY_ORDER.filter(d => R21.days.has(d));
+  const uid = auth.currentUser.uid;
+  try {
+    await setDoc(doc(db, 'users', uid), { availDays: arr }, { merge: true });
+    if (UDATA) UDATA.availDays = arr;
+  } catch (e) { failToast(e); return false; }
+  return true;
+}
+async function r21SaveEq() {
+  const arr = WIZ_EQ_FAMS.filter(f => R21.eq.has(f));
+  const uid = auth.currentUser.uid;
+  try {
+    await setDoc(doc(db, 'users', uid), { equipFamilies: arr }, { merge: true });
+    if (UDATA) UDATA.equipFamilies = arr;
+  } catch (e) { failToast(e); return false; }
+  return true;
+}
+async function r21SaveGoal() {
+  if (!R21.selObj) return true;
+  const uid = auth.currentUser.uid;
+  try {
+    await setDoc(doc(db, 'users', uid), { goalObjective: R21.selObj }, { merge: true });
+    if (UDATA) UDATA.goalObjective = R21.selObj;
+  } catch (e) { failToast(e); return false; }
+  return true;
+}
+async function r21Activate() {
+  if (!R21 || R21.busy || !R21.termsOk) return;
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  R21.busy = true; R21.actError = false; r21Paint();
+  try {
+    /* Los términos por la maquinaria legal de la casa: si el
+       consentimiento general no está activo o su versión no es
+       la vigente, se renueva con su recibo (consentBatch, el
+       mismo lote de doRenewConsent, con la sonda de época). Si
+       ya está vigente, el acto registrado de la cuenta cubre
+       esta aceptación y no se duplica recibo. */
+    const cur0 = (typeof UDATA !== 'undefined' && UDATA) || {};
+    if (!(consentIsActive(cur0) && cur0.termsVersion === TERMS_VERSION)) {
+      if (!(await consentOpsAllowed())) { R21.busy = false; r21Paint(); return; }
+      const cur = await freshUserDoc(me);
+      const { batch, seq, rid } = consentBatch(me, cur,
+        { acceptedTerms: true, termsVersion: TERMS_VERSION, termsAcceptedAt: serverTimestamp() },
+        'general-renewed', TERMS_VERSION);
+      await batch.commit();
+      if (UDATA) { UDATA.consentSeq = seq; UDATA.consentReceiptId = rid; UDATA.acceptedTerms = true; UDATA.termsVersion = TERMS_VERSION; }
+    }
+    /* El plan nace por el arranque ÚNICO de AUTH-503: su hoja
+       en memoria y sin preguntas — los datos ya entraron por
+       sus puertas en las páginas del carrusel. */
+    const inp = await plan21FetchInputs(me);
+    PLAN21_SHEET = { inp, days: new Set(plan21AvailDays(inp)), fams: new Set(((inp.udata || {}).equipFamilies || [])), showDays: false, showEq: false };
+    await plan21Start();
+    const st = await chalPlan21State(me);
+    R21.outcome = st && st.state ? st.state : 'none';
+    if (R21.outcome === 'none') { R21.busy = false; R21.actError = true; r21Paint(); return; }
+    R21.step = 'fin';
+  } catch { R21.busy = false; R21.actError = true; r21Paint(); return; }
+  R21.busy = false;
+  r21Paint();
+}
+function r21PaintLoading() {
+  const body = $('reto21-body'); if (!body) return;
+  body.innerHTML = `<p class="wiz-note" style="text-align:center;padding:26px 0">${esc(t('train.loading'))}</p>`;
+}
+function r21ProgHTML() {
+  if (!R21 || !R21.steps.length || R21.step === 'cover' || R21.step === 'fin') return '';
+  const pct = Math.round(((R21.sidx + 1) / R21.steps.length) * 100);
+  return `<div class="wiz-bar"><i style="width:${pct}%"></i></div><p class="wiz-stepline">${esc(t('wiz.stepOf', { n: R21.sidx + 1, total: R21.steps.length }))}</p>`;
+}
+function r21NavHTML(goLabel, goDisabled) {
+  return `<div class="wiz-nav"><button type="button" class="btn-ghost" id="r21-back">${esc(t('wiz.back'))}</button><button type="button" class="btn-ghost" id="r21-skip">${esc(t('r21.skipBtn'))}</button><button type="button" class="btn-primary" id="r21-go"${goDisabled ? ' disabled' : ''}>${esc(goLabel || t('wiz.next'))}</button></div>`;
+}
+function r21Paint() {
+  const body = $('reto21-body'); if (!body || !R21) return;
+  const scr = R21.step;
+  let h = r21ProgHTML();
+  if (scr === 'cover') {
+    h += `<div class="wiz-welcome"><div class="wiz-bigtitle">🏆 ${esc(t('plan21.title'))}</div>
+      <p class="wiz-expl">${esc(t('r21.coverPromise'))}</p>
+      <div class="chal-inc"><p>💪 <b>${esc(t('chal.p21IncTrainB'))}</b> ${esc(t('chal.p21IncTrain'))}</p><p>🥗 <b>${esc(t('chal.p21IncFoodB'))}</b> ${esc(t('chal.p21IncFood'))}</p></div>
+      ${R21.preLogin ? `<p class="wiz-note">${esc(t('r21.coverLoginNote'))}</p>` : ''}
+      <div class="wiz-nav"><button type="button" class="btn-primary r21-big" id="r21-go-cover">${esc(t('r21.startBtn'))}</button></div></div>`;
+  } else if (scr === 'anio') {
+    const maxY = new Date().getFullYear() - 18;
+    const cur = R21.inp && R21.inp.assessment ? R21.inp.assessment.birthYear : null;
+    h += `<h3 class="wiz-h">${esc(t('r21.qYear'))}</h3><div class="wiz-body">
+      <select id="r21-by" class="big-input wiz-select">${mdbYearOptions(cur || null, maxY, 1900)}</select>
+      <p class="wiz-note">${esc(t('r21.skipYear'))}</p></div>${r21NavHTML(null, !cur)}`;
+  } else if (scr === 'peso') {
+    const wIn = `<input id="r21-w" class="big-input wiz-num" type="number" inputmode="decimal" step="0.1" min="20" max="880" placeholder="${esc(t('wiz.wPh'))}">`;
+    h += `<h3 class="wiz-h">${esc(t('r21.qWeight'))}</h3><div class="wiz-body">
+      ${mdbStepperHTML('r21-w', wIn, { unit: UNIT_PREFS.mass, seed: massToDisplay(70) })}
+      <p class="wiz-note">${esc(t('r21.skipWeight'))}</p></div>${r21NavHTML(null, true)}`;
+  } else if (scr === 'estatura') {
+    const hIn = `<input id="r21-h" class="big-input wiz-num" type="number" inputmode="numeric" step="1" min="50" max="250" placeholder="${esc(t('wiz.hPh'))}">`;
+    h += `<h3 class="wiz-h">${esc(t('r21.qHeight'))}</h3><div class="wiz-body">
+      ${mdbStepperHTML('r21-h', hIn, { unit: 'cm', seed: 170 })}
+      <p class="wiz-note">${esc(t('r21.skipHeight'))}</p></div>${r21NavHTML(null, true)}`;
+  } else if (scr === 'dias') {
+    const chips = WIZ_DAY_ORDER.map(d => `<button type="button" class="wiz-chip${R21.days.has(d) ? ' on' : ''}" data-r21-day="${d}">${esc(plan21DayName(d))}</button>`).join('');
+    h += `<h3 class="wiz-h">${esc(t('wiz.daysTitle'))}</h3><div class="wiz-body">
+      <p class="wiz-expl">${esc(t('wiz.daysSub'))}</p><div class="wiz-chips">${chips}</div>
+      ${R21.days.size < 4 ? `<p class="wiz-note" style="color:#d33;font-weight:700">${esc(t('plan21.sheetDaysMin'))}</p>` : ''}
+      <p class="wiz-note">${esc(t('r21.skipDays'))}</p></div>${r21NavHTML(null, R21.days.size < 4)}`;
+  } else if (scr === 'equipo') {
+    const cards = WIZ_EQ_FAMS.map(f => `<button type="button" class="wiz-card${R21.eq.has(f) ? ' on' : ''}" data-r21-eq="${f}"><span class="wiz-card-img"><img src="${esc(WIZ_EQ_PHOTO[f])}" alt="" loading="lazy"></span><span class="wiz-card-t">${esc(t('train.auto.eq.' + f))}</span></button>`).join('');
+    h += `<h3 class="wiz-h">${esc(t('wiz.eqTitle'))}</h3><div class="wiz-body">
+      <p class="wiz-expl">${esc(t('wiz.eqSub'))}</p><div class="wiz-cards wiz-cards2">${cards}</div>
+      <p class="wiz-note">${esc(t('r21.skipEq'))}</p></div>${r21NavHTML(null, false)}`;
+  } else if (scr === 'meta') {
+    const objs = [['bajar', '📉'], ['mantener', '⚖️'], ['ganar', '💪']];
+    const cards = objs.map(([k, ic]) => `<button type="button" class="wiz-card${R21.selObj === k ? ' on' : ''}" data-r21-obj="${k}"><span class="wiz-card-ic">${ic}</span><span class="wiz-card-t">${esc(t('gm.obj.' + k))}</span></button>`).join('');
+    h += `<h3 class="wiz-h">${esc(t('wiz.objTitle'))}</h3><div class="wiz-body">
+      <div class="wiz-cards">${cards}</div>
+      ${R21.selObj ? `<p class="wiz-expl">${esc(t('gm.objExpl.' + R21.selObj))}</p>` : ''}
+      <p class="wiz-note">${esc(t('r21.skipGoal'))}</p></div>${r21NavHTML(null, !R21.selObj)}`;
+  } else if (scr === 'ejemplo') {
+    const b = R21.built;
+    h += `<h3 class="wiz-h">${esc(t('r21.exTitle'))}</h3><div class="wiz-body">`;
+    if (b) {
+      h += `<p class="wiz-expl">${esc(b.form === 5 ? t('plan21.sheetForm5') : t('plan21.sheetForm4'))} · ${esc(t('plan21.sheetStart', { a: plan21DateLabel(b.startsAt), b: plan21DateLabel(b.endsAt) }))}</p>`;
+      h += b.days.slice(0, 7).map(d => {
+        if (d.freeDay) return `<div class="r21-day r21-rest"><b>${esc(plan21DateLabel(d.dateISO))}</b><span>${esc(t('plan21.restDay'))}</span></div>`;
+        const exs = (d.exs || []).map(ex => `<div class="r21-ex"><img src="${esc(libThumbSrc({ foto_url: ex.photoUrl || '' }))}" alt="" loading="lazy" onerror="libThumbErr(this)"><span class="r21-ex-n">${esc(ex.name || '')}</span><span class="r21-ex-s">${esc(String(ex.sets))} × ${esc(String(ex.reps))}</span></div>`).join('');
+        return `<div class="r21-day"><div class="r21-day-h"><b>${esc(plan21DateLabel(d.dateISO))}</b><span>${esc(d.label || '')}</span></div>${exs}</div>`;
+      }).join('');
+      if (b.notes) h += `<p class="wiz-note">${esc(b.notes)}</p>`;
+    }
+    h += `<p class="wiz-expl">🥗 ${esc(t('r21.exFood'))}</p><p class="wiz-note">${esc(t('r21.exSub'))}</p></div>
+      <div class="wiz-nav"><button type="button" class="btn-ghost" id="r21-back">${esc(t('wiz.back'))}</button><button type="button" class="btn-primary" id="r21-begin">${esc(t('r21.exBegin'))}</button></div>`;
+  } else if (scr === 'terminos') {
+    const ap = R21.activePlan;
+    h += `<h3 class="wiz-h">${esc(t('r21.termsTitle'))}</h3><div class="wiz-body">
+      ${ap ? `<div class="r21-warn"><b>⚠️ ${esc(t('r21.warnPlanT'))}</b><p>${esc(t('r21.warnPlanB', { title: ap.title || ap.name || t('plan21.title') }))}</p></div>` : ''}
+      <p class="wiz-expl">${esc(t('r21.termsIntro', { v: TERMS_VERSION }))}</p>
+      <div class="r21-terms">${t('terms.body')}</div>
+      <button type="button" class="r21-check${R21.termsOk ? ' on' : ''}" id="r21-terms-check" aria-pressed="${R21.termsOk ? 'true' : 'false'}"><span class="r21-box">${R21.termsOk ? '✓' : ''}</span><span>${esc(t('r21.termsCheck'))}</span></button>
+      ${R21.actError ? `<p class="wiz-note" style="color:#d33;font-weight:700">${esc(t('train.saveError'))}</p>` : ''}</div>
+      <div class="wiz-nav"><button type="button" class="btn-ghost" id="r21-back">${esc(t('wiz.back'))}</button><button type="button" class="btn-primary" id="r21-activate"${(!R21.termsOk || R21.busy) ? ' disabled' : ''}>${esc(R21.busy ? t('r21.activating') : t('r21.activateBtn'))}</button></div>`;
+  } else if (scr === 'fin') {
+    if (R21.outcome === 'active') {
+      const b = R21.built;
+      h += `<div class="wiz-welcome"><div class="r21-done">✓</div><div class="wiz-bigtitle">${esc(t('r21.doneTitle'))}</div>
+        <p class="wiz-expl"><b>${esc(t('r21.doneDay1'))}</b>${b ? ` · ${esc(t('plan21.sheetStart', { a: plan21DateLabel(b.startsAt), b: plan21DateLabel(b.endsAt) }))}` : ''}</p>
+        <div class="wiz-nav"><button type="button" class="btn-ghost" id="r21-done-close">${esc(t('client.close'))}</button><button type="button" class="btn-primary" id="r21-viewplan">${esc(t('chal.p21ViewBtn'))}</button></div></div>`;
+    } else {
+      h += `<div class="wiz-welcome"><div class="wiz-bigtitle">⏳ ${esc(t('chal.p21WaitTitle'))}</div>
+        <p class="wiz-expl">${esc(R21.outcome === 'sent' ? t('plan21.sentTrainer') : t('plan21.startedHold'))}</p>
+        <p class="wiz-note">${esc(t('chal.p21WaitNote'))}</p>
+        <div class="wiz-nav"><button type="button" class="btn-primary" id="r21-done-close">${esc(t('r21.understood'))}</button></div></div>`;
+    }
+  }
+  body.innerHTML = h;
+  r21Wire(body);
+}
+function r21Wire(body) {
+  if (!body || !R21) return;
+  const go = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
+  go('r21-go-cover', () => r21CoverStart());
+  go('r21-back', () => r21Back());
+  go('r21-skip', () => r21DataSkip());
+  go('r21-go', () => r21DataNext());
+  go('r21-begin', () => r21GotoStep(R21.sidx + 1));
+  go('r21-activate', () => r21Activate());
+  go('r21-done-close', () => r21Close());
+  go('r21-viewplan', () => { r21Close(); Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} }); });
+  const chk = $('r21-terms-check');
+  if (chk) chk.onclick = () => { R21.termsOk = !R21.termsOk; R21.actError = false; r21Paint(); };
+  const by = $('r21-by');
+  if (by) by.onchange = () => { const g = $('r21-go'); if (g) g.disabled = !by.value; };
+  const numWire = id => {
+    const el = $(id); if (!el) return;
+    el.addEventListener('input', () => { const g = $('r21-go'); if (g) g.disabled = !(num(el.value) > 0); });
+  };
+  numWire('r21-w'); numWire('r21-h');
+  try { mdbStepperWire(body); } catch {}
+  body.querySelectorAll('[data-r21-day]').forEach(b => b.onclick = () => {
+    const d = parseInt(b.dataset.r21Day, 10);
+    if (R21.days.has(d)) R21.days.delete(d); else R21.days.add(d);
+    r21Paint();
+  });
+  body.querySelectorAll('[data-r21-eq]').forEach(b => b.onclick = () => {
+    const f = b.dataset.r21Eq;
+    if (R21.eq.has(f)) R21.eq.delete(f); else R21.eq.add(f);
+    r21Paint();
+  });
+  body.querySelectorAll('[data-r21-obj]').forEach(b => b.onclick = () => { R21.selObj = b.dataset.r21Obj; r21Paint(); });
 }
 /* Al nacer (y en cada visita a la vista con el plan vivo): las
    metas de D10 primero — sin metas no hay semanas que armar —
@@ -69958,7 +70412,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261122-retos-unica';
+const PWA_SW_VERSION = '20261122-carrusel-reto';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -74349,7 +74803,7 @@ function chalActDispatch(el) {
   const act = el.dataset.chalAct, id = el.dataset.chalId;
   if (act === 'open') { if (el.dataset.chalCat) chalSheetOpenCat(el.dataset.chalCat); else chalSheetOpenId(id); }
   else if (act === 'assign') { chalAssignOpen(el.dataset.chalCat ? 'cat:' + el.dataset.chalCat : undefined); }
-  else if (act === 'p21start') { plan21OpenSheet(); }
+  else if (act === 'p21start') { r21Open('retos'); }
   else if (act === 'p21view') { Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} }); }
   else if (act === 'leave') chalLeave(id);
   else if (act === 'abandon') chalAbandon(id);
