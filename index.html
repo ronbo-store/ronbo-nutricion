@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261122-sinonimos-2">
+<link rel="stylesheet" href="styles.css?v=20261122-retos-unica">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1797,18 +1797,13 @@ cuando no hay declaración legible (decisión 5). -->
 
   <!-- RETOS (AUTH-2026-11-04-235): pantalla completa del
        módulo; su contenido lo pinta chalRender (app.js).
-       AUTH-518: la línea de «Volver» lleva a la derecha las
-       tres cajitas (Mis retos · Mis medallas · Empezar un
-       reto), cada una abre su hoja; en la superficie solo
-       queda el reto destacado. -->
+       AUTH-547: la pestaña pinta UNA sola cosa — el reto
+       activo (chalActiveHTML en app.js). Las tres cajitas de
+       AUTH-518 dejan de pintarse aquí; sus hojas, funciones
+       y datos quedan intactos en el código. -->
   <div class="tab-pane" id="tab-challenges" style="display:none">
     <div class="chal-toprow">
       <button type="button" class="btn-ghost prog-back" id="chal-back" data-i18n="chal.back">← Back</button>
-      <div class="chal-boxes">
-        <button type="button" class="btn-ghost chal-box" id="chal-box-mine">My challenges</button>
-        <button type="button" class="btn-ghost chal-box" id="chal-box-medals">My medals</button>
-        <button type="button" class="btn-ghost chal-box" id="chal-box-repo">Start a challenge</button>
-      </div>
     </div>
     <h2 style="margin:6px 0 10px"><span data-i18n="chal.title">🏆 Challenges</span></h2>
     <div id="chal-body"></div>
@@ -2624,6 +2619,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261122-sinonimos-2"></script>
+<script type="module" src="app.js?v=20261122-retos-unica"></script>
 </body>
 </html>
