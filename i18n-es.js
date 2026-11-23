@@ -2427,6 +2427,7 @@ export default {
   'train.cardio2.line': '⏱️ Cardio hoy: {min} min', 'train.cardio2.lineKcal': ' · {kcal} kcal',
   'train.cardio2.assignedChip': 'Asignado · se hace en el panel', 'train.cardio2.doneChip': '✓ Hecho',
   'train.cardio2.assignedLine': ' · Asignado: {min} min (aún no hecho)',
+  'train.cardio2.offLine': 'Sin calentamiento',
   'train.pick.addedOk': '✓ Añadido: {name}',
   'train.cardio2.lineGoal': ' — esos minutos suman a tu meta de {goal} min',
   'train.cardio2.spec.incline': 'INCLINACIÓN · %', 'train.cardio2.spec.speed': 'VELOCIDAD MEDIA · KM/H',

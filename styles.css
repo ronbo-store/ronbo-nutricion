@@ -6429,6 +6429,7 @@ body.train-drag-lock { overflow: hidden; overscroll-behavior: none; }
 .cardio-warn { margin-top: 10px; font-size: 12.5px; font-weight: 700; color: #ffd9a8; }
 .cardio-save { margin-top: 12px; width: 100%; min-height: 48px; background: #fff; color: #0a5c50; border: 0; font: inherit; font-weight: 800; font-size: 15px; padding: 13px 0; border-radius: 12px; cursor: pointer; }
 .cardio-sum { display: flex; align-items: center; gap: 9px; margin-top: 11px; font-size: 14.5px; font-weight: 700; color: #fff; }
+.cardio-warm > .cardio-sum:first-child { margin-top: 0; }   /* AUTH-573: la línea única ES la tarjeta plegada — sin el aire que la separaba del interruptor */
 .cardio-edit { margin-left: auto; flex: none; min-height: 44px; background: transparent; border: 1.5px solid rgba(255,255,255,.55); color: #fff; font: inherit; font-size: 13px; font-weight: 700; padding: 8px 13px; border-radius: 99px; cursor: pointer; }
 /* ═══ AUTH-481 · LOS PUNTOS DE CARDIO DEL DÍA: el rótulo de
    la secuencia, los campos con rueda (− / valor / +) del

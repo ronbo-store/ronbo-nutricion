@@ -4304,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-tomar-medidas');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-calentamiento-plegado');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -19032,7 +19032,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-tomar-medidas' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-calentamiento-plegado' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -39750,6 +39750,14 @@ function trainCardio2SanDoc(v) {
   const out = { warm: null, extras: [] };
   if (!v || typeof v !== 'object' || Array.isArray(v)) return out;
   out.warm = trainCardio2San(v.warm);
+  /* AUTH-573: la marca del «No» GUARDADO — la respuesta
+     negativa al calentamiento, guardada en el MISMO
+     borrador: sin ella, «respondió No» y «aún no responde»
+     eran la misma ausencia y la tarjeta respondida no
+     podía plegarse a su línea. Solo vive sin entrada de
+     calentamiento; cualquier dato de ejecución sigue
+     siendo ausencia, como siempre. */
+  if (v.warmOff === true && !out.warm) out.warmOff = true;
   if (Array.isArray(v.extras)) out.extras = v.extras.map(trainCardio2San).filter(Boolean);
   return out;
 }
@@ -39801,7 +39809,7 @@ function trainCardio2Write(planId, doc, iso) {
          hecho en el panel cuenta al hacerlo, y su sello es
          el del momento en que la asignación nació. */
       s.extras.forEach(e => { if (e.win == null && trainCardio2ViewOf(e)) e.win = running ? 1 : 0; });
-      if (!s.warm && !s.extras.length) localStorage.removeItem(trainCardio2Key(planId, iso));
+      if (!s.warm && !s.extras.length && !s.warmOff) localStorage.removeItem(trainCardio2Key(planId, iso));   /* AUTH-573: el «No» guardado conserva su borrador (su marca vive en él) */
       else localStorage.setItem(trainCardio2Key(planId, iso), JSON.stringify(s));
     }
   } catch {}
@@ -40035,7 +40043,13 @@ function trainCardio2FormHTML(T, e, isWarm, assign) {
    punto n.º 1 (o el número que le pase la vista) con el
    registro, o su resumen plegado en una línea tras guardar,
    con la puerta de «Mientras te mueves» de siempre colgando
-   del resumen (moveBlockZoneHTML, intacta). */
+   del resumen (moveBlockZoneHTML, intacta).
+   AUTH-573: respondido y guardado — en «Sí», su resumen; en
+   «No», su línea de estado — la tarjeta ES solo esa línea:
+   la cabecera y el interruptor quedan en la zona de
+   edición, que es donde «Editar» vuelve a abrirlos. Sin
+   responder, la pregunta se pinta como siempre: lo que
+   pide una acción no se pliega. */
 function trainCardio2WarmHTML(plan, di, iso, opts) {
   if (!plan || !plan.id || di == null || di < -1) return '';
   const o = opts || {};
@@ -40047,7 +40061,19 @@ function trainCardio2WarmHTML(plan, di, iso, opts) {
   const head = `<div class="cardio-warm-head"><span class="cardio-warm-title">🔥 ${num != null ? num + ' · ' : ''}${esc(t('train.cardio.title'))}</span></div>`;
   const seg = `<div class="cardio-seg" role="group"><button type="button" data-cardio2-tog="0" aria-pressed="${w ? 'false' : 'true'}" class="${w ? '' : 'is-on'}">${esc(t('train.start.no'))}</button><button type="button" data-cardio2-tog="1" aria-pressed="${w ? 'true' : 'false'}" class="${w ? 'is-on' : ''}">${esc(t('train.start.yes'))}</button></div>`;
   const wrap = inner => `<div class="cardio-warm cardio2-point" data-cardio2-plan="${esc(plan.id)}" data-cardio2-iso="${esc(iso || todayISO())}">${head}${seg}${inner}</div>`;
-  if (!w) return label + wrap(`<div class="cardio-hint">${esc(t('train.cardio.hintNo'))}</div>`);
+  /* AUTH-573 · LA TARJETA RESPONDIDA SE PLIEGA A SU LÍNEA
+     (orden de Ronald, 2026-11-23 11:09 CST, con la captura
+     de su día: guardado el calentamiento, la fila No/Sí
+     seguía ocupando su sitio): respondido y guardado, de
+     la tarjeta queda SOLO la línea del resumen — nombre y
+     tiempo — con su [Editar]; la cabecera con el título y
+     la fila No/Sí viven únicamente en la zona de edición
+     (sin responder, o con el formulario abierto). */
+  const wrapFold = inner => `<div class="cardio-warm cardio2-point" data-cardio2-plan="${esc(plan.id)}" data-cardio2-iso="${esc(iso || todayISO())}">${inner}</div>`;
+  if (!w) {
+    if (doc.warmOff) return label + wrapFold(`<div class="cardio-sum"><span aria-hidden="true">🔥</span><span>${esc(t('train.cardio.title'))} · ${esc(t('train.cardio2.offLine'))}</span><button type="button" class="cardio-edit" data-cardio2-editoff="1">${esc(t('train.cardio.edit'))}</button></div>`);
+    return label + wrap(`<div class="cardio-hint">${esc(t('train.cardio.hintNo'))}</div>`);
+  }
   if (w.folded && view) {
     const metaF = trainCardio2Meta(view.machine);
     /* CAND-523: el resumen dice su estado — asignado (se
@@ -40056,7 +40082,7 @@ function trainCardio2WarmHTML(plan, di, iso, opts) {
     const chip = view.st === 'd'
       ? `<span class="cardio2-st is-done">${esc(t('train.cardio2.doneChip'))}</span>`
       : `<span class="cardio2-st">${esc(t('train.cardio2.assignedChip'))}</span>`;
-    return label + wrap(`<div class="cardio-sum">${metaF && metaF.icon ? `<span aria-hidden="true">${metaF.icon}</span>` : ''}<span>${esc(trainCardio2Detail(view))}</span>${chip}<button type="button" class="cardio-edit" data-cardio2-edit="warm">${esc(t('train.cardio.edit'))}</button></div>` + moveBlockZoneHTML(plan, iso, view));
+    return label + wrapFold(`<div class="cardio-sum">${metaF && metaF.icon ? `<span aria-hidden="true">${metaF.icon}</span>` : ''}<span>${esc(trainCardio2Detail(view))}</span>${chip}<button type="button" class="cardio-edit" data-cardio2-edit="warm">${esc(t('train.cardio.edit'))}</button></div>` + moveBlockZoneHTML(plan, iso, view));
   }
   return label + wrap(trainCardio2FormHTML('warm', w, true));
 }
@@ -40147,7 +40173,8 @@ function trainCardio2Wire(box) {
          del estudio: 5 minutos, sin máquina aún (la de
          AUTH-426, en el registro nuevo). */
       if (!doc.warm) doc.warm = { machine: null, minutes: 5, kcal: null, dist: null, hr: null, spec: {}, photo: null, folded: false };
-    } else doc.warm = null;   /* No = ausencia de dato: el borrador se retira */
+      delete doc.warmOff;   /* AUTH-573: decir Sí retira la marca del «No» guardado */
+    } else { doc.warm = null; doc.warmOff = true; }   /* AUTH-573: el dato de ejecución sigue siendo ausencia (el borrador de la entrada se retira, como siempre), pero la RESPUESTA «No» queda guardada con su marca en el mismo borrador — es lo que deja a la tarjeta plegarse a su línea en vez de seguir enseñando la pregunta */
     trainCardio2Write(c.planId, doc, c.iso);
     loadMyTraining();
   });
@@ -40272,6 +40299,17 @@ function trainCardio2Wire(box) {
     const T = b.dataset.cardio2Edit, doc = trainCardio2Read(c.planId, c.iso), e = getE(doc, T);
     if (!e) return;
     setE(doc, T, { ...e, folded: false });
+    trainCardio2Write(c.planId, doc, c.iso);
+    loadMyTraining();
+  });
+  /* AUTH-573: editar la línea del «No» guardado retira su
+     marca y la tarjeta vuelve a la pregunta de siempre —
+     la zona de edición de esa respuesta es la propia
+     tarjeta con su interruptor, como antes de responder. */
+  box.querySelectorAll('[data-cardio2-editoff]').forEach(b => b.onclick = () => {
+    const c = ctxOf(b); if (!c) return;
+    const doc = trainCardio2Read(c.planId, c.iso);
+    delete doc.warmOff;
     trainCardio2Write(c.planId, doc, c.iso);
     loadMyTraining();
   });
@@ -61930,7 +61968,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-tomar-medidas';
+const PWA_SW_VERSION = '20261123-calentamiento-plegado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

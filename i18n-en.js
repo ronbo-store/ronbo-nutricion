@@ -2430,6 +2430,7 @@ export default {
   'train.cardio2.line': '⏱️ Cardio today: {min} min', 'train.cardio2.lineKcal': ' · {kcal} kcal',
   'train.cardio2.assignedChip': 'Assigned · done in the session panel', 'train.cardio2.doneChip': '✓ Done',
   'train.cardio2.assignedLine': ' · Assigned: {min} min (not done yet)',
+  'train.cardio2.offLine': 'No warm-up',
   'train.pick.addedOk': '✓ Added: {name}',
   'train.cardio2.lineGoal': ' — those minutes count toward your goal of {goal} min',
   'train.cardio2.spec.incline': 'INCLINE · %', 'train.cardio2.spec.speed': 'AVG SPEED · KM/H',
