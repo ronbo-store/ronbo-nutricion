@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-detalle-plegado">
+<link rel="stylesheet" href="styles.css?v=20261123-entrenamiento-plegado">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -571,6 +571,14 @@
       <div class="panel train-custom-panel" id="train-custom-panel">
         <button type="button" class="btn-secondary manage-toggle train-custom-toggle" id="btn-train-custom" aria-expanded="false"><span data-i18n="train.custom.title">Customize today's assignments</span><span class="manage-chev" id="train-custom-chev">▾</span></button>
         <div id="train-custom-body" style="display:none">
+          <!-- AUTH-566 (programa «Plegar todo» nº 3): las vías de
+               AÑADIR (dictando y por foto) se mudan DENTRO de
+               Personaliza — la vista deja de llevar la fila suelta
+               #train-add-row bajo el plan (AUTH-431) y queda una
+               sola puerta, este desplegable, con todas las vías
+               juntas. Lo pinta trainCustomRenderSession (app.js)
+               con las mismas guardas y cableado de siempre. -->
+          <div id="train-custom-addrow"></div>
           <div id="train-custom-tools"></div>
           <!-- «MIS PLANES» DEL PROPIO USUARIO (AUTH-411): el
                bloque completo (filas, hoja ⋮ y «Plan nuevo») vive
@@ -727,6 +735,39 @@
     <div id="stu-sheet-body"></div>
   </div>
 
+  <!-- LA VISTA DE ENTRENAMIENTO, PLEGADA (AUTH-2026-11-23-566,
+       programa «Plegar todo» nº 3): la hoja propia de cada apartado
+       de la vista (plan, reto y días por alinear) — el bloque VIAJA
+       desde su almacén de la vista a esta hoja y vuelve a su ancla
+       al cerrar (el patrón de AUTH-563/565). La pintan y la mueven
+       trainSheetOpen / trainSheetClose (app.js); el título lo pone
+       la línea que la abre. -->
+  <div class="pend-float train-sheet" id="train-sheet" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="train-sheet-title"></span></h2>
+      <button type="button" class="pend-close" id="train-sheet-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row train-sheet-back" id="train-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="train-sheet-body"></div>
+  </div>
+
+  <!-- LA PANTALLA DE CIERRE DEL DÍA (AUTH-2026-11-23-566): el
+       formulario de cierre de la casa (trainCloseFormHTML) vive
+       SOLO aquí — la tarjeta del día y el panel de sesión lo abren
+       con su puerta «Terminar y guardar ›» en vez de desplegarlo
+       cada uno en su superficie. Lo pintan y lo cablean
+       trainCloseSheetOpen / trainCloseSheetCancel (app.js); la
+       escritura sigue siendo la única de siempre
+       (trainCloseConfirm). Z-index 60: sobre el panel de sesión. -->
+  <div class="pend-float train-close-sheet" id="train-close-sheet" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="train-close-title"></span></h2>
+      <button type="button" class="pend-close" id="train-close-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row train-close-back" id="train-close-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="train-close-body"></div>
+  </div>
+
   <!-- PETICIONES DEL ALUMNO A SU ENTRENADOR (AUTH-2026-11-04-237):
        la hoja de envío del alumno (botones de tipo cerrado, días y
        mensaje corto) y la hoja de respuesta del entrenador. El
@@ -738,6 +779,20 @@
       <button type="button" class="pend-close" id="treq-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="treq-body"></div>
+  </div>
+  <!-- LAS PETICIONES DEL ALUMNO, PLEGADAS (AUTH-2026-11-23-566):
+       la hoja que abre la línea «Peticiones · n abiertas ›» de la
+       vista de entrenamiento — dentro viven el botón de pedir un
+       cambio (que abre la hoja de envío de siempre, #treq-float,
+       por encima de esta) y las tarjetas de «Mis peticiones». La
+       pintan treqListOpen / treqListPaint (app.js). -->
+  <div class="pend-float treq-list-sheet" id="treq-list-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span data-i18n="treq.mineTitle">My requests</span></h2>
+      <button type="button" class="pend-close" id="treq-list-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row treq-list-back" id="treq-list-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="treq-list-body"></div>
   </div>
   <div class="pend-float pend-consult" id="treq-reply-float" style="display:none" role="dialog">
     <div class="pend-head">
@@ -2685,6 +2740,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-detalle-plegado"></script>
+<script type="module" src="app.js?v=20261123-entrenamiento-plegado"></script>
 </body>
 </html>

@@ -2837,6 +2837,7 @@ export default {
   'train.d.restWord': 'Rest', 'train.d.notYet': 'Not logged yet',
   'train.d.setsLabel': 'Sets', 'train.d.skippedNote': 'You marked this day as skipped.',
   'train.view.rest': 'Rest', 'train.view.warmup': 'Warm-up', 'train.view.session': 'Session',
+  'train566.alignLine': 'Days to align', 'train566.reqLine': 'Requests', 'train566.reqOpen': '{n} open',
   'train.view.rpe': 'RPE', 'train.view.rpeNone': 'No RPE', 'train.view.exDone': 'Done', 'train.view.exInProgress': 'In progress', 'train.view.exToDo': 'Not started', 'train.view.exDoneMarked': '✓ Done · tap to unmark', 'train.view.save': 'Save',
   'train.view.alignBody': 'Your routine: {plan}. Your training reminders: {cfg}. Align your reminders with your plan?',
   'train.view.sessionsWeek': '{n} sessions a week', 'train.view.noDays': 'no days set',
