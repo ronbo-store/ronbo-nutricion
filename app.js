@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-comida-plegada');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-progreso-plegado');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -18762,7 +18762,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-comida-plegada' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-progreso-plegado' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -52398,6 +52398,11 @@ function weightChartSVG(data) {
    casa (AUTH-452). */
 function weightCardSync(tabName) { const c = $('weight-log-line'); if (c) c.style.display = (tabName === 'track') ? '' : 'none'; }
 let MPW_OPEN = false;
+/* AUTH-569 (programa «Plegar todo» nº 7): en Medidas, la gráfica y la
+   tabla completa de pesajes viven tras la línea «Historial completo»;
+   las estadísticas quedan visibles. Estado solo en memoria de la
+   sesión: nace plegado en cada arranque, como los demás pliegues. */
+let W_HIST_OPEN = false;
 function mpWeightSetOpen(open) {
   MPW_OPEN = !!open;
   const c = $('weight-card'); if (c) c.style.display = MPW_OPEN ? '' : 'none';
@@ -52511,14 +52516,16 @@ function renderWeight() {
       <div class="delta ${dCls(dg)}">${prev && prev.fat > 0 ? dTxt(dg).replace(' ' + UNIT_PREFS.mass, ' pp') : '—'}</div></div>`;
   }
   /* Redefinición 18:23: editar/borrar el propio pesaje siempre
-     disponible (el modal abre con los porcentajes según permiso). */
-  const delBtn = `<div style="text-align:center;margin-top:8px"><button class="btn-ghost btn-sm" id="btn-del-weight">${t('weight.delLast', { date: shortDate(last.date) })}</button></div>`;
+     disponible (el modal abre con los porcentajes según permiso).
+     AUTH-569: el borrado del último pesaje ya no es un botón suelto
+     al final — vive DENTRO de la fila de ese pesaje, junto a su
+     Editar, con la misma confirmación y la misma escritura. */
   const histRows = [...data].reverse().map(d => `
     <tr><td>${dateName(d.date)}</td><td class="num"><b>${fmtMassVal(d.weight)}</b></td>
     <td class="num">${d.fat || '—'}</td><td class="num">${d.muscle || '—'}</td>
     <td class="num">${d.water || '—'}</td><td class="num">${d.visceral || '—'}</td>
     <td>${esc(d.notes)}</td>
-    <td><button class="btn-ghost btn-sm" data-edit-weight="${d.id}">${t('client.edit')}</button></td></tr>`).join('');
+    <td><button class="btn-ghost btn-sm" data-edit-weight="${d.id}">${t('client.edit')}</button>${d.id === last.id ? ` <button class="btn-ghost btn-sm" data-del-weight="${d.id}">${t('progress.delete')}</button>` : ''}</td></tr>`).join('');
   body.innerHTML = `
     ${reminder}
     <div class="wstats">
@@ -52530,20 +52537,28 @@ function renderWeight() {
         <div class="delta ${dCls(dT)}">${t('weight.since', { d: shortDate(first.date), n: data.length, s: data.length > 1 ? 's' : '' })}</div></div>
       ${grasaCard}
     </div>
+    <button type="button" class="prog569-line" id="whist-fold-btn" aria-expanded="${W_HIST_OPEN ? 'true' : 'false'}"><span class="p569-tx">${esc(t('prog569.fullHistory'))} · ${data.length}</span><span class="p569-chev" aria-hidden="true">${W_HIST_OPEN ? '▴' : '▾'}</span></button>
+    <div id="whist-fold-body"${W_HIST_OPEN ? '' : ' style="display:none"'}>
     ${weightChartSVG(data)}
     <h3 class="history-title">${t('weight.history')}</h3>
     <div class="table-scroll"><table class="detail whist">
       <thead><tr><th>${t('form.date')}</th><th class="num">${esc(t('units.weightField', { u: UNIT_PREFS.mass }))}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
       <tbody>${histRows}</tbody>
     </table></div>
-    ${delBtn}`;
-  const dw = $('btn-del-weight');
-  if (dw) dw.onclick = async () => {
+    </div>`;
+  const hb = $('whist-fold-btn');
+  if (hb) hb.onclick = () => {
+    W_HIST_OPEN = !W_HIST_OPEN;
+    const bd = $('whist-fold-body'); if (bd) bd.style.display = W_HIST_OPEN ? '' : 'none';
+    hb.setAttribute('aria-expanded', W_HIST_OPEN ? 'true' : 'false');
+    const cv = hb.querySelector('.p569-chev'); if (cv) cv.textContent = W_HIST_OPEN ? '▴' : '▾';
+  };
+  body.querySelectorAll('[data-del-weight]').forEach(b => b.onclick = async () => {
     if (!confirm(t('confirm.delWeight', { date: dateName(last.date) }))) return;
     await deleteDoc(doc(db, 'nutrition_weight', last.id));
     toast(t('msg.weightDeleted'));
     await loadAll();
-  };
+  });
   body.querySelectorAll('[data-edit-weight]').forEach(b => b.onclick = () => {
     const rec = WEIGHTS.find(w => w.id === b.dataset.editWeight);
     if (rec) openWeightModal({ uid: auth.currentUser.uid, docId: rec.id, rec });
@@ -52589,6 +52604,10 @@ async function ensureProgressLoaded() {
   await PROGRESS_LOADING;
 }
 let PROG = {};          // fecha -> { front: {id, photo}, side: {...}, back: {...} }
+/* AUTH-569 (programa «Plegar todo» nº 7): el historial de fotos nace
+   plegado — una línea por fecha que despliega solo sus 3 fotos al
+   tocarla. El conjunto guarda las fechas abiertas de la sesión. */
+const PROG_HIST_OPEN = new Set();
 let PROG_TARGET = null; // fecha del set mostrado en el área principal
 /* Estado de la EVALUACIÓN DE PROGRESO (bloque más abajo): se carga
    en la misma pasada de loadProgress() desde nutrition_progress. */
@@ -53288,6 +53307,12 @@ async function loadWeekCard() {
        de ESTE modelo (WK_MODEL_OWN), sin recalcular nada. */
     box.querySelectorAll('[data-wk-share]').forEach(b => { b.onclick = () => { shareOpenPanelWeek(); }; });
     wkCardWire(box);
+    /* AUTH-569 (programa «Plegar todo» nº 7): la tarjeta ya nace
+       plegada tras su cabecera; su línea lleva ahora su dato clave —
+       las sesiones de la semana — tomado del mismo modelo. Solo en
+       esta superficie propia: el pintor compartido no se toca. */
+    const wt2 = box.querySelector('.wkcard-t2');
+    if (wt2 && model && model.sessions != null) wt2.textContent += ' · ' + model.sessions + ' ' + t('wk.chipSessions').toLowerCase();
     /* Niveles 2 y 3 del reconocimiento: hitos guardados y
        tarjeta del mes, bajo la tarjeta semanal. Van en su
        propia llamada protegida: si algo falla ahí, la tarjeta
@@ -53661,6 +53686,39 @@ async function recoComputeSync(uid, logs, plans, mealsByDate) {
   RECO_LATEST = items.length ? items[items.length - 1] : null;
   return { items, comp, pLogs, pPlans };
 }
+/* AUTH-569 (programa «Plegar todo» nº 7): «Tus hitos» y «Tu mes»
+   nacen plegadas en su línea — su cabecera se vuelve el botón del
+   pliegue, con su dato clave (el hito más reciente; el mes ya viaja
+   en el título de su tarjeta) — y el cuerpo y el pie se despliegan
+   al tocarla. Se aplica sobre lo pintado por los pintores de
+   siempre, SOLO en la superficie propia: ni los pintores ni la
+   ficha del entrenador cambian. El estado vive en memoria de la
+   sesión y nace plegado en cada arranque. */
+const RECO_FOLD_OPEN = { ms: false, mo: false };
+function recoFoldApply(box, kind, datum) {
+  if (!box) return;
+  const card = box.querySelector('.rcard'); if (!card) return;
+  const head = card.querySelector('.rcard-head'); if (!head) return;
+  const body = card.querySelector('.rcard-body'), foot = card.querySelector('.rcard-foot');
+  const open = RECO_FOLD_OPEN[kind] === true;
+  if (datum) { const t2 = head.querySelector('.rcard-t2'); if (t2) t2.textContent += ' · ' + datum; }
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = head.className + ' reco-fold-head';
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  btn.innerHTML = head.innerHTML + '<span class="p569-chev" aria-hidden="true">' + (open ? '▴' : '▾') + '</span>';
+  head.replaceWith(btn);
+  if (body) body.style.display = open ? '' : 'none';
+  if (foot) foot.style.display = open ? '' : 'none';
+  btn.onclick = () => {
+    const now = !(RECO_FOLD_OPEN[kind] === true);
+    RECO_FOLD_OPEN[kind] = now;
+    if (body) body.style.display = now ? '' : 'none';
+    if (foot) foot.style.display = now ? '' : 'none';
+    btn.setAttribute('aria-expanded', now ? 'true' : 'false');
+    const cv = btn.querySelector('.p569-chev'); if (cv) cv.textContent = now ? '▴' : '▾';
+  };
+}
 async function loadRecoCards(uid, logs, plans) {
   try {
     const msBox = $('milestones-box'), moBox = $('month-card-box');
@@ -53693,12 +53751,14 @@ async function loadRecoCards(uid, logs, plans) {
           b.textContent = open ? t('reco.msSeeLess') + ' ›' : t('reco.msSeeAll', { n: items.length }) + ' ›';
         };
       });
+      recoFoldApply(msBox, 'ms', items && items.length ? recoMsTitle(items[items.length - 1]) : '');
     }
     if (moBox) {
       moBox.innerHTML = monthCardHTML(monthCardCompute(pLogs, pPlans, todayISO()));
       moBox.querySelectorAll('[data-mo-share]').forEach(b => {
         b.onclick = () => shareOpenMonth(b.dataset.moShare);
       });
+      recoFoldApply(moBox, 'mo', '');
     }
   } catch {}
 }
@@ -53827,8 +53887,9 @@ function renderProgress() {
   const hist = dates.filter(d => d !== target).reverse();
   $('progress-history').innerHTML = hist.length ? hist.map(d => {
     const s = PROG[d];
-    return `<div class="hist-week"><div class="hist-label">${esc(dateName(d))}</div>
-      <div class="hist-imgs">
+    const hOpen = PROG_HIST_OPEN.has(d);
+    return `<div class="hist-week"><button type="button" class="hist-label hist-fold-head" data-hist-fold="${d}" aria-expanded="${hOpen ? 'true' : 'false'}"><span>${esc(dateName(d))}</span><span class="p569-chev" aria-hidden="true">${hOpen ? '▴' : '▾'}</span></button>
+      <div class="hist-imgs"${hOpen ? '' : ' style="display:none"'}>
         ${PROGRESS_SLOTS.map(sl => s[sl]
           ? `<div class="hist-item"><img src="${esc(s[sl].photo)}" alt="${t('progress.' + sl)}" loading="lazy" data-hist-zoom="${esc(s[sl].id)}"><button type="button" class="hist-del" data-hist-del="${esc(s[sl].id)}" title="${t('progress.delete')}">✕</button></div>`
           : `<span class="wempty">${t('progress.' + sl)}: ${t('progress.noPhoto')}</span>`).join('')}
@@ -53838,6 +53899,15 @@ function renderProgress() {
     const rec = findProgressPhoto(im.getAttribute('data-hist-zoom')); if (rec) showLightbox(rec.photo);
   }));
   $('progress-history').querySelectorAll('[data-hist-del]').forEach(b => b.addEventListener('click', () => deleteProgressPhoto(b.getAttribute('data-hist-del'))));
+  $('progress-history').querySelectorAll('[data-hist-fold]').forEach(b => b.addEventListener('click', () => {
+    const d = b.getAttribute('data-hist-fold');
+    const open = !PROG_HIST_OPEN.has(d);
+    if (open) PROG_HIST_OPEN.add(d); else PROG_HIST_OPEN.delete(d);
+    const week = b.closest('.hist-week'); const imgs = week ? week.querySelector('.hist-imgs') : null;
+    if (imgs) imgs.style.display = open ? '' : 'none';
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const cv = b.querySelector('.p569-chev'); if (cv) cv.textContent = open ? '▴' : '▾';
+  }));
   try { renderEval(); } catch {}
 }
 /* Compresión de la foto de progreso en memoria: lado mayor máx.
@@ -54340,7 +54410,13 @@ function renderEval() {
      la última COMPLETA (así lo calcula evalNextDue: ancla + 15 días);
      la primera no tiene fecha límite. Va en la tarjeta del ciclo,
      junto a las fechas, no escondida en una ayuda. */
-  card += `<p class="eval-detail">${esc(t('eval.cycleExplain'))}</p>`;
+  /* AUTH-569 (programa «Plegar todo» nº 7): la explicación del ciclo
+     ya no se despliega siempre sobre la tarjeta — nace tras su
+     «ver más», con el toque guardado en EVAL_FOLD_TOUCH como los
+     demás pliegues de la evaluación. */
+  const exOpen = EVAL_FOLD_TOUCH['prog-explain'] === true;
+  card += `<button type="button" class="eval-more-btn" id="eval-explain-btn" aria-expanded="${exOpen ? 'true' : 'false'}">${esc(t(exOpen ? 'prog569.seeLess' : 'prog569.seeMore'))} <span aria-hidden="true">${exOpen ? '▴' : '▾'}</span></button>`
+    + `<p class="eval-detail" id="eval-explain"${exOpen ? '' : ' style="display:none"'}>${esc(t('eval.cycleExplain'))}</p>`;
   const canOmit = !complete && (isFirst || (due && today >= due));
   if (canOmit) card += `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="eval-omit-btn">${esc(t('eval.omitBtn'))}</button></div>`;
 
@@ -54360,21 +54436,49 @@ function renderEval() {
      toda la vista (tras medidas, ficha, composición y configuración)
      y había que cavar para encontrarlo. renderCmpClient() lo rellena
      igual: solo cambia su posición en el DOM. */
-  root.innerHTML = `<div class="eval-card" id="eval-card">${card}</div>`
-    + `<div id="cmp-root"></div>`
-    + `<div class="eval-block"><p class="eval-ficha-title">${esc(t('eval.measuresTitle'))} · ${esc(dateName(S))}</p>`
+  const measuresBlock = `<div class="eval-block"><p class="eval-ficha-title">${esc(t('eval.measuresTitle'))} · ${esc(dateName(S))}</p>`
     + `<div class="eval-form">${formRows}</div>`
     + (compBlocked ? `<p class="eval-detail">${esc(t('compacc.pctNote'))}</p>` : '')
-    + `<div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="eval-save-measures">${esc(t('eval.saveMeasures'))}</button>${EVAL_OK_MSG ? `<span class="eval-ok">${esc(EVAL_OK_MSG)}</span>` : ''}</div></div>`
-    + evalFichaHTML(S)
-    + evalCompHTML(S)
-    + `<div class="eval-block eval-config"><p class="eval-ficha-title">${esc(t('eval.cfgTitle'))}</p>`
+    + `<div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="eval-save-measures">${esc(t('eval.saveMeasures'))}</button>${EVAL_OK_MSG ? `<span class="eval-ok">${esc(EVAL_OK_MSG)}</span>` : ''}</div></div>`;
+  const configBlock = `<div class="eval-block eval-config"><p class="eval-ficha-title">${esc(t('eval.cfgTitle'))}</p>`
     + `<p class="eval-cfg-group">${esc(t('eval.cfgRequired'))}</p>${reqChecks}`
     + `<p class="eval-detail">${esc(t('eval.cfgReqNote'))}</p>`
     + `<p class="eval-cfg-group">${esc(t('eval.cfgUnits'))}</p>`
     + `<label class="eval-check"><input type="radio" name="eval-units" value="metric" ${EVAL_CFG.units !== 'imperial' ? 'checked' : ''}> ${esc(t('eval.unitsMetric'))}</label>`
     + `<label class="eval-check"><input type="radio" name="eval-units" value="imperial" ${EVAL_CFG.units === 'imperial' ? 'checked' : ''}> ${esc(t('eval.unitsImperial'))}</label>`
     + `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="eval-save-config">${esc(t('eval.cfgSave'))}</button></div></div>`;
+  /* AUTH-569 (programa «Plegar todo» nº 7): los cuatro bloques de la
+     composición nacen plegados en su línea (título + dato clave + ›),
+     con el patrón de pliegue de la casa (evalFoldHead/evalFoldWire,
+     AUTH-318): Medidas con su fecha, Ficha con la fecha comparada,
+     Composición con su grasa o músculo vigente y Configuración con
+     sus unidades. Los bloques viajan intactos dentro de su pliegue;
+     ningún pintor ni ninguna lógica cambian. */
+  const fOpen = id => EVAL_FOLD_TOUCH[id] === true;
+  const prevC = evalPrevCompleteDate(S);
+  const nowComp = (EVALS[S] && EVALS[S].comp) || {};
+  let compDatum = '';
+  if (nowComp.fat) compDatum = ' · ' + t('eval.compFat') + ' ' + evalFmtNum(nowComp.fat.value) + ' ' + nowComp.fat.unit;
+  else if (nowComp.muscle) compDatum = ' · ' + t('eval.compMuscle') + ' ' + evalFmtNum(nowComp.muscle.value) + ' ' + nowComp.muscle.unit;
+  root.innerHTML = `<div class="eval-card" id="eval-card">${card}</div>`
+    + `<div id="cmp-root"></div>`
+    + evalFoldHead('prog-med', esc(t('prog569.lineMeasures')) + ' · ' + esc(dateName(S)), fOpen('prog-med'))
+    + `<div id="efold-body-prog-med"${fOpen('prog-med') ? '' : ' style="display:none"'}>${measuresBlock}</div>`
+    + evalFoldHead('prog-ficha', esc(t('prog569.lineFicha')) + (prevC ? ' · ' + esc(dateName(prevC)) : ''), fOpen('prog-ficha'))
+    + `<div id="efold-body-prog-ficha"${fOpen('prog-ficha') ? '' : ' style="display:none"'}>${evalFichaHTML(S)}</div>`
+    + evalFoldHead('prog-comp', esc(t('prog569.lineComp')) + esc(compDatum), fOpen('prog-comp'))
+    + `<div id="efold-body-prog-comp"${fOpen('prog-comp') ? '' : ' style="display:none"'}>${evalCompHTML(S)}</div>`
+    + evalFoldHead('prog-cfg', esc(t('prog569.lineCfg')) + ' · ' + esc(t(EVAL_CFG.units === 'imperial' ? 'eval.unitsImperial' : 'eval.unitsMetric')), fOpen('prog-cfg'))
+    + `<div id="efold-body-prog-cfg"${fOpen('prog-cfg') ? '' : ' style="display:none"'}>${configBlock}</div>`;
+  ['prog-med', 'prog-ficha', 'prog-comp', 'prog-cfg'].forEach(evalFoldWire);
+  const exBtn = $('eval-explain-btn'); if (exBtn) exBtn.onclick = () => {
+    const p = $('eval-explain'); if (!p) return;
+    const open = p.style.display === 'none';
+    EVAL_FOLD_TOUCH['prog-explain'] = open;
+    p.style.display = open ? '' : 'none';
+    exBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    exBtn.innerHTML = esc(t(open ? 'prog569.seeLess' : 'prog569.seeMore')) + ' <span aria-hidden="true">' + (open ? '▴' : '▾') + '</span>';
+  };
   const omitBtn = $('eval-omit-btn'); if (omitBtn) omitBtn.onclick = evalOmitCycle;
   const saveBtn = $('eval-save-measures'); if (saveBtn) saveBtn.onclick = evalSaveMeasures;
   const cfgBtn = $('eval-save-config'); if (cfgBtn) cfgBtn.onclick = evalSaveConfig;
@@ -61174,7 +61278,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-comida-plegada';
+const PWA_SW_VERSION = '20261123-progreso-plegado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -71861,20 +71965,32 @@ function mpOpenHist(field) {
   else if (field === 'train') { body.innerHTML = `<div class="wempty">${esc(t('mp.loading'))}</div>`; mpPaintTrainHist(); }
 }
 function mpHistBody() {
+  /* AUTH-569 (programa «Plegar todo» nº 7): superficie ÚNICA por dato.
+     La tendencia con la gráfica de peso, la lista de grasa y la serie
+     de cintura ya no se despliegan aquí duplicando lo de Medidas: la
+     gráfica y la tabla de pesajes viven SOLO dentro del pliegue de
+     Medidas, y el historial propio se resume en dos líneas plegadas
+     (grasa y cintura, con su último valor como dato clave). La fila
+     de puertas pierde sus dos accesos duplicados — peso (su acceso
+     único es el pliegue de Medidas, con su botón de registrar) y
+     fotos (su acceso único es el pliegue de Fotos) — y conserva su
+     única puerta por asunto: el reporte y «añadir desde foto». */
   const parts = [];
-  parts.push(`<div class="mp-doors"><button type="button" class="btn-primary btn-sm" data-mp-act="weightdoor">${esc(t('mp.h.weightDoor'))}</button><button type="button" class="btn-ghost btn-sm" data-mp-act="photosdoor">${esc(t('mp.h.photosDoor'))}</button><button type="button" class="btn-ghost btn-sm" data-mp-act="reportdoor">${esc(t('mr.open'))}</button></div>`);
+  parts.push(`<div class="mp-doors"><button type="button" class="btn-ghost btn-sm" data-mp-act="reportdoor">${esc(t('mr.open'))}</button></div>`);
   parts.push(`<button type="button" class="air-door" data-mp-act="airdoor"><span class="air-door-t">${esc(t('air.door'))}</span><span class="air-door-s">${esc(t('air.doorSub'))}</span></button>`);
-  if (WEIGHTS.length) parts.push(`<h4 class="mp-sec">${esc(t('mp.h.trend'))} · ${esc(t('mp.lastWeight'))}</h4><div class="mp-chart">${weightChartSVG(WEIGHTS)}</div>`);
   const fats = WEIGHTS.filter(w => num(w.fat) > 0).slice(-5).reverse();
-  if (fats.length) parts.push(`<h4 class="mp-sec">${esc(t('form.bodyfat'))}</h4>` + fats.map(w => `<div class="mp-row"><span>${esc(shortDate(w.date))}</span><span>${fmt(w.fat)}%${w.fatMethod ? ' · ' + esc(t('mp.m.' + w.fatMethod)) : ''}</span></div>`).join(''));
+  if (fats.length) {
+    parts.push(`<button type="button" class="prog569-line mp-hf-line" data-mp-act="histfold" data-k="fat" aria-expanded="false"><span class="p569-tx">${esc(t('form.bodyfat'))} · ${fmt(fats[0].fat)}%</span><span class="p569-chev" aria-hidden="true">▾</span></button>`);
+    parts.push(`<div id="mp-hf-fat" hidden>` + fats.map(w => `<div class="mp-row"><span>${esc(shortDate(w.date))}</span><span>${fmt(w.fat)}%${w.fatMethod ? ' · ' + esc(t('mp.m.' + w.fatMethod)) : ''}</span></div>`).join('') + `</div>`);
+  }
   const dates = Object.keys(EVALS).sort().reverse();
   const withMeas = dates.filter(d => { const m = (EVALS[d] && EVALS[d].measures) || {}; return Object.keys(m).some(k => k !== 'peso' && m[k] != null && num(m[k]) > 0); });
   if (withMeas.length) {
-    parts.push(`<h4 class="mp-sec">${esc(t('eval.measure.cintura'))}</h4>`);
+    const lastWaist = withMeas.map(d => EVALS[d].measures.cintura).find(v => v != null);
+    parts.push(`<button type="button" class="prog569-line mp-hf-line" data-mp-act="histfold" data-k="waist" aria-expanded="false"><span class="p569-tx">${esc(t('eval.measure.cintura'))}${lastWaist != null ? ' · ' + esc(mpFmtCm(lastWaist)) : ''}</span><span class="p569-chev" aria-hidden="true">▾</span></button>`);
     const series = withMeas.slice().sort().filter(d => EVALS[d].measures.cintura != null).map(d => ({ d, v: num(EVALS[d].measures.cintura) }));
     const svg = mpLineSVG(series);
-    if (svg) parts.push(`<div class="mp-chart">${svg}</div>`);
-    parts.push(withMeas.slice(0, 8).map(d => { const m = EVALS[d].measures; return `<div class="mp-row"><span>${esc(shortDate(d))}</span><span>${Object.keys(m).filter(k => k !== 'peso' && m[k] != null).map(k => esc(t('eval.measure.' + k)) + ' ' + esc(mpFmtCm(m[k]))).join(' · ')}</span></div>`; }).join(''));
+    parts.push(`<div id="mp-hf-waist" hidden>` + (svg ? `<div class="mp-chart">${svg}</div>` : '') + withMeas.slice(0, 8).map(d => { const m = EVALS[d].measures; return `<div class="mp-row"><span>${esc(shortDate(d))}</span><span>${Object.keys(m).filter(k => k !== 'peso' && m[k] != null).map(k => esc(t('eval.measure.' + k)) + ' ' + esc(mpFmtCm(m[k]))).join(' · ')}</span></div>`; }).join('') + `</div>`);
   }
   if (!WEIGHTS.length && !withMeas.length) parts.push(`<div class="wempty">${esc(t('mp.none'))}</div>`);
   return parts.join('');
@@ -73278,6 +73394,7 @@ document.addEventListener('click', e => {
   else if (act === 'hist') mpOpenHist(b.dataset.field);
   else if (act === 'tests') { mpSheetClose('mp-hist'); mpFitOpen(); }
   else if (act === 'foodprev') { mpFoodWeeks = 2; const hb = $('mp-hist-body'); if (hb) hb.innerHTML = mpHistFood(); }
+  else if (act === 'histfold') { const box = $('mp-hf-' + b.dataset.k); if (box) { const open = box.hidden; box.hidden = !open; b.setAttribute('aria-expanded', open ? 'true' : 'false'); const cv = b.querySelector('.p569-chev'); if (cv) cv.textContent = open ? '▴' : '▾'; } }
   else if (act === 'reportdoor') { mpSheetClose('mp-hist'); mrOpen(); }
   else if (act === 'airdoor') { mpSheetClose('mp-hist'); airOpen({}); }
   else if (act === 'close') mpSheetClose(b.dataset.sheet);

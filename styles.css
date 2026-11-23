@@ -7609,3 +7609,19 @@ textarea.gest-in { resize: none; }
 #const-slot, #chk-slot { margin-top: 14px; }
 #week-slot .home-fold-line, #const-slot .home-fold-line, #chk-slot .home-fold-line { min-height: 52px; background: #fff; border-bottom: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); padding: 8px 16px; }
 #week-slot .home-fold-line:active, #const-slot .home-fold-line:active, #chk-slot .home-fold-line:active { opacity: .6; }
+
+/* AUTH-569 · Programa «Plegar todo» nº 7 (Progreso): líneas de pliegue
+   de la vista — historial completo de pesajes, historial propio de la
+   hoja de composición (grasa/cintura), fechas del historial de fotos,
+   cabeceras-botón de las tarjetas de reconocimiento y el «ver más» de
+   la explicación del ciclo. Toques ≥44 px; el espacio se gana
+   plegando, nunca encogiendo. */
+.prog569-line { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 10px 14px; margin-top: 10px; background: #fff; border: 1px solid var(--line, #d8e2de); border-radius: 12px; box-shadow: 0 1px 3px rgba(15,23,42,.05); font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.prog569-line:active { opacity: .6; }
+.prog569-line .p569-tx { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; }
+.p569-chev { flex: none; color: #0F766E; font-size: 14px; }
+.mp-hf-line { margin-top: 12px; }
+.hist-fold-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; box-sizing: border-box; background: none; border: 0; padding: 4px 0; margin-bottom: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.hist-week > .hist-imgs { margin-top: 8px; }
+button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; background: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.eval-more-btn { display: inline-flex; align-items: center; min-height: 44px; background: none; border: 0; padding: 6px 0; font: inherit; font-size: 14px; font-weight: 700; color: #0F766E; cursor: pointer; }
