@@ -4304,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-pendientes-coach');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-link-retos');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -18833,7 +18833,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-pendientes-coach' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-link-retos' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -18977,7 +18977,21 @@ function captureSignupLinks() {
        pinta sin sesión y el carrusel completo se reanuda tras el
        acceso (retoLinkApply en la cola de la sesión). */
     const reto = q.get('reto');
-    if (reto) { try { sessionStorage.setItem('rf-link-reto', reto); } catch {} captured = true; }
+    if (reto) {
+      /* AUTH-572: el identificador se normaliza (la forma corta
+         «21» de AUTH-549 sigue valiendo → «plan-21») y la
+         atribución «de» viaja en el mismo guardado, con forma de
+         uid validada o nada. La atribución sobrevive al registro
+         porque vive en sessionStorage hasta que el flujo del
+         reto la consume, ya con la sesión abierta. */
+      const rid = String(reto) === '21' ? 'plan-21' : String(reto);
+      if (/^[A-Za-z0-9_-]{1,80}$/.test(rid)) {
+        let de = q.get('de') || '';
+        if (!/^[A-Za-z0-9_-]{8,64}$/.test(de)) de = '';
+        try { sessionStorage.setItem('rf-link-reto', JSON.stringify({ id: rid, de })); } catch {}
+        captured = true;
+      }
+    }
     if (captured) { try { history.replaceState(null, '', location.pathname); } catch {} }
   } catch {}
 }
@@ -44573,6 +44587,12 @@ async function planHoldEvaluate(clientUid, opts) {
   if (!clientUid) return [];
   const state = await planGateState(clientUid);
   if (state !== 'valid') return [];
+  /* AUTH-572: la espera de «solo alimentación» del link se
+     evalúa en los mismos puntos que la espera de los planes:
+     con la puerta válida, sus semanas de comidas se arman
+     solas (retoFoodHoldEvaluate solo actúa en la sesión de la
+     propia persona). */
+  try { await retoFoodHoldEvaluate(clientUid); } catch {}
   const plans = await fetchPlans(clientUid);
   const holds = plans.filter(p => p && p.healthHold === true && p.holdAuto === true && p.active !== true
     && p.id !== o.excludePlanId
@@ -45167,6 +45187,10 @@ async function plan21ApplyForStudent(uid) {
 
 /* --- La hoja de arranque del alumno (desde su catálogo, D6) --- */
 let PLAN21_SHEET = null;
+/* AUTH-572: con el filtro en «Solo entrenamiento», el arranque
+   del reto no asegura el lado de comida (ni metas del reto ni
+   semanas de comidas): solo se asigna y se muestra lo elegido. */
+let PLAN21_LINK_SKIP_FOOD = false;
 function plan21DayName(wd) {
   try { return new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { weekday: 'short' }).format(new Date(2024, 0, wd === 0 ? 7 : wd)); }
   catch { return String(wd); }
@@ -45239,7 +45263,7 @@ async function plan21Start() {
     const res = await plan21CreatePlan(me, built);
     plan21CloseSheet();
     toast(t(res.active ? 'plan21.startedOk' : 'plan21.startedHold'), !res.active);
-    try { await plan21AfterStart({ id: res.id, startsAt: built.startsAt, endsAt: built.endsAt, active: res.active }); } catch {}
+    try { if (!PLAN21_LINK_SKIP_FOOD) await plan21AfterStart({ id: res.id, startsAt: built.startsAt, endsAt: built.endsAt, active: res.active }); } catch {}
     loadMyTraining();
   } catch { toast(t('train.saveError'), true); if (go) go.disabled = false; }
 }
@@ -45267,6 +45291,179 @@ async function plan21Start() {
    Puertas (E1): ?reto=21, el botón de la pestaña de Retos y la
    tarjeta del catálogo — las tres abren ESTE carrusel.
    ════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   AUTH-572: EL LINK PARA COMPARTIR CADA RETO (diseño aprobado
+   por Ronald 2026-11-23, con maquetas): cada reto tiene su link
+   estable — fit.ronbo.store/?reto=<id> — y si quien comparte es
+   un entrenador, el link lleva SU atribución (&de=<uid>): la
+   persona que entra queda como alumna suya; si lo comparte
+   Ronald, entra con él. La atribución viaja en el propio link,
+   se guarda al capturarlo (captureSignupLinks) y sobrevive al
+   registro (sessionStorage).
+   - El cuadrito de compartir vive en la vista del reto para
+     admin/entrenador (chalCanManage): el link visible,
+     [Copiar link] y [Compartir] (el nativo del sistema donde
+     exista; copiar como respaldo).
+   - La página pública (sin cuenta) es la portada del carrusel
+     en su variante «link», la misma para quien ya está dentro:
+     el hueco del arte ENCIMA del nombre, qué incluye, la línea
+     PLEGADA «Así será tu rutina» con las sesiones reales del
+     reto (PLAN21_SESSIONS vive en el código; los nombres y las
+     fotos de los ejercicios se resuelven de la biblioteca
+     cuando ya cargó — sin sesión las reglas no la dejan leer,
+     así que la línea enseña cada sesión con su número de
+     ejercicios) y el botón de apuntarse.
+   - El registro desde el link reutiliza el carrusel entero: su
+     PASO 1 es la pregunta filtro (entrenamiento / alimentación
+     / los dos) y SOLO se asigna y se muestra lo elegido. La
+     activación es la de siempre (AUTH-549/559): el plan nace
+     directo como plan vigente, con la puerta de salud SIEMPRE
+     (asignado-pero-en-espera y auto-activación al completarla).
+   - La atribución se aplica DESPUÉS de activar, por la puerta
+     de relación de siempre (escChangeTrainer): activando
+     primero, la persona entra autogestionada y su plan nace
+     directo como en AUTH-559; la relación llega al cerrar el
+     flujo. Si la persona ya eligió entrenador por su cuenta al
+     registrarse, su elección manda y la atribución no pisa.
+   ═══════════════════════════════════════════════════════════ */
+function retoLinkURL(retoId, de) {
+  const u = 'https://fit.ronbo.store/?reto=' + encodeURIComponent(retoId);
+  return de ? u + '&de=' + encodeURIComponent(de) : u;
+}
+function retoShareCardHTML(retoId) {
+  const me = (typeof chalMe === 'function') ? chalMe() : (auth.currentUser && auth.currentUser.uid);
+  const url = retoLinkURL(retoId, me || '');
+  return `<div class="rlink-card">
+    <div class="rlink-card-t">${esc(t('rlink.shareTitle'))}</div>
+    <p class="rlink-card-b">${esc(t('rlink.shareBody'))}</p>
+    <div class="rlink-url">${esc(url.replace('https://', ''))}</div>
+    <div class="rlink-btns">
+      <button type="button" class="btn-ghost rlink-btn" data-rlink-copy="${esc(url)}">${esc(t('rlink.copyBtn'))}</button>
+      <button type="button" class="btn-primary rlink-btn" data-rlink-share="${esc(url)}">${esc(t('rlink.shareBtn'))}</button>
+    </div>
+  </div>`;
+}
+async function retoCopyLink(url) {
+  try { await navigator.clipboard.writeText(url); toast(t('rlink.copied')); return true; } catch {}
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    if (ok) { toast(t('rlink.copied')); return true; }
+  } catch {}
+  return false;
+}
+function retoShareWire(root) {
+  if (!root) return;
+  root.querySelectorAll('[data-rlink-copy]').forEach(b => {
+    b.onclick = () => { retoCopyLink(b.dataset.rlinkCopy); };
+  });
+  root.querySelectorAll('[data-rlink-share]').forEach(b => {
+    b.onclick = async () => {
+      const url = b.dataset.rlinkShare;
+      if (navigator.share) {
+        try { await navigator.share({ title: t('plan21.title'), url }); } catch {}
+        return;
+      }
+      retoCopyLink(url);
+    };
+  });
+}
+/* La explicación pública del reto. El hueco del arte se
+   presenta con la casa (degradado y trofeo) mientras el reto no
+   tenga imagen propia; cuando la tenga, ese hueco la enseña. */
+function r21PublicHTML() {
+  return `<div class="rlink-brand"><span class="rlink-logo">RONBO.FIT</span><span class="rlink-slogan">${esc(t('auth.subtitle'))}</span></div>
+  <div class="rlink-art" aria-hidden="true"><span class="rlink-art-ic">🏆</span></div>
+  <div class="rlink-chips"><span class="chal-tag">🏆 ${esc(t('rlink.chalChip', { n: 21 }))}</span><span class="chal-tag rlink-free">${esc(t('rlink.freeChip'))}</span></div>
+  <h3 class="wiz-h rlink-title">${esc(t('plan21.title'))}</h3>
+  <div class="wiz-body">
+    <div class="chal-inc"><p>💪 <b>${esc(t('chal.p21IncTrainB'))}</b> ${esc(t('chal.p21IncTrain'))}</p><p>🍽️ <b>${esc(t('chal.p21IncFoodB'))}</b> ${esc(t('chal.p21IncFood'))}</p></div>
+    <button type="button" class="rlink-fold" id="r21-routine-fold" aria-expanded="${R21.routineOpen ? 'true' : 'false'}"><span class="rlink-fold-t"><b>${esc(t('rlink.routineLine'))}</b> · ${esc(t('rlink.routineN', { n: PLAN21_SESSIONS.length }))}</span><span class="rlink-fold-a" aria-hidden="true">${R21.routineOpen ? '▾' : '›'}</span></button>
+    ${R21.routineOpen ? r21PublicSessionsHTML() : ''}
+  </div>
+  <div class="wiz-nav"><button type="button" class="btn-primary r21-big" id="r21-go-cover">${esc(t('rlink.joinBtn'))}</button></div>
+  <p class="wiz-note">${esc(t('rlink.publicFine'))}</p>`;
+}
+function r21PublicSessionsHTML() {
+  const fams = (typeof WIZ_EQ_FAMS !== 'undefined' && WIZ_EQ_FAMS) ? WIZ_EQ_FAMS : ['maquinas', 'mancuernas', 'peso_corporal'];
+  const libReady = typeof LIB_BY_ID !== 'undefined' && LIB_BY_ID && Object.keys(LIB_BY_ID).length > 0;
+  return PLAN21_SESSIONS.map(s => {
+    const real = s.slots.filter(sl => sl.cands && sl.cands.length);
+    let exs = '';
+    if (libReady) {
+      const items = [];
+      for (const sl of real) {
+        const ex = plan21Resolve(sl, fams);
+        if (ex && LIB_BY_ID[ex.id]) items.push({ n: exNameOf(LIB_BY_ID[ex.id]), img: libThumbSrc(LIB_BY_ID[ex.id].foto_url) });
+      }
+      if (items.length) exs = `<div class="rlink-exs">${items.slice(0, 4).map(x => `<span class="rlink-ex">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span>${esc(x.n)}</span></span>`).join('')}</div>`;
+    }
+    return `<div class="rlink-sess"><div class="rlink-sess-h"><b>${esc(t('plan21.sess' + s.code))}</b><span class="rlink-sess-n">${esc(t('rlink.sessEx', { n: real.length }))}</span></div>${exs}</div>`;
+  }).join('');
+}
+/* «Solo alimentación»: no nace plan de entrenamiento; el lado
+   de comida del reto es el de siempre (metas + las semanas de
+   comidas del planificador, plan21GoalsEnsure/plan21FoodEnsure).
+   Con la puerta de salud sin completar, la entrada queda en
+   espera en el documento de la persona (retoFoodHold) y
+   retoFoodHoldEvaluate la activa sola al completarla — la
+   misma semántica de espera de AUTH-559. */
+async function r21LinkFoodActivate(inp) {
+  const me = auth.currentUser.uid;
+  const startsAt = plan21StartISO(inp);
+  const endsAt = planISOAddDays(startsAt, 20);
+  const gate = await planGateState(me);
+  const stamp = { reto21Mode: 'food', reto21StartsAt: startsAt, reto21EndsAt: endsAt };
+  if (gate === 'valid') {
+    try { await plan21GoalsEnsure(); } catch {}
+    try { await plan21FoodEnsure({ startsAt, endsAt }); } catch {}
+    R21.outcome = 'active';
+  } else {
+    stamp.retoFoodHold = { startsAt, endsAt };
+    R21.outcome = 'hold';
+  }
+  try { await setDoc(doc(db, 'users', me), stamp, { merge: true }); if (typeof UDATA !== 'undefined' && UDATA) Object.assign(UDATA, stamp); } catch {}
+}
+async function retoFoodHoldEvaluate(clientUid) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me || clientUid !== me) return;
+  const ud = (typeof UDATA !== 'undefined' && UDATA) || {};
+  let hold = ud.retoFoodHold || null;
+  let startsAt = (hold && hold.startsAt) || (ud.reto21Mode === 'food' ? ud.reto21StartsAt : null);
+  let endsAt = (hold && hold.endsAt) || ud.reto21EndsAt || null;
+  if (!startsAt) {
+    try {
+      const s = await getDoc(doc(db, 'users', me));
+      if (s.exists()) {
+        const d = s.data() || {};
+        hold = d.retoFoodHold || hold;
+        if (hold && hold.startsAt) { startsAt = hold.startsAt; endsAt = hold.endsAt; }
+        else if (d.reto21Mode === 'food' && d.reto21StartsAt) { startsAt = d.reto21StartsAt; endsAt = d.reto21EndsAt; }
+      }
+    } catch {}
+  }
+  if (!startsAt) return;
+  if ((await planGateState(me)) !== 'valid') return;
+  /* Las semanas ya armadas no se reescriben: el asegurador de
+     la casa deduplica por la huella de sus entradas. */
+  try { await plan21GoalsEnsure(); } catch {}
+  try { await plan21FoodEnsure({ startsAt, endsAt }); } catch {}
+  if (hold) { try { await setDoc(doc(db, 'users', me), { retoFoodHold: deleteField() }, { merge: true }); if (typeof UDATA !== 'undefined' && UDATA) delete UDATA.retoFoodHold; } catch {} }
+}
+/* La atribución del link, por la puerta de relación de siempre
+   (escChangeTrainer: la relación activa, su historial y el
+   cupo), DESPUÉS de activar — ver la cabecera del bloque. */
+async function retoApplyAttribution() {
+  if (!R21 || !R21.de) return;
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me || R21.de === me) return;
+  const cur = (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.trainerUid) || (typeof UDATA !== 'undefined' && UDATA && UDATA.trainerUid) || '';
+  if (cur) return;
+  await escChangeTrainer(R21.de);
+}
 let R21 = null;
 const R21_DATA_ORDER = ['anio', 'peso', 'estatura', 'dias', 'equipo', 'meta'];
 function r21MissingList(inp) {
@@ -45292,30 +45489,59 @@ async function r21Open(source, opts = {}) {
   try { st = await chalPlan21State(me); } catch {}
   if (st && st.state !== 'none') { try { navOpenPage('challenges'); } catch {} return; }
   R21 = r21FreshState(source, false);
+  if (opts && opts.de) R21.de = String(opts.de);
   fl.style.display = '';
   const x = $('reto21-x'); if (x) x.onclick = () => r21Close();
   if (opts.skipCover) { await r21EnterData(); return; }
   r21Paint();
 }
+/* AUTH-572: la lectura única del link guardado. Acepta la forma
+   nueva (JSON {id, de}) y la forma de AUTH-549 (el texto «21» a
+   secas), y devuelve null si no hay link válido. */
+function retoLinkStored() {
+  let raw = null;
+  try { raw = sessionStorage.getItem('rf-link-reto'); } catch {}
+  if (!raw) return null;
+  if (raw === '21') return { id: 'plan-21', de: '' };
+  try {
+    const o = JSON.parse(raw);
+    if (o && o.id && /^[A-Za-z0-9_-]{1,80}$/.test(String(o.id))) {
+      const de = /^[A-Za-z0-9_-]{8,64}$/.test(String(o.de || '')) ? String(o.de) : '';
+      return { id: String(o.id), de };
+    }
+  } catch {}
+  if (/^[A-Za-z0-9_-]{1,80}$/.test(raw)) return { id: raw, de: '' };
+  return null;
+}
 function retoCoverMaybeShow() {
   if (auth.currentUser) return;
-  let flag = null;
-  try { flag = sessionStorage.getItem('rf-link-reto'); } catch {}
-  if (flag !== '21') return;
+  const lk = retoLinkStored();
+  /* La página pública sin sesión es la del Plan 21 (su contenido
+     vive en el código); cualquier otro reto se explica ya dentro,
+     en su ficha, tras el acceso. */
+  if (!lk || lk.id !== 'plan-21') return;
   const fl = $('reto21-float'); if (!fl) return;
   R21 = r21FreshState('link', true);
+  R21.de = lk.de || '';
   fl.style.display = '';
   const x = $('reto21-x'); if (x) x.onclick = () => r21Close();
   r21Paint();
 }
 function retoLinkApply() {
   if (!auth.currentUser) return;
-  let v = null;
-  try { v = sessionStorage.getItem('rf-link-reto'); if (v) sessionStorage.removeItem('rf-link-reto'); } catch {}
-  if (v !== '21') return;
+  const lk = retoLinkStored();
+  if (!lk) return;
+  try { sessionStorage.removeItem('rf-link-reto'); } catch {}
+  if (lk.id !== 'plan-21') {
+    /* Genérico: el link de cualquier otro reto lleva a la
+       pestaña de Retos y abre la ficha de ese reto. */
+    try { navOpenPage('challenges'); } catch {}
+    chalLoad(true).then(() => { try { chalSheetOpenId(lk.id); } catch {} }).catch(() => {});
+    return;
+  }
   let stage = null;
   try { stage = sessionStorage.getItem('rf-reto-stage'); if (stage) sessionStorage.removeItem('rf-reto-stage'); } catch {}
-  r21Open('link', { skipCover: stage === 'datos' });
+  r21Open('link', { skipCover: stage === 'datos', de: lk.de || '' });
 }
 function r21Close() {
   const fl = $('reto21-float'); if (fl) fl.style.display = 'none';
@@ -45347,9 +45573,12 @@ async function r21EnterData() {
     R21.eq = new Set(((inp.udata || {}).equipFamilies || []).filter(f => WIZ_EQ_FAMS.includes(f)));
     R21.selObj = (inp.udata || {}).goalObjective || '';
     const miss = r21MissingList(inp);
-    R21.steps = [...miss, 'ejemplo', 'terminos'];
+    /* AUTH-572: en el flujo del link, la pregunta filtro es el
+       PASO 1, antes de cualquier dato. */
+    const pre = R21.source === 'link' ? ['filtro'] : [];
+    R21.steps = [...pre, ...miss, 'ejemplo', 'terminos'];
     R21.sidx = 0;
-    R21.step = miss.length ? miss[0] : 'ejemplo';
+    R21.step = R21.steps[0];
     if (R21.step === 'ejemplo') await r21BuildExample();
   } catch { R21.step = 'ejemplo'; R21.steps = ['ejemplo', 'terminos']; R21.sidx = 0; }
   R21.busy = false;
@@ -45490,13 +45719,24 @@ async function r21Activate() {
     }
     /* El plan nace por el arranque ÚNICO de AUTH-503: su hoja
        en memoria y sin preguntas — los datos ya entraron por
-       sus puertas en las páginas del carrusel. */
+       sus puertas en las páginas del carrusel. AUTH-572: el
+       filtro del link decide QUÉ nace (ver la cabecera del
+       bloque AUTH-572) y la atribución se aplica al final. */
     const inp = await plan21FetchInputs(me);
-    PLAN21_SHEET = { inp, days: new Set(plan21AvailDays(inp)), fams: new Set(((inp.udata || {}).equipFamilies || [])), showDays: false, showEq: false };
-    await plan21Start();
-    const st = await chalPlan21State(me);
-    R21.outcome = st && st.state ? st.state : 'none';
-    if (R21.outcome === 'none') { R21.busy = false; R21.actError = true; r21Paint(); return; }
+    if (R21.source === 'link' && R21.mode === 'food') {
+      await r21LinkFoodActivate(inp);
+    } else {
+      PLAN21_SHEET = { inp, days: new Set(plan21AvailDays(inp)), fams: new Set(((inp.udata || {}).equipFamilies || [])), showDays: false, showEq: false };
+      if (R21.source === 'link' && R21.mode === 'train') PLAN21_LINK_SKIP_FOOD = true;
+      try { await plan21Start(); } finally { PLAN21_LINK_SKIP_FOOD = false; }
+      const st = await chalPlan21State(me);
+      R21.outcome = st && st.state ? st.state : 'none';
+      if (R21.outcome === 'none') { R21.busy = false; R21.actError = true; r21Paint(); return; }
+      if (R21.source === 'link' && st.plan) {
+        try { await setDoc(doc(db, 'training_plans', st.plan.id), { retoMode: R21.mode || 'both', ...(R21.de ? { assignedBy: R21.de } : {}) }, { merge: true }); } catch {}
+      }
+    }
+    if (R21.source === 'link') { try { await retoApplyAttribution(); } catch {} }
     R21.step = 'fin';
   } catch { R21.busy = false; R21.actError = true; r21Paint(); return; }
   R21.busy = false;
@@ -45519,11 +45759,25 @@ function r21Paint() {
   const scr = R21.step;
   let h = r21ProgHTML();
   if (scr === 'cover') {
-    h += `<div class="wiz-welcome"><div class="wiz-bigtitle">🏆 ${esc(t('plan21.title'))}</div>
+    /* AUTH-572: quien llega por el link ve la página pública
+       del reto (la misma sin cuenta y ya dentro); las demás
+       puertas conservan la portada del carrusel de siempre. */
+    if (R21.source === 'link') { h += r21PublicHTML(); }
+    else {
+      h += `<div class="wiz-welcome"><div class="wiz-bigtitle">🏆 ${esc(t('plan21.title'))}</div>
       <p class="wiz-expl">${esc(t('r21.coverPromise'))}</p>
       <div class="chal-inc"><p>💪 <b>${esc(t('chal.p21IncTrainB'))}</b> ${esc(t('chal.p21IncTrain'))}</p><p>🥗 <b>${esc(t('chal.p21IncFoodB'))}</b> ${esc(t('chal.p21IncFood'))}</p></div>
       ${R21.preLogin ? `<p class="wiz-note">${esc(t('r21.coverLoginNote'))}</p>` : ''}
       <div class="wiz-nav"><button type="button" class="btn-primary r21-big" id="r21-go-cover">${esc(t('r21.startBtn'))}</button></div></div>`;
+    }
+  } else if (scr === 'filtro') {
+    /* AUTH-572: el PASO 1 del flujo del link — la pregunta
+       filtro aprobada. Sin atajo: hay que elegir para seguir. */
+    const fcards = [['train', '💪', 'rlink.onlyTrain', 'rlink.onlyTrainSub'], ['food', '🍽️', 'rlink.onlyFood', 'rlink.onlyFoodSub'], ['both', '⭐', 'rlink.both', 'rlink.bothSub']]
+      .map(([k, ic, tk, sk]) => `<button type="button" class="wiz-card${R21.mode === k ? ' on' : ''}" data-r21-mode="${k}"><span class="wiz-card-ic" aria-hidden="true">${ic}</span><span class="wiz-card-tx"><b>${esc(t(tk))}</b><span class="wiz-card-sub">${esc(t(sk))}</span></span></button>`).join('');
+    h += `<h3 class="wiz-h">${esc(t('rlink.filterQ', { n: 21 }))}</h3>
+    <div class="wiz-body"><div class="wiz-cards">${fcards}</div></div>
+    <div class="wiz-nav"><button type="button" class="btn-ghost" id="r21-back">${esc(t('wiz.back'))}</button><button type="button" class="btn-primary" id="r21-go"${R21.mode ? '' : ' disabled'}>${esc(t('wiz.next'))}</button></div>`;
   } else if (scr === 'anio') {
     const maxY = new Date().getFullYear() - 18;
     const cur = R21.inp && R21.inp.assessment ? R21.inp.assessment.birthYear : null;
@@ -45561,7 +45815,7 @@ function r21Paint() {
   } else if (scr === 'ejemplo') {
     const b = R21.built;
     h += `<h3 class="wiz-h">${esc(t('r21.exTitle'))}</h3><div class="wiz-body">`;
-    if (b) {
+    if (b && R21.mode !== 'food') {
       h += `<p class="wiz-expl">${esc(b.form === 5 ? t('plan21.sheetForm5') : t('plan21.sheetForm4'))} · ${esc(t('plan21.sheetStart', { a: plan21DateLabel(b.startsAt), b: plan21DateLabel(b.endsAt) }))}</p>`;
       h += b.days.slice(0, 7).map((d, ix) => {
         const iso = planISOAddDays(b.startsAt, ix);
@@ -45571,7 +45825,7 @@ function r21Paint() {
       }).join('');
       if (b.notes) h += `<p class="wiz-note">${esc(b.notes)}</p>`;
     }
-    h += `<p class="wiz-expl">🥗 ${esc(t('r21.exFood'))}</p><p class="wiz-note">${esc(t('r21.exSub'))}</p></div>
+    h += `${R21.mode === 'food' ? `<p class="wiz-expl">🍽️ ${esc(t('rlink.exFoodOnly'))}</p>` : R21.mode === 'train' ? '' : `<p class="wiz-expl">🥗 ${esc(t('r21.exFood'))}</p>`}<p class="wiz-note">${esc(t('r21.exSub'))}</p></div>
       <div class="wiz-nav"><button type="button" class="btn-ghost" id="r21-back">${esc(t('wiz.back'))}</button><button type="button" class="btn-primary" id="r21-begin">${esc(t('r21.exBegin'))}</button></div>`;
   } else if (scr === 'terminos') {
     const ap = R21.activePlan;
@@ -45583,7 +45837,16 @@ function r21Paint() {
       ${R21.actError ? `<p class="wiz-note" style="color:#d33;font-weight:700">${esc(t('train.saveError'))}</p>` : ''}</div>
       <div class="wiz-nav"><button type="button" class="btn-ghost" id="r21-back">${esc(t('wiz.back'))}</button><button type="button" class="btn-primary" id="r21-activate"${(!R21.termsOk || R21.busy) ? ' disabled' : ''}>${esc(R21.busy ? t('r21.activating') : t('r21.activateBtn'))}</button></div>`;
   } else if (scr === 'fin') {
-    if (R21.outcome === 'active') {
+    if (R21.mode === 'food' && R21.outcome === 'active') {
+      h += `<div class="wiz-welcome"><div class="r21-done">✓</div><div class="wiz-bigtitle">${esc(t('rlink.doneFoodTitle'))}</div>
+        <p class="wiz-expl">${esc(t('rlink.doneFoodBody'))}</p>
+        <div class="wiz-nav"><button type="button" class="btn-ghost" id="r21-done-close">${esc(t('client.close'))}</button><button type="button" class="btn-primary" id="r21-viewfood">${esc(t('rlink.viewFoodBtn'))}</button></div></div>`;
+    } else if (R21.mode === 'food') {
+      h += `<div class="wiz-welcome"><div class="wiz-bigtitle">⏳ ${esc(t('chal.p21WaitTitle'))}</div>
+        <p class="wiz-expl">${esc(t('rlink.waitFoodBody'))}</p>
+        <p class="wiz-note">${esc(t('chal.p21WaitNote'))}</p>
+        <div class="wiz-nav"><button type="button" class="btn-primary" id="r21-done-close">${esc(t('r21.understood'))}</button></div></div>`;
+    } else if (R21.outcome === 'active') {
       const b = R21.built;
       h += `<div class="wiz-welcome"><div class="r21-done">✓</div><div class="wiz-bigtitle">${esc(t('r21.doneTitle'))}</div>
         <p class="wiz-expl"><b>${esc(t('r21.doneDay1'))}</b>${b ? ` · ${esc(t('plan21.sheetStart', { a: plan21DateLabel(b.startsAt), b: plan21DateLabel(b.endsAt) }))}` : ''}</p>
@@ -45609,6 +45872,11 @@ function r21Wire(body) {
   go('r21-activate', () => r21Activate());
   go('r21-done-close', () => r21Close());
   go('r21-viewplan', () => { r21Close(); Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} }); });
+  /* AUTH-572: el pliegue de la rutina en la página pública, las
+     tarjetas del filtro y la salida a la comida. */
+  go('r21-routine-fold', () => { R21.routineOpen = !R21.routineOpen; r21Paint(); });
+  go('r21-viewfood', () => { r21Close(); try { nutriOpenFloat('plan'); } catch {} });
+  body.querySelectorAll('[data-r21-mode]').forEach(b => b.onclick = () => { R21.mode = b.dataset.r21Mode; r21Paint(); });
   const chk = $('r21-terms-check');
   if (chk) chk.onclick = () => { R21.termsOk = !R21.termsOk; R21.actError = false; r21Paint(); };
   const by = $('r21-by');
@@ -45817,16 +46085,20 @@ async function plan21CardRender(plan) {
       h += `<div class="p21-warn"><span>${esc(t('plan21.warnNoData'))}</span>
         ${!hasWeight ? `<div class="p21-warn-row">${dayIx === 0 ? `<b>${esc(t('plan21.day1Weigh'))}</b>` : ''}<button type="button" class="btn-primary btn-sm" id="p21-weigh">${esc(t('plan21.weighBtn'))}</button></div>` : ''}</div>`;
     }
-    /* D10: la declaración de provisionalidad, en la propia app. */
+    /* D10: la declaración de provisionalidad, en la propia app.
+       AUTH-572: con el filtro en «Solo entrenamiento» el plan no
+       lleva lado de comida: ni estas notas ni la pregunta D9. */
     const prov = (UDATA && UDATA.goalsProvenance) || null;
-    if (prov && prov.plan21Fallback === 'fixed-1500') h += `<p class="progress-hint">${esc(t('plan21.goalsFixedNote'))}</p>`;
-    else if (prov && prov.plan21Fallback) h += `<p class="progress-hint">${esc(t('plan21.goalsFallbackNote'))}</p>`;
-    if (PLAN21_GOALS_HELD) h += `<p class="progress-hint">${esc(t('plan21.goalsHeldNote'))}</p>`;
+    if (plan.retoMode !== 'train') {
+      if (prov && prov.plan21Fallback === 'fixed-1500') h += `<p class="progress-hint">${esc(t('plan21.goalsFixedNote'))}</p>`;
+      else if (prov && prov.plan21Fallback) h += `<p class="progress-hint">${esc(t('plan21.goalsFallbackNote'))}</p>`;
+      if (PLAN21_GOALS_HELD) h += `<p class="progress-hint">${esc(t('plan21.goalsHeldNote'))}</p>`;
+    }
     /* D9: la pregunta al final de cada semana (por la semana
        que viene), una sola vez por semana: la respuesta queda
        en nutrition_progress y la pregunta no vuelve. */
     let ask = null;
-    if (plan.active === true && dayIx >= 7 && dayIx <= 20) {
+    if (plan.active === true && dayIx >= 7 && dayIx <= 20 && plan.retoMode !== 'train') {
       let checks = {};
       try {
         const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', me), where('kind', '==', 'plan21Check')));
@@ -61459,7 +61731,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-pendientes-coach';
+const PWA_SW_VERSION = '20261123-link-retos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -65225,6 +65497,7 @@ function chalSheetPaint() {
     body.innerHTML = `<div class="chal-sheet-head"><div class="chal-sheet-tt"><b>${esc(t(titles[CHAL_SHEET.box] || 'chal.title'))}</b></div></div>` + inner;
     fl.style.display = '';
     if (CHAL_SHEET.box === 'repo') chalWireForms();
+    try { retoShareWire(body); } catch {}
     try { coverSync(); } catch {}
     return;
   }
@@ -65258,6 +65531,9 @@ function chalSheetPaint() {
   h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaHow'))}</h4><p>${esc(t('chal.how.' + chal.metric))}</p>${chalStripHTML(chal, part)}</div>`;
   h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaWhy'))}</h4><p>${esc(t('chal.why.' + chal.metric))}</p></div>`;
   h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaPrize'))}</h4><p>${esc(t('chal.fichaPrizeLine'))}</p>${chal.rewardText ? `<p class="chal-reward">🎁 ${esc(t('chal.rewardLbl'))}: <b>${esc(chal.rewardText)}</b></p>` : ''}</div>`;
+  /* AUTH-572: cada reto creado tiene SU link: el cuadrito de
+     compartir vive en su ficha para gestión o para su creador. */
+  if (chalCanManage() || chal.createdBy === chalMe()) h += retoShareCardHTML(chal.id);
   if (state === 'none') {
     h += `<button type="button" class="btn-primary chal-sheet-act" data-chal-sheet="request">${esc(t('chal.reqBtn'))}</button><p class="progress-hint chal-sheet-note">${esc(t('chal.reqNote'))}</p>`;
   } else if (state === 'pending') {
@@ -65276,6 +65552,7 @@ function chalSheetPaint() {
   const body = $('chal-ficha-sheet-body'); if (!body) return;
   body.innerHTML = h;
   fl.style.display = '';
+  try { retoShareWire(body); } catch {}
   const btn = body.querySelector('[data-chal-sheet]');
   if (btn) btn.onclick = () => {
     if (btn.dataset.chalSheet === 'request') { if (cat && (state === 'none' || state === 'approved')) chalRequestCatalog(cat.id); else chalRequestGroup(chal.id); }
@@ -65361,6 +65638,9 @@ function chalBoxRepoHTML() {
   const today = todayISO();
   let h = `<h3 class="history-title">${esc(t('chal.repoPrograms'))}</h3>`;
   h += chalPlan21CardHTML();
+  /* AUTH-572: el cuadrito de compartir del programa, para
+     gestión, junto a su tarjeta. */
+  if (chalCanManage()) h += retoShareCardHTML('plan-21');
   h += `<h3 class="history-title">${esc(t('chal.repoChallenges'))}</h3>`;
   h += CHAL_CATALOG.map(c => chalCatalogCardHTML(c, { assignable: chalCanManage() })).join('');
   h += `<h3 class="history-title">${esc(t('chal.repoOpenGroups'))}</h3>`;
@@ -65818,6 +66098,8 @@ async function chalP21AskPaint() {
   const host = $('chal-p21-ask'); if (!host) return;
   const st = CHAL.p21; if (!st || st.state !== 'active' || !st.plan) return;
   const plan = st.plan, dayIx = st.dayIx, me = chalMe(); if (!me) return;
+  /* AUTH-572: «Solo entrenamiento» no pregunta por la comida. */
+  if (plan.retoMode === 'train') return;
   let checks = {};
   try {
     const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', me), where('kind', '==', 'plan21Check')));
@@ -65871,12 +66153,17 @@ function chalRenderPaint() {
   if (!CHAL.loaded) { body.innerHTML = `<div class="wempty">${esc(t('train.loading'))}</div>`; return; }
   /* AUTH-547: la pestaña pinta SOLO el reto activo. */
   body.innerHTML = chalActiveHTML();
+  /* AUTH-572: el cuadrito de compartir, junto a la vista del
+     reto, solo para admin/entrenador (la atribución del link es
+     la de quien lo comparte). */
+  if (chalCanManage()) body.innerHTML += retoShareCardHTML('plan-21');
   const st = CHAL.p21;
   if (st && st.state === 'active') chalP21AskPaint();
   if (st && st.state === 'done') chalP21DonePaint();
   /* La miniatura necesita la biblioteca: si aún no cargó, al
      llegar se repinta la pestaña (una sola vez por carga). */
   if (st && st.state === 'none' && LIB_STATE !== 'ok' && LIB_STATE !== 'unavailable') libEnsure().then(() => { try { if (NAV_TAB === 'challenges') chalRenderPaint(); } catch {} });
+  try { retoShareWire(body); } catch {}
 }
 function chalManageHTML() {
   const me = chalMe();
@@ -69743,6 +70030,10 @@ async function schedSaveState() {
 async function schedSavePrefs() {
   const me = auth.currentUser.uid;
   await setDoc(schedPrefsRef(), Object.assign({ kind: 'schedPrefs', uid: me, ownerUid: me, updatedAt: serverTimestamp() }, SCHED_PREFS), { merge: true });
+  /* AUTH-572: si la entrada «solo alimentación» del link quedó
+     armada pero sin semanas por faltar estas preferencias, al
+     guardarlas se reintenta el armado (idempotente). */
+  try { await retoFoodHoldEvaluate(me); } catch {}
 }
 /* Reúne TODO lo que el motor necesita desde lo que la app ya tiene
    (sin escribir nada) y deja el contexto en SCHED_CTX. */
