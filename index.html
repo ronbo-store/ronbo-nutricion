@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-pendientes-activos">
+<link rel="stylesheet" href="styles.css?v=20261123-ficha-plegada">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -694,6 +694,21 @@
     </div>
     <button type="button" class="back-row pendact-back" id="pendact-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="pendact-body"></div>
+  </div>
+
+  <!-- LA FICHA COMPLETA, PLEGADA (AUTH-2026-11-23-563): la hoja
+       propia de cada bloque de la ficha del cliente — el bloque
+       VIAJA desde su almacén de la ficha a esta hoja (el patrón
+       de la ventana de consulta) y vuelve a su ancla al cerrar.
+       La pintan y la mueven fichaSheetOpen / fichaSheetClose
+       (app.js); el título lo pone la línea que la abre. -->
+  <div class="pend-float ficha-sheet" id="ficha-sheet" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="ficha-sheet-title"></span></h2>
+      <button type="button" class="pend-close" id="ficha-sheet-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row ficha-sheet-back" id="ficha-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="ficha-sheet-body"></div>
   </div>
 
   <!-- PETICIONES DEL ALUMNO A SU ENTRENADOR (AUTH-2026-11-04-237):
@@ -2654,6 +2669,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-pendientes-activos"></script>
+<script type="module" src="app.js?v=20261123-ficha-plegada"></script>
 </body>
 </html>
