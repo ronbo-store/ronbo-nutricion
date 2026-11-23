@@ -4304,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-evaluacion-ecuacion');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-comparador-automatico');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -19101,7 +19101,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-evaluacion-ecuacion' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-comparador-automatico' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -55257,7 +55257,7 @@ function cmpHTML(P, E, W, cfg, cycle, sel, prefix, notesMode) {
     const rA = (P[sel.a] || {})[s], rB = (P[sel.b] || {})[s];
     const both = !!(rA && rA.photo && rB && rB.photo);
     const cells = `<div class="cmp-cells"${both ? ' data-pairx-pair' : ''}><div class="cmp-cell">${cell(sel.a, s)}</div><div class="cmp-cell">${cell(sel.b, s)}</div></div>`;
-    return `<div class="cmp-row${both ? ' pairx' : ''}"${both ? ` data-pairx-slot="${s}" data-pairx-key="cmp|${prefix}|${sel.a}|${sel.b}|${s}"` : ''}><span class="cmp-slot">${esc(t('progress.' + s))}</span>${cells}${both ? `<div class="pairx-zone">${pairxBtnHTML()}</div>` : ''}</div>`;
+    return `<div class="cmp-row${both ? ' pairx' : ''}"${both ? ` data-pairx-slot="${s}" data-pairx-key="cmp|${prefix}|${sel.a}|${sel.b}|${s}"` : ''}><span class="cmp-slot">${esc(t('progress.' + s))}</span>${cells}${both ? `<div class="pairx-zone">${pairxBusyHTML()}</div>` : ''}</div>`;
   }).join('');
   const mRows = EVAL_MEASURES.map(m => {
     const va = cmpValue(E, W, sel.a, m.id), vb = cmpValue(E, W, sel.b, m.id);
@@ -61965,7 +61965,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-evaluacion-ecuacion';
+const PWA_SW_VERSION = '20261123-comparador-automatico';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -73097,11 +73097,13 @@ function mrPhotosHTML(m, inp, ctx) {
     const ownCmp = ctx.mode === 'view' && !ctx.trainer;
     const rows = PROGRESS_SLOTS.filter(s => { const A = (inp.prog[dA] || {})[s], B = (inp.prog[dB] || {})[s]; return A && A.photo && B && B.photo; }).map(s => {
       const row = `<div class="mr-phcmp-row"><figure class="mr-ph"><img src="${inp.prog[dA][s].photo}" alt=""><figcaption>${cap(dA)}</figcaption></figure><figure class="mr-ph"><img src="${inp.prog[dB][s].photo}" alt=""><figcaption>${cap(dB)}</figcaption></figure></div><p class="mr-phslot">${esc(s.toUpperCase())}</p>`;
-      if (ownCmp) return `<div class="mrc" data-mrc-slot="${s}" data-mrc-da="${dA}" data-mrc-db="${dB}" data-mrc-capa="${esc(cap(dA))}" data-mrc-capb="${esc(cap(dB))}">${row}<div class="mrc-zone">${mrcBtnHTML()}</div></div>`;
+      if (ownCmp) return `<div class="mrc" data-mrc-slot="${s}" data-mrc-da="${dA}" data-mrc-db="${dB}" data-mrc-capa="${esc(cap(dA))}" data-mrc-capb="${esc(cap(dB))}">${row}<div class="mrc-zone">${mrcBusyHTML()}</div></div>`;
       /* AUTH-384: en vista del entrenador (solo alcanzable con las
          fotos permitidas — mrHTML aparta la tarjeta 🔒 entera si
-         no) el par lleva la puerta de alineación sin notas. */
-      if (ctx.trainer) return `<div class="pairx" data-pairx-slot="${s}" data-pairx-da="${dA}" data-pairx-db="${dB}" data-pairx-key="mr|${dA}|${dB}|${s}">${row.replace('<div class="mr-phcmp-row">', '<div class="mr-phcmp-row" data-pairx-pair>')}<div class="pairx-zone">${pairxBtnHTML()}</div></div>`;
+         no) el par lleva la alineación sin notas. AUTH-576: la
+         alineación corre SOLA al abrir (sin botón) y solo en modo
+         vista: en impresión el par va tal cual, como el propio. */
+      if (ctx.trainer && ctx.mode === 'view') return `<div class="pairx" data-pairx-slot="${s}" data-pairx-da="${dA}" data-pairx-db="${dB}" data-pairx-key="mr|${dA}|${dB}|${s}">${row.replace('<div class="mr-phcmp-row">', '<div class="mr-phcmp-row" data-pairx-pair>')}<div class="pairx-zone">${pairxBusyHTML()}</div></div>`;
       return row;
     }).join('');
     if (rows) cmp = `<h4 class="mr-subt">${esc(t('mr.cmpPhotos'))} · ${esc(shortDate(dA))} → ${esc(shortDate(dB))}</h4>${rows}`;
@@ -73134,23 +73136,49 @@ function mrPhotosHTML(m, inp, ctx) {
    estado vive en el DOM de la hoja y muere al repintar o cerrar.
    Si la IA no ve cambios claros, la vista alineada se muestra con
    la única nota cerrada de «sin cambios visibles claros»: jamás
-   se inventa una diferencia. */
-let MRC = {};
+   se inventa una diferencia.
+   AUTH-576 (orden de Ronald, 2026-11-23): «es algo que debería
+   hacer automáticamente, no espera por mi instrucción y menos
+   presionar un botón» — el botón «Comparar con notas de IA» y el
+   interruptor [Alineadas]/[Tal cual] DESAPARECEN: al abrir la
+   hoja, cada par se compara SOLO (la misma llamada /photocmp, el
+   mismo cargo de 2 usos solo en 2xx, los mismos topes del fondo
+   común) y nace ya alineado con sus notas puestas; el original se
+   sigue viendo tocando un lienzo (el visor de siempre). Si la IA
+   no está disponible o el fondo se agotó, el par queda tal cual
+   con el aviso honesto EN LA ZONA (sin toast: abrir no debe
+   gritar tres veces) y sin error bloqueante. El resultado por par
+   se recuerda en memoria de la sesión (clave con la huella de
+   ambas fotos): un repintado de la misma hoja re-pinta desde la
+   detección ya traída, sin otra llamada ni otro cargo; nada se
+   escribe en Firestore ni en el dispositivo, como siempre. */
+/* Estado por par de AUTH-576: clave vista|fechaA|fechaB|huellas. */
+const MRC = {};
 const MRC_FW = 432, MRC_FH = 576, MRC_EYE = 0.15, MRC_SEG = 0.36, MRC_ROLL_MAX = 15;
-function mrcBtnHTML() {
-  return `<button type="button" class="mrc-btn"><span class="mrc-btn-t">${esc(t('mrc.btn'))}</span><span class="mrc-btn-s">${esc(t('mrc.btnSub'))}</span></button>`;
+function mrcBusyHTML() { return `<p class="mrc-busy">${esc(t('mrc.busy'))}</p>`; }
+function mrcErrKey(m) {
+  return m === 'ai-cap' ? 'mrc.errCap' : (m === 'ai-disabled' || m === 'ai-off') ? 'mrc.errDisabled' : m === 'ai-door-unavailable' ? 'mrc.errDoor' : 'mrc.errGeneric';
+}
+function mrcFp(src) { const s = src || ''; return s.length + ':' + s.slice(0, 32) + ':' + s.slice(-32); }
+function mrcPairKey(wrap, pA, pB) {
+  return [wrap.getAttribute('data-mrc-slot'), wrap.getAttribute('data-mrc-da'), wrap.getAttribute('data-mrc-db'), mrcFp(pA && pA.photo), mrcFp(pB && pB.photo)].join('|');
 }
 function mrcWire(body) {
-  MRC = {};
-  body.querySelectorAll('.mrc').forEach(w => {
-    const btn = w.querySelector('.mrc-btn');
-    if (btn) btn.onclick = () => mrcRun(w);
-  });
+  body.querySelectorAll('.mrc').forEach(w => { mrcAuto(w); });
 }
-function mrcZoneBtn(zone, wrap) {
-  zone.innerHTML = mrcBtnHTML();
-  const btn = zone.querySelector('.mrc-btn');
-  if (btn) btn.onclick = () => mrcRun(wrap);
+async function mrcAuto(wrap) {
+  if (!MR || !MR.input) return;
+  const slot = wrap.getAttribute('data-mrc-slot');
+  const zone = wrap.querySelector('.mrc-zone'); if (!zone || !slot) return;
+  const dA = wrap.getAttribute('data-mrc-da'), dB = wrap.getAttribute('data-mrc-db');
+  const pA = ((MR.input.prog || {})[dA] || {})[slot], pB = ((MR.input.prog || {})[dB] || {})[slot];
+  if (!pA || !pA.photo || !pB || !pB.photo) { zone.innerHTML = ''; return; }
+  const key = mrcPairKey(wrap, pA, pB);
+  const st = MRC[key];
+  if (st && st.st === 'busy') return;
+  if (st && st.st === 'done') { mrcRender(wrap, pA, pB, st.out); return; }
+  if (st && st.st === 'note') { zone.innerHTML = `<p class="mrc-honest">${esc(t(st.msg))}</p>`; return; }
+  await mrcRun(wrap, key, pA, pB);
 }
 function mrcLoadImg(src) {
   return new Promise(res => {
@@ -73223,48 +73251,51 @@ function mrcDrawInto(cv, img, xf) {
   g.setTransform(1, 0, 0, 1, 0, 0);
 }
 function mrcAlignedHTML(capA, capB, pins, notes, noStraight) {
-  return `<div class="mrc-tog"><button type="button" class="mrc-togb on" data-mrc-tog="al">${esc(t('mrc.aligned'))}</button><button type="button" class="mrc-togb" data-mrc-tog="raw">${esc(t('mrc.raw'))}</button></div>`
-    + `<div class="mrc-view"><div class="mrc-stage"><canvas class="mrc-cv" width="${MRC_FW}" height="${MRC_FH}"></canvas><div class="mrc-bwrap"><canvas class="mrc-cv" width="${MRC_FW}" height="${MRC_FH}"></canvas>${pins}</div><span class="mrc-gl mrc-gl-eyes"></span><span class="mrc-gl mrc-gl-hips"></span></div>`
+  /* AUTH-576: sin interruptor [Alineadas]/[Tal cual] — la vista
+     alineada ES la vista; el original se abre tocando el lienzo. */
+  return `<div class="mrc-view"><div class="mrc-stage"><canvas class="mrc-cv" width="${MRC_FW}" height="${MRC_FH}"></canvas><div class="mrc-bwrap"><canvas class="mrc-cv" width="${MRC_FW}" height="${MRC_FH}"></canvas>${pins}</div><span class="mrc-gl mrc-gl-eyes"></span><span class="mrc-gl mrc-gl-hips"></span></div>`
     + `<div class="mrc-caps"><span>${capA}</span><span>${capB}</span></div>`
     + `<h5 class="mrc-nt">${esc(t('mrc.notesTitle'))}</h5><ol class="mrc-notes">${notes}</ol>`
     + (noStraight ? `<p class="mrc-honest">${esc(t('mrc.noStraight'))}</p>` : '')
     + `<p class="mrc-disc">${esc(t('mrc.disc'))}</p></div>`;
 }
-async function mrcRun(wrap) {
-  if (!MR || !MR.input) return;
-  const slot = wrap.getAttribute('data-mrc-slot');
-  const zone = wrap.querySelector('.mrc-zone'); if (!zone || !slot) return;
-  if (MRC[slot] === 'busy') return;
-  const dA = wrap.getAttribute('data-mrc-da'), dB = wrap.getAttribute('data-mrc-db');
-  const pA = ((MR.input.prog || {})[dA] || {})[slot], pB = ((MR.input.prog || {})[dB] || {})[slot];
-  if (!pA || !pA.photo || !pB || !pB.photo) return;
-  MRC[slot] = 'busy';
-  zone.innerHTML = `<p class="mrc-busy">${esc(t('mrc.busy'))}</p>`;
+/* AUTH-576: la comparación corre SOLA al abrir (mrcWire →
+   mrcAuto). mrcRun trae la detección y las notas (la llamada de
+   siempre, con sus topes); mrcRender pinta la vista alineada
+   desde una detección ya traída, sin llamar a la IA. Ante
+   cualquier fallo el par queda tal cual y la zona lleva el aviso
+   honesto: sin botón al que volver ni error bloqueante. */
+async function mrcRun(wrap, key, pA, pB) {
+  const zone = wrap.querySelector('.mrc-zone'); if (!zone) return;
+  MRC[key] = { st: 'busy' };
+  zone.innerHTML = mrcBusyHTML();
   let out = null;
   try {
     const a = await mrcShrink(pA.photo), b = await mrcShrink(pB.photo);
-    out = await aiCall('/photocmp', { a, b, view: slot, lang: LANG });
+    out = await aiCall('/photocmp', { a, b, view: wrap.getAttribute('data-mrc-slot'), lang: LANG });
   } catch (e) {
-    const m = e && e.message;
-    toast(t(m === 'ai-cap' ? 'mrc.errCap' : (m === 'ai-disabled' || m === 'ai-off') ? 'mrc.errDisabled' : m === 'ai-door-unavailable' ? 'mrc.errDoor' : 'mrc.errGeneric'), true);
-    MRC[slot] = 'idle';
-    mrcZoneBtn(zone, wrap);
+    const msg = mrcErrKey(e && e.message);
+    MRC[key] = { st: 'note', msg };
+    zone.innerHTML = `<p class="mrc-honest">${esc(t(msg))}</p>`;
     return;
   }
   try { aiUsageRefreshSurfaces(); } catch {}
   if (!out || out.sameView === false) {
-    MRC[slot] = 'note';
-    mrcZoneBtn(zone, wrap);
-    zone.insertAdjacentHTML('beforeend', `<p class="mrc-honest">${esc(t(out ? 'mrc.diffView' : 'mrc.cantAlign'))}</p>`);
+    const msg = out ? 'mrc.diffView' : 'mrc.cantAlign';
+    MRC[key] = { st: 'note', msg };
+    zone.innerHTML = `<p class="mrc-honest">${esc(t(msg))}</p>`;
     return;
   }
+  MRC[key] = { st: 'done', out };
+  mrcRender(wrap, pA, pB, out);
+}
+async function mrcRender(wrap, pA, pB, out) {
+  const zone = wrap.querySelector('.mrc-zone'); if (!zone) return;
   const imgA = await mrcLoadImg(pA.photo), imgB = await mrcLoadImg(pB.photo);
   const xfA = imgA ? mrcXform(imgA.naturalWidth, imgA.naturalHeight, out.a) : null;
   const xfB = imgB ? mrcXform(imgB.naturalWidth, imgB.naturalHeight, out.b) : null;
   if (!xfA || !xfB) {
-    MRC[slot] = 'note';
-    mrcZoneBtn(zone, wrap);
-    zone.insertAdjacentHTML('beforeend', `<p class="mrc-honest">${esc(t('mrc.cantAlign'))}</p>`);
+    zone.innerHTML = `<p class="mrc-honest">${esc(t('mrc.cantAlign'))}</p>`;
     return;
   }
   const pins = (out.noClearChange ? [] : (out.notes || [])).map((n, i) => {
@@ -73276,18 +73307,11 @@ async function mrcRun(wrap) {
   const notes = out.noClearChange
     ? `<li class="mrc-note1">${esc(t('mrc.noChange'))}</li>`
     : (out.notes || []).map((n, i) => `<li><span class="mrc-nn">${i + 1}</span><span>${esc(n.text)}</span></li>`).join('');
-  MRC[slot] = 'done';
   zone.innerHTML = mrcAlignedHTML(esc(wrap.getAttribute('data-mrc-capa') || ''), esc(wrap.getAttribute('data-mrc-capb') || ''), pins, notes, !xfA.straight || !xfB.straight);
   const cvs = zone.querySelectorAll('.mrc-cv');
   if (cvs[0]) { mrcDrawInto(cvs[0], imgA, xfA); cvs[0].onclick = () => { if (typeof showLightbox === 'function') showLightbox(pA.photo); }; }
   if (cvs[1]) { mrcDrawInto(cvs[1], imgB, xfB); cvs[1].onclick = () => { if (typeof showLightbox === 'function') showLightbox(pB.photo); }; }
   const row = wrap.querySelector('.mr-phcmp-row'); if (row) row.style.display = 'none';
-  zone.querySelectorAll('[data-mrc-tog]').forEach(btn => btn.onclick = () => {
-    const al = btn.getAttribute('data-mrc-tog') === 'al';
-    zone.querySelectorAll('[data-mrc-tog]').forEach(x => x.classList.toggle('on', x === btn));
-    const view = zone.querySelector('.mrc-view'); if (view) view.style.display = al ? '' : 'none';
-    if (row) row.style.display = al ? 'none' : '';
-  });
 }
 /* ═══ ALINEACIÓN DE PARES FUERA DE LA PUERTA DE NOTAS (AUTH-384) ═══
    Extensión aprobada por Ronald (2026-11-10 18:20 CST): «Aquí
@@ -73306,13 +73330,21 @@ async function mrcRun(wrap) {
    celdas son fotos reales: con el permiso de AUTH-380 apagado,
    tevalLoad ni siquiera trae el dataURL y la celda sigue
    «🔒 Foto privada». La vista propia del informe conserva
-   intacta su puerta de AUTH-383 (con notas). */
+   intacta su puerta de AUTH-383 (con notas).
+   AUTH-576 (orden de Ronald, 2026-11-23): la puerta deja de ser
+   un botón — cada par se alinea SOLO al abrir su superficie, sin
+   interruptor [Alineadas]/[Tal cual]: la vista alineada es la
+   vista y el original se abre tocando un lienzo, como en 383. */
+/* AUTH-576: el estado por par vive en memoria de la sesión, con
+   la huella de ambas fotos en la clave (la clave pintada por la
+   casa + huellas): un repintado re-pinta la vista alineada desde
+   la detección ya traída, sin otra llamada ni otro cargo. */
 const PAIRX = {};
-function pairxBtnHTML() {
-  return `<button type="button" class="pairx-btn"><span class="mrc-btn-t">${esc(t('pairx.btn'))}</span><span class="mrc-btn-s">${esc(t('pairx.btnSub'))}</span></button>`;
-}
+function pairxBusyHTML() { return `<p class="mrc-busy">${esc(t('pairx.busy'))}</p>`; }
 function pairxStageHTML(noStraight) {
-  return `<div class="pairx-view"><div class="mrc-tog"><button type="button" class="mrc-togb on" data-pairx-tog="al">${esc(t('mrc.aligned'))}</button><button type="button" class="mrc-togb" data-pairx-tog="raw">${esc(t('mrc.raw'))}</button></div>`
+  /* AUTH-576: sin interruptor [Alineadas]/[Tal cual] — la vista
+     alineada ES la vista; el original se abre tocando el lienzo. */
+  return `<div class="pairx-view">`
     + `<div class="mrc-stage"><canvas class="mrc-cv" width="${MRC_FW}" height="${MRC_FH}"></canvas><canvas class="mrc-cv" width="${MRC_FW}" height="${MRC_FH}"></canvas><span class="mrc-gl mrc-gl-eyes"></span><span class="mrc-gl mrc-gl-hips"></span></div>`
     + (noStraight ? `<p class="mrc-honest">${esc(t('mrc.noStraight'))}</p>` : '')
     + `<p class="mrc-disc">${esc(t('mrc.disc'))}</p></div>`;
@@ -73321,55 +73353,64 @@ async function pairxFetch(srcA, srcB, view) {
   const a = await mrcShrink(srcA), b = await mrcShrink(srcB);
   return aiCall('/photocmp', { a, b, view, lang: LANG });
 }
+function pairxKey(wrap, r) {
+  return (wrap.getAttribute('data-pairx-key') || '') + '|' + mrcFp(r && r.srcA) + '|' + mrcFp(r && r.srcB);
+}
 function pairxWire(root, resolve) {
   if (!root) return;
   root.querySelectorAll('.pairx').forEach(wrap => {
     if (wrap.dataset.pairxWired) return; wrap.dataset.pairxWired = '1';
-    const btn = wrap.querySelector('.pairx-btn');
-    if (!btn) return;
-    btn.onclick = () => pairxRun(wrap, resolve);
+    pairxAuto(wrap, resolve);
   });
 }
-async function pairxRun(wrap, resolve) {
+async function pairxAuto(wrap, resolve) {
   const zone = wrap.querySelector('.pairx-zone'); if (!zone) return;
-  const key = wrap.getAttribute('data-pairx-key') || '';
-  if (PAIRX[key] === 'busy') return;
   const r = resolve ? resolve(wrap) : null;
-  if (!r || !r.srcA || !r.srcB) return;
-  PAIRX[key] = 'busy';
-  zone.innerHTML = `<p class="mrc-busy">${esc(t('pairx.busy'))}</p>`;
+  if (!r || !r.srcA || !r.srcB) { zone.innerHTML = ''; return; }
+  const key = pairxKey(wrap, r);
+  const st = PAIRX[key];
+  if (st && st.st === 'busy') return;
+  if (st && st.st === 'done') { pairxRender(wrap, r, st.out); return; }
+  if (st && st.st === 'note') { zone.innerHTML = `<p class="mrc-honest">${esc(t(st.msg))}</p>`; return; }
+  await pairxRun(wrap, key, r);
+}
+/* AUTH-576: la alineación corre SOLA al abrir (pairxWire →
+   pairxAuto). pairxRun trae la detección (la llamada de siempre,
+   con sus topes); pairxRender pinta desde una detección ya
+   traída. Ante cualquier fallo el par queda tal cual y la zona
+   lleva el aviso honesto: sin botón ni error bloqueante. */
+async function pairxRun(wrap, key, r) {
+  const zone = wrap.querySelector('.pairx-zone'); if (!zone) return;
+  PAIRX[key] = { st: 'busy' };
+  zone.innerHTML = pairxBusyHTML();
   let out = null;
   try { out = await pairxFetch(r.srcA, r.srcB, r.view); } catch (e) {
-    const m = e && e.message;
-    toast(t(m === 'ai-cap' ? 'mrc.errCap' : (m === 'ai-disabled' || m === 'ai-off') ? 'mrc.errDisabled' : m === 'ai-door-unavailable' ? 'mrc.errDoor' : 'mrc.errGeneric'), true);
-    PAIRX[key] = 'idle';
-    zone.innerHTML = pairxBtnHTML();
-    const b2 = zone.querySelector('.pairx-btn'); if (b2) b2.onclick = () => pairxRun(wrap, resolve);
+    const msg = mrcErrKey(e && e.message);
+    PAIRX[key] = { st: 'note', msg };
+    zone.innerHTML = `<p class="mrc-honest">${esc(t(msg))}</p>`;
     return;
   }
   try { aiUsageRefreshSurfaces(); } catch {}
-  const fail = (msgKey) => {
-    PAIRX[key] = 'idle';
-    zone.innerHTML = pairxBtnHTML() + `<p class="mrc-honest">${esc(t(msgKey))}</p>`;
-    const b2 = zone.querySelector('.pairx-btn'); if (b2) b2.onclick = () => pairxRun(wrap, resolve);
-  };
-  if (!out || out.sameView === false) { fail(out ? 'mrc.diffView' : 'mrc.cantAlign'); return; }
+  if (!out || out.sameView === false) {
+    const msg = out ? 'mrc.diffView' : 'mrc.cantAlign';
+    PAIRX[key] = { st: 'note', msg };
+    zone.innerHTML = `<p class="mrc-honest">${esc(t(msg))}</p>`;
+    return;
+  }
+  PAIRX[key] = { st: 'done', out };
+  pairxRender(wrap, r, out);
+}
+async function pairxRender(wrap, r, out) {
+  const zone = wrap.querySelector('.pairx-zone'); if (!zone) return;
   const imgA = await mrcLoadImg(r.srcA), imgB = await mrcLoadImg(r.srcB);
   const xfA = imgA ? mrcXform(imgA.naturalWidth, imgA.naturalHeight, out.a) : null;
   const xfB = imgB ? mrcXform(imgB.naturalWidth, imgB.naturalHeight, out.b) : null;
-  if (!xfA || !xfB) { fail('mrc.cantAlign'); return; }
-  PAIRX[key] = 'done';
+  if (!xfA || !xfB) { zone.innerHTML = `<p class="mrc-honest">${esc(t('mrc.cantAlign'))}</p>`; return; }
   zone.innerHTML = pairxStageHTML(!xfA.straight || !xfB.straight);
   const cvs = zone.querySelectorAll('.mrc-cv');
   if (cvs[0]) { mrcDrawInto(cvs[0], imgA, xfA); cvs[0].onclick = () => { if (typeof showLightbox === 'function') showLightbox(r.srcA); }; }
   if (cvs[1]) { mrcDrawInto(cvs[1], imgB, xfB); cvs[1].onclick = () => { if (typeof showLightbox === 'function') showLightbox(r.srcB); }; }
   const pair = wrap.querySelector('[data-pairx-pair]'); if (pair) pair.style.display = 'none';
-  zone.querySelectorAll('[data-pairx-tog]').forEach(b => b.onclick = () => {
-    const al = b.getAttribute('data-pairx-tog') === 'al';
-    zone.querySelectorAll('[data-pairx-tog]').forEach(x => x.classList.toggle('on', x === b));
-    const view = zone.querySelector('.pairx-view'); if (view) view.style.display = al ? '' : 'none';
-    if (pair) pair.style.display = al ? 'none' : '';
-  });
 }
 function mrCompHTML(m, inp) {
   const rec = m.rec, rows = [];
