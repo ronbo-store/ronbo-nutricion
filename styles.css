@@ -2775,6 +2775,8 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
    propuestas». Valores de las maquetas aprobadas. */
 .plan-block-btnrow { display: flex; gap: 8px; margin-bottom: 10px; }
 .plan-block-btnrow .btn-primary, .plan-block-btnrow .btn-ghost { flex: 1; min-height: 48px; font-size: 15px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+/* AUTH-560: la casilla de estado del reto en la fila de botones del plan (no es un botón: dice el estado, con la misma altura de la fila). */
+.plan-block-btnrow .plan-assign-state { flex: 1; min-height: 48px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 13px; font-weight: 700; line-height: 1.25; padding: 6px 8px; border-radius: 12px; background: #f0fdfa; color: #0f766e; border: 1.5px dashed #5eead4; }
 .plan-card { align-items: flex-start; cursor: pointer; }
 .plan-card .plan-row-c-main { padding-top: 1px; }
 .plan-card.open { border-color: #0d9488; box-shadow: 0 0 0 1px #0d9488; background: #f2fbf9; }

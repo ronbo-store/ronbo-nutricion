@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-asignar-retos');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-botones-juntos');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -9412,20 +9412,39 @@ function studentsListSectionHTML() {
 let STU_PLANS = { uid: null, plans: null, loadingFor: null };
 function stuPlanBlockHTML(u) {
   const loaded = STU_PLANS.uid === u.id && !!STU_PLANS.plans;
-  /* AUTH-412: el bloque nace RECOGIDO — la fila de puertas
-     [Asignar plan] [📈 Progreso] (Progreso solo con plan activo; la
-     etiqueta «Asignar plan» es de ESTA superficie: la clave
-     compartida train.new no se renombra) y, bajo las filas, el
-     botón «Revisar propuestas» a todo el ancho con su contador de
-     pendientes (la pastilla nace oculta y la rellena
-     stuTrayPaintCount). */
-  const act = loaded ? (STU_PLANS.plans.find(p => p && p.active === true) || null) : null;
   const inner = !loaded
     ? `<div class="wempty">${esc(t('access.loading'))}</div>`
-    : `<div class="plan-block-btnrow"><button type="button" class="btn-primary" data-plan-new="1">${esc(t('students.assignPlan'))}</button>${act ? `<button type="button" class="btn-ghost" data-plan-progress="${esc(u.id)}">📈 ${esc(t('students.progressBtn'))}</button>` : ''}</div>`
+    : `<div id="stu-plan-btnrows">${stuPlanBtnRowsHTML(u)}</div>`
       + stuPlanRowsHTML(STU_PLANS.plans)
       + `<button type="button" class="plan-review-btn" data-plan-review="${esc(u.id)}">🗳️ ${esc(t('students.reviewBtn'))}<span class="plan-review-count" data-plan-review-count style="display:none"></span></button>`;
   return `<div class="stu-plan-block" id="stu-plan-block"><h3 class="history-title">${esc(t('students.planBlock'))}</h3>${inner}</div>`;
+}
+/* AUTH-412: el bloque nace RECOGIDO — la fila de puertas
+   [Asignar plan] [📈 Progreso] (Progreso solo con plan activo; la
+   etiqueta «Asignar plan» es de ESTA superficie: la clave
+   compartida train.new no se renombra) y, bajo las filas, el
+   botón «Revisar propuestas» a todo el ancho con su contador de
+   pendientes (la pastilla nace oculta y la rellena
+   stuTrayPaintCount).
+   AUTH-560 (orden correctiva de Ronald, 2026-11-23: «colocar los
+   iconos juntos uno al lado del otro asignar plan y asígnar
+   reto»): para EL entrenador del alumno, la primera fila pasa a
+   ser [Asignar plan] [Asignar reto] — mismo ancho y misma altura
+   — y «📈 Progreso», cuando lo hay, baja a su propia fila a todo
+   el ancho justo debajo, con su mismo comportamiento. Sin
+   relación de entrenador, las filas quedan byte a byte las de
+   AUTH-412. Las filas viven en su propio contenedor
+   (#stu-plan-btnrows) para que la llegada de los estados de
+   retos (loadStudentChal) repinte SOLO los botones, sin tocar
+   las filas de planes ni la tarjeta desplegada. */
+function stuPlanBtnRowsHTML(u) {
+  if (STU_PLANS.uid !== u.id || !STU_PLANS.plans) return '';
+  const act = STU_PLANS.plans.find(p => p && p.active === true) || null;
+  const planBtn = `<button type="button" class="btn-primary" data-plan-new="1">${esc(t('students.assignPlan'))}</button>`;
+  const progBtn = act ? `<button type="button" class="btn-ghost" data-plan-progress="${esc(u.id)}">📈 ${esc(t('students.progressBtn'))}</button>` : '';
+  const slot = stuChalRowSlotHTML(u);
+  if (!slot) return `<div class="plan-block-btnrow">${planBtn}${progBtn}</div>`;
+  return `<div class="plan-block-btnrow">${planBtn}${slot}</div>` + (progBtn ? `<div class="plan-block-btnrow">${progBtn}</div>` : '');
 }
 /* H-07 (AUTH-2026-11-10-392; auditoría de espacio 2026-11-09 §H-07 (a),
    aprobado por Ronald 2026-11-10): las filas del bloque de planes
@@ -9478,6 +9497,12 @@ function stuPlansWireCurrent(uid) {
   if (pb) pb.onclick = () => stuPlanProgressOpen(uid);
   const rb = blk.querySelector('[data-plan-review]');
   if (rb) rb.onclick = () => stuTrayOpen(uid);
+  /* AUTH-560: la casilla «Asignar reto» de la fila abre la hoja
+     de AUTH-559 (la misma, sin duplicar lógica); con varios
+     retos vigentes, su botón baja al bloque «Retos». */
+  blk.querySelectorAll('[data-chal-assign-open]').forEach(b => b.onclick = () => chalAsgOpen(uid, b.dataset.chalAssignOpen));
+  const gb = blk.querySelector('[data-chal-goto]');
+  if (gb) gb.onclick = () => { const cb = document.querySelector('#stu-chal-block'); if (cb) cb.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   stuTrayPaintCount(uid);
 }
 /* H-07 (AUTH-2026-11-10-392): el toque de la línea «+ N plan(es) inactivo(s)»
@@ -9828,18 +9853,59 @@ function stuChalBlockHTML(u) {
     : (chalVigentesList().map(v => stuChalCardHTML(u, v)).join('') || `<div class="wempty">${esc(t('chal.assign.noneLive'))}</div>`);
   return `<div class="stu-plan-block stu-chal-block" id="stu-chal-block"><h3 class="history-title">${esc(t('students.chalBlock'))}</h3>${inner}</div>`;
 }
-function stuChalCardHTML(u, v) {
-  const st = (STU_CHAL.states && STU_CHAL.states[v.kind]) || { state: 'none', plan: null, dayIx: 0 };
-  let stateLine = '';
+/* AUTH-560: el texto de estado de un reto para ESTE alumno —
+   UNA sola fuente para la tarjeta del bloque «Retos» y para la
+   casilla de la fila de botones del plan. Con `short`, el estado
+   activo omite el sufijo del día (la tarjeta de abajo lo lleva
+   completo); el resto de estados es el mismo texto en ambas. */
+function stuChalStateTextHTML(st, short) {
   if (st.state === 'active' && st.plan) {
+    if (short) return `✅ ${esc(t('chal.assign.stateActive'))}`;
     const when = st.dayIx >= 0
       ? esc(t('plan21.dayOf', { x: st.dayIx + 1 }))
       : esc(t('plan21.sheetStart', { date: plan21DateLabel(st.plan.startsAt), date2: plan21DateLabel(st.plan.endsAt) }));
-    stateLine = `<p class="stu-chal-state">✅ ${esc(t('chal.assign.stateActive'))} · ${when}</p>`;
+    return `✅ ${esc(t('chal.assign.stateActive'))} · ${when}`;
   }
-  else if (st.state === 'hold') stateLine = `<p class="stu-chal-state">⏳ ${esc(t('chal.assign.stateHold'))}</p>`;
-  else if (st.state === 'done') stateLine = `<p class="stu-chal-state">🏁 ${esc(t('chal.assign.stateDone'))}</p>`;
-  else if (st.state === 'sent') stateLine = `<p class="stu-chal-state">✉️ ${esc(t('chal.assign.stateSent'))}</p>`;
+  if (st.state === 'hold') return `⏳ ${esc(t('chal.assign.stateHold'))}`;
+  if (st.state === 'done') return `🏁 ${esc(t('chal.assign.stateDone'))}`;
+  if (st.state === 'sent') return `✉️ ${esc(t('chal.assign.stateSent'))}`;
+  return '';
+}
+/* AUTH-560: la casilla «Asignar reto» de la fila de botones del
+   bloque del plan (stuPlanBtnRowsHTML). Solo existe para EL
+   entrenador del alumno (stuChalCanAssign, la condición de
+   AUTH-559) y refleja el estado con la MISMA lógica de la
+   tarjeta (STU_CHAL + stuChalStateTextHTML): sin plan del reto
+   → el botón que abre la hoja de AUTH-559; con el reto activo,
+   en espera de salud o terminado → su estado en una casilla no
+   pulsable, sin ofrecer asignar otra vez (sin duplicados, como
+   F5 de AUTH-559). Con VARIOS retos vigentes, el botón lleva al
+   bloque «Retos» de la misma ficha (data-chal-goto; cada
+   tarjeta conserva su propio botón), salvo que ninguno sea
+   asignable, en cuyo caso muestra el estado del primero.
+   Mientras los estados cargan, una casilla muda con el texto de
+   carga conserva la geometría de la fila. El alumno se resuelve
+   contra STUDENTS_LAST porque los repintados del bloque a veces
+   solo traen { id }. */
+function stuChalRowSlotHTML(u) {
+  const fu = ((STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(c => c.id === u.id) || u;
+  if (!stuChalCanAssign(fu)) return '';
+  const vig = chalVigentesList();
+  if (!vig.length) return '';
+  if (!(STU_CHAL.uid === fu.id && STU_CHAL.states)) return `<span class="plan-assign-state">${esc(t('access.loading'))}</span>`;
+  const stOf = v => (STU_CHAL.states && STU_CHAL.states[v.kind]) || { state: 'none', plan: null, dayIx: 0 };
+  if (vig.length === 1) {
+    const st = stOf(vig[0]);
+    if (!st.plan) return `<button type="button" class="btn-primary" data-chal-assign-open="${esc(vig[0].kind)}">${esc(t('chal.assign.btn'))}</button>`;
+    return `<span class="plan-assign-state">${stuChalStateTextHTML(st, true)}</span>`;
+  }
+  if (vig.some(v => !stOf(v).plan)) return `<button type="button" class="btn-primary" data-chal-goto="1">${esc(t('chal.assign.btn'))}</button>`;
+  return `<span class="plan-assign-state">${stuChalStateTextHTML(stOf(vig[0]), true)}</span>`;
+}
+function stuChalCardHTML(u, v) {
+  const st = (STU_CHAL.states && STU_CHAL.states[v.kind]) || { state: 'none', plan: null, dayIx: 0 };
+  const stateTxt = stuChalStateTextHTML(st, false);
+  const stateLine = stateTxt ? `<p class="stu-chal-state">${stateTxt}</p>` : '';
   const btn = (!st.plan && stuChalCanAssign(u))
     ? `<button type="button" class="btn-primary stu-chal-btn" data-chal-assign-open="${esc(v.kind)}">${esc(t('chal.assign.btn'))}</button>` : '';
   return `<div class="chal-item stu-chal-card">
@@ -9872,6 +9938,11 @@ async function loadStudentChal(uid) {
     const u = ((STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(c => c.id === uid) || { id: uid };
     blk.outerHTML = stuChalBlockHTML(u);
     stuChalWireCurrent(uid);
+    /* AUTH-560: la casilla «Asignar reto» de la fila de botones
+       del plan refleja ESTE mismo estado: se repintan solo las
+       filas de botones del bloque del plan. */
+    const brs = document.querySelector('#stu-plan-btnrows');
+    if (brs) { brs.innerHTML = stuPlanBtnRowsHTML(u); stuPlansWireCurrent(uid); }
   }
 }
 function stuChalWireCurrent(uid) {
@@ -17848,7 +17919,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-asignar-retos' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-botones-juntos' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -59907,7 +59978,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-asignar-retos';
+const PWA_SW_VERSION = '20261123-botones-juntos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
