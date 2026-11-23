@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261122-dia-suelto');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-mascota-ejecuta');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -17694,7 +17694,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261122-dia-suelto' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-mascota-ejecuta' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -21533,6 +21533,9 @@ function asstClose() {
   /* AUTH-442: cerrar la hoja descarta el flujo de reestructurar
      de la conversación, si lo había (el motor es uno solo). */
   if (typeof RESTR !== 'undefined' && RESTR && RESTR.host === 'chat') { RESTR = null; try { restrSheetSync(); } catch {} }
+  /* AUTH-558: cerrar el Coach cierra también la propuesta de
+     organizar abierta (nada queda aplicado por cerrar). */
+  if (typeof ORGA !== 'undefined' && ORGA) { ORGA = null; try { orgaHostSync(); } catch {} }
   if (ASST_REC.rec) asstRecFinish(false);
   asstStopSpeak();
 }
@@ -21956,6 +21959,9 @@ async function asstTalkTap() {
          la transcripción entra en el resolvedor local — nunca a
          /assistant ni a la puerta de preguntas del Coach. Sin
          ese flujo, pregunta normal de siempre. */
+      /* AUTH-558: la voz también organiza (su ruta cede el paso a
+         reestructurar cuando su hoja está abierta en el chat). */
+      if (asstOrgMicRoute(dataUrl)) return;
       if (asstRestrMicRoute(dataUrl)) return;
       asstSend({ audioDataUrl: dataUrl });
     };
@@ -22024,6 +22030,9 @@ function asstSendText() {
      sale de la caja (escrito o dictado por el teclado) ANTES de
      /assistant: intención clara de reestructurar → la puerta de
      la mascota; sin intención, la pregunta sigue intacta. */
+  /* AUTH-558: la puerta de organizar (y los cambios de la
+     propuesta abierta) corre ANTES que reestructurar y el modelo. */
+  if (asstOrgHandleText(text)) return;
   if (asstRestrHandleText(text)) return;
   asstSend({ text });
 }
@@ -25420,7 +25429,12 @@ function restrBandFor(entry, grp) {
 }
 function restrBuildDay(inp) {
   const lib = (inp.lib || []).filter(e => e && e.id && e.grupo_muscular_es);
-  const chosen = (inp.chosen || []).filter(g => lib.some(e => e.grupo_muscular_es === g));
+  /* AUTH-558: «Piernas» es un paraguas del llamante (la mascota
+     que ejecuta): su fondo es la unión de los cuatro grupos de
+     pierna de la biblioteca. Ningún llamante de siempre lo pasa
+     (restrGroupsOfLib solo devuelve grupos reales). */
+  const LEGS = ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas'];
+  const chosen = (inp.chosen || []).filter(g => g === 'Piernas' ? lib.some(e => LEGS.includes(e.grupo_muscular_es)) : lib.some(e => e.grupo_muscular_es === g));
   const target = chosen.length <= 1 ? 4 : 5;
   const today = todayISO();
   const hist = inp.hist || { byId: {}, groupLast: {} };
@@ -25430,7 +25444,7 @@ function restrBuildDay(inp) {
   const decl = { levelUp: [], eqRelaxed: [], short: [], painOut: 0, painZones: [] };
   const pools = {};
   chosen.forEach(g => {
-    let pool = lib.filter(e => e.grupo_muscular_es === g);
+    let pool = g === 'Piernas' ? lib.filter(e => LEGS.includes(e.grupo_muscular_es)) : lib.filter(e => e.grupo_muscular_es === g);
     pool = pool.filter(e => !autoHealthExcludes(e, inp.hp));
     if (inp.painKnown && (inp.pains || []).length) {
       const kept = [];
@@ -25456,16 +25470,30 @@ function restrBuildDay(inp) {
       const byEq = pool.filter(e => { const f = autoEqFamilies(e); return !f.length || f.some(x => eqFams.has(x)); });
       if (byEq.length) pool = byEq; else if (pool.length) decl.eqRelaxed.push(g);
     }
+    /* AUTH-558: exclusiones explícitas del llamante (la propuesta
+       abierta, al agregar uno más del mismo grupo sin repetir los
+       ya mostrados). Sin la clave, el motor se comporta como
+       siempre, byte a byte. */
+    if (Array.isArray(inp.excludeIds) && inp.excludeIds.length) pool = pool.filter(e => !inp.excludeIds.includes(e.id));
     const scored = pool.map(e => {
       const h = hist.byId[e.id] || null;
       const iso = autoIsIsolation(e);
       let score = iso ? 0 : 40;
+      /* AUTH-558: el foco pedido («priorizando aductores») manda
+         en el relleno: +70 a lo que cruza el sub-músculo. El ancla
+         sigue saliendo compuesta por construcción (se busca sin
+         aislamiento primero), así que el foco nunca desplaza al
+         compuesto del grupo: lo acompaña. Para los grupos reales,
+         la última sesión del grupo es la del propio ejercicio —
+         idéntico a la fórmula de siempre. */
+      if (Array.isArray(inp.focusCodes) && inp.focusCodes.length && orgaEntryHitsFocus(e, inp.focusCodes)) score += 70;
       if (h) {
         score += 10;
         if (h.maxKg != null) score += 10;
         const ds = restrDaysSince(h.lastDate, today);
         if (ds != null) score += Math.min(20, ds);
-        if (hist.groupLast[g] && h.lastDate === hist.groupLast[g]) score -= 30;
+        const gl = hist.groupLast[e.grupo_muscular_es];
+        if (gl && h.lastDate === gl) score -= 30;
       } else score += 5;
       return { entry: e, score, iso, hist: h };
     }).sort((a, b) => b.score - a.score || (a.entry.id < b.entry.id ? -1 : 1));
@@ -25474,39 +25502,74 @@ function restrBuildDay(inp) {
   const used = new Set();
   const rows = [];
   const whyFor = (cand, g, isAnchor) => {
-    if (isAnchor) return { k: 'restr.why.anchor', vars: { group: LANG === 'en' ? (AUTO_GROUP_EN[g] || g) : g } };
+    /* AUTH-558: para el paraguas «Piernas» la explicación usa el
+       grupo REAL del ejercicio (su última sesión, su rotación);
+       para los grupos de siempre gg === g y nada cambia. */
+    const gg = cand.entry.grupo_muscular_es || g;
+    if (isAnchor) return { k: 'restr.why.anchor', vars: { group: LANG === 'en' ? (AUTO_GROUP_EN[gg] || gg) : gg } };
     const h = cand.hist;
     if (!h) return { k: 'restr.why.first', vars: {} };
-    const lastD = hist.groupLast[g];
+    const lastD = hist.groupLast[gg];
     if (lastD && h.lastDate !== lastD) {
       const other = Object.keys(hist.byId).map(id => ({ id, d: hist.byId[id].lastDate })).filter(x => x.d === lastD && x.id !== cand.entry.id)
-        .map(x => lib.find(e => e.id === x.id)).find(e => e && e.grupo_muscular_es === g);
+        .map(x => lib.find(e => e.id === x.id)).find(e => e && e.grupo_muscular_es === gg);
       if (other) return { k: 'restr.why.rotation', vars: { name: libNameOf(other), date: histShortDate(lastD) } };
     }
     const ds = restrDaysSince(h.lastDate, today);
     if (ds != null && ds >= 7) return { k: 'restr.why.days', vars: { d: ds } };
     return { k: 'restr.why.again', vars: { date: histShortDate(h.lastDate) } };
   };
-  chosen.forEach(g => {
-    const cand = (pools[g] || []).find(c => !used.has(c.entry.id) && !c.iso) || (pools[g] || []).find(c => !used.has(c.entry.id));
-    if (cand) { used.add(cand.entry.id); rows.push({ cand, group: g, why: whyFor(cand, g, true) }); }
-  });
-  let guard = 0;
-  while (rows.length < target && guard++ < 40) {
-    let progressed = false;
-    for (const g of chosen) {
-      if (rows.length >= target) break;
-      const cand = (pools[g] || []).find(c => !used.has(c.entry.id));
-      if (cand) { used.add(cand.entry.id); rows.push({ cand, group: g, why: whyFor(cand, g, false) }); progressed = true; }
+  /* AUTH-558: cada fila guarda el grupo REAL (para ordenar y
+     explicar) y el grupo ELEGIDO (cg, para contar cuotas y
+     declarar faltantes del paraguas). Sin cuotas — el camino de
+     siempre — pickedBy reproduce el conteo de filas por grupo. */
+  const pickedBy = {};
+  const pushRow = (cand, g, isAnchor) => {
+    used.add(cand.entry.id);
+    pickedBy[g] = (pickedBy[g] || 0) + 1;
+    rows.push({ cand, group: g === 'Piernas' ? (cand.entry.grupo_muscular_es || g) : g, cg: g, why: whyFor(cand, g, isAnchor) });
+  };
+  if (inp.counts) {
+    /* AUTH-558: composición por CUOTAS — la petición trae cuántos
+       de cada grupo («2 de espalda, 2 de piernas, 2 de abdomen»)
+       y la propuesta trae exactamente esos: por grupo, el ancla
+       compuesta primero y el relleno por puntuación. No entra el
+       objetivo de tamaño de siempre ni su relleno. */
+    chosen.forEach(g => {
+      const quota = Math.max(0, Math.floor(Number(inp.counts[g]) || 0));
+      if (!quota) return;
+      const pool = pools[g] || [];
+      const anchor = pool.find(c => !used.has(c.entry.id) && !c.iso) || pool.find(c => !used.has(c.entry.id));
+      if (anchor) pushRow(anchor, g, true);
+      for (const c of pool) { if ((pickedBy[g] || 0) >= quota) break; if (used.has(c.entry.id)) continue; pushRow(c, g, false); }
+    });
+    chosen.forEach(g => {
+      const quota = Math.max(0, Math.floor(Number(inp.counts[g]) || 0));
+      const n = pickedBy[g] || 0;
+      if (quota && n < quota) decl.short.push({ group: g, n });
+    });
+  } else {
+    chosen.forEach(g => {
+      const cand = (pools[g] || []).find(c => !used.has(c.entry.id) && !c.iso) || (pools[g] || []).find(c => !used.has(c.entry.id));
+      if (cand) pushRow(cand, g, true);
+    });
+    let guard = 0;
+    while (rows.length < target && guard++ < 40) {
+      let progressed = false;
+      for (const g of chosen) {
+        if (rows.length >= target) break;
+        const cand = (pools[g] || []).find(c => !used.has(c.entry.id));
+        if (cand) { pushRow(cand, g, false); progressed = true; }
+      }
+      if (!progressed) break;
     }
-    if (!progressed) break;
+    const share = Math.ceil(target / Math.max(1, chosen.length));
+    chosen.forEach(g => {
+      const n = pickedBy[g] || 0;
+      if (n === 0) decl.short.push({ group: g, n: 0 });
+      else if (rows.length < target && n < share) decl.short.push({ group: g, n });
+    });
   }
-  const share = Math.ceil(target / Math.max(1, chosen.length));
-  chosen.forEach(g => {
-    const n = rows.filter(r => r.group === g).length;
-    if (n === 0) decl.short.push({ group: g, n: 0 });
-    else if (rows.length < target && n < share) decl.short.push({ group: g, n });
-  });
   const out = rows.map(r => {
     const e = r.cand.entry;
     const band = restrBandFor(e, r.group);
@@ -26186,6 +26249,421 @@ function asstRestrMicRoute(dataUrl) {
     } finally {
       ASST.busy = false;
       asstRecPaint('idle');
+    }
+  })();
+  return true;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   AUTH-558 · LA MASCOTA QUE EJECUTA — EL PISO (orden de Ronald,
+   2026-11-22: «La mascota cuando yo le hable me conteste y me
+   organice y me haga lo que yo le estoy pidiendo dentro de la
+   aplicación»; autorización expresa del paquete: 2026-11-23
+   00:24, «Sí, continúa con los dos paquetes»). La persona le pide
+   al Coach (texto o voz) que le ORGANICE la rutina de hoy y la
+   APP produce la propuesta con SU motor (restrBuildDay: historial,
+   cargas reales y, cuando no hay carga registrada, el peso
+   sugerido de la tabla conservadora de AUTH-541): la IA no inventa
+   la rutina, entiende la petición y conversa. La propuesta se
+   MUESTRA en la hoja del Coach con Aplicar / Editar; Aplicar crea
+   la sesión suelta de hoy con EXACTAMENTE lo mostrado (mecánicas
+   D5/D6 de la casa: base 'extra' + edits.added bajo el planId del
+   contexto — 'suelta' sin plan activo, o el plan activo como
+   contexto, SIN escribir jamás el documento del plan ni
+   desactivarlo); Editar escribe lo mismo y abre la vista del día
+   ya cargada. Con la propuesta abierta, la persona sigue hablando
+   («cámbiame el primero por dominadas», «quítame el último»,
+   «agrégame uno de pecho») y la propuesta se actualiza EN LA
+   MISMA HOJA; Aplicar aplica siempre la última versión mostrada.
+   Puerta de salud intacta (sin declaración legible no se organiza
+   nada: la fase 'blocked' de reestructurar). Los topes del Coach
+   y las reglas AUTH-555 no cambian: esta capacidad se resuelve
+   LOCAL, antes del modelo, como la puerta de reestructurar. ══ */
+
+/* ¿El ejercicio cruza el foco pedido? Dos vías, la estructurada
+   primero: los códigos de músculo de la ficha (AUTH-543) y el
+   texto libre de músculos secundarios / nombre, normalizado. */
+function orgaEntryHitsFocus(entry, codes) {
+  if (!entry || !Array.isArray(codes) || !codes.length) return false;
+  const prim = muscleListOf(entry, 'musculos_principales');
+  const sec = muscleListOf(entry, 'musculos_secundarios');
+  if (codes.some(c => prim.includes(c) || sec.includes(c))) return true;
+  const hay = asstRestrNorm([entry.nombre_es, entry.nombre_en, entry.musculos_secundarios_es, entry.musculos_secundarios_en].filter(Boolean).join(' '));
+  return codes.some(c => (c === 'adductors' && /aductor|adductor/.test(hay)) || (c === 'abductors' && /abductor/.test(hay)));
+}
+const ASST_ORG_NUM = { uno: 1, una: 1, un: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+function asstOrgGroupOfWord(w) {
+  if (!w) return null;
+  if (['pierna', 'piernas', 'leg', 'legs'].includes(w)) return 'Piernas';
+  return ASST_RESTR_WORDS[w] || null;
+}
+/* La petición de organizar: mismo candado de reestructurar (una
+   pregunta NUNCA se intercepta; la negación tampoco). Intención =
+   verbo de organizar + (nombre de rutina/sesión O al menos un
+   grupo/foco). Devuelve { groups, counts, focusCodes } o null.
+   Con la puerta ya abierta (inDoor), los grupos bastan. */
+function asstOrgResolve(text, inDoor) {
+  const norm = asstRestrNorm(text || '');
+  if (!norm) return null;
+  if (/[?¿]/.test(text || '')) return null;
+  if (/\b(no|nunca|jamas|never|don t|dont)\b/.test(norm)) return null;
+  const focusCodes = [];
+  if (/aductor|adductor/.test(norm)) focusCodes.push('adductors');
+  if (/abductor/.test(norm)) focusCodes.push('abductors');
+  const counts = {};
+  const groups = [];
+  const addGroup = (g, n) => { if (!g) return; if (!groups.includes(g)) groups.push(g); if (n) counts[g] = n; };
+  let m;
+  const reEs = /(\d+|uno|una|un|dos|tres|cuatro|cinco|seis)\s+(ejercicios?\s+)?de\s+([a-z]+)/g;
+  while ((m = reEs.exec(norm))) addGroup(asstOrgGroupOfWord(m[3]), /^\d+$/.test(m[1]) ? parseInt(m[1], 10) : ASST_ORG_NUM[m[1]]);
+  const reEn = /(\d+|one|two|three|four|five|six)\s+([a-z]+)(\s+exercises?)?/g;
+  while ((m = reEn.exec(norm))) { const g = asstOrgGroupOfWord(m[2]); if (g) addGroup(g, /^\d+$/.test(m[1]) ? parseInt(m[1], 10) : ASST_ORG_NUM[m[1]]); }
+  if (!groups.length) norm.split(/\s+/).forEach(w => { const g = asstOrgGroupOfWord(w); if (g && !groups.includes(g)) groups.push(g); });
+  const hasVerb = /\b(organiz\w+|arma\w*|crea\w*|prepara\w*|monta\w*|hazme|build|create|prepare|make)\b/.test(norm);
+  const hasNoun = /\b(rutina|sesion|entrenamiento|entreno|workout|routine|session|training)\b/.test(norm);
+  if (inDoor) return groups.length ? { groups, counts, focusCodes } : null;
+  if (!hasVerb || (!hasNoun && !groups.length)) return null;
+  return { groups, counts, focusCodes };
+}
+/* El peso sugerido de la tabla conservadora de AUTH-541 para un
+   ejercicio sin carga en el historial: planbSeedKg lee el peso
+   corporal del contexto global del constructor; se le presta el
+   de la persona y se restaura en el acto (todo síncrono). */
+function orgaSeedKg(entry, bwKg) {
+  if (!entry || !(bwKg > 0)) return null;
+  const prev = PLANB_CTX;
+  try { PLANB_CTX = { logs: [], bwKg }; return planbSeedKg(entry); }
+  catch (e) { return null; }
+  finally { PLANB_CTX = prev; }
+}
+/* Una fila de propuesta para un ejercicio elegido a mano (cambio
+   conversado): misma banda y misma carga que daría el motor. */
+function orgaRowForEntry(entry, histIdx, bwKg) {
+  /* La misma banda y la misma carga que produce el motor en su
+     mapeo de salida (restrBandFor + restrSuggestLoad {kg, why}). */
+  const band = restrBandFor(entry, entry.grupo_muscular_es);
+  const h = (histIdx && histIdx.byId[entry.id]) || null;
+  const sug = restrSuggestLoad(h, band);
+  let loadKg = sug ? sug.kg : null;
+  let seed = false;
+  if (loadKg == null) { loadKg = orgaSeedKg(entry, bwKg); seed = loadKg != null; }
+  return {
+    entry, group: entry.grupo_muscular_es, iso: band.iso,
+    sets: 4, reps: band.min + '-' + band.max, rest: band.iso ? '60-90 s' : '2-3 min',
+    loadKg, loadSeed: seed, loadWhy: seed ? null : (sug ? sug.why : null), hist: h,
+    why: { k: 'orga.whyChange', vars: {} },
+  };
+}
+let ORGA = null;
+function orgaHostSync() {
+  const log = document.getElementById('asst-log');
+  if (!log) return;
+  let host = document.getElementById('asst-orga-host');
+  if (!ORGA) { if (host) host.remove(); return; }
+  if (!host) { host = document.createElement('div'); host.id = 'asst-orga-host'; host.className = 'asst-restr-host'; log.appendChild(host); }
+  if (ORGA.phase === 'loading') host.innerHTML = '<p class="progress-hint">' + esc(t('restr.loading')) + '</p>';
+  else if (ORGA.phase === 'blocked') host.innerHTML = '<div class="pl-auto-block">' + esc(t('restr.healthBlocked')) + '</div><button type="button" class="btn-ghost asst-restr-close" data-orga-x aria-label="✕">✕</button>';
+  else if (ORGA.phase === 'pick') host.innerHTML = orgaPickHTML();
+  else host.innerHTML = orgaProposalHTML();
+  if (ORGA.phase === 'blocked') { const cx = host.querySelector('[data-orga-x]'); if (cx) cx.addEventListener('click', () => { ORGA = null; orgaHostSync(); }); }
+  if (ORGA.phase === 'pick') orgaPickWire(host);
+  if (ORGA.phase === 'proposal') orgaProposalWire(host);
+  const body = document.getElementById('asst-body'); if (body) body.scrollTop = body.scrollHeight;
+}
+function orgaGroupLbl(g) { return g === 'Piernas' ? t('orga.legs') : restrGroupLbl(g); }
+function orgaPickHTML() {
+  const sel = new Set(ORGA.groups || []);
+  const pills = restrGroupsOfLib().map(g => {
+    const n = (LIB || []).filter(e => e.grupo_muscular_es === g).length;
+    return '<button type="button" class="restr-pill' + (sel.has(g) ? ' is-on' : '') + '" data-orga-pick="' + esc(g) + '"><span>' + esc(restrGroupLbl(g)) + '</span><span class="restr-pill-n">' + n + '</span></button>';
+  }).join('');
+  let painLine = '';
+  if (ORGA.painKnown && (ORGA.pains || []).length) painLine = ORGA.pains.map(p => '<div class="restr-pain-note">⚠ ' + esc(t('restr.painHeadsUp', { zone: mpPainZoneLbl(p.zone), n: p.intensity })) + '</div>').join('');
+  return '<div class="swap-sheet-head"><span class="swap-sheet-title">' + esc(t('orga.pickTitle')) + '</span>'
+    + '<button type="button" class="swap-sheet-x" data-orga-x aria-label="✕">✕</button></div>' + painLine
+    + '<div class="restr-note">' + esc(t('orga.ask')) + '</div>'
+    + '<div class="restr-pills">' + pills + '</div>'
+    + '<div class="restr-foot"><button type="button" class="btn-primary restr-apply-btn" data-orga-build' + (sel.size ? '' : ' disabled') + '>' + esc(t('orga.build')) + '</button></div>';
+}
+function orgaPickWire(host) {
+  host.querySelector('[data-orga-x]').addEventListener('click', () => { ORGA = null; orgaHostSync(); });
+  host.querySelectorAll('[data-orga-pick]').forEach(b => b.addEventListener('click', () => {
+    const g = b.getAttribute('data-orga-pick');
+    const i = ORGA.groups.indexOf(g);
+    if (i >= 0) ORGA.groups.splice(i, 1); else ORGA.groups.push(g);
+    orgaHostSync();
+  }));
+  const build = host.querySelector('[data-orga-build]');
+  if (build) build.addEventListener('click', () => { if (ORGA.groups.length) orgaBuild(); });
+}
+function orgaProposalHTML() {
+  const b = ORGA.built;
+  const d = b ? b.decl : { levelUp: [], eqRelaxed: [], short: [], painOut: 0, painZones: [] };
+  const notes = [];
+  /* Las notas del motor, con las MISMAS claves y formas de la
+     vista previa de reestructurar (restrPreviewHTML): la mascota
+     explica la propuesta igual que explica un día rearmado. */
+  notes.push('<div class="restr-note">' + esc(ORGA.hasPlan ? t('orga.looseNote') : t('orga.noPlanNote')) + '</div>');
+  if (ORGA.focusCodes && ORGA.focusCodes.length) notes.push('<div class="restr-note">' + esc(t('orga.focusLine', { muscle: muscleName(ORGA.focusCodes[0]) })) + '</div>');
+  if (!ORGA.ctx.levelInf) notes.push('<div class="restr-note">' + esc(t('restr.noLevel')) + '</div>');
+  if (!ORGA.ctx.eff || !ORGA.ctx.eff.objective) notes.push('<div class="restr-note">' + esc(t('restr.noObjective')) + '</div>');
+  d.levelUp.forEach(x => notes.push('<div class="restr-note">' + esc(t('restr.levelUp', { group: orgaGroupLbl(x.group), lvl: t('train.auto.lvl.' + x.lvl) })) + '</div>'));
+  d.eqRelaxed.forEach(g => notes.push('<div class="restr-note">' + esc(t('restr.eqRelaxed', { group: orgaGroupLbl(g) })) + '</div>'));
+  if (ORGA.painKnown && d.painOut > 0) {
+    if (d.painZones.length === 1) notes.push('<div class="restr-note restr-note-pain">⚠ ' + esc(t('restr.painOut', { n: d.painOut, zone: mpPainZoneLbl(d.painZones[0]) })) + '</div>');
+    else notes.push('<div class="restr-note restr-note-pain">⚠ ' + esc(t('restr.painOutMulti', { n: d.painOut })) + '</div>');
+  }
+  if (!ORGA.painKnown) notes.push('<div class="restr-note">⚠ ' + esc(t('restr.painUnknown')) + '</div>');
+  d.short.forEach(x => notes.push('<div class="restr-note">' + esc(t(x.n === 0 ? 'restr.noneGroup' : 'restr.shortGroup', { group: orgaGroupLbl(x.group), n: x.n })) + '</div>'));
+  const rows = (ORGA.rows || []).map((r, i) => {
+    const photo = r.entry.foto_url ? '<img class="restr-row-img" src="' + esc(r.entry.foto_url) + '" alt="" loading="lazy" onerror="this.remove()">' : '<span class="restr-row-img restr-row-img-none">🏋️</span>';
+    const loadWhy = r.loadWhy ? '<div class="restr-load-why">' + esc(t(r.loadWhy === 'up' ? 'restr.loadUp' : r.loadWhy === 'repeatHard' ? 'restr.loadRepeatHard' : 'restr.loadRepeat')) + '</div>' : '';
+    const seedLine = r.loadSeed ? '<div class="restr-load-why">' + esc(t('orga.seedLine')) + '</div>' : '';
+    return '<div class="restr-row">' + photo + '<div class="restr-row-main">'
+      + '<div class="restr-row-name">' + esc(libNameOf(r.entry)) + '</div>'
+      + '<div class="restr-row-spec">' + esc(t('restr.sets', { n: r.sets })) + ' · ' + esc(r.reps) + ' reps</div>'
+      + restrLastLineHTML(r)
+      + '<div class="restr-why">' + esc(t(r.why.k, r.why.vars)) + '</div>'
+      + '<label class="restr-load-lab"><span>' + esc(t('restr.loadSug')) + ' (kg)</span><input type="text" inputmode="decimal" class="restr-load-in" data-orga-load="' + i + '" value="' + (r.loadKg != null ? String(r.loadKg) : '') + '" placeholder="—"></label>' + loadWhy + seedLine
+      + '</div></div>';
+  }).join('');
+  const empty = !ORGA.rows || !ORGA.rows.length ? '<div class="pl-auto-block">' + esc(t('restr.empty')) + '</div>' : '';
+  return '<div class="swap-sheet-head"><span class="swap-sheet-title">' + esc(t('orga.title')) + '</span>'
+    + '<button type="button" class="swap-sheet-x" data-orga-x aria-label="✕">✕</button></div>'
+    + notes.join('') + empty + '<div class="restr-rows">' + rows + '</div>'
+    + '<div class="restr-note">' + esc(t('orga.changeHint')) + '</div>'
+    + '<div class="restr-foot"><button type="button" class="btn-ghost restr-back-btn" data-orga-edit>' + esc(t('orga.edit')) + '</button>'
+    + '<button type="button" class="btn-primary restr-apply-btn" data-orga-apply' + (ORGA.rows && ORGA.rows.length ? '' : ' disabled') + '>' + esc(t('orga.apply')) + '</button></div>';
+}
+function orgaProposalWire(host) {
+  host.querySelector('[data-orga-x]').addEventListener('click', () => { ORGA = null; orgaHostSync(); });
+  host.querySelector('[data-orga-apply]').addEventListener('click', () => orgaApply());
+  host.querySelector('[data-orga-edit]').addEventListener('click', () => orgaEdit());
+}
+/* Lo que la persona escribió en los campos de carga ES la
+   propuesta: se recoge antes de aplicar, editar o repintar tras
+   un cambio conversado. */
+function orgaHarvestLoads() {
+  if (!ORGA || !ORGA.rows) return;
+  document.querySelectorAll('#asst-orga-host [data-orga-load]').forEach(inp => {
+    const i = Number(inp.getAttribute('data-orga-load'));
+    const v = parseFloat(String(inp.value || '').replace(',', '.'));
+    if (ORGA.rows[i]) { ORGA.rows[i].loadKg = isFinite(v) && v > 0 ? v : null; if (ORGA.rows[i].loadKg != null) ORGA.rows[i].loadSeed = false; }
+  });
+}
+function orgaBuild() {
+  const counts = {};
+  let anyCount = false;
+  ORGA.groups.forEach(g => { const n = ORGA.counts && ORGA.counts[g]; if (n) { counts[g] = Math.min(6, Math.max(1, n)); anyCount = true; } });
+  if (anyCount) ORGA.groups.forEach(g => { if (!counts[g]) counts[g] = 2; });
+  const built = restrBuildDay({
+    chosen: ORGA.groups.slice(), level: ORGA.ctx.levelInf ? ORGA.ctx.levelInf.level : null, hp: ORGA.hp, pains: ORGA.pains, painKnown: ORGA.painKnown,
+    hist: ORGA.histIdx, objective: ORGA.ctx.eff ? ORGA.ctx.eff.objective : '', lib: LIB,
+    counts: anyCount ? counts : null, focusCodes: ORGA.focusCodes || [],
+  });
+  ORGA.built = built;
+  ORGA.rows = built.rows.map(r => {
+    let loadKg = r.loadKg;
+    let seed = false;
+    if (loadKg == null) { loadKg = orgaSeedKg(r.entry, ORGA.bwKg); seed = loadKg != null; }
+    return { entry: r.entry, group: r.group, iso: r.iso, sets: r.sets, reps: r.reps, rest: r.rest, loadKg, loadSeed: seed, loadWhy: seed ? null : (r.loadWhy || null), hist: r.hist, why: r.why };
+  });
+  ORGA.phase = 'proposal';
+  orgaHostSync();
+}
+/* La escritura de la casa para la sesión suelta de hoy (D5/D6):
+   base 'extra' + los agregados EXACTOS de la propuesta, bajo el
+   planId del contexto. El documento del plan jamás se toca. */
+function orgaWriteSession() {
+  const iso = todayISO();
+  trainBaseWrite(ORGA.planId, { kind: 'extra' }, iso);
+  trainEditsWrite(ORGA.planId, {
+    swaps: {},
+    added: ORGA.rows.map(r => {
+      const rec = { exerciseId: r.entry.id, name: libNameOf(r.entry), sets: String(r.sets), reps: String(r.reps) };
+      if (r.loadKg != null && r.loadKg > 0) { rec.load = r.loadKg; rec.loadUnit = 'kg'; }
+      return rec;
+    }),
+    removed: [],
+  }, iso);
+}
+async function orgaApply() {
+  orgaHarvestLoads();
+  orgaWriteSession();
+  ORGA = null; orgaHostSync();
+  asstBubble('bot', t('orga.applied'));
+  try { await loadMyTraining(); } catch (e) {}
+}
+async function orgaEdit() {
+  orgaHarvestLoads();
+  orgaWriteSession();
+  ORGA = null; orgaHostSync();
+  asstClose();
+  navOpenPage('train');
+  try { await loadMyTraining(); } catch (e) {}
+}
+/* La entrada de la puerta: lee el contexto con las MISMAS reglas
+   de reestructurar (la declaración de salud manda: si no se puede
+   leer, fase bloqueada y no se organiza nada). */
+async function asstOrgOpen(intent) {
+  ORGA = { phase: 'loading', groups: [], counts: {}, focusCodes: [], rows: null, built: null, pains: [], painKnown: false };
+  orgaHostSync();
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  try { asstEnsureData(); } catch (e) {}
+  if (typeof ASST_DATA !== 'undefined' && ASST_DATA.loading) await ASST_DATA.loading.catch(() => {});
+  await libEnsure().catch(() => {});
+  if (!ORGA) return;
+  if (typeof LIB_STATE !== 'undefined' && LIB_STATE !== 'ok') { ORGA = null; orgaHostSync(); asstBubble('bot', t('restr.libUnavailable')); return; }
+  let ctx = null;
+  try { ctx = await restrLoadCtx(uid, 'own'); } catch (e) { ctx = null; }
+  if (!ORGA) return;
+  if (!ctx || !ctx.ok) {
+    if (ctx && ctx.why === 'health') { ORGA.phase = 'blocked'; orgaHostSync(); return; }
+    ORGA = null; orgaHostSync(); asstBubble('bot', t('restr.error'), true); return;
+  }
+  ORGA.ctx = ctx;
+  ORGA.hp = autoHealthPlan(ctx.conditions || []);
+  ORGA.histIdx = restrHistIndex(ctx.logs);
+  try { ORGA.pains = mpActivePains() || []; ORGA.painKnown = true; }
+  catch (e) { ORGA.pains = []; ORGA.painKnown = false; }
+  const pl = asstPlanLogs();
+  ORGA.planId = pl.plan ? pl.plan.id : 'suelta';
+  ORGA.hasPlan = !!pl.plan;
+  ORGA.bwKg = null;
+  try { ORGA.bwKg = await plan21LastWeightKg(uid); } catch (e) {}
+  ORGA.groups = (intent && intent.groups || []).slice();
+  ORGA.counts = (intent && intent.counts) || {};
+  ORGA.focusCodes = (intent && intent.focusCodes) || [];
+  if (ORGA.groups.length) orgaBuild();
+  else { ORGA.phase = 'pick'; orgaHostSync(); }
+}
+/* ── Los cambios conversando, con la propuesta abierta ── */
+const ORGA_ORDINALS = { primer: 0, primero: 0, primera: 0, segund: 1, tercer: 2, tercera: 2, cuart: 3, quint: 4, sext: 5, ultim: -1, first: 0, second: 1, third: 2, fourth: 3, fifth: 4, sixth: 5, last: -1 };
+function orgaOrdinalOf(norm) {
+  const words = norm.split(/\s+/);
+  for (const w of words) { const k = Object.keys(ORGA_ORDINALS).find(o => w === o || w.startsWith(o)); if (k) return ORGA_ORDINALS[k]; }
+  return null;
+}
+function orgaFindEntryByName(normName) {
+  const lib = LIB || [];
+  let best = null, bestScore = 0;
+  lib.forEach(e => {
+    [e.nombre_es, e.nombre_en].forEach(nm => {
+      if (!nm) return;
+      const n = asstRestrNorm(nm);
+      let s = 0;
+      if (n === normName) s = 100; else if (n.startsWith(normName) || normName.startsWith(n)) s = 60; else if (n.includes(normName) || normName.includes(n)) s = 40;
+      if (s && ORGA.histIdx && ORGA.histIdx.byId[e.id]) s += 5;
+      if (s > bestScore) { bestScore = s; best = e; }
+    });
+  });
+  return bestScore >= 40 ? best : null;
+}
+function orgaRowIndexOf(norm, rows) {
+  const ord = orgaOrdinalOf(norm);
+  if (ord != null) return ord < 0 ? rows.length - 1 : ord;
+  const gm = norm.match(/el de ([a-z]+)/) || norm.match(/the ([a-z]+) one/);
+  if (gm) {
+    const g = asstOrgGroupOfWord(gm[1]);
+    if (g) { for (let i = rows.length - 1; i >= 0; i--) { if (rows[i].group === g || (g === 'Piernas' && ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas'].includes(rows[i].group))) return i; } }
+  }
+  const byName = orgaFindEntryByName(norm);
+  if (byName) { const i = rows.findIndex(r => r.entry.id === byName.id); if (i >= 0) return i; }
+  return -1;
+}
+/* Interpreta la frase como cambio de la propuesta abierta.
+   Devuelve true si la consumió (cambio hecho o no entendido:
+   la propuesta manda y la frase no cae al modelo). */
+function orgaHandlePhrase(text) {
+  const norm = asstRestrNorm(text || '');
+  if (!norm || /[?¿]/.test(text || '')) return false;
+  if (ORGA.phase === 'pick') {
+    const intent = asstOrgResolve(text, true);
+    if (!intent) return false;
+    ORGA.groups = intent.groups; ORGA.counts = intent.counts || {};
+    if (intent.focusCodes && intent.focusCodes.length) ORGA.focusCodes = intent.focusCodes;
+    orgaBuild();
+    return true;
+  }
+  if (ORGA.phase !== 'proposal' || !ORGA.rows) return false;
+  orgaHarvestLoads();
+  const rows = ORGA.rows;
+  let changed = false;
+  const swapM = norm.match(/(?:cambia\w*|reemplaza\w*|sustituye\w*|swap|change|replace)\s+(.+?)\s+(?:por|for)\s+(.+)$/);
+  const remM = !swapM && norm.match(/(?:quita\w*|saca\w*|elimina\w*|borra\w*|remove|drop)\s+(.+)$/);
+  const addM = !swapM && !remM && norm.match(/(?:agrega\w*|anade\w*|mete\w*|pon\w*|add)\s+(.+)$/);
+  if (swapM) {
+    const idx = orgaRowIndexOf(swapM[1], rows);
+    const entry = orgaFindEntryByName(swapM[2].trim());
+    if (idx >= 0 && idx < rows.length && entry) { rows[idx] = orgaRowForEntry(entry, ORGA.histIdx, ORGA.bwKg); changed = true; }
+  } else if (remM) {
+    const idx = orgaRowIndexOf(remM[1], rows);
+    if (idx >= 0 && idx < rows.length && rows.length > 1) { rows.splice(idx, 1); changed = true; }
+  } else if (addM) {
+    const rest = addM[1].trim();
+    const g = asstOrgGroupOfWord(rest.split(/\s+/).pop()) || asstOrgGroupOfWord((rest.match(/de\s+([a-z]+)/) || [])[1]);
+    if (g) {
+      const built = restrBuildDay({
+        chosen: [g], level: ORGA.ctx.levelInf ? ORGA.ctx.levelInf.level : null, hp: ORGA.hp, pains: ORGA.pains, painKnown: ORGA.painKnown,
+        hist: ORGA.histIdx, objective: ORGA.ctx.eff ? ORGA.ctx.eff.objective : '', lib: LIB,
+        counts: { [g]: 1 }, focusCodes: ORGA.focusCodes || [], excludeIds: rows.map(r => r.entry.id),
+      });
+      if (built.rows.length) {
+        const r0 = built.rows[0];
+        let loadKg = r0.loadKg; let seed = false;
+        if (loadKg == null) { loadKg = orgaSeedKg(r0.entry, ORGA.bwKg); seed = loadKg != null; }
+        rows.push({ entry: r0.entry, group: r0.group, iso: r0.iso, sets: r0.sets, reps: r0.reps, rest: r0.rest, loadKg, loadSeed: seed, loadWhy: seed ? null : (r0.loadWhy || null), hist: r0.hist, why: { k: 'orga.whyChange', vars: {} } });
+        rows.sort((a, b) => (RESTR_SIZE_RANK[a.group] ?? 99) - (RESTR_SIZE_RANK[b.group] ?? 99));
+        changed = true;
+      }
+    } else {
+      const entry = orgaFindEntryByName(rest.replace(/^(un|una|one)\s+/, ''));
+      if (entry && !rows.some(r => r.entry.id === entry.id)) { rows.push(orgaRowForEntry(entry, ORGA.histIdx, ORGA.bwKg)); changed = true; }
+    }
+  }
+  if (changed) { orgaHostSync(); asstBubble('bot', t('orga.changed')); }
+  else asstBubble('bot', t('orga.notUnderstood'));
+  return true;
+}
+/* La puerta del piso en el pipeline de texto: con la propuesta
+   abierta, la frase es un cambio; cerrada, la petición de
+   organizar abre la puerta. Lo demás sigue su camino de siempre
+   (reestructurar, luego el modelo). */
+function asstOrgHandleText(text) {
+  if (ORGA && (ORGA.phase === 'proposal' || ORGA.phase === 'pick')) {
+    if (orgaHandlePhrase(text)) { asstBubble('me', text); return true; }
+    return false;
+  }
+  const intent = asstOrgResolve(text, false);
+  if (!intent) return false;
+  asstBubble('me', text);
+  asstBubble('bot', t('orga.understood'));
+  asstOrgOpen(intent);
+  return true;
+}
+/* La misma puerta por VOZ (micrófono grande): transcribe y corre
+   la frase por las puertas locales ANTES del modelo — organizar,
+   cambiar la propuesta abierta o reestructurar — y solo si
+   ninguna la toma va al Coach como texto, como siempre. Con
+   reestructurar abierta en el chat, su ruta manda (AUTH-442 D2). */
+function asstOrgMicRoute(dataUrl) {
+  if (RESTR && RESTR.host === 'chat') return false;
+  if (ASST.busy) return false;
+  ASST.busy = true;
+  (async () => {
+    try {
+      const r = await aiCall('/transcribe', { audioDataUrl: dataUrl });
+      const txt = r && r.text ? String(r.text).trim() : '';
+      if (!txt) { asstBubble('bot', t('asst.restrMicEmpty')); ASST.busy = false; return; }
+      asstBubble('me', txt);
+      if (ORGA && (ORGA.phase === 'proposal' || ORGA.phase === 'pick') && orgaHandlePhrase(txt)) { ASST.busy = false; return; }
+      if (!ORGA) { const intent = asstOrgResolve(txt, false); if (intent) { asstBubble('bot', t('orga.understood')); ASST.busy = false; asstOrgOpen(intent); return; } }
+      if (asstRestrHandleText(txt)) { ASST.busy = false; return; }
+      ASST.busy = false;
+      asstSend({ text: txt });
+    } catch (e) {
+      ASST.busy = false;
+      asstSend({ audioDataUrl: dataUrl });
     }
   })();
   return true;
@@ -59269,7 +59747,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261122-dia-suelto';
+const PWA_SW_VERSION = '20261123-mascota-ejecuta';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
