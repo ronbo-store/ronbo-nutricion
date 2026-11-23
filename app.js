@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-pendientes-activos');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-ficha-plegada');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -10635,6 +10635,7 @@ function fichaClearMode() {
   FICHA_MODE = null;
 }
 function fichaClose() {
+  fichaSheetClose();
   const mode = FICHA_MODE;
   fichaClearMode();
   const box = $('client-detail');
@@ -10690,10 +10691,15 @@ let FICHA_FOCUS = null; // { uid, target, tries }
 function fichaFocusSet(uid, target) { FICHA_FOCUS = target ? { uid, target, tries: 0 } : null; }
 function fichaFocusTo(box, target) {
   box.querySelectorAll('.ficha-focus-hl').forEach(e => e.classList.remove('ficha-focus-hl'));
+  /* AUTH-563: el bloque enfocado vive en su almacén; su pantalla
+     se abre primero y el foco cae dentro (el peso sigue en la
+     cabecera de la ficha, visible como siempre). */
+  const sheetKey563 = { energy: 'calculo', goals: 'metas', evals: 'evaluaciones', food: 'fotos', body: 'tipocorp' }[target];
+  if (sheetKey563) { try { fichaSheetOpen(sheetKey563); } catch {} }
   const hl = el => { if (!el) return false; el.classList.add('ficha-focus-hl'); try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} return true; };
   if (target === 'weight') return hl($('client-weight-block'));
   if (target === 'energy') {
-    const c = box.querySelector('.fa-card'); if (!c) return false;
+    const c = box.querySelector('.fa-card') || document.querySelector('#ficha-sheet-body .fa-card'); if (!c) return false;
     if (typeof FICHA_FOLD_OPEN !== 'undefined' && !FICHA_FOLD_OPEN.base) { const b = $('ffold-btn-base'); if (b) b.click(); }
     return hl(c);
   }
@@ -10711,7 +10717,7 @@ function fichaFocusTo(box, target) {
     if (body && body.style.display === 'none') { const b = $('btn-client-evals'); if (b) b.click(); }
     return hl($('client-evals'));
   }
-  if (target === 'food') return hl(box.querySelector('.mealhelp-list'));
+  if (target === 'food') return hl(box.querySelector('.mealhelp-list') || document.querySelector('#ficha-sheet-body .mealhelp-list'));
   if (target === 'body') { const bc = $('bt-card'); return !!(bc && bc.firstElementChild) && hl(bc); }
   return false;
 }
@@ -10931,7 +10937,7 @@ function pendConsultCloseX() {
      bloque no se movió de la ficha en todo el viaje (los bloques
      consultados viven debajo de él), así que se aterriza en él;
      sin bloque, se restaura el scroll registrado al abrir. */
-  const blk = box ? box.querySelector('.ficha-pend-block') : null;
+  const blk = fichaPendLand(box);
   if (blk) { try { blk.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} }
   else { try { window.scrollTo(0, C.scrollY); } catch {} }
 }
@@ -10955,7 +10961,7 @@ async function pendConsultSaveReturn() {
   try { if (FICHA_MODE.origin !== 'students' && typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.pendByUid && STUDENTS_LAST.pendByUid[uid]) await loadStudents(); } catch {}
   try { await openClient(uid); } catch {}
   const box = $('client-detail');
-  const blk = box ? box.querySelector('.ficha-pend-block') : null;
+  const blk = fichaPendLand(box);
   if (blk) { blk.classList.add('ficha-focus-hl'); try { blk.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} }
 }
 /* Acción de un ítem pulsado DENTRO del bloque de pendientes de
@@ -13423,6 +13429,261 @@ function baseMailBtnFor(first) {
    baseMailPayload y el orden de piezas, baseMailBtnFor. */
 
 
+/* ════════════════════════════════════════════════════════════════
+   LA FICHA COMPLETA, PLEGADA (AUTH-2026-11-23-563 · programa
+   «Plegar todo» nº 1, orden de Ronald «Hazlo todo» 2026-11-23):
+   la ficha del cliente deja de ser una página larguísima con
+   ~20 bloques desplegados. Al entrar solo se ven la cabecera
+   (con los tres botones juntos: Añadir peso, acceso rápido y
+   Cerrar — alcance 3), un resumen corto y UNA LÍNEA PLEGADA POR
+   BLOQUE (título + dato clave + ›, la fila .stu-train-row de la
+   casa). Cada línea abre la hoja propia del bloque (#ficha-sheet,
+   el patrón .pend-float con su ‹ Volver): el bloque VIAJA desde
+   su almacén (#ficha-store, oculto dentro de la propia ficha) a
+   la hoja y vuelve a su ancla al cerrar — el mismo viaje de la
+   ventana de consulta AUTH-121 — así que ningún pintor cambia:
+   todos siguen pintando por id dentro de la ficha, esté el
+   bloque en el almacén o en la hoja. SOLO cambia la
+   presentación: la lógica de cada bloque, sus lecturas y sus
+   escrituras quedan intactas.
+   EXCEPCIÓN DE SEGURIDAD: sin declaración de salud visible el
+   aviso de la ficha es el estado que BLOQUEA (sin ella no se
+   genera ni se activa ningún plan, AUTH-493) y pide actuar ya
+   (recordarle al alumno): ese aviso NO se pliega — queda visible
+   sobre la ficha como hasta hoy. Con declaración legible, el
+   resumen y la franja de etapa viven en la línea «Salud».
+   Las líneas se sincronizan con lo pintado (fichaFoldSync): una
+   línea solo se ve si su bloque tiene contenido, y su dato clave
+   se lee del propio bloque o de su estado en memoria. ═══ */
+let FICHA_SHEET = null;        /* { key, uid, nodes: [{el, anchor}] } */
+let FICHA_CUR_UID = null;      /* alumno de la ficha pintada */
+let FICHA_WEIGHT_NODES = [];   /* gráfico/tabla de pesos: hijos DIRECTOS de la caja (la consulta AUTH-121 los busca entre los hijos directos) */
+let FICHA_SUB0 = {};           /* datos clave fijados al pintar (salud, pesos, proteína, cálculo) */
+let FICHA_FOOD_N = 0;          /* fotos de comida pendientes de revisar */
+let FICHA_OBS = null, FICHA_OBS_T = null;
+
+function fichaLineHTML(key, titleHTML) {
+  return `<button type="button" class="stu-train-row ficha-line" data-ficha-line="${key}" style="display:none"><span class="ficha-line-t">${titleHTML}</span><span class="ficha-line-s" data-ficha-sub></span><span class="sx">›</span></button>`;
+}
+function fichaSheetNodes(key) {
+  const byId = id => $(id);
+  switch (key) {
+    case 'salud': return [byId('client-health-box')];
+    case 'entrenamiento': return [byId('client-training')];
+    case 'pendientes': return [byId('client-pend-box')];
+    case 'peticiones': return [byId('client-treq')];
+    case 'checkin': return [byId('client-chk')];
+    case 'metas': return ['ficha-met-box', 'pace-card', 'proposal-card', 'held-card', 'focus-card'].map(byId);
+    case 'asignaciones': return [byId('ficha-assign-box')];
+    case 'anillos': return [byId('client-rings')];
+    case 'alertas': return [byId('client-alerts')];
+    case 'fotos': return [byId('client-food-box')];
+    case 'pesos': return FICHA_WEIGHT_NODES.slice();
+    case 'proteina': return [byId('ficha-prot-box')];
+    case 'calculo': return [byId('ficha-fa-box')];
+    case 'referencias': return [byId('ficha-refs-box')];
+    case 'tipocorp': return [byId('bt-card')];
+    case 'adherencia': return [byId('adh-card')];
+    case 'constancia': return [byId('const-card')];
+    case 'retos': return [byId('chal-ficha-card')];
+    case 'composicion': return [byId('compacc-box')];
+    case 'progreso': return [byId('mp-trainer-block')];
+    case 'semana': return [byId('client-weekcard')];
+    case 'hitos': return [byId('client-milestones')];
+    case 'evaluaciones': return [byId('client-evals')];
+  }
+  return [];
+}
+function fichaLineTitle(key) {
+  switch (key) {
+    case 'salud': return '🏥 ' + t('client.healthDecl').replace(/[:：]\s*$/, '');
+    case 'entrenamiento': return t('train.section');
+    case 'pendientes': return t('ficha563.pend');
+    case 'peticiones': return t('treq.blockTitle');
+    case 'checkin': return t('chk.fichaTitle');
+    case 'metas': return t('ficha563.goals');
+    case 'asignaciones': return (typeof FICHA_ASSIGN !== 'undefined' && FICHA_ASSIGN) ? stuAssignFoldLine(FICHA_ASSIGN) : t('assign.title');
+    case 'anillos': return t('client.ringsTitle');
+    case 'alertas': return t('talert.title');
+    case 'fotos': return t('client.foodReview', { n: FICHA_FOOD_N || 0 });
+    case 'pesos': return t('ficha563.weights');
+    case 'proteina': return t('ffold.protein');
+    case 'calculo': return t('fa.title');
+    case 'referencias': return t('ffold.refs');
+    case 'tipocorp': return t('bt.trainerTitle');
+    case 'adherencia': return t('adh.title');
+    case 'constancia': return t('const.trainerTitle');
+    case 'retos': return t('chal.fichaTitle');
+    case 'composicion': return t('compacc.title');
+    case 'progreso': return t('mp.t.title');
+    case 'semana': return t('ficha563.week');
+    case 'hitos': return t('ficha563.milestones');
+    case 'evaluaciones': return t('ficha563.evals');
+  }
+  return '';
+}
+function fichaSheetOpen(key) {
+  const box = $('client-detail'); if (!box) return;
+  if (FICHA_SHEET && FICHA_SHEET.key === key) return;
+  if (FICHA_SHEET) fichaSheetClose();
+  const sheet = $('ficha-sheet'), body = $('ficha-sheet-body'); if (!sheet || !body) return;
+  const nodes = fichaSheetNodes(key).filter(Boolean);
+  if (!nodes.length) return;
+  const lineT = box.querySelector('[data-ficha-line="' + key + '"] .ficha-line-t');
+  const tt = $('ficha-sheet-title'); if (tt) tt.textContent = lineT ? lineT.textContent : fichaLineTitle(key);
+  const moved = nodes.map(el => {
+    const anchor = document.createElement('div');
+    anchor.className = 'ficha-anchor'; anchor.style.display = 'none';
+    if (el.parentNode) el.parentNode.insertBefore(anchor, el);
+    body.appendChild(el);
+    if (el.dataset && el.dataset.fichaW) el.style.display = '';
+    return { el, anchor };
+  });
+  FICHA_SHEET = { key, uid: FICHA_CUR_UID, nodes: moved };
+  sheet.style.display = '';
+  const x = $('ficha-sheet-x'); if (x) x.onclick = () => fichaSheetClose();
+  const bk = $('ficha-sheet-back'); if (bk) bk.onclick = () => fichaSheetClose();
+  try { sheet.scrollTop = 0; } catch {}
+}
+function fichaSheetClose() {
+  const S = FICHA_SHEET; if (!S) return;
+  FICHA_SHEET = null;
+  S.nodes.forEach(({ el, anchor }) => {
+    if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(el, anchor); anchor.remove(); }
+    if (el.dataset && el.dataset.fichaW) el.style.display = 'none';
+  });
+  const sheet = $('ficha-sheet'); if (sheet) sheet.style.display = 'none';
+  const body = $('ficha-sheet-body'); if (body) body.innerHTML = '';
+  fichaFoldSync();
+}
+/* Al repintar la ficha (openClient pinta todo de nuevo) la hoja
+   se vacía sin devolver nodos: sus bloques viejos se descartan
+   con el resto de la pintura anterior. */
+function fichaSheetReset() {
+  FICHA_SHEET = null;
+  FICHA_WEIGHT_NODES = [];
+  const sheet = $('ficha-sheet'); if (sheet) sheet.style.display = 'none';
+  const body = $('ficha-sheet-body'); if (body) body.innerHTML = '';
+}
+function fichaBlockEmpty(el) {
+  return !el || !el.innerHTML || !el.innerHTML.trim();
+}
+function fichaLineSub(key, uid) {
+  switch (key) {
+    case 'salud': case 'pesos': case 'proteina': case 'calculo': return FICHA_SUB0[key] || '';
+    case 'entrenamiento': {
+      const box = $('client-training'); if (!box) return '';
+      const rows = box.querySelectorAll('.plan-row-c');
+      for (const r of rows) { if (r.querySelector('.ok-badge')) { const b = r.querySelector('b'); return b ? b.textContent.trim() : ''; } }
+      return '';
+    }
+    case 'pendientes': {
+      try { const f = fichaTpendOf(uid); const n = f && f.t ? (f.t.items || []).length : 0; return n ? '· ' + n : ''; } catch { return ''; }
+    }
+    case 'peticiones': {
+      const L = (typeof TREQ_FICHA !== 'undefined' && TREQ_FICHA && TREQ_FICHA.uid === uid) ? TREQ_FICHA.list : [];
+      const n = L.filter(r => r.status === 'sent').length;
+      return n ? (n === 1 ? t('treq.pendChip1') : t('treq.pendChipN', { n })) : '';
+    }
+    case 'metas': {
+      let n = 0;
+      if ($('gm-prop-approve')) n++;
+      if ($('gm-tp-approve')) n++;
+      return n ? t('ficha563.toDecide', { n }) : '';
+    }
+    case 'anillos': {
+      if (typeof CRING === 'undefined' || !CRING || CRING.uid !== uid) return '';
+      const tot = CRING.totals[todayISO()]; if (!tot) return '';
+      return t('ficha563.kcalToday', { n: fmt(tot.kcal || 0) });
+    }
+    case 'alertas': {
+      const c = (typeof TALERTS_CACHE !== 'undefined' && TALERTS_CACHE && TALERTS_CACHE[uid]) || null;
+      const n = c && Array.isArray(c.alerts) ? c.alerts.length : 0;
+      return n ? '· ' + n : '';
+    }
+    case 'constancia': {
+      const m = document.querySelector('#const-card .const-month');
+      return m ? m.textContent.trim() : '';
+    }
+    case 'retos': {
+      const box = $('chal-ficha-card'); if (!box) return '';
+      const pl = box.querySelector('.chal-points-line');
+      let s = pl ? pl.textContent.trim() : '';
+      const dec = box.querySelectorAll('.chal-req-row').length;
+      if (dec) s = (s ? s + ' · ' : '') + t('ficha563.toDecide', { n: dec });
+      return s;
+    }
+  }
+  return '';
+}
+function fichaLineShow(key, uid) {
+  switch (key) {
+    case 'salud': return !!$('client-health-box');
+    case 'entrenamiento': return !fichaBlockEmpty($('client-training'));
+    case 'pendientes': return !fichaBlockEmpty($('client-pend-box'));
+    case 'peticiones': return !fichaBlockEmpty($('client-treq'));
+    case 'checkin': return !fichaBlockEmpty($('client-chk'));
+    case 'metas': return ['ficha-met-box', 'pace-card', 'proposal-card', 'held-card', 'focus-card'].some(id => !fichaBlockEmpty($(id)));
+    case 'asignaciones': return !fichaBlockEmpty($('ficha-assign-box'));
+    case 'anillos': return !fichaBlockEmpty($('client-rings'));
+    case 'alertas': return !fichaBlockEmpty($('client-alerts'));
+    case 'fotos': return !!$('client-food-box');
+    case 'pesos': return FICHA_WEIGHT_NODES.length > 0;
+    case 'proteina': return !fichaBlockEmpty($('ficha-prot-box'));
+    case 'calculo': return !fichaBlockEmpty($('ficha-fa-box'));
+    case 'referencias': return !fichaBlockEmpty($('ficha-refs-box'));
+    case 'tipocorp': return !fichaBlockEmpty($('bt-card'));
+    case 'adherencia': return !fichaBlockEmpty($('adh-card'));
+    case 'constancia': return !fichaBlockEmpty($('const-card'));
+    case 'retos': return !fichaBlockEmpty($('chal-ficha-card'));
+    case 'composicion': return !fichaBlockEmpty($('compacc-box'));
+    case 'progreso': return !!$('mp-trainer-block');
+    case 'semana': return !fichaBlockEmpty($('client-weekcard'));
+    case 'hitos': return !fichaBlockEmpty($('client-milestones'));
+    case 'evaluaciones': return !!$('client-evals');
+  }
+  return false;
+}
+function fichaFoldSync() {
+  const box = $('client-detail'); if (!box) return;
+  const lines = $('ficha-lines'); if (!lines) return;
+  if (FICHA_SHEET) return;
+  if (typeof PEND_CONSULT !== 'undefined' && PEND_CONSULT) return;
+  const uid = FICHA_CUR_UID; if (!uid) return;
+  lines.querySelectorAll('[data-ficha-line]').forEach(btn => {
+    const key = btn.dataset.fichaLine;
+    const show = fichaLineShow(key, uid);
+    const disp = show ? '' : 'none';
+    if (btn.style.display !== disp) btn.style.display = disp;
+    if (!show) return;
+    if (key === 'asignaciones') {
+      const tEl = btn.querySelector('.ficha-line-t');
+      const now = fichaLineTitle('asignaciones');
+      if (tEl && tEl.innerHTML !== now) tEl.innerHTML = now;
+    }
+    const sub = fichaLineSub(key, uid);
+    const sEl = btn.querySelector('[data-ficha-sub]');
+    if (sEl && sEl.textContent !== sub) sEl.textContent = sub;
+  });
+}
+function fichaObsEnsure() {
+  const box = $('client-detail'); if (!box || FICHA_OBS || typeof MutationObserver === 'undefined') return;
+  FICHA_OBS = new MutationObserver(() => {
+    if (FICHA_OBS_T) return;
+    FICHA_OBS_T = setTimeout(() => { FICHA_OBS_T = null; try { fichaFoldSync(); } catch {} }, 120);
+  });
+  FICHA_OBS.observe(box, { childList: true, subtree: true });
+}
+/* Aterrizaje de la consulta (AUTH-121/123) en los pendientes:
+   con el bloque en su almacén, su pantalla se abre y el bloque
+   se resalta dentro, como antes se resaltaba en la página. */
+function fichaPendLand(box) {
+  const blk = box ? box.querySelector('.ficha-pend-block') : null;
+  if (!blk) return null;
+  if (blk.closest && blk.closest('#ficha-store')) { try { fichaSheetOpen('pendientes'); } catch {} }
+  return blk;
+}
+
 async function openClient(uid) {
   const box = $('client-detail');
   let uname = t('client.fallbackName'), udata = null;
@@ -13507,33 +13768,53 @@ async function openClient(uid) {
         <div class="mealhelp-row"><button class="btn-ghost btn-sm" data-food-ok="${m.id}">${t('client.reviewed')}</button></div>
       </div>`).join('')}</div>`
     : '';
+  /* AUTH-563: la ficha se pinta PLEGADA. La hoja de un bloque de
+     una pintura anterior se descarta antes de pintar; los datos
+     clave de las líneas que dependen de lo ya cargado se fijan
+     aquí (salud, último peso, proteína, cálculo) y el resto los
+     lee fichaFoldSync del propio bloque pintado. */
+  fichaSheetReset();
+  FICHA_CUR_UID = uid;
+  FICHA_FOOD_N = foodItems.length;
+  const lastW563 = data.length ? data[data.length - 1] : null;
+  FICHA_SUB0 = {
+    salud: clientHealth.decl ? ((clientHealth.decl.conditions || []).map(condName).slice(0, 2).join(', ') || t('health.declActiveNoConds')) : '',
+    pesos: lastW563 ? t('ficha563.lastW', { w: fmtMassVal(lastW563.weight), d: dateName(lastW563.date) }) : '',
+    proteina: lastW563 ? Math.round(lastW563.weight * 1.4) + '–' + Math.round(lastW563.weight * 2.0) + ' g' : '',
+    calculo: faHasResult(asmtDoc) ? fmt(Math.round(asmtDoc.tdeeKcal)) + ' kcal' : ''
+  };
+  let pendN563 = 0;
+  try { const f563 = fichaTpendOf(uid); if (f563 && f563.t) pendN563 = (f563.t.items || []).length; } catch {}
+  const sumParts563 = [];
+  if (lastW563) sumParts563.push(esc(t('ficha563.sumWeight', { w: fmtMassVal(lastW563.weight), d: dateName(lastW563.date) })));
+  if (pendN563) sumParts563.push(esc(t('students.pendToResolve', { n: pendN563 })));
+  const FICHA_LINE_KEYS = ['salud', 'entrenamiento', 'pendientes', 'peticiones', 'checkin', 'metas', 'asignaciones', 'anillos', 'alertas', 'fotos', 'pesos', 'proteina', 'calculo', 'referencias', 'tipocorp', 'adherencia', 'constancia', 'retos', 'composicion', 'progreso', 'semana', 'hitos', 'evaluaciones'];
   box.innerHTML = `
     <h3 class="history-title" id="client-weight-block">${t('client.weightLog', { name: esc(uname) })}</h3>
-    ${healthAlert}
-    ${stageStrip}
+    <div class="ficha-head-btns"><button class="btn-primary btn-sm" id="btn-client-add">${t('client.addWeight')}</button>
+    <button class="btn-ghost btn-sm" id="btn-client-air">${t('air.doorShort')}</button>
+    <button class="btn-ghost btn-sm" id="btn-client-close">${t('client.close')}</button></div>
+    ${clientHealth.decl ? '' : healthAlert}
+    ${sumParts563.length ? `<p class="ficha-summary">${sumParts563.join(' · ')}</p>` : ''}
+    <div class="ficha-lines" id="ficha-lines">${FICHA_LINE_KEYS.map(k => fichaLineHTML(k, fichaLineTitle(k))).join('')}</div>
+    <div id="ficha-store" style="display:none">
+    ${clientHealth.decl ? `<div id="client-health-box">${healthAlert}${stageStrip}</div>` : ''}
     <div id="client-training"></div>
-    ${fichaPendBlockHTML(uid)}
+    <div id="client-pend-box">${fichaPendBlockHTML(uid)}</div>
     <div id="client-treq"></div>
     <div id="client-chk"></div>
     <div id="ficha-met-box" data-met-uid="${uid}">${fichaMetBlockHTML(uid)}</div>
     <div id="ficha-assign-box">${assignBlockHTML(uid, FICHA_ASSIGN, true)}</div>
     <div id="client-rings"></div>
     <div id="client-alerts" data-uid="${uid}"></div>
-    ${foodItems.length ? `<h3 class="history-title">${t('client.foodReview', { n: foodItems.length })}</h3>${foodBlock}` : ''}
-    <div style="margin-bottom:10px"><button class="btn-primary btn-sm" id="btn-client-add">${t('client.addWeight')}</button>
-    <button class="btn-ghost btn-sm" id="btn-client-air" style="margin-left:8px">${t('air.doorShort')}</button>
-    <button class="btn-ghost btn-sm" id="btn-client-close" style="margin-left:8px">${t('client.close')}</button></div>
-    ${data.length ? weightChartSVG([...data].reverse()) : `<div class="wempty">${t('client.noWeight')}</div>`}
-    ${data.length ? `<div class="table-scroll"><table class="detail whist">
-      <thead><tr><th>${t('form.date')}</th><th class="num">${esc(t('units.weightField', { u: UNIT_PREFS.mass }))}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
-      <tbody>${rows}</tbody></table></div>` : ''}
-    ${fb3ProteinHTML(data)}
-    ${faCardHTML(uid, asmtDoc, data, udata ? udata.paceSuggestion || null : null)}
+    ${foodItems.length ? `<div id="client-food-box"><h3 class="history-title">${t('client.foodReview', { n: foodItems.length })}</h3>${foodBlock}</div>` : ''}
+    <div id="ficha-prot-box">${fb3ProteinHTML(data)}</div>
+    <div id="ficha-fa-box">${faCardHTML(uid, asmtDoc, data, udata ? udata.paceSuggestion || null : null)}</div>
     <div id="bt-card"></div>
     <div id="adh-card"></div>
     <div id="const-card"></div>
     <div id="chal-ficha-card"></div>
-    ${fb2CardHTML(asmtDoc, data)}
+    <div id="ficha-refs-box">${fb2CardHTML(asmtDoc, data)}</div>
     <div id="pace-card"></div>
     <div id="held-card"></div>
     <div id="proposal-card"></div>
@@ -13541,7 +13822,17 @@ async function openClient(uid) {
     <div id="compacc-box"><div class="wempty">${t('access.loading')}</div></div>
     <div id="client-weekcard"></div>
     <div id="client-milestones"></div>
-    <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>`;
+    <div id="client-evals"><div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="btn-client-evals">${t('teval.open')}</button></div><div id="client-evals-body" style="display:none"></div></div>
+    </div>
+    ${data.length ? weightChartSVG([...data].reverse()) : `<div class="wempty ficha-wnode">${t('client.noWeight')}</div>`}
+    ${data.length ? `<div class="table-scroll ficha-wnode"><table class="detail whist">
+      <thead><tr><th>${t('form.date')}</th><th class="num">${esc(t('units.weightField', { u: UNIT_PREFS.mass }))}</th><th class="num">${t('form.bodyfat')}</th><th class="num">${t('form.muscle')}</th><th class="num">${t('form.water')}</th><th class="num">${t('form.visceral')}</th><th>${t('form.notes')}</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table></div>` : ''}`;
+  /* Los nodos de pesos quedan como hijos DIRECTOS de la caja (la
+     ventana de consulta AUTH-121 los busca ahí), ocultos y
+     marcados: viajan a la hoja «Historial de pesos» al abrirla. */
+  FICHA_WEIGHT_NODES = [...box.children].filter(e => e.classList.contains('chart-wrap') || e.classList.contains('ficha-wnode'));
+  FICHA_WEIGHT_NODES.forEach(e => { e.style.display = 'none'; e.dataset.fichaW = '1'; });
   fichaMetWire(box);
   fichaAssignWire(box);
   /* ASIGNACIONES: si el nombre del entrenador o del coach no estaba
@@ -13550,7 +13841,12 @@ async function openClient(uid) {
   if (FICHA_ASSIGN && ((FICHA_ASSIGN.trainerUid && !assignNameSync(FICHA_ASSIGN.trainerUid)) || (FICHA_ASSIGN.coachUid && !assignNameSync(FICHA_ASSIGN.coachUid)))) {
     Promise.all([assignResolveName(FICHA_ASSIGN.trainerUid), assignResolveName(FICHA_ASSIGN.coachUid)]).then(() => fichaAssignPaint(uid)).catch(() => {});
   }
-  $('btn-client-close').onclick = () => { box.style.display = 'none'; box.innerHTML = ''; };
+  /* AUTH-563: cada línea plegada abre la hoja de su bloque; el
+     observador mantiene líneas y datos clave al día mientras los
+     cargadores de cada bloque pintan dentro del almacén. */
+  box.querySelectorAll('[data-ficha-line]').forEach(b => { b.onclick = () => fichaSheetOpen(b.dataset.fichaLine); });
+  fichaObsEnsure();
+  $('btn-client-close').onclick = () => { fichaSheetClose(); box.style.display = 'none'; box.innerHTML = ''; };
   /* AUTH-2026-11-02-186 (punto 109 de la cola): fichaHeadClose —
      la cabecera de la persona de la ficha («Registro de peso ·
      {nombre}») gana el MISMO gesto que la cabecera del detalle
@@ -13645,6 +13941,15 @@ async function openClient(uid) {
   fichaFocusApply(uid);
   pendConsultApply(uid);
   try { await mpTrainerMount(uid); } catch {}
+  /* AUTH-563: la tarjeta de «Mi progreso» se pinta al final de
+     la caja (su sitio de siempre) y pasa al almacén, tras su
+     línea; si la hoja de progreso está abierta, viaja a ella. */
+  { const mpb = $('mp-trainer-block'), store = $('ficha-store');
+    if (mpb && store) {
+      if (FICHA_SHEET && FICHA_SHEET.key === 'progreso') { const sb = $('ficha-sheet-body'); if (sb) sb.appendChild(mpb); }
+      else store.appendChild(mpb);
+    } }
+  fichaFoldSync();
 }
 
 /* ============ ADHERENCIA · ACTIVIDAD (ficha del entrenador, P1) ============
@@ -17718,24 +18023,40 @@ function treqFichaHTML(uid) {
     h += '</div>';
   }
   if (done.length) {
+    /* AUTH-563 (alcance 7): el historial de resueltas nace
+       plegado por petición — la línea muestra qué pidió y cuándo
+       se resolvió; el detalle (mensaje, respuesta, estado) se
+       despliega al tocarla. Las abiertas siguen desplegadas. */
     h += `<div class="treq-ficha-hist"><div class="treq-ficha-head"><b>${esc(t('treq.historyTitle'))}</b></div>`
-      + done.map(r => `<div class="treq-ficha-item"><div class="treq-card-t">${esc(treqWhat(r))}</div>
+      + done.map(r => {
+        const when563 = r.resolvedAt ? dateName(pendISOof(new Date(treqMs(r.resolvedAt)))) : treqDateText(r);
+        return `<div class="treq-ficha-item treq-fold-item"><button type="button" class="treq-fold-head" data-treq-fold aria-expanded="false"><span class="treq-card-t">${esc(treqWhat(r))}</span><span class="treq-card-date">${esc(when563)}</span><span class="chk-chev">▾</span></button><div class="treq-fold-body" style="display:none">
         ${r.message ? `<div class="treq-card-msg">«${esc(r.message)}»</div>` : ''}
         ${r.reply ? `<div class="treq-card-reply"><b>${esc(t('treq.replyWas'))}</b> «${esc(r.reply)}»</div>` : `<div class="treq-card-date">${esc(t('treq.noReply'))}</div>`}
-        <div class="treq-card-date">${esc(t('treq.resolvedStatus', { date: r.resolvedAt ? dateName(pendISOof(new Date(treqMs(r.resolvedAt)))) : treqDateText(r) }))}</div></div>`).join('')
+        <div class="treq-card-date">${esc(t('treq.resolvedStatus', { date: when563 }))}</div></div></div>`;
+      }).join('')
       + '</div>';
   }
   return h;
 }
 function treqFichaWire(host, uid) {
   host.querySelectorAll('[data-treq-respond]').forEach(b => b.onclick = () => treqReplyOpen(b.dataset.treqRespond, uid));
+  /* AUTH-563: el historial de resueltas se pliega por petición. */
+  host.querySelectorAll('[data-treq-fold]').forEach(b => b.onclick = () => {
+    const body = b.parentElement ? b.parentElement.querySelector('.treq-fold-body') : null;
+    if (!body) return;
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : '';
+    b.setAttribute('aria-expanded', String(!open));
+    const ch = b.querySelector('.chk-chev'); if (ch) ch.textContent = open ? '▾' : '▴';
+  });
 }
 function treqFichaScroll() {
   let tries = 0;
   const iv = setInterval(() => {
     tries++;
     const el = $('client-treq');
-    if ((el && el.innerHTML) || tries >= 50) { if (el && el.innerHTML) { try { el.scrollIntoView({ block: 'start' }); } catch {} } clearInterval(iv); }
+    if ((el && el.innerHTML) || tries >= 50) { if (el && el.innerHTML) { if (el.closest && el.closest('#ficha-store')) { try { fichaSheetOpen('peticiones'); } catch {} } try { el.scrollIntoView({ block: 'start' }); } catch {} } clearInterval(iv); }
   }, 120);
 }
 
@@ -18126,7 +18447,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-pendientes-activos' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-ficha-plegada' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -60206,7 +60527,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-pendientes-activos';
+const PWA_SW_VERSION = '20261123-ficha-plegada';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -64759,7 +65080,7 @@ function chalFichaScroll() {
   const iv = setInterval(() => {
     tries++;
     const el = $('chal-ficha-card');
-    if ((el && el.innerHTML) || tries >= 50) { if (el && el.innerHTML) { try { el.scrollIntoView({ block: 'start' }); } catch {} } clearInterval(iv); }
+    if ((el && el.innerHTML) || tries >= 50) { if (el && el.innerHTML) { if (el.closest && el.closest('#ficha-store')) { try { fichaSheetOpen('retos'); } catch {} } try { el.scrollIntoView({ block: 'start' }); } catch {} } clearInterval(iv); }
   }, 120);
 }
 async function chalFichaLoad(uid) {

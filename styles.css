@@ -7471,3 +7471,23 @@ textarea.gest-in { resize: none; }
 .pendact-back { margin: 0 0 10px; }
 .pendact-health { margin: 0 0 8px; }
 .pendact-health-t { font-weight: 800; margin-bottom: 4px; }
+
+/* ═══ AUTH-2026-11-23-563 · LA FICHA COMPLETA, PLEGADA ═══
+   La hoja de cada bloque de la ficha (#ficha-sheet) hereda
+   .pend-float y queda BAJO la ventana de consulta (45), el
+   recordatorio (47), el modal de plan (50) y Pendientes
+   activos (60): todo lo que un bloque abre sigue abriendo
+   por encima de su propia pantalla. Las líneas son la fila
+   plegada de la casa (.stu-train-row) con su dato clave. */
+#ficha-sheet { z-index: 44; }
+.ficha-head-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.ficha-head-btns .btn-sm { min-height: 44px; }
+.ficha-summary { margin: 0 0 8px; color: #555; font-size: 14.5px; }
+.ficha-lines { margin-bottom: 6px; }
+.ficha-line { min-height: 48px; }
+.ficha-line .ficha-line-t { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.ficha-line .ficha-line-s { color: #666; font-size: 13.5px; margin-left: auto; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.ficha-line .sx { flex: none; }
+.treq-fold-head { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; background: transparent; border: 0; padding: 10px 0; font: inherit; cursor: pointer; text-align: left; min-height: 44px; }
+.treq-fold-head .treq-card-t { flex: 1; min-width: 0; }
+.treq-fold-body { padding-bottom: 8px; }
