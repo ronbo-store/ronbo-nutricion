@@ -3886,6 +3886,8 @@ export default {
   'fa.errWeight': 'There is no valid logged weight to calculate with.',
   'pend.title': '🔔 Pendings',
   'pend.configBtn': '⚙️ Set up reminders',
+  'pend570.cfgLine': '⚙️ Set up reminders',
+  'pend570.mealsCount': '{a} of {b}',
   'pend.intro': 'What is left to LOG, grouped in one place. These notices only talk about logging — never about what you did or did not do. Phase 1: they live only inside the app; nothing is sent anywhere.',
   'pend.actTitle': 'Your reminders are not active yet',
   'pend.actIntro': 'Nothing is on by default. These are SUGGESTED values: review them, change whatever you want — reminders are only born when you tap «Confirm and activate».',

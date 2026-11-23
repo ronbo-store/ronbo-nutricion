@@ -3884,6 +3884,8 @@ export default {
   'fa.errWeight': 'No hay un peso registrado válido para calcular.',
   'pend.title': '🔔 Pendientes',
   'pend.configBtn': '⚙️ Configurar avisos',
+  'pend570.cfgLine': '⚙️ Configurar recordatorios',
+  'pend570.mealsCount': '{a} de {b}',
   'pend.intro': 'Lo que falta por REGISTRAR, agrupado en un solo sitio. Estos avisos solo hablan del registro — nunca de lo que hiciste o dejaste de hacer. Fase 1: viven solo dentro de la app; no se envía nada a ningún sitio.',
   'pend.actTitle': 'Tus avisos aún no están activos',
   'pend.actIntro': 'Nada está activo por defecto. Estos son valores SUGERIDOS: revísalos, cambia lo que quieras — los avisos solo nacen cuando tocas «Confirmar y activar».',

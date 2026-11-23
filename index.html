@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-progreso-plegado">
+<link rel="stylesheet" href="styles.css?v=20261123-pendientes-coach">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -649,7 +649,55 @@
       <button type="button" class="pend-close" id="btn-pend-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="pend-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
-    <div id="trainer-alerts"></div>
+    <!-- AUTH-570: las alertas de alumnos ya no se despliegan al final
+         del flotante: en superficie vive solo su línea plegada
+         (#talerts-slot, la sincroniza trainerAlertsRender) y el
+         bloque #trainer-alerts VIAJA desde su almacén a su hoja
+         propia (#talerts-float) al tocarla. -->
+    <div id="talerts-slot"></div>
+    <div id="talerts-store" style="display:none"><div id="trainer-alerts"></div></div>
+  </div>
+
+  <!-- AUTH-570 · Programa «Plegar todo» nº 8: hoja propia de las
+       ALERTAS DE ALUMNOS (entrenador/administrador) — el bloque
+       #trainer-alerts viaja desde su almacén dentro de #pend-float
+       y vuelve al cerrar (patrón de la casa AUTH-563/565/566/567).
+       La pintan y la mueven talertsSheetOpen / talertsSheetClose. -->
+  <div class="pend-float pend-consult" id="talerts-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="talerts-sheet-title"></span></h2>
+      <button type="button" class="pend-close" id="talerts-sheet-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="talerts-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="talerts-sheet-body"></div>
+  </div>
+
+  <!-- AUTH-570 · Programa «Plegar todo» nº 8: hoja propia del
+       FORMULARIO DE CONFIGURACIÓN de Pendientes (activación y
+       edición): la lista ya no desaparece al configurar — el
+       formulario se pinta aquí (pendCfgSheetSync) y sus acciones
+       corren por la misma delegación de siempre. -->
+  <div class="pend-float pend-consult" id="pendcfg-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="pendcfg-sheet-title"></span></h2>
+      <button type="button" class="pend-close" id="pendcfg-sheet-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="pendcfg-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="pendcfg-sheet-body"></div>
+  </div>
+
+  <!-- AUTH-570 · Programa «Plegar todo» nº 8: hoja propia de
+       «MI COACH DE ALIMENTACIÓN»: el panel de #tab-coach deja en
+       superficie su línea plegada (con el estado del consentimiento
+       visible) y su bloque entero VIAJA desde su almacén a esta
+       hoja al tocarla (nutriBoxOpen / nutriBoxClose, app.js). -->
+  <div class="pend-float nutribox-sheet" id="nutribox-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2>🥗 <span data-i18n="nutri.boxTitle">My food coach</span></h2>
+      <button type="button" class="pend-close" id="nutribox-sheet-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="nutribox-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="nutribox-sheet-body"></div>
   </div>
 
   <!-- BOTÓN «← ATRÁS» A PENDIENTES (corrección 2026-11-01): pastilla
@@ -2796,6 +2844,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-progreso-plegado"></script>
+<script type="module" src="app.js?v=20261123-pendientes-coach"></script>
 </body>
 </html>
