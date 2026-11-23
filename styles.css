@@ -7546,3 +7546,30 @@ textarea.gest-in { resize: none; }
 #train-custom-addrow:empty { display: none; }
 #train-custom-addrow { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 10px; }
 #train-custom-addrow .dict-open-btn, #train-custom-addrow .photo-open-btn { flex: 1; min-height: 48px; }
+
+/* ════════════════════════════════════════════════════════════════
+   AUTH-2026-11-23-567 · INICIO PLEGADO (programa «Plegar todo»
+   nº 5; auditoría de pliegues, sección «Inicio»).
+   La hoja de Inicio (#home-sheet) va en z-44, como las hojas
+   hermanas de AUTH-563/565/566. Sus líneas (.home-fold-line)
+   son la fila plegada de la casa (la geometría de
+   .train-fold-line: título + dato clave a la derecha + ›,
+   mínimo 48 px): dentro de la tarjeta de metas la línea vive
+   sobre la superficie de la tarjeta; en la página (los huecos
+   #week-slot / #const-slot / #chk-slot, donde vivían los
+   paneles desplegados) la línea lleva la superficie blanca de
+   la línea de acción de Inicio (.weight-log-line, AUTH-463) y
+   su hueco conserva la zona segura de la llamita (88 px, la
+   misma que el panel de la semana ya tenía). Los paneles
+   enteros viven en sus almacenes (#week-store / #const-store)
+   y VIAJAN a la hoja al tocar su línea. ═══ */
+#home-sheet { z-index: 44; }
+.home-fold-line { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; background: none; border: none; border-bottom: 1px dashed #eef1f3; padding: 6px 0; font: inherit; color: inherit; text-align: left; cursor: pointer; box-sizing: border-box; }
+.home-fold-line .tf-t { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.home-fold-line .tf-s { color: #666; font-size: 13.5px; margin-left: auto; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.home-fold-line .tf-chev { flex: none; color: #666; font-size: 20px; line-height: 1; }
+#week-slot, #const-slot, #chk-slot { margin-right: 88px; }
+#week-slot { margin-top: 18px; }
+#const-slot, #chk-slot { margin-top: 14px; }
+#week-slot .home-fold-line, #const-slot .home-fold-line, #chk-slot .home-fold-line { min-height: 52px; background: #fff; border-bottom: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); padding: 8px 16px; }
+#week-slot .home-fold-line:active, #const-slot .home-fold-line:active, #chk-slot .home-fold-line:active { opacity: .6; }

@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-entrenamiento-plegado');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-inicio-plegado');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -16323,15 +16323,109 @@ function closeGmiDetail() {
   if (b) b.style.display = 'none';
 }
 
+/* ═══ AUTH-2026-11-23-567 · LA HOJA DE INICIO Y SUS LÍNEAS
+   (programa «Plegar todo» nº 5; auditoría de pliegues, sección
+   «Inicio»): cada apartado de Inicio nace plegado en UNA línea
+   (título + dato clave + ›) y su bloque vive en su almacén; al
+   tocar la línea, el bloque VIAJA a esta hoja — su pantalla
+   propia con volver — y al cerrar vuelve a su ancla exacta,
+   con sus ids y su cableado intactos (el patrón de
+   AUTH-563/565/566). La lógica de cada bloque NO se toca:
+   fusedTodayHTML, renderWeekChart y renderConstCal pintan
+   donde siempre; solo cambia dónde vive su nodo. ═══ */
+let HOME_SHEET = null;        /* { key, nodes: [{el, anchor}] } */
+function homeSheetNodes(key) {
+  switch (key) {
+    case 'today': return [$('home-today-block')];
+    case 'week': return [$('week-panel-box')];
+    case 'const': return [$('const-panel-box')];
+  }
+  return [];
+}
+function homeFoldLineHTML(key, title, datum) {
+  return `<button type="button" class="home-fold-line" data-home-line="${key}"><span class="tf-t">${esc(title)}</span>${datum ? `<span class="tf-s">${esc(datum)}</span>` : ''}<span class="tf-chev" aria-hidden="true">›</span></button>`;
+}
+function homeLinePaint(slotId, key, title, datum, onOpen) {
+  const slot = $(slotId); if (!slot) return;
+  slot.innerHTML = homeFoldLineHTML(key, title, datum);
+  const b = slot.querySelector('[data-home-line]');
+  if (b) b.onclick = () => { if (onOpen) onOpen(); else homeSheetOpen(key); };
+}
+function homeWeekLineSync(datum) { homeLinePaint('week-slot', 'week', t('track.weekTitle'), datum || ''); }
+function homeConstLineSync(datum) { homeLinePaint('const-slot', 'const', t('const.title'), datum || ''); }
+function homeSheetOpen(key) {
+  if (HOME_SHEET && HOME_SHEET.key === key) return;
+  if (HOME_SHEET) homeSheetClose();
+  const sheet = $('home-sheet'), body = $('home-sheet-body'); if (!sheet || !body) return;
+  const nodes = homeSheetNodes(key).filter(Boolean);
+  if (!nodes.length) return;
+  const lineT = document.querySelector('[data-home-line="' + key + '"] .tf-t');
+  const tt = $('home-sheet-title'); if (tt) tt.textContent = lineT ? lineT.textContent : '';
+  const moved = nodes.map(el => {
+    const anchor = document.createElement('div');
+    anchor.className = 'home-anchor'; anchor.style.display = 'none';
+    if (el.parentNode) el.parentNode.insertBefore(anchor, el);
+    body.appendChild(el);
+    return { el, anchor };
+  });
+  HOME_SHEET = { key, nodes: moved };
+  sheet.style.display = '';
+  const x = $('home-sheet-x'); if (x) x.onclick = () => homeSheetClose();
+  const bk = $('home-sheet-back'); if (bk) bk.onclick = () => homeSheetClose();
+  try { sheet.scrollTop = 0; } catch {}
+}
+function homeSheetClose() {
+  const S = HOME_SHEET; if (!S) return;
+  HOME_SHEET = null;
+  S.nodes.forEach(({ el, anchor }) => {
+    if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(el, anchor); anchor.remove(); }
+  });
+  const sheet = $('home-sheet'); if (sheet) sheet.style.display = 'none';
+  const body = $('home-sheet-body'); if (body) body.innerHTML = '';
+}
+/* Al repintar la tarjeta de metas (renderGoalsEngine pinta
+   todo de nuevo) la hoja se vacía sin devolver nodos: sus
+   bloques viejos se descartan con el resto de la pintura
+   anterior, como en AUTH-565/566 — y así nunca conviven dos
+   nodos con el mismo id. OJO: eso solo vale para el bloque
+   «today», que la propia repintura recrea; si la hoja abierta
+   es la semana o el mes (cuyos paneles repintan
+   renderWeekChart/renderConstCal, no esta tarjeta), la hoja
+   se CIERRA devolviendo sus nodos a su ancla, intactos. */
+function homeSheetReset() {
+  if (HOME_SHEET && HOME_SHEET.key !== 'today') { homeSheetClose(); return; }
+  HOME_SHEET = null;
+  const sheet = $('home-sheet'); if (sheet) sheet.style.display = 'none';
+  const body = $('home-sheet-body'); if (body) body.innerHTML = '';
+}
+
 /* ---------- Tarjeta del alumno (junto a «Tus metas diarias») ---------- */
 function renderGoalsEngine() {
   const box = $('goals-engine'); if (!box || !auth.currentUser) return;
+  homeSheetReset();   /* AUTH-567: la hoja de Inicio se vacía con la pintura anterior (el patrón de AUTH-565/566) */
   const prov = UDATA.goalsProvenance || null;
   const obj = UDATA.goalObjective || '';
   const fx = gmFocusEffective(UDATA);
   const objBtns = ['mantener', 'bajar', 'ganar'].map(o => `<button type="button" class="btn-ghost btn-sm" data-gm-obj="${o}"${obj === o ? ' style="border-color:#0d9488;font-weight:700"' : ''}>${esc(t('gm.obj.' + o))}</button>`).join(' ');
   const gmiD = gmiDayData();
-  let html = `<div class="fb3-card" id="gm-card">` + (gmiD ? gmiHeadHTML(gmiD) : fusedNullHeadHTML()) + fusedTodayHTML(gmiD) + fusedObjHTML(gmiD) + gmHeadHTML(!!gmiD);
+  /* AUTH-567 (auditoría de pliegues, «Inicio»): las secciones
+     de hoy de fusedTodayHTML (barras de macros y fibra,
+     círculos de las 4 comidas, fila de agua y registro rápido)
+     ya NO se despliegan en la tarjeta — en superficie quedan
+     solo el anillo, la racha y el estado de la cabecera —: el
+     bloque vive en su almacén (#home-today-store) tras la
+     línea «Hoy en detalle ›» y VIAJA a la hoja de Inicio al
+     tocarla, con su cableado (fusedWire) intacto. Viendo otro
+     día fusedTodayHTML ya devolvía '' y no hay línea. */
+  const todayInner = fusedTodayHTML(gmiD);
+  let todayBlock = '';
+  if (todayInner) {
+    const tc = fusedTodayData(gmiD);
+    const nHas = tc.perMeal.filter(p => p.has).length;
+    todayBlock = homeFoldLineHTML('today', t('home567.todayDetail'), t('home567.mealsOf', { a: nHas, b: tc.perMeal.length }))
+      + `<div id="home-today-store" style="display:none"><div id="home-today-block">${todayInner}</div></div>`;
+  }
+  let html = `<div class="fb3-card" id="gm-card">` + (gmiD ? gmiHeadHTML(gmiD) : fusedNullHeadHTML()) + todayBlock + fusedObjHTML(gmiD) + gmHeadHTML(!!gmiD);
   if (GM_CARD_OPEN) {
   html += `<p class="progress-hint">${esc(t('gm.objective'))}</p><div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">${objBtns}</div>`;
   /* AUTH-377 (punto 2): una línea bajo el grupo con la explicación
@@ -16417,6 +16511,10 @@ function renderGoalsEngine() {
   const tg = $('gm-toggle'); if (tg) tg.onclick = () => { GM_CARD_OPEN = !GM_CARD_OPEN; renderGoalsEngine(); };
   const go = $('gmi-open'); if (go) go.onclick = () => openGmiDetail();
   const ol = $('gmi-objline'); if (ol) ol.onclick = () => openGmiDetail();
+  /* AUTH-567: la línea «Hoy en detalle» abre la hoja de Inicio
+     con las secciones de hoy. */
+  const tl = box.querySelector('[data-home-line="today"]');
+  if (tl) tl.onclick = () => homeSheetOpen('today');
   /* AUTH-524: el disco y el botoncito de saltar de Inicio —
      su toque es SUYO, no el del anillo: se detiene antes de
      que suba a la cabecera-botón (que abre el detalle de
@@ -17250,6 +17348,7 @@ function weekTrainStates(days) {
 function renderWeekChart(date) {
   const el = $('weekChart');
   if (!hasAnyGoal()) { // sin metas no hay cumplimiento que graficar: aviso explícito, ningún % fantasma
+    homeWeekLineSync('');   /* AUTH-567: la línea de la semana, sin dato */
     el.innerHTML = `<p class="chart-note">${t('goals.none')}</p>`;
     return;
   }
@@ -17332,6 +17431,14 @@ function renderWeekChart(date) {
   </div>`;
   el.innerHTML = `${trainLegend}<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${legend}${grid}${highlight}${lines}${trainMarks}${labels}</svg></div>
     <p class="chart-note">${t('chart.note')}${train ? ' ' + t('chart.noteTrain') : ''}</p>`;
+  /* AUTH-567: el dato clave de la línea plegada de la semana —
+     el cumplimiento medio de calorías de los días con registro
+     de ESTA semana (cada día topado al 100 %), con los mismos
+     totales y la misma meta que pinta la gráfica; sin meta de
+     calorías o sin días con registro, la línea va sin dato. */
+  const kGoal = goalOf('kcal');
+  const kPts = days.map(d => ((MEALS[d] || []).length && kGoal > 0) ? Math.min(totals(d).kcal / kGoal, 1) : null).filter(v => v != null);
+  homeWeekLineSync(kPts.length ? Math.round(kPts.reduce((a, b) => a + b, 0) / kPts.length * 100) + '%' : '');
 }
 
 /* ================= AYUDA CON COMIDAS (foto para análisis, sin Storage) ================= */
@@ -18466,20 +18573,23 @@ async function chkRender() {
   chkCardSyncPaint();
 }
 /* Tarjeta de Inicio: el estado del check-in de esta semana,
-   repintada desde el ciclo de la casa como la de Retos. */
+   repintada desde el ciclo de la casa como la de Retos.
+   AUTH-567 (auditoría de pliegues, «Inicio»): el panel entero
+   se reduce a su ÚNICA línea plegada «📋 Check-in · estado ›»
+   sin panel separado; el toque de la línea abre la vista del
+   check-in, como hacía el botón de la tarjeta (su texto de
+   acción —hacerlo, editarlo o verlo— sigue viviendo en esa
+   vista). Sin sesión, la línea no nace. */
 function chkCardSyncPaint() {
-  const card = $('chk-card'); if (!card) return;
-  const panel = $('chk-panel');
-  if (!auth.currentUser) { if (panel) panel.style.display = 'none'; return; }
-  if (panel) panel.style.display = '';
+  const slot = $('chk-slot'); if (!slot) return;
+  if (!auth.currentUser) { slot.innerHTML = ''; slot.style.display = 'none'; return; }
+  slot.style.display = '';
   const cur = CHK.cur;
   const line = !CHK.loaded ? t('train.loading')
     : cur && cur.reviewedAt ? t('chk.cardReviewed')
     : cur ? t('chk.cardSent')
     : t('chk.cardNone');
-  const btn = cur && cur.reviewedAt ? t('chk.cardBtnSee') : cur ? t('chk.cardBtnEdit') : t('chk.cardBtnNew');
-  card.innerHTML = `<div class="chk-card-row"><span class="muted">${esc(line)}</span><button type="button" class="btn-primary" id="chk-card-btn">${esc(btn)}</button></div>`;
-  const b = $('chk-card-btn'); if (b) b.onclick = () => switchTab('checkin');
+  homeLinePaint('chk-slot', 'checkin', t('chk.title'), line, () => switchTab('checkin'));
 }
 function chkCardSync() {
   chkCardSyncPaint();
@@ -18652,7 +18762,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-entrenamiento-plegado' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-inicio-plegado' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -57790,6 +57900,10 @@ function renderConstCal() {
     box.innerHTML = head + grid
       + `<p class="const-sum">${esc(t('const.sum', { n: streakFmt(sum) }))} · ${esc(t('const.fullDays', { n: full }))}</p>`
       + `<p class="progress-hint">${esc(t('const.legend'))}</p>`;
+    /* AUTH-567: la línea plegada del mes lleva como dato clave
+       la racha del mes y sus días completos — las mismas cifras
+       del resumen que el panel pinta dentro. */
+    homeConstLineSync(streakFmt(sum) + ' · ' + t('const.fullDays', { n: full }));
   };
   if (!needsTwin || CONST_CACHE[ym]) { paint(CONST_CACHE[ym] || null); return; }
   box.innerHTML = head + `<div class="wempty">${esc(t('mp.loading'))}</div>`;
@@ -60976,7 +61090,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-entrenamiento-plegado';
+const PWA_SW_VERSION = '20261123-inicio-plegado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
