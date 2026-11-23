@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261122-respuesta-coach');
+  const mod = await import('./i18n-' + l + '.js?v=20261122-dia-suelto');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -17694,7 +17694,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261122-respuesta-coach' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261122-dia-suelto' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -24599,6 +24599,7 @@ let TRAIN_CHECKS_EPOCH = 0;    // AUTH-497: «la sesión avanzó» — sube en c
 let TRAIN_PAINT_EPOCH = 0;     // AUTH-497: la época con la que la vista de Entrenamiento pintó por última vez (loadMyTraining)
 let TRAIN_CLOSE_DI = null;     // día con el panel de cierre abierto (solo memoria)
 let TRAIN_CLOSING = {};        // AUTH-517: cierres EN VUELO (clave plan|fecha|día) — el candado de re-entrada del confirmar
+let TRAIN_CLOSE_ANYWAY = {};   // AUTH-557: cierres que ya pasaron por la hoja de aviso con «Terminar de todos modos» (misma clave) — el confirmar no vuelve a frenar lo ya avisado
 let TRAIN_CLOSED_MARK = {};    // AUTH-517: días ya cerrados y guardados EN ESTA SESIÓN (misma clave) — la guarda consulta el resultado, no solo el borrador
 
 /* --- MARCAS QUE SOBREVIVEN (aprobado por Ronald, chat 2026-10-27
@@ -24654,6 +24655,24 @@ function trainSetStamp(s) {
     if (!(typeof s.markedAt === 'number' && isFinite(s.markedAt) && s.markedAt > 0)) s.markedAt = Date.now();
   } else delete s.markedAt;
 }
+/* ═══ AUTH-557 · LA CAUSA RAÍZ DE LAS MARCAS BORRADAS DEL
+   DÍA SUELTO (el caso de Ronald, 2026-11-22: hizo y marcó
+   tres ejercicios de su sesión suelta y «luego se borraron»):
+   el día suelto — y el día entrenado dentro de un plan —
+   vive bajo el índice virtual −1, así que TODAS sus claves
+   de marca son «-1:ei». El saneador de claves de esta
+   lectura (y sus gemelos en la foto del flujo, trainFlowSnap,
+   y en su rehidratación, trainFlowRead) solo aceptaba
+   dígitos sin signo (/^\d+:\d+$/): el borrador se ESCRIBÍA
+   entero en cada gesto, pero al RESTAURARLO — recarga de la
+   app, reapertura, reentrada de contexto — cada clave del
+   día −1 caía en silencio y el día renacía sin una sola
+   marca, mientras los días de plan (índice ≥ 0) sobrevivían.
+   La puerta de cierre, que lee esas mismas marcas, reclamaba
+   entonces como pendientes ejercicios ya hechos. El arreglo
+   es el saneador, en los tres sitios: el índice del día
+   admite el signo menos y el borrador vuelve a ser la única
+   fuente de verdad, para el día −1 igual que para los demás. ═══ */
 function trainChecksRead(planId) {
   try {
     const v = JSON.parse(localStorage.getItem(trainChecksKey(planId)) || 'null');
@@ -24661,7 +24680,7 @@ function trainChecksRead(planId) {
     const out = {};
     Object.keys(v).forEach(k => {
       const c = v[k];
-      if (!/^\d+:\d+$/.test(k) || !c || typeof c !== 'object') return;
+      if (!/^-?\d+:\d+$/.test(k) || !c || typeof c !== 'object') return;
       out[k] = { rpe: (typeof c.rpe === 'number' && isFinite(c.rpe)) ? c.rpe : null,
         /* AUTH-344: la marca de completado SÍ sobrevive a la
            restauración del borrador, saneada como en las demás
@@ -24834,7 +24853,7 @@ function trainFlowKey(planId) {
 function trainFlowSnap() {
   const flow = {};
   Object.keys(TRAIN_FLOW || {}).forEach(k => {
-    if (!/^\d+:\d+$/.test(k)) return;
+    if (!/^-?\d+:\d+$/.test(k)) return;
     const fs = TRAIN_FLOW[k]; if (!fs || typeof fs !== 'object') return;
     if (!['open', 'paused', 'closing', 'reopen'].includes(fs.st)) return;
     const e = { st: fs.st, face: (typeof fs.face === 'number') ? fs.face : null };
@@ -24898,7 +24917,7 @@ function trainFlowRead(planId) {
     if (!v || typeof v !== 'object' || !v.flow || typeof v.flow !== 'object') return null;
     const flow = {};
     Object.keys(v.flow).forEach(k => {
-      if (!/^\d+:\d+$/.test(k)) return;
+      if (!/^-?\d+:\d+$/.test(k)) return;
       const e = v.flow[k];
       if (!e || typeof e !== 'object' || !['open', 'paused', 'closing', 'reopen'].includes(e.st)) return;
       const chk = TRAIN_CHECKS[k] || null;
@@ -27227,6 +27246,52 @@ function trainSkipAskSync() {
     const run = A.run;
     trainSkipAskClose();
     run();   /* la hoja ya preguntó: sin confirm() nativo */
+  };
+}
+
+/* ═══ AUTH-557 · LA HOJA DE AVISO DEL CIERRE (regla de Ronald,
+   2026-11-22: «si alguien desea cerrar el día solo advertirle
+   que no terminó todos los ejercicios»): cerrar el día con
+   ejercicios sin terminar ya NO se frena con el aviso rojo
+   que nombraba los pendientes y devolvía a la persona a la
+   lista — la hoja gemela de la de saltar los nombra y ofrece
+   las dos salidas: «Terminar de todos modos» (el cierre sigue
+   su camino de siempre, con la bandera de lo ya avisado para
+   que el confirmar no vuelva a frenar) y «Seguir entrenando»
+   (la hoja se cierra y no pasa nada). Avisar, nunca bloquear. ═══ */
+let TRAIN_CLOSE_WARN = null;
+function trainCloseWarnOpen(plan, di, run) {
+  TRAIN_CLOSE_WARN = { plan, di, run };
+  trainCloseWarnSync();
+}
+function trainCloseWarnClose() {
+  TRAIN_CLOSE_WARN = null;
+  trainCloseWarnSync();
+}
+function trainCloseWarnSync() {
+  let sheet = document.getElementById('close-warn-sheet');
+  const A = TRAIN_CLOSE_WARN;
+  if (!A) {
+    if (sheet) sheet.remove();
+    document.body.classList.remove('swap-sheet-open');
+    return;
+  }
+  if (!sheet) {
+    sheet = document.createElement('div');
+    sheet.id = 'close-warn-sheet';
+    sheet.className = 'swap-sheet skip-sheet';
+    document.body.appendChild(sheet);
+  }
+  document.body.classList.add('swap-sheet-open');
+  const names = trainClosePendingNames(A.plan, A.di);
+  sheet.innerHTML = `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('train.d.closeWarnTitle'))}</span><button type="button" class="swap-sheet-x" data-close-warn-no="1" aria-label="✕">✕</button></div><p class="skip-ask-text">${esc(t('train.d.closeWarnText', { names: names.join(', ') }))}</p><div class="skip-ask-row"><button type="button" class="skip-ask-btn" data-close-warn-no="1">${esc(t('train.d.closeWarnKeep'))}</button><button type="button" class="skip-ask-btn is-yes" data-close-warn-yes="1">${esc(t('train.d.closeWarnAnyway'))}</button></div>`;
+  sheet.querySelectorAll('[data-close-warn-no]').forEach(b => b.onclick = () => trainCloseWarnClose());
+  const yes = sheet.querySelector('[data-close-warn-yes]');
+  if (yes) yes.onclick = () => {
+    const run = A.run;
+    TRAIN_CLOSE_ANYWAY[trainCloseKey(A.plan.id, A.di)] = true;   /* lo ya avisado no se vuelve a frenar en el confirmar */
+    trainCloseWarnClose();
+    run();
   };
 }
 
@@ -31018,7 +31083,7 @@ function sessCdTapLive(plan, key, si) {
 }
 function sessCdTick() {
   try {
-    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+    const plan = sessWorkPlan();   /* AUTH-557: la cuenta del círculo también corre en el día suelto */
     if (!plan || TRAIN_CHECKS_CTX !== plan.id + '|' + todayISO()) return;
     const now = Date.now();
     let curKey = null;
@@ -31426,7 +31491,7 @@ function sessVoiceApply(txt) {
   const rec = SESS_VOICE.rec;
   SESS_VOICE.st = 'idle'; SESS_VOICE.rec = null; SESS_VOICE.seq++;
   if (rec) { try { rec.stop(); } catch {} }
-  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  const plan = sessWorkPlan();   /* AUTH-557: el dictado del panel también vale en el día suelto */
   /* Guarda de contexto, la de siempre: si el ejercicio en
      curso ya no es este (o ya no está en curso/pausa, o la
      serie ya quedó marcada por otro camino), el dictado se
@@ -32407,7 +32472,7 @@ function sessTrainRepaintIfAdvanced() {
    marcas cargado, el gesto degrada a solo navegar, como los
    demás gestos de este panel. ═══ */
 function sessPanelEditGo(key) {
-  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  const plan = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
   const partsE = String(key || '').split(':').map(Number);
   const diE = partsE[0], eiE = partsE[1];
   const ctxOk = !!plan && Number.isInteger(diE) && Number.isInteger(eiE)
@@ -32441,7 +32506,7 @@ function sessPanelWire(el, surface) {
          en curso, con la misma guarda de contexto de los
          círculos y de las caras. */
       ev.stopPropagation();
-      const planA = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planA = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planA && TRAIN_CHECKS_CTX === planA.id + '|' + todayISO()) {
         try { sessAudioToggle(); } catch {}
       }
@@ -32470,7 +32535,7 @@ function sessPanelWire(el, surface) {
     }
     const fac = ev.target.closest ? ev.target.closest('[data-pill-face]') : null;
     if (fac) {
-      const planF = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planF = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planF && TRAIN_CHECKS_CTX === planF.id + '|' + todayISO()) {
         const partsF = String(fac.dataset.pillFace).split(':');
         flowResolveClosing(planF, partsF[0] + ':' + partsF[1], Number(partsF[2]));
@@ -32487,7 +32552,7 @@ function sessPanelWire(el, surface) {
          La carga elegida la escribe la rueda por su camino
          de siempre y la línea la repinta con su firma de
          cargas; el siguiente toque en el círculo ya marca. */
-      const planQ = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planQ = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planQ && TRAIN_CHECKS_CTX === planQ.id + '|' + todayISO()) {
         const partsQ = String(dotq.dataset.sessDotq).split(':');
         try { sessLoadWheelOpen(el, planQ, partsQ[0] + ':' + partsQ[1], Number(partsQ[2]), false); } catch {}
@@ -32499,7 +32564,7 @@ function sessPanelWire(el, surface) {
     if (wrmq) {
       /* AUTH-511: el «?» de una marca de aproximación, igual:
          la rueda en su contexto 'warm', sin marcar la serie. */
-      const planWQ = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planWQ = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planWQ && TRAIN_CHECKS_CTX === planWQ.id + '|' + todayISO()) {
         const partsWQ = String(wrmq.dataset.sessWarmq).split(':');
         try { sessLoadWheelOpen(el, planWQ, partsWQ[0] + ':' + partsWQ[1], Number(partsWQ[2]), true); } catch {}
@@ -32512,7 +32577,7 @@ function sessPanelWire(el, surface) {
       /* AUTH-485: el toque en un círculo marca/desmarca series
          EN EL SITIO, con la misma guarda de contexto de las
          caras y del Finalizar de este panel. */
-      const planD = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planD = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planD && TRAIN_CHECKS_CTX === planD.id + '|' + todayISO()) {
         const partsD = String(dot.dataset.sessDot).split(':');
         sessDotTap(planD, partsD[0] + ':' + partsD[1], Number(partsD[2]));
@@ -32528,7 +32593,7 @@ function sessPanelWire(el, surface) {
          misma guarda de contexto de los círculos. La marca
          no cuenta, no finaliza y no arranca cuentas: solo
          escribe el `dot` de esa fila del bloque warmup. */
-      const planW = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planW = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planW && TRAIN_CHECKS_CTX === planW.id + '|' + todayISO()) {
         const partsW = String(wrm.dataset.sessWarm).split(':');
         sessWarmTap(planW, partsW[0] + ':' + partsW[1], Number(partsW[2]));
@@ -32544,7 +32609,7 @@ function sessPanelWire(el, surface) {
       /* AUTH-500: el botón de voz abre la escucha del dictado
          (o su aviso, o la hoja honesta), con la misma guarda
          de contexto de los círculos y de las caras. */
-      const planV = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planV = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planV && TRAIN_CHECKS_CTX === planV.id + '|' + todayISO()) {
         try { sessVoiceStart(vce.dataset.sessVoice); } catch {}
       }
@@ -32581,7 +32646,7 @@ function sessPanelWire(el, surface) {
          loadMyTraining (el repintado de AUTH-488); el
          cuadro avanza al siguiente «ahora» en su siguiente
          latido, como se entera de todo cambio ajeno. */
-      const planR = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planR = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planR && TRAIN_CHECKS_CTX === planR.id + '|' + todayISO()) {
         const partsR = String(rem.dataset.sessRemove).split(':').map(Number);
         if (Number.isInteger(partsR[0]) && Number.isInteger(partsR[1])) trainRemoveAskOpen(planR, partsR[0], partsR[1]);
@@ -32600,7 +32665,7 @@ function sessPanelWire(el, surface) {
          interpone sola, como en todo cierre con cronómetro,
          y finishClose apaga el cronómetro y retira el panel
          por el camino de siempre. */
-      const planC = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planC = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planC && TRAIN_CHECKS_CTX === planC.id + '|' + todayISO()) {
         try { trainCloseConfirm(planC, Number(dconf.dataset.trainCloseConfirm), dconf.closest('.train-close-form')); } catch {}
       }
@@ -32638,7 +32703,7 @@ function sessPanelWire(el, surface) {
          reutiliza) el punto en blanco por la entrada
          compartida de creación y su formulario se abre en
          la hoja flotante de la casa, sin salir del panel. */
-      const planY = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planY = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planY && TRAIN_CHECKS_CTX === planY.id + '|' + todayISO()) {
         try {
           SESS_DONE_CARDIO_T = trainCardio2AddBlank(planY.id);
@@ -32653,7 +32718,7 @@ function sessPanelWire(el, surface) {
     if (dcres) {
       /* AUTH-516 · SEGUIR CON EL CARDIO: la hoja se reabre
          sobre el mismo punto, donde iba. */
-      const planS = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planS = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planS && SESS_DONE_CARDIO_T) {
         try { sessDoneCardioSheetOpen(planS, SESS_DONE_CARDIO_T); } catch {}
       }
@@ -32669,7 +32734,7 @@ function sessPanelWire(el, surface) {
     const csEdit = !csDone && !csDel && ev.target.closest ? ev.target.closest('[data-sess-cstage-edit]') : null;
     const csCd = !csDone && !csDel && !csEdit && ev.target.closest ? ev.target.closest('[data-sess-cstage-cd]') : null;
     if (csDone || csDel || csEdit || csCd) {
-      const planC = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+      const planC = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       const stageEl = ev.target.closest ? ev.target.closest('[data-sess-cstage]') : null;
       const TC = (csDone && csDone.dataset.sessCstageDone) || (csDel && csDel.dataset.sessCstageDel) || (csEdit && csEdit.dataset.sessCstageEdit) || (stageEl && stageEl.dataset.sessCstage) || '';
       if (planC && TC && TRAIN_CHECKS_CTX === planC.id + '|' + todayISO()) {
@@ -32688,7 +32753,7 @@ function sessPanelWire(el, surface) {
     const pau = !fin && !ini && ev.target.closest ? ev.target.closest('[data-pill-pause]') : null;
     const res = !fin && !ini && !pau && ev.target.closest ? ev.target.closest('[data-pill-resume]') : null;
     if (!(fin || ini || pau || res)) return;
-    const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+    const plan = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
     if (plan && TRAIN_CHECKS_CTX === plan.id + '|' + todayISO()) {
       if (fin) {
         const key = fin.dataset.pillFinish;
@@ -32822,13 +32887,39 @@ document.addEventListener('click', ev => {
    del paquete: al finalizar el actual y marcarlo, el foco
    guiado aterriza solo en el siguiente y su tarjeta trae su
    propio «Iniciar». ═══ */
+/* ═══ AUTH-557 · EL PLAN DE TRABAJO DE LA SESIÓN EN CURSO:
+   con plan activo es MY_PLAN, como siempre. Sin plan activo,
+   la sesión que corre puede ser la SUELTA (D5, 2026-11-08):
+   su plan sintético — el mismo que la vista del día construye
+   en loadMyTraining — es el plan de trabajo del panel, y solo
+   se ofrece cuando el contexto de marcas cargado ES el suelto
+   (fuera de él, null, como hasta hoy: el panel seguía ciego
+   ante el día suelto porque MY_PLAN es null a propósito y
+   trainBarState devolvía null, dejando sessFullSync en su
+   rama «sin estado del día» — el fallo que Ronald entrenó el
+   2026-11-22: ni ejercicio en curso, ni círculos, ni avance).
+   El día suelto no se busca por rótulo entre los días del
+   plan: su índice es el virtual −1 y su lista efectiva es la
+   de ejercicios agregados de su edición, la misma que pinta
+   la vista del día. ═══ */
+function sessWorkPlan() {
+  const mp = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  if (mp) return mp;
+  try {
+    if (typeof TRAIN_CHECKS_CTX !== 'undefined' && TRAIN_CHECKS_CTX === 'suelta|' + todayISO())
+      return { id: 'suelta', title: '', notes: '', days: [], __loose: true };
+  } catch {}
+  return null;
+}
 function trainBarState() {
   const run = sessRunning();
-  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  const plan = sessWorkPlan();
   if (!run || !plan || !run.planId || run.planId !== plan.id) return null;
   let di = -1;
-  (plan.days || []).forEach((d, i) => { if (di < 0 && trainDayLabelOf(plan, i) === run.label) di = i; });
-  if (di < 0) return null;
+  if (!plan.__loose) {
+    (plan.days || []).forEach((d, i) => { if (di < 0 && trainDayLabelOf(plan, i) === run.label) di = i; });
+    if (di < 0) return null;
+  }
   const checks = trainChecksRead(plan.id);
   const eff = trainEffectiveList(plan, di);
   const pend = [];
@@ -32895,11 +32986,13 @@ function trainBarState() {
    esas superficies siguen en la rama vacía de siempre, sin
    inventar ningún «completado». ═══ */
 function sessDayCompleteState(run) {
-  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  const plan = sessWorkPlan();   /* AUTH-557: el día suelto también puede estar completo — su predicado es el mismo, sobre su plan sintético y su índice −1 */
   if (!run || !plan || !run.planId || run.planId !== plan.id) return null;
   let di = -1;
-  (plan.days || []).forEach((d, i) => { if (di < 0 && trainDayLabelOf(plan, i) === run.label) di = i; });
-  if (di < 0) return null;
+  if (!plan.__loose) {
+    (plan.days || []).forEach((d, i) => { if (di < 0 && trainDayLabelOf(plan, i) === run.label) di = i; });
+    if (di < 0) return null;
+  }
   const checks = trainChecksRead(plan.id);
   const eff = trainEffectiveList(plan, di);
   if (!eff.length) return null;
@@ -33500,6 +33593,10 @@ async function trainCloseConfirm(plan, di, formEl) {
      de compromiso, donde la bandera se planta —. */
   const closeKey = trainCloseKey(plan.id, di);
   if (TRAIN_CLOSING[closeKey]) return;
+  /* AUTH-557: la bandera de «ya avisado» se consume en este
+     confirmar — vale para esta vez y no queda plantada. */
+  const closeAnyway = TRAIN_CLOSE_ANYWAY[closeKey] === true;
+  delete TRAIN_CLOSE_ANYWAY[closeKey];
   /* Detalle por ejercicio (§4.6 + D-2): SOLO lo marcado en la
      sesión, en el orden de la lista EFECTIVA, con su detalle por
      serie. PERSONALIZA (2026-10-27): el ejercicio realizado es
@@ -33633,10 +33730,19 @@ async function trainCloseConfirm(plan, di, formEl) {
      genérico queda solo para un día sin ejercicios que nombrar. */
   if (!doneList.length) {
     if (trainCloseAlreadySaved(plan, di)) { toast(t('train.d.alreadyClosed')); sessPillTick(); loadMyTraining(); return; }
-    const pendNC = trainClosePendingNames(plan, di);
-    if (pendNC.length) toast(t('train.d.needCheckSave', { names: pendNC.join(', ') }), true);
-    else toast(t('train.d.needCheck'), true);
-    return;
+    /* AUTH-557 · AVISAR, NUNCA BLOQUEAR: quien ya pasó por la
+       hoja de aviso y eligió «Terminar de todos modos» no se
+       frena aquí tampoco — el día se escribe parcial, sin
+       ejercicios, con la duración e intensidad declaradas en
+       el formulario. Sin la bandera, la guarda de siempre
+       (D-3: sin ninguna marca no se escribe un «hecho» vacío)
+       sigue intacta. */
+    if (!closeAnyway) {
+      const pendNC = trainClosePendingNames(plan, di);
+      if (pendNC.length) toast(t('train.d.needCheckSave', { names: pendNC.join(', ') }), true);
+      else toast(t('train.d.needCheck'), true);
+      return;
+    }
   }
   const total = trainEffectiveList(plan, di).length;
   const status = doneList.length >= total ? 'done' : 'partial';
@@ -41507,28 +41613,31 @@ async function loadMyTraining() {
     /* AUTH-517: con un cierre en vuelo para este día (el candado
        de trainCloseConfirm), «Terminar» no abre una segunda hoja. */
     if (TRAIN_CLOSING[trainCloseKey(plan.id, di)]) return;
+    /* AUTH-557 · EL CIERRE SOLO AVISA (regla de Ronald,
+       2026-11-22): con ejercicios aún sin terminar, «Terminar»
+       ya no se frena con el aviso rojo de nombres de AUTH-517 —
+       la hoja de aviso (trainCloseWarnOpen) los nombra y ofrece
+       «Terminar de todos modos» y «Seguir entrenando». Con todo
+       hecho, el panel de cierre se abre directo, como siempre.
+       El aviso de «ya consta cerrado» se conserva SOLO para el
+       toque sin nada hecho sobre un día ya guardado: es un
+       aviso de estado, no una puerta. */
+    const pendA = trainClosePendingNames(plan, di);
+    if (!pendA.length) {
+      /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): TERMINAR abre el
+         panel de cierre — duración corregible, intensidad declarada
+         y calentamiento a restar (D1/D2/D4). La escritura ocurre al
+         confirmar (data-train-close-confirm), no aquí. */
+      TRAIN_CLOSE_DI = di;
+      loadMyTraining();
+      return;
+    }
     const any = trainEffectiveList(plan, di).some((it, ei) => { const c = TRAIN_CHECKS[di + ':' + ei]; return !!c && c.done === true; });
-    /* MÓDULO D (D-3): sin ninguna marca no hay cierre que abrir.
-       AUTH-517: si el día ya consta cerrado en el registro cargado
-       (logByDay) o en la marca de la sesión, el aviso es de estado,
-       no de error; y si de verdad falta, el aviso NOMBRA los
-       ejercicios por cerrar, en el orden del día. El texto
-       genérico queda solo para un día sin ejercicios que nombrar. */
     if (!any) {
       const lgA = logByDay[di];
       if ((lgA && (trainLogStatus(lgA) === 'done' || trainLogStatus(lgA) === 'partial')) || TRAIN_CLOSED_MARK[trainCloseKey(plan.id, di)]) { toast(t('train.d.alreadyClosed')); loadMyTraining(); return; }
-      const pendA = trainClosePendingNames(plan, di);
-      if (pendA.length === 1) toast(t('train.d.needCheckNames1', { names: pendA[0] }), true);
-      else if (pendA.length > 1) toast(t('train.d.needCheckNamesN', { names: pendA.join(', ') }), true);
-      else toast(t('train.d.needCheck'), true);
-      return;
     }
-    /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): TERMINAR abre el
-       panel de cierre — duración corregible, intensidad declarada
-       y calentamiento a restar (D1/D2/D4). La escritura ocurre al
-       confirmar (data-train-close-confirm), no aquí. */
-    TRAIN_CLOSE_DI = di;
-    loadMyTraining();
+    trainCloseWarnOpen(plan, di, () => { TRAIN_CLOSE_DI = di; loadMyTraining(); });
   });
   box.querySelectorAll('[data-train-start]').forEach(b => b.onclick = () => {
     const diS = Number(b.dataset.trainStart);
@@ -59160,7 +59269,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261122-respuesta-coach';
+const PWA_SW_VERSION = '20261122-dia-suelto';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
