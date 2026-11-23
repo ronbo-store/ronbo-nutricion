@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-entrenamiento-plegado">
+<link rel="stylesheet" href="styles.css?v=20261123-inicio-plegado">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -426,9 +426,19 @@
        pinta y cablea como una sola tarjeta (módulo FUSIÓN DE LA
        PORTADA en app.js). -->
 
-  <div class="panel week-panel">
+  <!-- SEMANA PLEGADA (AUTH-2026-11-23-567, programa «Plegar
+       todo» nº 5; auditoría de pliegues, sección «Inicio»): en la
+       superficie vive SOLO la línea «📈 Semana · % ›» (la pinta
+       homeWeekLineSync en app.js dentro de #week-slot); el panel
+       entero vive en su almacén (#week-store) y VIAJA a la hoja
+       de Inicio (#home-sheet) al tocar la línea, volviendo a su
+       ancla al cerrar — el patrón de AUTH-563/565/566. -->
+  <div id="week-slot"></div>
+  <div id="week-store" style="display:none">
+  <div class="panel week-panel" id="week-panel-box">
     <h2 data-i18n="track.weekTitle">📈 Weekly goal compliance</h2>
     <div id="weekChart"></div>
+  </div>
   </div>
 
   <!-- DIARIO VISUAL DE LA SEMANA (AUTH-2026-11-10-366): el panel
@@ -447,9 +457,16 @@
        navegación por meses; lo pinta renderConstCal() en app.js
        desde el mismo render() que llama a renderFoodWeekDiary.
        Tocar un día salta a ese día en el registro. -->
-  <div class="panel const-panel">
+  <!-- MES PLEGADO (AUTH-567, como la semana): en superficie
+       solo la línea «🗓️ Mes · racha del mes ›» (#const-slot, la
+       pinta homeConstLineSync); el panel vive en su almacén y
+       viaja a la hoja de Inicio. -->
+  <div id="const-slot"></div>
+  <div id="const-store" style="display:none">
+  <div class="panel const-panel" id="const-panel-box">
     <h2 data-i18n="const.title">🗓️ Your month of constancy</h2>
     <div id="constCal"></div>
+  </div>
   </div>
   <!-- CHECK-IN SEMANAL (AUTH-2026-11-10-367): la tarjeta de
        Inicio con el estado del check-in de esta semana; la pinta
@@ -458,10 +475,12 @@
        respuesta por alumno y semana, visible para su entrenador
        porque el alumno la envía — aparte de la declaración de
        salud y de los consentimientos. -->
-  <div class="panel chk-panel" id="chk-panel">
-    <h2 data-i18n="chk.title">📋 Weekly check-in</h2>
-    <div id="chk-card"></div>
-  </div>
+  <!-- CHECK-IN EN UNA LÍNEA (AUTH-567; auditoría de pliegues,
+       sección «Inicio»): la tarjeta-panel entera se reduce a su
+       única línea plegada «📋 Check-in · estado ›» SIN panel
+       separado — la pinta chkCardSyncPaint en #chk-slot y su
+       toque abre la vista del check-in, como hacía su botón. -->
+  <div id="chk-slot"></div>
 
   </div>
 
@@ -766,6 +785,23 @@
     </div>
     <button type="button" class="back-row train-close-back" id="train-close-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="train-close-body"></div>
+  </div>
+
+  <!-- LA PANTALLA DE INICIO, PLEGADA (AUTH-2026-11-23-567,
+       programa «Plegar todo» nº 5): la hoja propia de cada
+       apartado de Inicio (el detalle de hoy de la tarjeta de
+       metas, la gráfica semanal y el mes de constancia) — el
+       bloque VIAJA desde su almacén a esta hoja y vuelve a su
+       ancla al cerrar (el patrón de AUTH-563/565/566). La pintan
+       y la mueven homeSheetOpen / homeSheetClose (app.js); el
+       título lo pone la línea que la abre. -->
+  <div class="pend-float home-sheet" id="home-sheet" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="home-sheet-title"></span></h2>
+      <button type="button" class="pend-close" id="home-sheet-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row home-sheet-back" id="home-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="home-sheet-body"></div>
   </div>
 
   <!-- PETICIONES DEL ALUMNO A SU ENTRENADOR (AUTH-2026-11-04-237):
@@ -2740,6 +2776,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-entrenamiento-plegado"></script>
+<script type="module" src="app.js?v=20261123-inicio-plegado"></script>
 </body>
 </html>
