@@ -4304,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-link-retos');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-tomar-medidas');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -10608,6 +10608,192 @@ function stuSheetReset() {
   const sheet = $('stu-sheet'); if (sheet) sheet.style.display = 'none';
   const body = $('stu-sheet-body'); if (body) body.innerHTML = '';
 }
+/* ════════════════════════════════════════════════════════════════
+   AUTH-571 — «📏 TOMAR MEDIDAS» DEL ENTRENADOR (función nueva
+   pedida por Ronald el 2026-11-23, con maqueta aprobada): desde
+   el detalle del alumno (AUTH-565), el entrenador/admin le toma
+   las medidas EN PERSONA y quedan en el historial del alumno POR
+   LA MISMA PUERTA que usa el propio alumno — ni una vía nueva:
+   · el peso → nutrition_weight/{uid}_{hoy}, con la carga de
+     evalSaveMeasures ({ownerUid, date, weight, updatedAt});
+   · el juego de medidas → su documento de evaluación de hoy,
+     nutrition_progress/{uid}_{hoy}_eval (el documento de
+     evalDocRef), con la carga de evalSaveMeasures ({kind:
+     'evaluation', uid, ownerUid, date, measures, updatedAt} y el
+     planContext del plan activo DEL ALUMNO cuando el documento
+     aún no lo trae — el anclaje de evalFreshContext calculado
+     sobre los planes del alumno, no los del entrenador);
+   · la grasa corporal → la comp del MISMO documento, con la
+     forma de evalRegisterComp('fat') ({value, unit:'%', method,
+     estimate, dateISO}).
+   Cada escritura lleva ADEMÁS la marca de origen de la casa
+   (byUid + byRole 'entrenador', la del registro del coach de
+   alimentación en nutrition_weight): el documento dice quién lo
+   tomó sin romper ningún lector (los lectores ignoran los campos
+   que no conocen) y el historial del alumno la enseña por fila.
+   La fecha es la de HOY (la medición es presencial, hoy): el set
+   de hoy es un set más del alumno, que su Progreso, su ficha y
+   su composición consumen como siempre. La completitud del set
+   se reconcilia con el MISMO criterio de evalReconcile (sellar
+   completedAt al completarse, desellar al dejar de estarlo),
+   juzgado con el espejo del entrenador (spEvalSetComplete) sobre
+   los datos del alumno recién leídos. Las unidades de
+   presentación son las de la configuración de evaluación DEL
+   ALUMNO (su {uid}_evalconfig), no las del entrenador: las
+   conversiones replican evalToCanonical / evalToDisplay con esa
+   unidad. Las reglas vigentes ya permiten estas escrituras al
+   entrenador asignado (ramas de nutrition_weight y de
+   nutrition_progress: propietario o entrenador asignado del
+   ownerUid) — sin reglas nuevas. ═══ */
+let TMEAS = null;   // { uid, name, date, units } de la hoja abierta
+function tmeasToCanonical(kind, v, units) {
+  if (units !== 'imperial') return Math.round(v * 10) / 10;
+  return Math.round((kind === 'w' ? v * UNIT_LB_KG : v * UNIT_IN_CM) * 10) / 10;
+}
+function tmeasToDisplay(kind, v, units) {
+  if (v == null) return '';
+  if (units !== 'imperial') return String(Math.round(v * 10) / 10);
+  return String(Math.round((kind === 'w' ? v / UNIT_LB_KG : v / UNIT_IN_CM) * 10) / 10);
+}
+function tmeasClose() {
+  const fl = $('tmeas-float');
+  if (fl) fl.style.display = 'none';
+  TMEAS = null;
+  try { coverSync(); } catch {}
+}
+async function tmeasOpen(uid) {
+  const fl = $('tmeas-float'), body = $('tmeas-body');
+  if (!fl || !body) return;
+  const u = ((STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(x => x.id === uid) || { id: uid };
+  const name = stuName(u);
+  const tt = $('tmeas-title'); if (tt) tt.textContent = '📏 ' + t('tmeas.title', { name });
+  body.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
+  fl.style.display = '';
+  try { coverSync(); } catch {}
+  const x = $('tmeas-x'); if (x) x.onclick = () => tmeasClose();
+  const bk = $('tmeas-back'); if (bk) bk.onclick = () => tmeasClose();
+  const S = todayISO();
+  let units = 'metric';
+  let measures = {}, comp = null, weight = null;
+  try {
+    const cs = await getDoc(doc(db, 'nutrition_progress', `${uid}_evalconfig`));
+    if (cs.exists()) { const v = cs.data() || {}; units = v.units === 'imperial' ? 'imperial' : 'metric'; }
+  } catch {}
+  try {
+    const es = await getDoc(doc(db, 'nutrition_progress', `${uid}_${S}_eval`));
+    if (es.exists()) { const v = es.data() || {}; measures = v.measures || {}; comp = v.comp || null; }
+  } catch {}
+  try {
+    const ws = await getDoc(doc(db, 'nutrition_weight', `${uid}_${S}`));
+    if (ws.exists()) weight = num((ws.data() || {}).weight) || null;
+  } catch {}
+  TMEAS = { uid, name, date: S, units };
+  body.innerHTML = tmeasFormHTML(measures, comp, weight);
+  const sv = $('tmeas-save'); if (sv) sv.onclick = () => tmeasSave();
+}
+function tmeasFormHTML(measures, comp, weight) {
+  const units = TMEAS ? TMEAS.units : 'metric';
+  /* Los MISMOS campos de la puerta del alumno (renderEval): los 8
+     eval-m-* de EVAL_MEASURES con su etiqueta, su guía y su cinta,
+     y la fila de grasa de evalRegisterComp — ni uno más ni uno
+     menos, con los valores de hoy ya puestos si el set existe. */
+  const rows = EVAL_MEASURES.map(m => {
+    const cur = m.id === 'peso' ? weight : (measures[m.id] != null ? measures[m.id] : null);
+    const unitLbl = units === 'imperial' ? (m.kind === 'w' ? 'lb' : 'in') : (m.kind === 'w' ? 'kg' : 'cm');
+    return `<div class="eval-field"><label for="tmeas-m-${m.id}">${esc(t('eval.measure.' + m.id))} <span class="eval-unit">(${unitLbl})</span></label>`
+      + `<input type="number" id="tmeas-m-${m.id}" step="0.1" min="0" value="${esc(tmeasToDisplay(m.kind, cur, units))}">`
+      + (m.kind === 'l' ? `<span class="eval-tape">${tapeSVG(m.id)}</span>` : '')
+      + `<span class="eval-guide">${esc(t('eval.guide.' + m.id))}</span></div>`;
+  }).join('');
+  const fat = (comp && comp.fat) || null;
+  const methodOpts = ['bio', 'caliper', 'scan', 'other'].map(mo => `<option value="${mo}"${fat && fat.method === mo ? ' selected' : ''}>${esc(t('eval.method.' + mo))}</option>`).join('');
+  return `<p class="eval-detail tmeas-when">📅 ${esc(t('tmeas.dateToday', { date: dateName(TMEAS.date) }))} · ${esc(t('tmeas.byYou'))}</p>`
+    + `<div class="eval-form">${rows}</div>`
+    + `<div class="eval-comp-row tmeas-fat"><span class="eval-comp-name">${esc(t('eval.compFat'))} (%)</span><input type="number" id="tmeas-fat-value" min="0" step="0.1" placeholder="${esc(t('eval.compValuePh'))}" value="${fat ? esc(String(fat.value)) : ''}"><select id="tmeas-fat-method" aria-label="${esc(t('eval.compMethod'))}">${methodOpts}</select><label class="eval-check"><input type="checkbox" id="tmeas-fat-est"${fat && fat.estimate ? ' checked' : ''}> ${esc(t('eval.compEstimate'))}</label></div>`
+    + `<div class="eval-actions"><button type="button" class="btn-primary tmeas-save" id="tmeas-save">${esc(t('tmeas.save'))}</button></div>`
+    + `<p class="eval-detail">${esc(t('tmeas.note'))}</p>`;
+}
+async function tmeasSave() {
+  if (!TMEAS) return;
+  const { uid, date: S, units } = TMEAS;
+  const me = auth.currentUser.uid;
+  /* La validación por campo de la puerta del alumno: solo entra
+     lo que trae dato (texto no vacío y valor > 0), convertido a
+     canónico con las unidades DEL ALUMNO. */
+  const measures = {};
+  EVAL_MEASURES.filter(m => m.id !== 'peso').forEach(m => {
+    const el = $('tmeas-m-' + m.id);
+    const raw = el ? String(el.value).trim() : '';
+    if (raw !== '') { const v = num(raw); if (v > 0) measures[m.id] = tmeasToCanonical(m.kind, v, units); }
+  });
+  const pesoEl = $('tmeas-m-peso');
+  const pesoRaw = pesoEl ? String(pesoEl.value).trim() : '';
+  const pesoKg = pesoRaw !== '' && num(pesoRaw) > 0 ? tmeasToCanonical('w', num(pesoRaw), units) : null;
+  const fatVal = num((($('tmeas-fat-value') || {}).value));
+  const hasMeasures = Object.keys(measures).length > 0;
+  /* Guardar vacío no crea ningún documento: se avisa y no se
+     escribe nada (la puerta del alumno, con su formulario ya
+     abierto sobre su propio set, no tiene este caso). */
+  if (!hasMeasures && pesoKg == null && !(fatVal > 0)) { toast(t('tmeas.empty'), true); return; }
+  try {
+    /* El documento de evaluación de hoy, leído fresco: su
+       planContext ya anclado es inmutable (evalFreshContext) y su
+       comp previa se conserva al registrar solo la grasa. */
+    let cur = {};
+    try { const es = await getDoc(doc(db, 'nutrition_progress', `${uid}_${S}_eval`)); if (es.exists()) cur = es.data() || {}; } catch {}
+    let planContext = null;
+    if (!cur.planContext) {
+      try {
+        const plans = await fetchPlans(uid);
+        const act = (plans || []).find(p => p.active === true);
+        if (act) {
+          planContext = { planId: act.id, title: act.title || '' };
+          if (act.sourceRoutineId) planContext.sourceRoutineId = act.sourceRoutineId;
+          const cd = evalCtxDate(act.createdAt); if (cd) planContext.planCreatedAt = cd;
+        }
+      } catch {}
+    }
+    if (hasMeasures || fatVal > 0) {
+      const payload = { kind: 'evaluation', uid, ownerUid: uid, date: S, updatedAt: serverTimestamp(), byUid: me, byRole: 'entrenador' };
+      if (hasMeasures) payload.measures = measures;
+      if (fatVal > 0) {
+        payload.comp = Object.assign({}, cur.comp || {}, { fat: { value: fatVal, unit: '%', method: (($('tmeas-fat-method') || {}).value) || 'bio', estimate: !!(($('tmeas-fat-est') || {}).checked), dateISO: S, byUid: me, byRole: 'entrenador' } });
+      }
+      if (planContext) payload.planContext = planContext;
+      await setDoc(doc(db, 'nutrition_progress', `${uid}_${S}_eval`), payload, { merge: true });
+    }
+    if (pesoKg != null) {
+      await setDoc(doc(db, 'nutrition_weight', `${uid}_${S}`), { ownerUid: uid, date: S, weight: pesoKg, byUid: me, byRole: 'entrenador', updatedAt: serverTimestamp() }, { merge: true });
+    }
+    /* El sello de completitud, con el criterio de evalReconcile
+       juzgado sobre los datos del alumno recién escritos (el
+       espejo sp* es el mismo cálculo con otros datos). */
+    try {
+      const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
+      const D = spProgParse(snap);
+      const wsnap = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
+      const wdates = [];
+      wsnap.forEach(d => { const v = d.data(); if (v && num(v.weight) > 0 && v.date) wdates.push({ date: v.date, weight: num(v.weight) }); });
+      wdates.sort((a, b) => a.date < b.date ? -1 : 1);
+      const complete = spEvalSetComplete(D, wdates, S);
+      const e = D.evals[S];
+      if (complete && !(e && e.completedAt)) {
+        const payload2 = { kind: 'evaluation', uid, ownerUid: uid, date: S, completedAt: todayISO(), updatedAt: serverTimestamp() };
+        if (planContext) payload2.planContext = planContext;
+        await setDoc(doc(db, 'nutrition_progress', `${uid}_${S}_eval`), payload2, { merge: true });
+      } else if (!complete && e && e.completedAt) {
+        await setDoc(doc(db, 'nutrition_progress', `${uid}_${S}_eval`), { completedAt: null, updatedAt: serverTimestamp() }, { merge: true });
+      }
+    } catch {}
+    toast(t('tmeas.saved'));
+    tmeasClose();
+    /* El detalle se repinta con los datos frescos (la pasada de
+       pendientes de loadStudents resuelve sola el pendiente de
+       medidas si el set quedó completo: el motor no se toca). */
+    try { STUDENTS_RESTORE = true; await loadStudents(); } catch {}
+  } catch { toast(t('msg.uploadFail'), true); }
+}
+
 function studentsDetailHTML(u) {
   const L = STUDENTS_LAST;
   const name = stuName(u);
@@ -10630,6 +10816,13 @@ function studentsDetailHTML(u) {
      la hoja #stu-sheet al abrir su línea — sus pintores, sus
      cargas y su cableado no cambian. */
   h += `<div id="stu-plan-btnrows">${stuPlanBtnRowsHTML(u)}</div>`;
+  /* AUTH-571: el botón «📏 Tomar medidas» del entrenador — ancho
+     completo, fuera de todo pliegue, justo bajo la fila de botones
+     de plan/reto de AUTH-560; abre su pantalla propia (#tmeas-float).
+     Vive SOLO en esta superficie (el detalle que ven el entrenador
+     y el admin sobre un alumno): en la vista del propio alumno no
+     existe. */
+  h += `<button type="button" class="btn-tmeas" data-stu-tmeas="${u.id}">📏 ${esc(t('tmeas.btn'))}</button>`;
   h += stuFoldLineHTML('plan', t('students.planBlock'));
   h += stuFoldLineHTML('chal', t('students.chalBlock'));
   h += stuFoldLineHTML('train', t('students.trainBlock'));
@@ -10718,6 +10911,9 @@ function renderStudentsBody() {
   /* AUTH-562: el botón «Pendientes activos» del detalle abre la
      pantalla del paquete. */
   el.querySelectorAll('[data-pendact]').forEach(b => b.onclick = () => pendActOpen(b.dataset.pendact));
+  /* AUTH-571: el botón «📏 Tomar medidas» del detalle abre la
+     pantalla propia de medidas del entrenador. */
+  el.querySelectorAll('[data-stu-tmeas]').forEach(b => b.onclick = () => tmeasOpen(b.dataset.stuTmeas));
   /* AUTH-565: las líneas plegadas del detalle abren la hoja
      propia de su bloque (plan / retos / entrenamiento). */
   el.querySelectorAll('[data-stu-line]').forEach(b => b.onclick = () => stuSheetOpen(b.dataset.stuLine));
@@ -17238,6 +17434,9 @@ async function loadAll() {
         visceral: num(v.visceral), notes: v.notes || '',
         weightOriginal: v.weightOriginal != null ? num(v.weightOriginal) : null,
         fatMethod: v.fatMethod || '',
+        /* AUTH-571: la marca de origen del pesaje (la enseña la
+           tabla de pesajes: «por tu entrenador»). */
+        byUid: v.byUid || '', byRole: v.byRole || '',
         weightUnitOriginal: v.weightUnitOriginal || null });
     });
     WEIGHTS.sort((a, b) => a.date < b.date ? -1 : 1);
@@ -18833,7 +19032,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-link-retos' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-tomar-medidas' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -52864,7 +53063,7 @@ function renderWeight() {
      al final — vive DENTRO de la fila de ese pesaje, junto a su
      Editar, con la misma confirmación y la misma escritura. */
   const histRows = [...data].reverse().map(d => `
-    <tr><td>${dateName(d.date)}</td><td class="num"><b>${fmtMassVal(d.weight)}</b></td>
+    <tr><td>${dateName(d.date)}${d.byRole === 'entrenador' ? ` <span class="tmeas-by">${esc(t('tmeas.byTrainer'))}</span>` : ''}</td><td class="num"><b>${fmtMassVal(d.weight)}</b></td>
     <td class="num">${d.fat || '—'}</td><td class="num">${d.muscle || '—'}</td>
     <td class="num">${d.water || '—'}</td><td class="num">${d.visceral || '—'}</td>
     <td>${esc(d.notes)}</td>
@@ -54145,7 +54344,7 @@ async function loadProgress() {
          PROGRESO): viven en la misma colección con discriminador
          kind; la lectura de fotos los ignora porque no traen
          slot/photo. */
-      else if (v.kind === 'evaluation' && v.date) EVALS[v.date] = { measures: v.measures || {}, comp: v.comp || null, completedAt: v.completedAt || null, planContext: v.planContext || null, phaseNote: v.phaseNote || null, phaseNoteAt: v.phaseNoteAt || null };
+      else if (v.kind === 'evaluation' && v.date) EVALS[v.date] = { measures: v.measures || {}, comp: v.comp || null, completedAt: v.completedAt || null, planContext: v.planContext || null, phaseNote: v.phaseNote || null, phaseNoteAt: v.phaseNoteAt || null, byUid: v.byUid || '', byRole: v.byRole || '' };
       else if (v.kind === 'evalCycle') EVAL_CYCLE = { omitted: Array.isArray(v.omitted) ? v.omitted : [], closedSets: Array.isArray(v.closedSets) ? v.closedSets : [] };
       else if (v.kind === 'evalConfig') EVAL_CFG = { requiredMeasures: Array.isArray(v.requiredMeasures) ? v.requiredMeasures : [], units: v.units === 'imperial' ? 'imperial' : 'metric' };
       else if (v.kind === 'compAccess') COMP_ACCESS = { mode: v.mode === 'client' ? 'client' : 'trainer', history: Array.isArray(v.history) ? v.history : [], exists: true };
@@ -61731,7 +61930,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-link-retos';
+const PWA_SW_VERSION = '20261123-tomar-medidas';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -72517,7 +72716,7 @@ function mpHistBody() {
     parts.push(`<button type="button" class="prog569-line mp-hf-line" data-mp-act="histfold" data-k="waist" aria-expanded="false"><span class="p569-tx">${esc(t('eval.measure.cintura'))}${lastWaist != null ? ' · ' + esc(mpFmtCm(lastWaist)) : ''}</span><span class="p569-chev" aria-hidden="true">▾</span></button>`);
     const series = withMeas.slice().sort().filter(d => EVALS[d].measures.cintura != null).map(d => ({ d, v: num(EVALS[d].measures.cintura) }));
     const svg = mpLineSVG(series);
-    parts.push(`<div id="mp-hf-waist" hidden>` + (svg ? `<div class="mp-chart">${svg}</div>` : '') + withMeas.slice(0, 8).map(d => { const m = EVALS[d].measures; return `<div class="mp-row"><span>${esc(shortDate(d))}</span><span>${Object.keys(m).filter(k => k !== 'peso' && m[k] != null).map(k => esc(t('eval.measure.' + k)) + ' ' + esc(mpFmtCm(m[k]))).join(' · ')}</span></div>`; }).join('') + `</div>`);
+    parts.push(`<div id="mp-hf-waist" hidden>` + (svg ? `<div class="mp-chart">${svg}</div>` : '') + withMeas.slice(0, 8).map(d => { const m = EVALS[d].measures; return `<div class="mp-row"><span>${esc(shortDate(d))}</span><span>${Object.keys(m).filter(k => k !== 'peso' && m[k] != null).map(k => esc(t('eval.measure.' + k)) + ' ' + esc(mpFmtCm(m[k]))).join(' · ')}${EVALS[d].byRole === 'entrenador' ? ' · ' + esc(t('tmeas.byTrainer')) : ''}</span></div>`; }).join('') + `</div>`);
   }
   if (!WEIGHTS.length && !withMeas.length) parts.push(`<div class="wempty">${esc(t('mp.none'))}</div>`);
   return parts.join('');

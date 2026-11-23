@@ -2909,6 +2909,12 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 .ficha-focus-hl { box-shadow: 0 0 0 3px rgba(13,148,136,.55); border-radius: 14px; }
 .btn-ficha { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 14px; background: #fff; color: #0d9488; border: 1.5px solid #0d9488; border-radius: 10px; padding: 12px 16px; font-size: 14.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
 .btn-ficha svg { width: 18px; height: 18px; }
+/* AUTH-571: el botón «📏 Tomar medidas» del detalle del alumno
+   (ancho completo, ≥48 px, el verde de la casa en contorno, como
+   la maqueta aprobada) y la marca de origen en el historial. */
+.btn-tmeas { display: block; width: 100%; margin: 10px 0 2px; padding: 13px 16px; min-height: 48px; background: #fff; color: #0d7a78; border: 2px solid #0d7a78; border-radius: 14px; font-size: 17px; font-weight: 800; cursor: pointer; font-family: inherit; }
+.tmeas-save { width: 100%; min-height: 48px; }
+.tmeas-by { color: #0d7a78; font-weight: 700; font-size: .85em; white-space: nowrap; }
 .stu-traces-h { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; margin: 12px 0 2px; }
 .cat-list { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 6px 16px; }
 .cat-row { display: flex; align-items: center; gap: 11px; padding: 13px 0; border: none; border-bottom: 1px solid #eef2f5; width: 100%; background: none; font-family: inherit; cursor: pointer; text-align: left; }
