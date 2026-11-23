@@ -7702,3 +7702,42 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .rlink-ex { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
 .rlink-ex img { width: 30px; height: 30px; border-radius: 8px; object-fit: cover; }
 .wiz-card-sub { display: block; font-size: 13px; font-weight: 400; color: var(--muted, #5b6b66); line-height: 1.4; }
+/* AUTH-577: acceso rápido del entrenador — la puerta en el detalle
+   del alumno (la geometría de .btn-tmeas, en el verde lleno de las
+   acciones principales) y sus tres pantallas: las baldosas del
+   resumen (la familia visual de .mp-tile de «Mi progreso»), la
+   tira de la semana y las filas del día asignado. */
+.btn-qprog { display: block; width: 100%; margin: 8px 0 2px; padding: 13px 16px; min-height: 48px; background: #0d7a78; color: #fff; border: 2px solid #0d7a78; border-radius: 14px; font-size: 17px; font-weight: 800; cursor: pointer; font-family: inherit; }
+.qprog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.qprog-tile { display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid var(--line, #d8e2de); border-radius: 16px; padding: 12px 10px; background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, .05); margin-bottom: 10px; box-sizing: border-box; }
+.qprog-grid .qprog-tile { margin-bottom: 0; }
+.qprog-tile-wide { width: 100%; }
+.qprog-tile-icon { display: block; font-size: 34px; line-height: 1; margin-bottom: 6px; }
+.qprog-tile-name { font-weight: 800; font-size: 15px; color: #173f39; margin-bottom: 4px; }
+.qprog-tile-data { display: block; }
+.qprog-line { display: block; font-size: 13px; line-height: 1.35; margin: 1px 0; color: #33475b; }
+.qprog-big { font-size: 15px; font-weight: 800; color: #173f39; }
+.qprog-sub { color: #5b7a74; font-style: italic; }
+.qprog-none { color: #5b7a74; font-style: italic; }
+.qprog-tests { width: 100%; margin-top: 4px; }
+.qprog-exrow { display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; background: #f8fbfa; border: 1px solid #eef2f5; border-radius: 12px; padding: 10px 12px; margin: 6px 0; text-align: left; }
+.qprog-exn { flex: none; width: 26px; height: 26px; border-radius: 50%; background: #e6f4f1; color: #0d7a78; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.qprog-exname { flex: 1; font-weight: 700; font-size: 14.5px; color: #1f2a44; }
+.qprog-chip { flex: none; border: 1.5px solid #7fc8bc; color: #0d7a78; border-radius: 999px; padding: 3px 10px; font-weight: 800; font-size: 13px; white-space: nowrap; }
+.qprog-exdate { flex: none; font-size: 12px; color: #5b7a74; }
+.qprog-wrow { margin-top: 2px; }
+.qprog-wrow-det { display: flex; justify-content: space-between; gap: 10px; padding: 7px 12px; font-size: 13.5px; color: #33475b; border-bottom: 1px solid #eef2f5; }
+.btn-qprog-full { display: block; width: 100%; margin-top: 12px; padding: 13px 16px; min-height: 48px; background: #fff; color: #0d7a78; border: 2px solid #0d7a78; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; }
+.qprog-card { border: 1px solid var(--line, #d8e2de); border-radius: 16px; padding: 12px 14px; background: #fff; margin-bottom: 12px; }
+.qprog-card-t { font-weight: 800; font-size: 16px; color: #173f39; }
+.qprog-card-sub { margin: 4px 0 6px; color: #33475b; font-size: 14px; }
+.qprog-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.qprog-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 8px 2px; border: 1.5px solid #d8e2de; border-radius: 12px; background: #fff; font: inherit; cursor: pointer; color: #33475b; min-height: 56px; }
+.qprog-cell b { font-size: 12.5px; }
+.qprog-cell span { font-size: 11px; color: #5b7a74; }
+.qprog-cell.done { background: #e9f9f1; border-color: #34c77b; }
+.qprog-cell.today { border-color: #0d7a78; }
+.qprog-cell.sel { border-color: #0d7a78; box-shadow: 0 0 0 2px rgba(13, 122, 120, .35); }
+.qprog-hint { text-align: center; color: #5b7a74; font-size: 13px; margin: 10px 0 4px; }
+.qprog-sub2 { color: #33475b; font-size: 14px; margin: 2px 0 8px; }
+.qprog-edit { width: 100%; min-height: 52px; margin-top: 12px; font-size: 17px; }

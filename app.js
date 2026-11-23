@@ -4304,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-comparador-automatico');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-acceso-rapido');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -9967,6 +9967,250 @@ async function stuPlanProgressOpen(uid) {
     + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progMsTitle'))}</div>${msH}<p class="stu-prog-note">${esc(t('students.progMsNote'))}</p></div>`;
   fl.style.display = '';
 }
+/* ════════════════════════════════════════════════════════════════
+   AUTH-577 — ACCESO RÁPIDO DEL ENTRENADOR (órdenes de Ronald
+   2026-11-23: «Quiero tener acceso rápido a esta información de
+   progreso del estudiante cuando soy su entrenador» y «También
+   quisiera pasearme por los días asignados para mirar qué
+   ejercicios tiene asignados y editarlos también»; maquetas
+   aprobadas por Ronald el mismo día: «Bien así, constrúyelo»).
+   Tres pantallas propias con volver (regla de navegación de la
+   casa): el resumen «Progreso de {nombre}» (#stu-qprog-float),
+   estilo «Mi progreso» pero con los datos DEL ALUMNO; el paseo
+   por la semana de su plan (#stu-qdays-float); y el día asignado
+   (#stu-qday-float), cuyo [Editar día] abre openPlanEditor — el
+   editor de planes de siempre, con su selector, su guardado con
+   instantánea §6.4 y su puerta de salud — con ese día desplegado
+   (planDayOpenOnly). SOLO se añade la puerta: ningún cálculo
+   nuevo ni paralelo (los modelos son los de la casa:
+   stuCumplModel, stuPlanProgressModel, stuTrainTodayState,
+   gmFocusEffective; los formatos, los de la casa: wkChipTime,
+   mpSleepTxt, fitValTxt, shortDate, trainExName) y las lecturas
+   son las mismas que ya hace la vista del entrenador de «Mi
+   progreso» (mpTrainerLoad), con su doble compuerta de
+   consentimiento para el bienestar y el sueño: sin
+   consentimiento aceptado ni siquiera se consulta la colección.
+   Sin escrituras: abrir estas pantallas no escribe nada. La
+   puerta vive SOLO en el detalle que ven el entrenador y el
+   admin sobre un alumno (studentsDetailHTML); stuQProgOpen exige
+   además que el alumno esté en la lista de quien mira. ════════ */
+let STU_QP = null;   // { uid, name, data, dayIso } de las pantallas abiertas
+const stuQPfmt1 = v => String(Math.round(num(v) * 10) / 10);
+function stuQPShow(id) { const f = $(id); if (f) f.style.display = ''; try { coverSync(); } catch {} }
+function stuQPHide(id) { const f = $(id); if (f) f.style.display = 'none'; try { coverSync(); } catch {} }
+function stuQProgCloseAll() { stuQPHide('stu-qday-float'); stuQPHide('stu-qdays-float'); stuQPHide('stu-qprog-float'); }
+/* Las lecturas del alumno, espejo de mpTrainerLoad (la vista del
+   entrenador de «Mi progreso»): planes y registros de las cachés
+   del propio detalle cuando están (STU_PLANS / STU_TRAIN) o de
+   las lecturas de siempre (fetchPlans / fetchLogs); cada lectura
+   va protegida y un fallo deja su bloque en su estado vacío. */
+async function stuQProgLoad(uid) {
+  const D = { udata: {}, plans: [], plan: null, logs: [], weights: [], evals: {}, fits: [], meals: {}, well: null, sleep: null };
+  try { const ud = await getDoc(doc(db, 'users', uid)); if (ud.exists()) D.udata = ud.data() || {}; } catch {}
+  try { D.plans = (typeof STU_PLANS !== 'undefined' && STU_PLANS.uid === uid && STU_PLANS.plans) ? STU_PLANS.plans : await fetchPlans(uid); } catch { D.plans = []; }
+  D.plan = (D.plans || []).find(p => p && p.active === true) || null;
+  try { D.logs = (typeof STU_TRAIN !== 'undefined' && STU_TRAIN.uid === uid && STU_TRAIN.logs) ? STU_TRAIN.logs : await fetchLogs(uid); } catch { D.logs = []; }
+  try { const ws = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid))); ws.forEach(d => D.weights.push({ id: d.id, ...d.data() })); D.weights.sort(mpByDateAsc); } catch {}
+  try { const ps = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid))); ps.forEach(d => { const v = d.data(); if (v.kind === 'evaluation' && v.date) D.evals[v.date] = v; if (v.kind === 'fitTest') D.fits.push({ id: d.id, ...v }); }); } catch {}
+  try { const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid), where('date', '>=', histCutoffISO()))); ms.forEach(d => { const v = d.data(); if (!v.date) return; const tt = D.meals[v.date] = D.meals[v.date] || { kcal: 0, prot: 0, n: 0 }; tt.kcal += num(v.kcal); tt.prot += num(v.prot); tt.n++; }); } catch {}
+  try { const sh = await getDoc(doc(db, 'progress_share', uid)); if (sh.exists() && sh.data().wellness && sh.data().wellness.status === 'accepted') { D.well = []; const wl = await getDocs(query(collection(db, 'progress_wellness'), where('ownerUid', '==', uid))); wl.forEach(d => D.well.push({ id: d.id, ...d.data() })); D.well.sort(mpByDateDesc); } } catch {}
+  try { if (actShareActive(D.udata, 'sleep')) { D.sleep = {}; const ss = await getDocs(query(collection(db, 'activity_data'), where('clientUid', '==', uid), where('dataType', '==', 'sleep'))); ss.forEach(d => { const v = d.data(); if (v.date && !v.deletedAt) D.sleep[v.date] = num(v.value); }); } } catch {}
+  return D;
+}
+function stuQPTile(icon, title, lines) {
+  return `<div class="qprog-tile"><span class="qprog-tile-icon" aria-hidden="true">${icon}</span><span class="qprog-tile-name">${esc(title)}</span><span class="qprog-tile-data">${lines.join('')}</span></div>`;
+}
+/* Composición: su peso más reciente (kg y lb, como la maqueta) y
+   su grasa — la de sus pesajes si la trae (la misma fuente que
+   lee la tarjeta de «Mi progreso», mpCardBodyData) o la de su
+   evaluación más reciente; sin ninguna, el vacío honesto. */
+function stuQPCompHTML(D) {
+  const w = D.weights.length ? D.weights[D.weights.length - 1] : null;
+  let fat = null;
+  for (let i = D.weights.length - 1; i >= 0 && !fat; i--) if (num(D.weights[i].fat) > 0) fat = { v: num(D.weights[i].fat) };
+  if (!fat) for (const d of Object.keys(D.evals).sort().reverse()) { const c = (D.evals[d] && D.evals[d].comp && D.evals[d].comp.fat) || null; if (c && num(c.value) > 0) { fat = { v: num(c.value) }; break; } }
+  const lines = [];
+  lines.push(w ? `<span class="qprog-line qprog-big">${stuQPfmt1(w.weight)} kg · ${stuQPfmt1(num(w.weight) / UNIT_LB_KG)} lb · ${esc(shortDate(w.date))}</span>` : `<span class="qprog-line qprog-none">${esc(t('students.qprogWeightNone'))}</span>`);
+  lines.push(`<span class="qprog-line qprog-sub">${esc(fat ? t('students.qprogFat', { v: fmt(fat.v) }) : t('students.qprogFatNone'))}</span>`);
+  return stuQPTile('🧍', t('mp.c1'), lines);
+}
+/* Entrenamiento: hoy, esta semana y el avance — los modelos de
+   la casa (stuTrainTodayState y stuCumplModel), sin recomputar. */
+function stuQPTrainHTML(D) {
+  const lines = [];
+  const st = stuTrainTodayState(D.logs, D.plans);
+  if (st.kind === 'trained') { const log = st.log; lines.push(`<span class="qprog-line">${esc(t('students.trainToday'))} · ${esc(log.dayLabel || '')} · ${esc(t('students.progDayDone'))}${num(log.durationMin) > 0 ? ' · ' + esc(wkChipTime(Math.round(num(log.durationMin)))) : ''}</span>`); }
+  else if (st.kind === 'free') lines.push(`<span class="qprog-line">${esc(t('students.trainTodayFree'))}</span>`);
+  else lines.push(`<span class="qprog-line">${esc(t('students.trainTodayNone'))}</span>`);
+  const cm = stuCumplModel(D.logs, D.plans);
+  if (cm && cm.week) lines.push(`<span class="qprog-line">${esc(t('students.cumplWeek', { done: cm.week.done, planned: cm.week.planned }))}</span>`);
+  if (cm && cm.progress) lines.push(`<span class="qprog-line">${esc(t('students.cumplProgress', { done: cm.progress.done, planned: cm.progress.planned, pct: cm.progress.pct }))}</span>`);
+  if (!D.plan) lines.push(`<span class="qprog-line qprog-none">${esc(t('train.noPlan'))}</span>`);
+  return stuQPTile('🏋️', t('mp.c2'), lines);
+}
+/* Alimentación: su meta y su objetivo (gmFocusEffective sobre SU
+   documento, el resolvedor de la casa) y lo registrado hoy. */
+function stuQPFoodHTML(D) {
+  const lines = [];
+  const g = (D.udata && D.udata.goals) || {};
+  lines.push(num(g.kcal) > 0 ? `<span class="qprog-line">${esc(t('students.qprogGoal', { kcal: fmt(Math.round(num(g.kcal))) }))}</span>` : `<span class="qprog-line qprog-none">${esc(t('goals.none'))}</span>`);
+  const fx = gmFocusEffective(D.udata || {});
+  if (['mantener', 'bajar', 'ganar'].includes(fx.objective || '')) lines.push(`<span class="qprog-line">${esc(t('students.qprogObj', { obj: t('gm.obj.' + fx.objective) }))}</span>`);
+  const tm = D.meals[todayISO()];
+  lines.push(tm && tm.n ? `<span class="qprog-line qprog-sub">${esc(t('students.qprogTodayFood', { kcal: fmt(Math.round(tm.kcal)), n: tm.n }))}</span>` : `<span class="qprog-line qprog-sub">${esc(t('students.qprogTodayNone'))}</span>`);
+  return stuQPTile('🥗', t('mp.c3'), lines);
+}
+/* Recuperación: solo lo que el alumno comparte (la doble
+   compuerta de mpTrainerLoad); la composición de líneas es la de
+   mpCardWellData. Sin datos compartidos, el vacío honesto. */
+function stuQPWellHTML(D) {
+  const lines = [];
+  const sd = D.sleep ? Object.keys(D.sleep).filter(d => D.sleep[d] != null).sort().reverse() : [];
+  if (sd.length) lines.push(`<span class="qprog-line">${esc(mpSleepTxt(D.sleep[sd[0]]))} · ${esc(shortDate(sd[0]))}</span>`);
+  const w = (D.well && D.well.length) ? D.well[0] : null;
+  if (w) { const bits = []; if (w.energy) bits.push(esc(t('mp.f.energy')) + ' ' + w.energy + '/5'); if (w.fatigue) bits.push(esc(t('mp.f.fatigue')) + ' ' + w.fatigue + '/5'); if (w.stress) bits.push(esc(t('mp.f.stress')) + ' ' + w.stress + '/5'); if (bits.length) lines.push(`<span class="qprog-line">${bits.join(' · ')} · ${esc(shortDate(w.date))}</span>`); }
+  if (!lines.length) lines.push(`<span class="qprog-line qprog-none">${esc(t('students.qprogWellNone'))}</span>`);
+  return stuQPTile('🌙', t('mp.c4'), lines);
+}
+/* Sus pruebas físicas: el último resultado de cada prueba y
+   variante, con la MISMA regla y los MISMOS formatos de la serie
+   del entrenador (fitTrainerSectionHTML: complete !== false,
+   fitValTxt); sin resultados, el vacío honesto. */
+function stuQPTestsHTML(D) {
+  let inner;
+  if (!D.fits.length) inner = `<div class="qprog-line qprog-none">${esc(t('students.qprogTestsNone'))}</div>`;
+  else {
+    const sorted = D.fits.slice().sort((a, b) => (String(a.date) < String(b.date) ? -1 : String(a.date) > String(b.date) ? 1 : 0));
+    const latest = {};
+    for (const r of sorted) if (r.complete !== false) latest[r.test + '|' + (r.variant || 'std')] = r;
+    inner = Object.values(latest).map(r => `<div class="qprog-exrow"><span class="qprog-exname">${esc(t('fit.t.' + (FIT_TEST_ORDER.includes(r.test) ? r.test : 'sts1min')))} · ${esc(t('fit.var.' + (r.variant || 'std')))}</span><span class="qprog-chip">${esc(fitValTxt(r))}</span><span class="qprog-exdate">${esc(shortDate(r.date))}</span></div>`).join('');
+  }
+  return `<div class="qprog-tile qprog-tile-wide"><span class="qprog-tile-icon" aria-hidden="true">🧪</span><span class="qprog-tile-name">${esc(t('students.qprogTests'))}</span><div class="qprog-tests">${inner}</div></div>`;
+}
+/* La fila «Su peso»: nace plegada (regla de crecimiento de la
+   casa) y despliega sus pesajes más recientes. */
+function stuQPWeightHTML(D) {
+  const w = D.weights.length ? D.weights[D.weights.length - 1] : null;
+  if (!w) return '';
+  const rows = D.weights.slice(-8).reverse().map(x => `<div class="qprog-wrow-det"><span>${esc(dateName(x.date))}</span><span><b>${stuQPfmt1(x.weight)} kg</b> · ${stuQPfmt1(num(x.weight) / UNIT_LB_KG)} lb</span></div>`).join('');
+  return `<button type="button" class="stu-train-row qprog-wrow" data-qprog-wtoggle="1" aria-expanded="false"><span>⚖️ ${esc(t('students.qprogWeightRow', { kg: stuQPfmt1(w.weight) }))}</span><span class="sx">▾</span></button><div data-qprog-wdet style="display:none">${rows}</div>`;
+}
+function stuQProgHTML(D) {
+  return `<div class="qprog-grid">${stuQPCompHTML(D)}${stuQPTrainHTML(D)}${stuQPFoodHTML(D)}${stuQPWellHTML(D)}</div>`
+    + stuQPTestsHTML(D)
+    + stuQPWeightHTML(D)
+    + (D.plan ? `<button type="button" class="btn-qprog-full" data-qprog-full="1">${esc(t('students.qprogFull'))} ›</button>` : '');
+}
+async function stuQProgOpen(uid) {
+  const fl = $('stu-qprog-float'); if (!fl) return;
+  const u = ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(x => x.id === uid) || null;
+  if (!u) return;   // la puerta solo existe sobre SUS alumnos
+  const name = stuName(u);
+  STU_QP = { uid, name, data: null, dayIso: null };
+  const ttl = $('stu-qprog-title'); if (ttl) ttl.textContent = t('students.qprogTitle', { name });
+  const x = $('btn-stu-qprog-close'); if (x) x.onclick = () => stuQProgCloseAll();
+  const bk = $('stu-qprog-back'); if (bk) bk.onclick = () => stuQProgCloseAll();
+  const body = $('stu-qprog-body'); if (!body) return;
+  body.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
+  stuQPShow('stu-qprog-float');
+  const D = await stuQProgLoad(uid);
+  if (!STU_QP || STU_QP.uid !== uid) return;
+  STU_QP.data = D;
+  body.innerHTML = stuQProgHTML(D);
+  stuQProgWire(body);
+}
+function stuQProgWire(body) {
+  const wt = body.querySelector('[data-qprog-wtoggle]');
+  if (wt) wt.onclick = () => { const det = body.querySelector('[data-qprog-wdet]'); if (!det) return; const open = det.style.display !== 'none'; det.style.display = open ? 'none' : ''; wt.setAttribute('aria-expanded', open ? 'false' : 'true'); };
+  const fb = body.querySelector('[data-qprog-full]');
+  if (fb) fb.onclick = () => stuQDaysOpen();
+}
+/* La tira de la semana: con ventana de plan, la del modelo de
+   «Progreso en este plan» (stuPlanProgressModel); sin ventana, la
+   misma regla (careDayFor por día + registros cerrados) con la
+   que ese modelo la arma — ninguna regla nueva. */
+function stuQProgStrip(plan, logs) {
+  const s = String(plan.startsAt || '').slice(0, 10), e = String(plan.endsAt || '').slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s) && /^\d{4}-\d{2}-\d{2}$/.test(e) && e >= s) return stuPlanProgressModel(plan, logs).strip;
+  const doneDates = new Set((Array.isArray(logs) ? logs : []).filter(wkIsClosed).map(l => l.date));
+  const today = todayISO(), mon = mondayISO(today), out = [];
+  for (let i = 0; i < 7; i++) {
+    const iso = addDaysISO(mon, i);
+    const r = careDayFor(plan, null, iso);
+    const isPlanDay = !!(r && r.mode !== 'rotation' && r.idx != null);
+    const free = isPlanDay && (((plan.days || [])[r.idx] || {}).freeDay === true);
+    out.push({ iso, wd: i, planDay: isPlanDay && !free, free, done: doneDates.has(iso), today: iso === today });
+  }
+  return out;
+}
+function stuQDaysOpen() {
+  const Q = STU_QP; if (!Q || !Q.data || !Q.data.plan) return;
+  const ttl = $('stu-qdays-title'); if (ttl) ttl.textContent = t('students.progTitle');
+  const x = $('btn-stu-qdays-close'); if (x) x.onclick = () => stuQProgCloseAll();
+  const bk = $('stu-qdays-back'); if (bk) bk.onclick = () => { stuQPHide('stu-qday-float'); stuQPHide('stu-qdays-float'); stuQPShow('stu-qprog-float'); };
+  stuQDaysPaint();
+  stuQPHide('stu-qprog-float');
+  stuQPShow('stu-qdays-float');
+}
+function stuQDaysPaint() {
+  const Q = STU_QP; if (!Q || !Q.data || !Q.data.plan) return;
+  const body = $('stu-qdays-body'); if (!body) return;
+  const D = Q.data, plan = D.plan;
+  const cm = stuCumplModel(D.logs, D.plans);
+  const lines = [];
+  if (cm && cm.week) lines.push(`<div class="stu-cumpl-line">${esc(t('students.cumplWeek', { done: cm.week.done, planned: cm.week.planned }))}</div>`);
+  lines.push(stuTrainTodayLineHTML(stuTrainTodayState(D.logs, D.plans)));
+  if (cm && cm.progress) lines.push(`<div class="stu-cumpl-line">${esc(t('students.cumplProgress', { done: cm.progress.done, planned: cm.progress.planned, pct: cm.progress.pct }))}</div>`);
+  const cells = stuQProgStrip(plan, D.logs).map(c => {
+    const st = c.done ? t('students.progDayDone') : c.free ? t('train.free.label') : c.planDay ? t('students.progDayDue') : '—';
+    return `<button type="button" class="qprog-cell${c.done ? ' done' : ''}${c.today ? ' today' : ''}${Q.dayIso === c.iso ? ' sel' : ''}" data-qday="${c.iso}"><b>${esc((DAYNAMES[LANG] || DAYNAMES.en)[c.wd])} ${Number(c.iso.slice(8, 10))}</b><span>${esc(st)}</span></button>`;
+  }).join('');
+  body.innerHTML = `<div class="qprog-card"><div class="qprog-card-t">🏋️ ${esc(t('students.qprogPlanCard'))}</div><p class="qprog-card-sub"><b>${esc(plan.title || '')}</b> · ${esc(Q.name)}</p>${lines.join('')}</div>`
+    + `<div class="qprog-strip">${cells}</div><p class="qprog-hint">${esc(t('students.qprogTapDay'))}</p>`;
+  body.querySelectorAll('[data-qday]').forEach(b => b.onclick = () => stuQDayOpen(b.dataset.qday));
+}
+/* El día asignado: sus ejercicios (el nombre resuelto de la casa,
+   trainExName, y las series con el mismo formato de
+   trainExercisesHTML) y la puerta [Editar día]. */
+function stuQDayOpen(iso) {
+  const Q = STU_QP; if (!Q || !Q.data || !Q.data.plan) return;
+  const D = Q.data, plan = D.plan;
+  Q.dayIso = iso;
+  const r = careDayFor(plan, null, iso);
+  const idx = (r && r.mode !== 'rotation' && r.idx != null) ? r.idx : null;
+  const day = idx != null ? (plan.days || [])[idx] : null;
+  const done = (Array.isArray(D.logs) ? D.logs : []).some(l => l && l.date === iso && wkIsClosed(l));
+  const ttl = $('stu-qday-title'); if (ttl) ttl.textContent = stuShortDay(iso) + (day && day.label ? ' — ' + day.label : '');
+  const x = $('btn-stu-qday-close'); if (x) x.onclick = () => stuQProgCloseAll();
+  const bk = $('stu-qday-back'); if (bk) bk.onclick = () => { stuQPHide('stu-qday-float'); stuQDaysPaint(); stuQPShow('stu-qdays-float'); };
+  const body = $('stu-qday-body'); if (!body) return;
+  let inner;
+  if (!day) inner = `<div class="wempty">${esc(t('students.qprogNoDay'))}</div>`;
+  else if (day.freeDay === true) inner = `<p class="qprog-sub2">${esc(t('students.qprogDaySub'))} · ${esc(t('train.free.label'))}</p><div class="wempty">${esc(t('train.freeDay.assignedNote'))}</div>`;
+  else {
+    const state = done ? t('students.progDayDone') : t('students.qprogDayDue');
+    const rows = (day.exercises || []).map((ex, i) => `<div class="qprog-exrow"><span class="qprog-exn">${i + 1}</span><span class="qprog-exname">${esc(trainExName(ex) || ex.name || '')}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</span><span class="qprog-chip">${esc([ex.sets, ex.reps].filter(Boolean).join(' × '))}</span></div>`).join('');
+    inner = `<p class="qprog-sub2">${esc(t('students.qprogDaySub'))} · <b>${esc(state)}</b></p>${rows || `<div class="wempty">${esc(t('students.qprogNoDay'))}</div>`}`;
+  }
+  if (day) inner += `<button type="button" class="btn-primary qprog-edit" data-qday-edit="${idx}">✏️ ${esc(t('students.qprogEditDay'))}</button><p class="qprog-hint">${esc(t('students.qprogEditNote'))}</p>`;
+  body.innerHTML = inner;
+  const eb = body.querySelector('[data-qday-edit]');
+  if (eb) eb.onclick = () => stuQDayEdit(Number(eb.dataset.qdayEdit));
+  stuQPShow('stu-qday-float');
+}
+/* [Editar día]: el editor de planes DE SIEMPRE con el plan del
+   alumno, nacido con ese día desplegado (planDayOpenOnly). El
+   editor de sesión (la capa de ediciones del teléfono) NO
+   interviene: el cambio se guarda en el documento del plan. */
+function stuQDayEdit(di) {
+  const Q = STU_QP; if (!Q || !Q.data || !Q.data.plan) return;
+  const plan = Q.data.plan, uid = Q.uid;
+  stuQProgCloseAll();
+  STU_QP = null;
+  openPlanEditor(uid, plan);
+  const wraps = document.querySelectorAll('#pl-days .pl-day');
+  if (wraps[di]) planDayOpenOnly(wraps[di]);
+}
 /* LA BANDEJA «Revisar propuestas» — junta las tres familias que
    el entrenador decide, cada una con SU pintor y SU resolvedor de
    siempre. El contador del botón del bloque cuenta pendientes de
@@ -10837,6 +11081,12 @@ function studentsDetailHTML(u) {
      y el admin sobre un alumno): en la vista del propio alumno no
      existe. */
   h += `<button type="button" class="btn-tmeas" data-stu-tmeas="${u.id}">📏 ${esc(t('tmeas.btn'))}</button>`;
+  /* AUTH-577: la puerta del acceso rápido a su progreso — ancho
+     completo, fuera de todo pliegue, justo bajo «Tomar medidas»;
+     abre su pantalla propia (#stu-qprog-float). Vive SOLO en esta
+     superficie (el detalle que ven el entrenador y el admin sobre
+     un alumno): en la vista del propio alumno no existe. */
+  h += `<button type="button" class="btn-qprog" data-stu-qprog="${u.id}">📊 ${esc(t('students.qprogBtn'))}</button>`;
   h += stuFoldLineHTML('plan', t('students.planBlock'));
   h += stuFoldLineHTML('chal', t('students.chalBlock'));
   h += stuFoldLineHTML('train', t('students.trainBlock'));
@@ -10928,6 +11178,7 @@ function renderStudentsBody() {
   /* AUTH-571: el botón «📏 Tomar medidas» del detalle abre la
      pantalla propia de medidas del entrenador. */
   el.querySelectorAll('[data-stu-tmeas]').forEach(b => b.onclick = () => tmeasOpen(b.dataset.stuTmeas));
+  el.querySelectorAll('[data-stu-qprog]').forEach(b => b.onclick = () => stuQProgOpen(b.dataset.stuQprog));
   /* AUTH-565: las líneas plegadas del detalle abren la hoja
      propia de su bloque (plan / retos / entrenamiento). */
   el.querySelectorAll('[data-stu-line]').forEach(b => b.onclick = () => stuSheetOpen(b.dataset.stuLine));
@@ -19101,7 +19352,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-comparador-automatico' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-acceso-rapido' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -61965,7 +62216,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-comparador-automatico';
+const PWA_SW_VERSION = '20261123-acceso-rapido';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

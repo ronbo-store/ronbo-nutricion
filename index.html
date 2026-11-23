@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-comparador-automatico">
+<link rel="stylesheet" href="styles.css?v=20261123-acceso-rapido">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1537,6 +1537,21 @@
     <div class="act-sheet-head"><h2 class="act-sheet-title" id="stu-tray-title"></h2><button type="button" class="act-sheet-x" id="btn-stu-tray-close" aria-label="Close">✕</button></div>
     <div id="stu-tray-body"></div>
   </div>
+  <div class="act-float act-sheet" id="stu-qprog-float" style="display:none" role="dialog" aria-label="Student progress summary">
+    <div class="act-sheet-head"><h2 class="act-sheet-title" id="stu-qprog-title"></h2><button type="button" class="act-sheet-x" id="btn-stu-qprog-close" aria-label="Close">✕</button></div>
+    <button type="button" class="back-row" id="stu-qprog-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="stu-qprog-body"></div>
+  </div>
+  <div class="act-float act-sheet" id="stu-qdays-float" style="display:none" role="dialog" aria-label="Progress in this plan">
+    <div class="act-sheet-head"><h2 class="act-sheet-title" id="stu-qdays-title"></h2><button type="button" class="act-sheet-x" id="btn-stu-qdays-close" aria-label="Close">✕</button></div>
+    <button type="button" class="back-row" id="stu-qdays-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="stu-qdays-body"></div>
+  </div>
+  <div class="act-float act-sheet" id="stu-qday-float" style="display:none" role="dialog" aria-label="Plan day">
+    <div class="act-sheet-head"><h2 class="act-sheet-title" id="stu-qday-title"></h2><button type="button" class="act-sheet-x" id="btn-stu-qday-close" aria-label="Close">✕</button></div>
+    <button type="button" class="back-row" id="stu-qday-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="stu-qday-body"></div>
+  </div>
 
   <!-- «Mi horario diario» — Horarios de alimentación sugeridos
        (especificación de Ronald, 2026-11-09; SOLO desarrollo):
@@ -2845,6 +2860,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-comparador-automatico"></script>
+<script type="module" src="app.js?v=20261123-acceso-rapido"></script>
 </body>
 </html>
