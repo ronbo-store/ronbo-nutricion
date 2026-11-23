@@ -4304,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-cierre-directo');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-evaluacion-ecuacion');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -9467,7 +9467,14 @@ function studentsPendItemHTML(uid, it, isTrace) {
      «✉ Avisar» lee childNodes[0] de .stu-pend-title, intacto) y
      las pastillas comparten su línea, envolviendo si no caben.
      Contenido, sellos, botones y cableado: los de siempre. */
-  return `<div class="stu-pend-item${isTrace ? ' trace' : ''}">
+  /* AUTH-575 (directiva de Ronald, 2026-11-23: cuando a un alumno
+     le falta algo se marca EN ROJO y con mucha claridad): la fila
+     VIVA de un pendiente requerido (kind «req») lleva la paleta
+     roja de la casa (.stu-pend-req). Los ítems «auto» NO se
+     pintan: nada falta — su cálculo se activa solo (D4) — y las
+     trazas son historial, no una falta viva. */
+  const reqCls = (!isTrace && it.kind === 'req' && !it.auto) ? ' stu-pend-req' : '';
+  return `<div class="stu-pend-item${isTrace ? ' trace' : ''}${reqCls}">
     <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
     <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}</span><span class="stu-pend-tags">${seal}${catChip}</span>
     ${sub ? `<span class="stu-pend-sub">${sub}</span>` : ''}${it.auto === 'eval' ? `<span class="stu-pend-sub stu-pend-note">${esc(t('students.cause.autoNote'))}</span>` : ''}</span>
@@ -9494,7 +9501,14 @@ function studentsPendItemHTML(uid, it, isTrace) {
    de la casa y el cursor —: se ve tocable sin gritar tarea
    pendiente sobre algo ya resuelto. Sin fila pintada (sin
    resultado o sin origen) no se pierde ninguna puerta: el botón
-   vivía dentro de esta misma fila y tampoco existía. */
+   vivía dentro de esta misma fila y tampoco existía.
+   AUTH-575 (decisión de Ronald, 2026-11-23 11:54 CST: «Que se
+   resuelva solo si ya hay fórmula automática»): el sello
+   «DEPENDE DE TI» DESAPARECE de esta fila para AMBOS orígenes —
+   la fila es estado, no tarea: con origen 'auto' el sistema ya
+   colocó la fórmula y ya la usa, y con origen del entrenador la
+   causa ya dice su origen real («elegida por su entrenador»).
+   La fila, su causa y su puerta de ajuste quedan intactas. */
 function studentsEqRowHTML(uid, chk) {
   const b = chk && chk.base;
   if (!b || !b.hasResult) return '';
@@ -9504,7 +9518,7 @@ function studentsEqRowHTML(uid, chk) {
   else return '';
   return `<div class="stu-pend-item stu-eq-row" data-stu-act="eqrow" data-stu-req="" data-stu-uid="${uid}" role="button" tabindex="0" title="${esc(t('students.act.eqAdjust'))}">
     <span class="stu-pend-ico" style="background:#e0f2f1">📐</span>
-    <span class="stu-pend-main"><span class="stu-pend-title">${esc(t('students.eq.title'))}</span><span class="stu-pend-tags"><span class="stu-dep stu-dep-you">${esc(t('students.dep.you'))}</span></span>
+    <span class="stu-pend-main"><span class="stu-pend-title">${esc(t('students.eq.title'))}</span>
     <span class="stu-pend-sub">${esc(cause)}</span></span>
     <span class="stu-eq-chev" aria-hidden="true">›</span>
   </div>`;
@@ -11204,7 +11218,12 @@ function pendConsultTitleFor(uid, target) {
   if (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.pendByUid) pools.push(STUDENTS_LAST.pendByUid[uid]);
   if (typeof CLIENTS_LAST !== 'undefined' && CLIENTS_LAST && CLIENTS_LAST.tpendByUid) pools.push(CLIENTS_LAST.tpendByUid[uid]);
   for (const p of pools) { const it = ((p && p.items) || []).find(match); if (it) return studentsItemTitle(it); }
-  return t({ energy: 'students.req.eval', goals: 'students.req.goals', weight: 'students.item.weightWeekly', evals: 'students.item.eval', food: 'students.item.food', body: 'students.pend.body' }[target] || 'students.req.eval');
+  /* AUTH-575: sin ítem vivo que case, el título NO afirma la falta
+     (el fallback anterior titulaba «Falta su evaluación inicial»
+     sobre un pendiente ya resuelto — y sobre la fila de la
+     ecuación, que ni siquiera es un pendiente): título neutro de
+     la superficie consultada, nunca la afirmación falsa. */
+  return t({ energy: 'fa.title', goals: 'goals.title', weight: 'students.item.weightWeekly', evals: 'students.item.eval', food: 'students.item.food', body: 'students.pend.body' }[target] || 'fa.title');
 }
 function pendConsultApply(uid) {
   const W = PEND_CONSULT_WANT;
@@ -11240,7 +11259,7 @@ function pendConsultOpen(uid, target, hosts) {
   if (title) title.textContent = pendConsultTitleFor(uid, target);
   if (help) help.textContent = t('consult.help.' + target);
   const nodes = hosts.map(el => { const anchor = document.createElement('div'); anchor.className = 'pend-consult-anchor'; el.parentNode.insertBefore(anchor, el); body.appendChild(el); return { el, anchor }; });
-  PEND_CONSULT = { uid, target, nodes, scrollY: window.scrollY || 0, obs: null, returning: false, rehosting: false, armed: false, armedAt: 0, armClick: null, armSubmit: null };
+  PEND_CONSULT = { uid, target, nodes, scrollY: window.scrollY || 0, obs: null, returning: false, rehosting: false, armed: false, armedAt: 0, armClick: null, armSubmit: null, footBtn: null };
   const C = PEND_CONSULT;
   C.armClick = e => {
     if (PEND_CONSULT !== C) return;
@@ -11252,6 +11271,7 @@ function pendConsultOpen(uid, target, hosts) {
   document.addEventListener('submit', C.armSubmit, true);
   const x = $('pend-consult-x'); if (x) x.onclick = () => pendConsultCloseX();
   sheet.style.display = '';
+  pendConsultFootSync();
   try { sheet.scrollTop = 0; } catch {}
   const box = $('client-detail');
   if (box && typeof MutationObserver !== 'undefined') {
@@ -11297,6 +11317,36 @@ function pendConsultRewire(body, uid) {
   const act = body.querySelector('#fa-act');
   if (act && pal && !act.dataset.pendWire) { act.dataset.pendWire = '1'; act.addEventListener('change', () => { if (faPalAutoApply(act, pal)) faPalSync(); }); }
 }
+/* AUTH-575 (orden de Ronald, 2026-11-23): el Guardar de la tarjeta
+   de energía vive en el PIE FIJO de la hoja mientras la consulta
+   está abierta — siempre visible y alcanzable aunque el gesto de
+   scroll falle en su teléfono (el patrón del pie fijo de AUTH-373,
+   .acts-foot). Es EL MISMO botón de siempre, movido con su ancla:
+   al cerrar la hoja vuelve a su sitio de la tarjeta; nunca hay
+   dos Guardar ni un guardado duplicado. */
+function pendConsultFootSync() {
+  const foot = $('pend-consult-foot'); if (!foot) return;
+  pendConsultFootRestore();
+  const body = $('pend-consult-body');
+  const sv = body ? body.querySelector('#fa-save') : null;
+  if (!sv || !PEND_CONSULT) return;
+  const row = sv.closest('.fa-btnrow') || sv;
+  if (!row.parentNode) return;
+  const anchor = document.createElement('div'); anchor.className = 'pend-consult-anchor';
+  row.parentNode.insertBefore(anchor, row);
+  foot.appendChild(row);
+  foot.style.display = '';
+  PEND_CONSULT.footBtn = { el: row, anchor };
+}
+function pendConsultFootRestore() {
+  const C = PEND_CONSULT;
+  if (C && C.footBtn) {
+    const held = C.footBtn; C.footBtn = null;
+    if (held.anchor && held.anchor.isConnected) { held.anchor.parentNode.insertBefore(held.el, held.anchor); held.anchor.remove(); }
+  }
+  const foot = $('pend-consult-foot');
+  if (foot) { foot.innerHTML = ''; foot.style.display = 'none'; }
+}
 function pendConsultRehost() {
   const C = PEND_CONSULT;
   if (!C || C.returning || C.rehosting) return;
@@ -11310,6 +11360,7 @@ function pendConsultRehost() {
     body.innerHTML = '';
     C.nodes = hosts.map(el => { const anchor = document.createElement('div'); anchor.className = 'pend-consult-anchor'; el.parentNode.insertBefore(anchor, el); body.appendChild(el); return { el, anchor }; });
     pendConsultRewire(body, C.uid);
+    pendConsultFootSync();
   } else if (!(body && body.children.length)) {
     C.rehosting = false;
     pendConsultSaveReturn();
@@ -11321,6 +11372,8 @@ function pendConsultRehost() {
 function pendConsultTeardown() {
   const C = PEND_CONSULT; if (!C) return;
   pendConsultDisarm(C);
+  C.footBtn = null;
+  const footTd = $('pend-consult-foot'); if (footTd) { footTd.innerHTML = ''; footTd.style.display = 'none'; }
   PEND_CONSULT = null;
   const sheet = $('pend-consult-float'), body = $('pend-consult-body');
   if (body) body.innerHTML = '';
@@ -11329,6 +11382,7 @@ function pendConsultTeardown() {
 function pendConsultCloseX() {
   const C = PEND_CONSULT; if (!C) return;
   pendConsultDisarm(C);
+  pendConsultFootRestore();
   const box = $('client-detail');
   C.nodes.forEach(({ el, anchor }) => {
     if (anchor && anchor.isConnected) { anchor.parentNode.insertBefore(el, anchor); anchor.remove(); }
@@ -12232,6 +12286,21 @@ function faCardHTML(uid, a, weights, ps) {
   const thSel = !!a && a.equation === 'ten-haaf';
   const thReady = !!a && a.athleteDeclared === true;
   const signal = !!a && a.sexDataProvided === true;
+  /* AUTH-575 (directiva de Ronald, 2026-11-23: lo que falta, EN
+     ROJO y claro): cada campo que falta lleva la marca .fa-miss,
+     con las MISMAS pruebas de la base que ya calcula
+     clientProfileChecklist (byOk/hOk/palOk/sexOk sobre este mismo
+     documento de evaluación) — sin lógica nueva ni lecturas
+     nuevas. «act» es la cara visible de la misma pieza de
+     actividad: sin categoría elegida, el campo nace vacío. */
+  const byY575 = parseInt(a && a.birthYear, 10);
+  const miss575 = {
+    sex: !signal,
+    by: !(Number.isInteger(byY575) && byY575 >= 1900 && byY575 <= new Date().getFullYear() - 18),
+    h: !(a && num(a.heightCm) >= 50 && num(a.heightCm) <= 250),
+    pal: !(a && isFinite(num(a.palBasal)) && num(a.palBasal) >= 1.20 && num(a.palBasal) <= 2.00),
+    act: !(a && a.activityCategoryId)
+  };
   const selbox = eqSel
     ? `<div class="fa-selbox"><span class="fa-val">${esc(faEqName(a.equation))}</span><span class="fa-oktag">${t('fa.selected')}</span><span class="fa-chev">▾</span></div>`
     : `<div class="fa-selbox"><span class="fa-ph">${t('fa.noEquation')}</span><span class="fa-chev">▾</span></div>`;
@@ -12258,7 +12327,7 @@ function faCardHTML(uid, a, weights, ps) {
     <label class="fa-flabel">${t('fa.palLabel')}</label>
     <p class="fa-rules">${t('fa.palRules')}</p>
     <div class="fa-palguide" id="fa-pal-guide">${t('fa.palGuide')}</div>
-    <input type="text" inputmode="decimal" class="fa-pal-input" id="fa-pal" data-pal-auto-cat="${palAutoCat}" value="${esc(palVal)}" placeholder="${t('fa.palPlaceholder')}">
+    <input type="text" inputmode="decimal" class="fa-pal-input${miss575.pal ? ' fa-miss' : ''}" id="fa-pal" data-pal-auto-cat="${palAutoCat}" value="${esc(palVal)}" placeholder="${t('fa.palPlaceholder')}">
     <p class="fa-rules">${t('fa.palAutoNote')}</p>
     <div class="fa-warn" id="fa-pal-warn" style="display:none"><b>${t('fa.palWarn')}</b><br>${t('fa.palWarnBody')}
       <label class="fa-confirm"><input type="checkbox" id="fa-pal-confirm"${a && a.palExceptionConfirmed === true ? ' checked' : ''}> <span>${t('fa.palConfirm')}</span></label></div>
@@ -12304,7 +12373,7 @@ function faCardHTML(uid, a, weights, ps) {
     ${flash ? `<div class="fa-flash">✓ ${esc(flash)}</div>` : ''}
     ${fichaFoldHead('base', 'ffold.base')}
     <div id="ffold-body-base"${fichaFoldBodyAttr('base')}>
-    <div class="fa-signal">${t('fa.provided', { v: signal ? t('fa.yes') : t('fa.no') })}</div>
+    <div class="fa-signal${miss575.sex ? ' fa-miss' : ''}">${t('fa.provided', { v: signal ? t('fa.yes') : t('fa.no') })}</div>
     <div class="fa-signal">${t('fa.athleteSignal', { v: thReady ? t('fa.yes') : t('fa.no') })}</div>
     <div class="fa-athctl"><span class="fa-athctl-q">${t('fa.athCtlQ')}</span><span class="fa-athctl-btns"><button type="button" class="fa-athbtn${thReady ? ' sel' : ''}" data-fa-ath="1" aria-pressed="${thReady}">${t('fa.yes')}</button><button type="button" class="fa-athbtn${thReady ? '' : ' sel'}" data-fa-ath="0" aria-pressed="${!thReady}">${t('fa.no')}</button></span></div>
     ${thReady && thSel ? `<p class="fa-athwarn">${t('fa.athThWarn')}</p>` : ''}
@@ -12313,8 +12382,8 @@ function faCardHTML(uid, a, weights, ps) {
     ${eqSel ? '' : `<p class="fa-autonote">${t('fa.autoNote')}</p>`}
     <div class="fa-divider"></div>
     <div class="fa-frow">
-      <div><label class="fa-flabel">${t('fa.birthYear')}</label><input type="text" inputmode="numeric" id="fa-by" value="${a && a.birthYear ? a.birthYear : ''}" placeholder="1996"></div>
-      <div><label class="fa-flabel">${esc(t('units.heightField', { u: UNIT_PREFS.height === 'ft-in' ? 'ft/in' : 'cm' }))}</label><input type="text" inputmode="decimal" id="fa-h" value="${a && a.heightCm ? esc(heightDisplayValue(a.heightCm)) : ''}" placeholder="${UNIT_PREFS.height === 'ft-in' ? '5\'9"' : '175'}"></div>
+      <div><label class="fa-flabel">${t('fa.birthYear')}</label><input type="text" inputmode="numeric" id="fa-by"${miss575.by ? ' class="fa-miss"' : ''} value="${a && a.birthYear ? a.birthYear : ''}" placeholder="1996"></div>
+      <div><label class="fa-flabel">${esc(t('units.heightField', { u: UNIT_PREFS.height === 'ft-in' ? 'ft/in' : 'cm' }))}</label><input type="text" inputmode="decimal" id="fa-h"${miss575.h ? ' class="fa-miss"' : ''} value="${a && a.heightCm ? esc(heightDisplayValue(a.heightCm)) : ''}" placeholder="${UNIT_PREFS.height === 'ft-in' ? '5\'9"' : '175'}"></div>
     </div>
     ${UNIT_PREFS.height === 'ft-in' ? `<p class="progress-hint">${esc(t('units.heightHintFtin'))}</p>` : ''}
     <div class="basis">${last ? t('fa.weightBasis', { w: fmtMass(last.weight), date: dateName(last.date) }) : t('fa.noWeight')}</div>
@@ -12327,7 +12396,7 @@ function faCardHTML(uid, a, weights, ps) {
     ${fichaFoldHead('activity', 'ffold.activity')}
     <div id="ffold-body-activity"${fichaFoldBodyAttr('activity')}>
     <label class="fa-flabel">${t('fa.actLabel')}</label>
-    <select id="fa-act" class="fa-select"><option value="">${t('fa.actNone')}</option>${actOpts}</select>
+    <select id="fa-act" class="fa-select${miss575.act ? ' fa-miss' : ''}"><option value="">${t('fa.actNone')}</option>${actOpts}</select>
     ${palBlock}
     </div>
     <div class="fa-btnrow"><button type="button" class="btn-primary btn-sm" id="fa-save">${t('fa.saveConfig')}</button></div>
@@ -19032,7 +19101,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-cierre-directo' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-evaluacion-ecuacion' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -61896,7 +61965,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-cierre-directo';
+const PWA_SW_VERSION = '20261123-evaluacion-ecuacion';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

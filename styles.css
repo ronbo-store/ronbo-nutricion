@@ -978,6 +978,10 @@ table.whist { min-width: 640px; }
 
 /* ===== F-A1/F-A2 · cálculo energético (Etapa 2, desarrollo) ===== */
 .fa-signal { margin-top: 8px; font-size: 13px; color: #374151; background: #eefbf7; border: 1px solid #99e5d8; border-radius: 8px; padding: 7px 10px; }
+/* AUTH-575 (directiva de Ronald, 2026-11-23): el campo que falta
+   en la tarjeta de evaluación se marca EN ROJO — la paleta de la
+   casa de .stu-cat-chip-ind — para verlo de un vistazo. */
+.fa-card .fa-miss { background: #fee2e2 !important; border-color: #b91c1c !important; color: #b91c1c !important; }
 .fa-flabel { display: block; font-size: 13px; font-weight: 600; color: #374151; margin: 12px 0 0; }
 .fa-selbox { margin-top: 5px; background: #fff; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
 .fa-selbox .fa-ph { flex: 1; color: #6b7280; font-style: italic; }
@@ -1062,8 +1066,21 @@ table.whist { min-width: 640px; }
    título; el «Cerrar» propio de la ficha no se duplica dentro de
    la ventana (su salida es la ✕ de la hoja); el ancla que marca el
    sitio original del bloque en la ficha no se ve. */
-.pend-consult { z-index: 47; }
+/* AUTH-575 (orden de Ronald, 2026-11-23): la hoja de consulta
+   queda POR ENCIMA de la barra de navegación inferior
+   (.actions-dock, z 47) y de la encuesta de sesión (z 48) mientras
+   está abierta — a 47 empataba con la barra y perdía por orden de
+   DOM, dejando el final de la tarjeta tapado en su iPhone. Los
+   modales de la casa (z 50) siguen por encima. */
+.pend-consult { z-index: 49; }
 .pend-consult-help { margin: 2px 0 10px; font-size: 13px; color: #475569; line-height: 1.45; }
+/* AUTH-575: pie fijo de la hoja de consulta (el patrón .acts-foot
+   de AUTH-373): el Guardar de la tarjeta de energía vive aquí
+   mientras la hoja está abierta — siempre visible al pie de la
+   hoja, alcanzable aunque el desplazamiento falle. */
+.pend-consult-foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: #fff; border-top: 1px solid rgba(15, 23, 42, .10); border-radius: 0 0 18px 18px; }
+.pend-consult-foot .fa-btnrow { margin-top: 0; }
+.pend-consult-foot #fa-save { min-height: 44px; padding-left: 24px; padding-right: 24px; }
 /* REGISTRO CON PROPÓSITO (AUTH-2026-11-01-147; maquetas mq1–mq5
    aprobadas por Ronald 2026-11-01): la ventana del propósito
    reutiliza .pend-float; dentro, tarjetas de opción de ~76 px con
@@ -2862,6 +2879,11 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 .stu-pend-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eef2f5; }
 .stu-pend-item:last-of-type { border-bottom: none; }
 .stu-pend-item.trace { opacity: .72; }
+/* AUTH-575 (directiva de Ronald, 2026-11-23): la fila viva de un
+   pendiente REQUERIDO se pinta en rojo — la paleta de la casa de
+   .stu-cat-chip-ind — para que lo que falta se vea de lejos. */
+.stu-pend-item.stu-pend-req { background: #fee2e2; border-radius: 10px; padding-left: 10px; padding-right: 10px; }
+.stu-pend-item.stu-pend-req .stu-pend-title, .stu-pend-item.stu-pend-req .stu-pend-sub { color: #b91c1c; }
 .stu-pend-ico { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex: none; font-size: 21px; }
 .stu-pend-main { flex: 1 1 auto; min-width: 0; }
 .stu-pend-title { font-size: 14.5px; font-weight: 700; color: #1f2a44; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
