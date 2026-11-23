@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-mascota-ejecuta">
+<link rel="stylesheet" href="styles.css?v=20261123-asignar-retos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -2379,6 +2379,14 @@ cuando no hay declaración legible (decisión 5). -->
   </div>
   <div id="plan21-body"></div>
 </div>
+<!-- AUTH-559: la hoja de asignar un reto vigente al alumno (su propia pantalla, con volver a la ficha). -->
+<div class="pend-float pend-consult" id="chal-assign-float" style="display:none" role="dialog">
+  <div class="pend-head">
+    <h2><span data-i18n="chal.assign.title">Asignar reto</span></h2>
+    <button type="button" class="pend-close" id="chal-assign-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+  </div>
+  <div id="chal-assign-body"></div>
+</div>
 
 <div class="pend-float pend-consult" id="plan-ai-float" style="display:none" role="dialog">
   <div class="pend-head">
@@ -2628,6 +2636,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-mascota-ejecuta"></script>
+<script type="module" src="app.js?v=20261123-asignar-retos"></script>
 </body>
 </html>

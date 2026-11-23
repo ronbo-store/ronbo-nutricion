@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-mascota-ejecuta');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-asignar-retos');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -9801,6 +9801,155 @@ async function loadStudentPlans(uid) {
   const blk = document.querySelector('#stu-plan-block');
   if (blk) { blk.outerHTML = stuPlanBlockHTML({ id: uid }); stuPlansWireCurrent(uid); }
 }
+
+/* ══ AUTH-559 · BLOQUE «RETOS» DE LA FICHA DEL ALUMNO ══════════
+   Bajo «Su plan de entrenamiento» (AUTH-341): una tarjeta por
+   cada reto VIGENTE (chalVigentesList: la misma fuente que la
+   pestaña de Retos del alumno) con su estado real para ESTE
+   alumno (chalPlan21State sobre la caché de planes del bloque
+   de planes, con la espera de salud ya evaluada) y, cuando aún
+   no lo tiene y quien mira es SU entrenador, el botón «Asignar
+   reto». Sin relación de entrenador, el bloque enseña el estado
+   pero nunca ofrece asignar. La asignación es DIRECTA (decisión
+   de Ronald, 2026-11-22): el reto nace activo al confirmar —
+   o en espera de salud, con la puerta de AUTH-493 — sin pedirle
+   al alumno ninguna entrada; es además la puerta de aprobación
+   del mecanismo de niveles (el no principiante recibe el Reto
+   porque su entrenador se lo asigna). ═══════════════════════ */
+let STU_CHAL = { uid: null, states: null, loadingFor: null };
+function stuChalCanAssign(u) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  return !!(me && u && u.trainerUid && u.trainerUid === me);
+}
+function stuChalBlockHTML(u) {
+  const loaded = STU_CHAL.uid === u.id && !!STU_CHAL.states;
+  const inner = !loaded
+    ? `<div class="wempty">${esc(t('access.loading'))}</div>`
+    : (chalVigentesList().map(v => stuChalCardHTML(u, v)).join('') || `<div class="wempty">${esc(t('chal.assign.noneLive'))}</div>`);
+  return `<div class="stu-plan-block stu-chal-block" id="stu-chal-block"><h3 class="history-title">${esc(t('students.chalBlock'))}</h3>${inner}</div>`;
+}
+function stuChalCardHTML(u, v) {
+  const st = (STU_CHAL.states && STU_CHAL.states[v.kind]) || { state: 'none', plan: null, dayIx: 0 };
+  let stateLine = '';
+  if (st.state === 'active' && st.plan) {
+    const when = st.dayIx >= 0
+      ? esc(t('plan21.dayOf', { x: st.dayIx + 1 }))
+      : esc(t('plan21.sheetStart', { date: plan21DateLabel(st.plan.startsAt), date2: plan21DateLabel(st.plan.endsAt) }));
+    stateLine = `<p class="stu-chal-state">✅ ${esc(t('chal.assign.stateActive'))} · ${when}</p>`;
+  }
+  else if (st.state === 'hold') stateLine = `<p class="stu-chal-state">⏳ ${esc(t('chal.assign.stateHold'))}</p>`;
+  else if (st.state === 'done') stateLine = `<p class="stu-chal-state">🏁 ${esc(t('chal.assign.stateDone'))}</p>`;
+  else if (st.state === 'sent') stateLine = `<p class="stu-chal-state">✉️ ${esc(t('chal.assign.stateSent'))}</p>`;
+  const btn = (!st.plan && stuChalCanAssign(u))
+    ? `<button type="button" class="btn-primary stu-chal-btn" data-chal-assign-open="${esc(v.kind)}">${esc(t('chal.assign.btn'))}</button>` : '';
+  return `<div class="chal-item stu-chal-card">
+    <div class="chal-item-head"><span class="chal-head-l"><b>${esc(t(v.titleKey))}</b></span><span class="chal-head-tags"><span class="chal-tag chal-tag-live">${esc(t('chal.assign.liveTag'))}</span><span class="chal-tag">${esc(t(v.tagKey))}</span></span></div>
+    <p class="chal-metric">${esc(t(v.descKey))}</p>
+    ${stateLine}${btn}</div>`;
+}
+async function loadStudentChal(uid) {
+  if (STU_CHAL.uid === uid && STU_CHAL.states) { stuChalWireCurrent(uid); return; }
+  if (STU_CHAL.loadingFor === uid) return;
+  STU_CHAL.loadingFor = uid;
+  /* El estado se lee de los MISMOS planes del bloque de planes
+     (su carga ya evaluó la espera de salud): si esa carga está
+     en vuelo para este alumno, se espera a que aterrice — con
+     tope — para no pintar un estado anterior a la activación
+     automática. */
+  for (let i = 0; i < 60 && STU_PLANS.loadingFor === uid; i++) await new Promise(r => setTimeout(r, 50));
+  const plans = (STU_PLANS.uid === uid && STU_PLANS.plans) ? STU_PLANS.plans : null;
+  const states = {};
+  for (const v of chalVigentesList()) {
+    if (v.kind === 'plan21') {
+      try { states.plan21 = await chalPlan21State(uid, plans); }
+      catch { states.plan21 = { state: 'none', plan: null, dayIx: 0 }; }
+    }
+  }
+  STU_CHAL = { uid, states, loadingFor: null };
+  if (STUDENTS_DETAIL !== uid) return;
+  const blk = document.querySelector('#stu-chal-block');
+  if (blk) {
+    const u = ((STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(c => c.id === uid) || { id: uid };
+    blk.outerHTML = stuChalBlockHTML(u);
+    stuChalWireCurrent(uid);
+  }
+}
+function stuChalWireCurrent(uid) {
+  const blk = document.querySelector('#stu-chal-block');
+  if (!blk || STU_CHAL.uid !== uid) return;
+  blk.querySelectorAll('[data-chal-assign-open]').forEach(b => b.onclick = () => chalAsgOpen(uid, b.dataset.chalAssignOpen));
+}
+
+/* — La hoja de asignar: su propia pantalla, con volver a la
+   ficha (regla de navegación de la casa). Dice la verdad de la
+   activación DIRECTA antes de confirmar. — */
+let CHAL_ASG = null;
+function chalAsgOpen(uid, kind) {
+  const fl = $('chal-assign-float'); if (!fl) return;
+  const v = chalVigentesList().find(x => x.kind === kind); if (!v) return;
+  const u = ((STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(c => c.id === uid) || { id: uid };
+  CHAL_ASG = { uid, kind, name: stuName(u), busy: false };
+  fl.style.display = '';
+  const x = $('chal-assign-x'); if (x) x.onclick = () => chalAsgClose();
+  chalAsgPaint();
+}
+function chalAsgClose() {
+  const fl = $('chal-assign-float'); if (fl) fl.style.display = 'none';
+  CHAL_ASG = null;
+}
+function chalAsgPaint() {
+  const body = $('chal-assign-body'); if (!body || !CHAL_ASG) return;
+  const C = CHAL_ASG;
+  const v = chalVigentesList().find(x => x.kind === C.kind); if (!v) return;
+  body.innerHTML = `
+    <button type="button" class="back-row" id="chal-assign-back">‹ ${esc(C.name)}</button>
+    <div class="chal-item stu-chal-card">
+      <div class="chal-item-head"><span class="chal-head-l"><b>${esc(t(v.titleKey))}</b></span><span class="chal-head-tags"><span class="chal-tag chal-tag-live">${esc(t('chal.assign.liveTag'))}</span><span class="chal-tag">${esc(t(v.tagKey))}</span></span></div>
+      <p class="chal-metric">${esc(t(v.descKey))}</p>
+      <p class="chal-metric">${esc(t('plan21.catalogLine'))}</p>
+    </div>
+    <div class="chal-assign-steps">
+      <div class="chal-assign-step"><span class="chal-assign-n">1</span><span>${esc(t('chal.assign.step1'))}</span></div>
+      <div class="chal-assign-step"><span class="chal-assign-n">2</span><span>${esc(t('chal.assign.step2'))}</span></div>
+      <div class="chal-assign-step"><span class="chal-assign-n">3</span><span>${esc(t('chal.assign.step3'))}</span></div>
+    </div>
+    <button type="button" class="btn-primary chal-assign-confirm" id="chal-assign-go"${C.busy ? ' disabled' : ''}>${esc(t('chal.assign.confirm', { name: C.name }))}</button>`;
+  const back = $('chal-assign-back'); if (back) back.onclick = () => chalAsgClose();
+  const go = $('chal-assign-go'); if (go) go.onclick = () => chalAsgConfirm();
+}
+async function chalAsgConfirm() {
+  const C = CHAL_ASG; if (!C || C.busy) return;
+  C.busy = true; chalAsgPaint();
+  try {
+    const res = await plan21AssignNow(C.uid);
+    chalAsgClose();
+    STU_CHAL.states = null; STU_PLANS.plans = null;
+    loadStudentPlans(C.uid); loadStudentChal(C.uid);
+    if (res && res.existing) toast(t('chal.assign.alreadyThere', { name: C.name }));
+    else if (res && res.active) toast(t('chal.assign.doneActive', { name: C.name }));
+    else toast(t('chal.assign.doneHold', { name: C.name }));
+  } catch { toast(t('train.saveError'), true); if (CHAL_ASG) { CHAL_ASG.busy = false; chalAsgPaint(); } }
+}
+/* El nacimiento por asignación del entrenador: el ajustador de
+   siempre (plan21Build) sobre los datos que el alumno YA tiene
+   — sin días/equipo, el arranque conservador del propio motor
+   (semana canónica y gimnasio supuesto, declarados en las notas
+   del plan); sin peso/medidas, las metas provisionales de D10
+   las asegura la app del alumno al ver su plan, como en su
+   propio arranque — y la MISMA puerta de salud y desactivación
+   de plan21CreatePlan, con la autoría del entrenador. Si el
+   alumno ya tiene el reto (en cualquier estado), no se crea
+   otro: asignar dos veces no duplica. */
+async function plan21AssignNow(studentUid) {
+  const me = auth.currentUser && auth.currentUser.uid;
+  if (!me || !studentUid) return null;
+  await libEnsure();
+  const st = await chalPlan21State(studentUid);
+  if (st && st.plan) return { existing: true, id: st.plan.id, active: st.plan.active === true };
+  const inp = await plan21FetchInputs(studentUid);
+  const built = plan21Build(inp, plan21StartISO(inp));
+  return plan21CreatePlan(studentUid, built, { createdBy: me, assignedBy: me });
+}
 /* AUTH-352: «🏋️ El entrenamiento de mi alumno», nacido visible en
    el detalle de «Mis alumnos», justo tras su plan (AUTH-341) y antes
    de los pendientes — la respuesta al pedido de Ronald (2026-11-09
@@ -10017,6 +10166,10 @@ function studentsDetailHTML(u) {
   /* AUTH-341: «🏋️ Su plan de entrenamiento», nacido desplegado,
      inmediatamente tras la cabecera y ANTES de los pendientes. */
   h += stuPlanBlockHTML(u);
+  /* AUTH-559: el bloque «Retos» nace bajo el plan: los retos
+     vigentes con su estado para este alumno y la asignación
+     directa por su entrenador. */
+  h += stuChalBlockHTML(u);
   /* AUTH-352: «🏋️ El entrenamiento de mi alumno», nacido
      visible tras el plan y antes de los pendientes. */
   h += stuTrainBlockHTML(u);
@@ -10108,6 +10261,7 @@ function renderStudentsBody() {
      el bloque; el resto del detalle no espera). */
   if (du) loadStudentPlans(du.id);
   if (du) loadStudentTraining(du.id);
+  if (du) loadStudentChal(du.id);
 }
 /* Barra de la vista: buscador + conmutador Lista/Rejilla en una
    fila y las tres pastillas debajo (A-A2), con el estado PROPIO
@@ -17694,7 +17848,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-mascota-ejecuta' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-asignar-retos' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -43645,17 +43799,23 @@ function plan21Build(inp, startISO) {
 /* Nacimiento directo (alumno sin entrenador): la misma puerta
    de salud y la misma desactivación del plan anterior que la
    puerta de la IA (AUTH-493). */
-async function plan21CreatePlan(uid, built) {
+async function plan21CreatePlan(uid, built, birth) {
   const gate = await planGateState(uid);
   const active = gate === 'valid';
   const data = {
     clientUid: uid, title: t('plan21.title'), notes: built.notes, days: built.days,
     active, startsAt: built.startsAt, endsAt: built.endsAt, sessionsPerWeek: 7, durationPreset: null,
-    createdBy: uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    createdBy: (birth && birth.createdBy) || uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
     healthHold: !active, holdAuto: !active,
     sourceRoutineId: PLAN21_TPL_ID, sourceRoutineVersion: PLAN21_TPL_VERSION,
     genSource: { kind: 'plan21', version: PLAN21_TPL_VERSION, templateId: PLAN21_TPL_ID, form: built.form, step: built.step, equipAssumed: !!built.equipAssumed }
   };
+  /* AUTH-559: el nacimiento por ASIGNACIÓN del entrenador lleva
+     su autoría (la misma convención del editor: createdBy es
+     quien escribe) y la marca assignedBy, para que el alumno lo
+     vea como asignado por su entrenador. Sin birth, el nacimiento
+     es el de siempre, byte a byte. */
+  if (birth && birth.assignedBy) data.assignedBy = birth.assignedBy;
   if (!active) data.holdSince = serverTimestamp();
   const ref = await addDoc(collection(db, 'training_plans'), data);
   if (active) {
@@ -59747,7 +59907,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-mascota-ejecuta';
+const PWA_SW_VERSION = '20261123-asignar-retos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -63851,10 +64011,14 @@ function chalMedalsHTML() {
    los planes PROPIOS (fetchPlans, la lectura de siempre) y de
    la propuesta plan21Start pendiente; este paquete no escribe
    ningún dato nuevo. */
-async function chalPlan21State(me) {
+async function chalPlan21State(me, plansPre) {
   const out = { state: 'none', plan: null, dayIx: 0 };
-  let plans = [];
-  try { plans = await fetchPlans(me); } catch {}
+  /* AUTH-559: plansPre permite leer el estado de los planes YA
+     cargados por otra superficie (la ficha del alumno comparte
+     la caché del bloque de planes, con la espera de salud ya
+     evaluada); sin él, la lectura de siempre. */
+  let plans = plansPre || [];
+  if (!plansPre) { try { plans = await fetchPlans(me); } catch {} }
   const mine = (plans || []).filter(p => p && ((p.genSource && p.genSource.kind === 'plan21') || p.sourceRoutineId === PLAN21_TPL_ID));
   if (mine.length) {
     mine.sort((a, b) => String(b.startsAt || '').localeCompare(String(a.startsAt || '')));
@@ -63915,6 +64079,30 @@ function chalPlan21CardHTML(opts = {}) {
    quedan en el código, sin pintar en esta pestaña. ════════════ */
 function chalActiveProvider() { return { kind: 'plan21' }; }
 
+/* ══ AUTH-559: los retos VIGENTES, de la MISMA fuente ═══════════
+   La lista que el bloque «Retos» de la ficha del alumno ofrece
+   para asignar sale del MISMO proveedor que alimenta la pestaña
+   de Retos del alumno (chalActiveProvider): hoy rinde solo el
+   Plan 21 días; cuando otro reto sea el vigente ocupará este
+   mismo sitio sin tocar el bloque ni la hoja de asignar. Los
+   textos son los de la propia pestaña (título, descripción y
+   etiqueta del reto). ════════════════════════════════════════ */
+function chalVigentesList() {
+  const prov = chalActiveProvider();
+  if (prov.kind === 'plan21') return [{ kind: 'plan21', id: PLAN21_TPL_ID, titleKey: 'plan21.title', descKey: 'chal.p21Desc', tagKey: 'chal.p21Tag' }];
+  return [];
+}
+
+/* La línea «Asignado por tu entrenador» del héroe de Retos:
+   solo cuando el plan nació de una asignación (assignedBy) y
+   quien mira no es quien lo asignó. */
+function chalP21AssignedByHTML(st) {
+  if (!st || !st.plan || !st.plan.assignedBy) return '';
+  const me = chalMe();
+  if (me && st.plan.assignedBy === me) return '';
+  return `<p class="chal-hero-hint chal-assigned-by">🏆 ${esc(t('chal.p21AssignedBy'))}</p>`;
+}
+
 function chalActiveHTML() {
   const prov = chalActiveProvider();
   if (prov.kind === 'plan21') return chalP21HeroHTML();
@@ -63971,7 +64159,7 @@ function chalP21HeroHTML() {
   /* Momento 3 — en espera (salud o propuesta al entrenador): el
      aviso honesto de AUTH-503/505, sin botón. */
   if (st.state === 'hold' || st.state === 'sent') {
-    return `<div class="chal-hero chal-statecard"><div class="chal-state-ic" aria-hidden="true">⏳</div>${head}<div class="chal-state-ttl">${esc(t('chal.p21WaitTitle'))}</div><p class="chal-state-body">${esc(t(st.state === 'hold' ? 'plan21.startedHold' : 'plan21.sentTrainer'))}</p><p class="chal-state-note">${esc(t('chal.p21WaitNote'))}</p></div>`;
+    return `<div class="chal-hero chal-statecard"><div class="chal-state-ic" aria-hidden="true">⏳</div>${head}${chalP21AssignedByHTML(st)}<div class="chal-state-ttl">${esc(t('chal.p21WaitTitle'))}</div><p class="chal-state-body">${esc(t(st.state === 'hold' ? 'plan21.startedHold' : 'plan21.sentTrainer'))}</p><p class="chal-state-note">${esc(t('chal.p21WaitNote'))}</p></div>`;
   }
   /* Momento 4 — terminado: el cierre y la única salida al
      siguiente nivel (D8). Sin botón de repetir. */
@@ -63988,11 +64176,11 @@ function chalP21HeroHTML() {
   if (st.state === 'active' && st.plan) {
     const plan = st.plan, dayIx = st.dayIx;
     if (dayIx < 0) {
-      return `<div class="chal-hero">${head}<p class="chal-hero-hint">${esc(t('plan21.sheetStart', { date: plan21DateLabel(plan.startsAt), date2: plan21DateLabel(plan.endsAt) }))}</p><button type="button" class="btn-primary chal-hero-btn" data-chal-act="p21view">${esc(t('chal.p21ViewBtn'))}</button></div>`;
+      return `<div class="chal-hero">${head}${chalP21AssignedByHTML(st)}<p class="chal-hero-hint">${esc(t('plan21.sheetStart', { date: plan21DateLabel(plan.startsAt), date2: plan21DateLabel(plan.endsAt) }))}</p><button type="button" class="btn-primary chal-hero-btn" data-chal-act="p21view">${esc(t('chal.p21ViewBtn'))}</button></div>`;
     }
     const wk = Math.floor(dayIx / 7) + 1;
     const pct = Math.round((dayIx + 1) / 21 * 100);
-    return `<div class="chal-hero"><div class="chal-kick">${esc(t('chal.p21ActiveKick'))}</div><h3 class="chal-hero-name">${esc(t('plan21.title'))}</h3><div class="chal-big">${esc(t('plan21.dayOf', { x: dayIx + 1 }))}</div><div class="chal-hbar"><i style="width:${pct}%"></i></div><div class="chal-bar-lbl"><span>${esc(t('chal.p21WeekOf', { w: wk }))}</span><span>${esc(t('chal.p21PctDone', { p: pct }))}</span></div>${chalP21WeekHTML(plan, dayIx)}${dayIx >= 7 && dayIx <= 20 ? `<div id="chal-p21-ask"></div>` : ''}${wk < 3 ? `<div class="chal-next">${esc(t('chal.p21NextWeek', { w: wk + 1 }))}</div>` : ''}<button type="button" class="btn-primary chal-hero-btn" data-chal-act="p21view">${esc(t('chal.p21ViewBtn'))}</button></div>`;
+    return `<div class="chal-hero"><div class="chal-kick">${esc(t('chal.p21ActiveKick'))}</div><h3 class="chal-hero-name">${esc(t('plan21.title'))}</h3><div class="chal-big">${esc(t('plan21.dayOf', { x: dayIx + 1 }))}</div><div class="chal-hbar"><i style="width:${pct}%"></i></div><div class="chal-bar-lbl"><span>${esc(t('chal.p21WeekOf', { w: wk }))}</span><span>${esc(t('chal.p21PctDone', { p: pct }))}</span></div>${chalP21AssignedByHTML(st)}${chalP21WeekHTML(plan, dayIx)}${dayIx >= 7 && dayIx <= 20 ? `<div id="chal-p21-ask"></div>` : ''}${wk < 3 ? `<div class="chal-next">${esc(t('chal.p21NextWeek', { w: wk + 1 }))}</div>` : ''}<button type="button" class="btn-primary chal-hero-btn" data-chal-act="p21view">${esc(t('chal.p21ViewBtn'))}</button></div>`;
   }
   /* Momento 1 — sin empezar: qué incluye en dos líneas, la rutina
      en miniatura y el botón grande que abre LA MISMA hoja de
