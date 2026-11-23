@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-link-retos">
+<link rel="stylesheet" href="styles.css?v=20261123-tomar-medidas">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -800,6 +800,23 @@
     </div>
     <button type="button" class="back-row stu-sheet-back" id="stu-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="stu-sheet-body"></div>
+  </div>
+
+  <!-- TOMAR MEDIDAS DEL ENTRENADOR (AUTH-2026-11-23-571): la hoja
+       propia del formulario con el que el entrenador/admin le toma
+       las medidas a un alumno EN PERSONA desde su detalle (AUTH-565):
+       los mismos campos de la evaluación del alumno (peso, las 7
+       medidas y la grasa corporal) y la escritura por las mismas
+       puertas del alumno (nutrition_weight y su documento de
+       evaluación de hoy), con la marca de origen de la casa. La
+       pintan y la mueven tmeasOpen / tmeasClose (app.js). -->
+  <div class="pend-float pend-consult" id="tmeas-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="tmeas-title"></span></h2>
+      <button type="button" class="pend-close" id="tmeas-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="tmeas-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="tmeas-body"></div>
   </div>
 
   <!-- LA VISTA DE ENTRENAMIENTO, PLEGADA (AUTH-2026-11-23-566,
@@ -2844,6 +2861,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-link-retos"></script>
+<script type="module" src="app.js?v=20261123-tomar-medidas"></script>
 </body>
 </html>
