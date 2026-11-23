@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-calentamiento-plegado">
+<link rel="stylesheet" href="styles.css?v=20261123-cierre-directo">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -833,23 +833,6 @@
     </div>
     <button type="button" class="back-row train-sheet-back" id="train-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="train-sheet-body"></div>
-  </div>
-
-  <!-- LA PANTALLA DE CIERRE DEL DÍA (AUTH-2026-11-23-566): el
-       formulario de cierre de la casa (trainCloseFormHTML) vive
-       SOLO aquí — la tarjeta del día y el panel de sesión lo abren
-       con su puerta «Terminar y guardar ›» en vez de desplegarlo
-       cada uno en su superficie. Lo pintan y lo cablean
-       trainCloseSheetOpen / trainCloseSheetCancel (app.js); la
-       escritura sigue siendo la única de siempre
-       (trainCloseConfirm). Z-index 60: sobre el panel de sesión. -->
-  <div class="pend-float train-close-sheet" id="train-close-sheet" style="display:none" role="dialog">
-    <div class="pend-head">
-      <h2><span id="train-close-title"></span></h2>
-      <button type="button" class="pend-close" id="train-close-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
-    </div>
-    <button type="button" class="back-row train-close-back" id="train-close-back">‹ <span data-i18n="pendact.back">Back</span></button>
-    <div id="train-close-body"></div>
   </div>
 
   <!-- LA PANTALLA DE INICIO, PLEGADA (AUTH-2026-11-23-567,
@@ -2861,6 +2844,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-calentamiento-plegado"></script>
+<script type="module" src="app.js?v=20261123-cierre-directo"></script>
 </body>
 </html>
