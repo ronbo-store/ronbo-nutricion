@@ -1661,6 +1661,7 @@ export default {
   'asst.restrMicCost': 'Dictating with the big microphone while we build your day uses 1 AI use to turn your voice into text — and it never uses up your coach questions. Dictating with the keyboard is free.',
   'asst.restrMicEmpty': 'I didn\'t hear anything in that recording, so nothing went anywhere.',
   'asst.restrNoPlan': 'You don\'t have a training plan yet, so there is no day to rebuild.',
+  'asst.restrInactive': 'You have plans saved, but none of them is active right now: there is no day to rebuild.',
   'asst.restrDayClosed': 'Today\'s session has already started (or is closed), and a day under way is never rebuilt. A future day can be, before you start it.',
   'asst.restrFreeDay': 'Today is your free day — there is no session to rebuild. Enjoy it!',
   'asst.restrTrainer': 'Rebuilding your day is your trainer\'s job, from your file — from here I can only chat. Ask them and they will rebuild it for you.',

@@ -1658,6 +1658,7 @@ export default {
   'asst.restrMicCost': 'Dictar con el micrófono grande mientras armamos tu día usa 1 uso de IA para pasar tu voz a texto, y nunca gasta tus preguntas del coach. El dictado del teclado es gratis.',
   'asst.restrMicEmpty': 'No escuché nada en esa grabación, así que no salió nada a ningún sitio.',
   'asst.restrNoPlan': 'Aún no tienes un plan de entrenamiento: no hay día que reestructurar.',
+  'asst.restrInactive': 'Tienes planes guardados, pero ninguno está activo ahora: no hay día que reestructurar.',
   'asst.restrDayClosed': 'La sesión de hoy ya empezó (o está cerrada), y un día en marcha nunca se reestructura. Uno futuro sí, antes de empezarlo.',
   'asst.restrFreeDay': 'Hoy es tu día libre: no hay sesión que reestructurar. ¡A disfrutarlo!',
   'asst.restrTrainer': 'Reestructurar tu día lo hace tu entrenador, desde tu ficha; desde aquí solo converso. Pídeselo y te lo rearma.',

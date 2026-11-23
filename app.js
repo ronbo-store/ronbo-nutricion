@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261122-puerta-primero');
+  const mod = await import('./i18n-' + l + '.js?v=20261122-respuesta-coach');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -17694,7 +17694,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261122-puerta-primero' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261122-respuesta-coach' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -21278,7 +21278,7 @@ async function voiceToggle(fromModal) {
    aiVoice.* de micrófono denegado / no soportado / nada oído) con
    su propio controlador, sin tocar el del registro de comida. */
 const ASST = { busy: false, muted: false, speaking: false, history: [] };
-let ASST_DATA = { loaded: false, loading: null, plan: null, logs: [] };
+let ASST_DATA = { loaded: false, loading: null, plan: null, logs: [], meta: null, hist: null };
 /* AUTH-2026-11-05-260: el avatar del coach es la imagen de
    Ronald servida desde el repo de activos. Si la foto no carga,
    el icono genérico de siempre ocupa su sitio (el span de
@@ -21327,9 +21327,26 @@ function asstFabSync(tabName) {
    por sesión de app al abrir la hoja (las mismas dos consultas de
    loadMyTraining, ningún bucle de escucha) y se quedan en caché. */
 function asstPlanLogs() {
-  if (typeof MY_PLAN !== 'undefined' && MY_PLAN) return { plan: MY_PLAN, logs: Array.isArray(MY_LOGS) ? MY_LOGS : [] };
-  if (ASST_DATA.loaded) return { plan: ASST_DATA.plan, logs: ASST_DATA.logs };
-  return { plan: null, logs: [] };
+  if (typeof MY_PLAN !== 'undefined' && MY_PLAN) return { plan: MY_PLAN, logs: Array.isArray(MY_LOGS) ? MY_LOGS : [], meta: (typeof MY_PLANS_ALL !== 'undefined' && Array.isArray(MY_PLANS_ALL)) ? asstPlansMeta(MY_PLANS_ALL) : null };
+  if (ASST_DATA.loaded) return { plan: ASST_DATA.plan, logs: ASST_DATA.logs, meta: ASST_DATA.meta };
+  return { plan: null, logs: [], meta: null };
+}
+/* AUTH-2026-11-22-555: la foto de los planes de la persona SIN
+   cargar nada nuevo (la lista ya leída por asstEnsureData o por
+   Entrenamiento): si tiene planes aunque ninguno esté activo, y
+   cuál es el próximo que empieza. Es lo que separa «tiene planes
+   guardados, ninguno activo» de «no tiene ningún plan» — la
+   puerta de reestructurar y el contexto del Coach lo usan para
+   no decirle a nadie que no tiene plan cuando sí lo tiene. */
+function asstPlansMeta(plans) {
+  const list = (plans || []).filter(p => p && p.active !== true);
+  const today = todayISO();
+  let next = null;
+  for (const p of list) {
+    const s = String(p.startsAt || '').slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s) && s >= today && (!next || s < next.startsAt)) next = { title: String(p.title || ''), startsAt: s };
+  }
+  return { any: (plans || []).length > 0, total: (plans || []).length, next };
 }
 function asstEnsureData() {
   if ((typeof MY_PLAN !== 'undefined' && MY_PLAN) || ASST_DATA.loaded || ASST_DATA.loading) return;
@@ -21340,9 +21357,14 @@ function asstEnsureData() {
       const plans = await fetchPlans(uid);
       const plan = (plans || []).find(p => p.active === true) || null;
       let logs = [];
-      if (plan) { const all = await fetchLogs(uid); logs = (all || []).filter(l => l.planId === plan.id); }
-      ASST_DATA = { loaded: true, loading: null, plan, logs };
-    } catch { ASST_DATA = { loaded: true, loading: null, plan: null, logs: [] }; }
+      /* AUTH-2026-11-22-555: el historial sale de la MISMA lectura
+         completa de registros que ya se hace aquí (sin filtrar por
+         plan): si la persona tiene registros pasados. Sin plan
+         activo no se lee y el dato queda desconocido (null). */
+      let hist = null;
+      if (plan) { const all = await fetchLogs(uid); logs = (all || []).filter(l => l.planId === plan.id); hist = (all || []).some(l => l && l.date && l.date < todayISO()); }
+      ASST_DATA = { loaded: true, loading: null, plan, logs, meta: asstPlansMeta(plans), hist };
+    } catch { ASST_DATA = { loaded: true, loading: null, plan: null, logs: [], meta: null, hist: null }; }
   })();
 }
 /* EL CONTEXTO (lista cerrada del diseño): solo memoria de la sesión
@@ -21377,7 +21399,7 @@ function asstContextBuild() {
     }
   } catch {}
   try {
-    const { plan, logs } = asstPlanLogs();
+    const { plan, logs, meta } = asstPlanLogs();
     ctx.training = null;
     if (plan && Array.isArray(plan.days) && plan.days.length) {
       const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
@@ -21387,6 +21409,10 @@ function asstContextBuild() {
       if (di == null && (tmap.pairs || tmap.mode === 'plancal')) { try { const b = trainBaseRead(plan.id); if (b && b.kind === 'brought' && Number.isInteger(b.di)) di = b.di; } catch {} }
       if (di == null && tmap.mode === 'rotation') { try { const det2 = goalsDayLevelForDate(today, plan, cfg, (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {})); if (det2 && Number.isInteger(det2.dayIndex)) di = det2.dayIndex; } catch {} }
       const day = di != null ? (plan.days[di] || null) : null;
+      /* AUTH-2026-11-22-555: el estado del plan viaja declarado
+         (hay plan activo; hoy toca o es descanso DENTRO del plan)
+         para que el Worker no lo confunda con «sin plan». */
+      ctx.plan = { title: String(plan.title || ''), todayOff: day == null };
       if (day) {
         let exs = Array.isArray(day.exercises) ? day.exercises : [];
         try { const eff = trainEffectiveList(plan, di); if (Array.isArray(eff) && eff.length) exs = eff.map(it => (it && it.ex) || it); } catch {}
@@ -21405,10 +21431,45 @@ function asstContextBuild() {
       if (cur.volumeKg != null) ctx.week.volumeKg = cur.volumeKg;
       try { ctx.week.streak = recoWeeks(logs || [], [plan], today).streakNow || 0; } catch {}
     }
+    /* AUTH-2026-11-22-555: sin plan activo pero CON planes
+       guardados, el contexto lo dice tal cual (y nombra el
+       próximo si empieza en el futuro); sin planes o sin la
+       foto conocida, no se manda ctx.plan y manda lo de siempre. */
+    if (!plan && meta && meta.any) {
+      ctx.plan = { noneActive: true };
+      if (meta.next) { ctx.plan.nextTitle = meta.next.title; ctx.plan.nextStart = meta.next.startsAt; }
+    }
   } catch {}
   try {
     const ws = (typeof WEIGHTS !== 'undefined' && Array.isArray(WEIGHTS)) ? WEIGHTS.filter(w => w && w.date && Number(w.weight) > 0) : [];
     if (ws.length) { const last = ws.slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).pop(); ctx.weight = { kg: Number(last.weight), date: String(last.date) }; }
+  } catch {}
+  /* AUTH-2026-11-22-555 (adenda de Ronald, 2026-11-22 19:21 CST,
+     corregida 19:24 CST): QUIÉN es la persona, calculado por la
+     app de lo que ya tiene en memoria — solo HECHOS verdaderos:
+     el rol (derivación de la casa: propietario ⇒ también
+     entrenador; entrenador ⇔ role 'entrenador'), el total de
+     planes y si tiene historial, de las fotos ya leídas (la lista
+     de planes y la lectura completa de registros de
+     Entrenamiento o la de esta hoja). NADA de clasificar el
+     nivel de nadie: el nivel DECLARADO (principiante o no) será
+     dato de su propio paquete, y el Reto 21 es para quien esté
+     declarado principiante — tener planes o historial no dice
+     el nivel. Lo que no está cargado NO se manda. */
+  try {
+    const person = {};
+    const ud = (typeof UDATA !== 'undefined' && UDATA) ? UDATA : null;
+    if (ud && (ud.isOwner === true || typeof ud.role === 'string')) {
+      person.isOwner = ud.isOwner === true || (typeof IS_OWNER !== 'undefined' && IS_OWNER === true);
+      person.isTrainer = person.isOwner || ud.role === 'entrenador';
+    }
+    const meta2 = asstPlanLogs().meta;
+    if (meta2 && typeof meta2.total === 'number') person.plansTotal = meta2.total;
+    let hist = null;
+    if (typeof MY_LOGS_ALL !== 'undefined' && Array.isArray(MY_LOGS_ALL)) hist = MY_LOGS_ALL.some(l => l && l.date && l.date < today);
+    else if (typeof ASST_DATA !== 'undefined' && ASST_DATA && typeof ASST_DATA.hist === 'boolean') hist = ASST_DATA.hist;
+    if (hist != null) person.hasHistory = hist;
+    if (Object.keys(person).length) ctx.person = person;
   } catch {}
   return ctx;
 }
@@ -25908,12 +25969,14 @@ function asstRestrReasonKey(reason) {
   return reason === 'trainer' ? 'asst.restrTrainer'
     : (reason === 'freeday' || reason === 'noday') ? 'asst.restrFreeDay'
     : (reason === 'closed' || reason === 'gate') ? 'asst.restrDayClosed'
+    : reason === 'inactive' ? 'asst.restrInactive'
     : 'asst.restrNoPlan';
 }
 async function asstRestrToday() {
   try { if (typeof ASST_DATA !== 'undefined' && ASST_DATA && ASST_DATA.loading) await ASST_DATA.loading; } catch {}
-  const { plan, logs } = asstPlanLogs();
-  if (!plan || !Array.isArray(plan.days) || !plan.days.length) return { plan: null, di: null, reason: 'noplan' };
+  const { plan, logs, meta } = asstPlanLogs();
+  if (!plan) return { plan: null, di: null, reason: (meta && meta.any) ? 'inactive' : 'noplan', next: (meta && meta.next) || null };
+  if (!Array.isArray(plan.days) || !plan.days.length) return { plan: null, di: null, reason: 'noplan' };
   const today = todayISO();
   const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
   const tmap = trainDayMap(plan, cfg);
@@ -59097,7 +59160,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261122-puerta-primero';
+const PWA_SW_VERSION = '20261122-respuesta-coach';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
