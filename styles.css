@@ -4817,6 +4817,42 @@ body.swap-sheet-open .asst-fab { display: none !important; }
 .water-card .nutri-water-row { margin: 9px 0 0; gap: 10px; }
 .water-card .nutri-water-row input { flex: 1 1 auto; width: auto; }
 .water-card .nutri-water-row .btn-ghost { min-height: 48px; white-space: nowrap; }
+/* AUTH-568: la cabecera del agua es la LÍNEA PLEGADA de la tarjeta
+   (título + ml de hoy + ▾); la fila de sumar nace oculta y se
+   despliega en el sitio, como manda la auditoría de pliegues. */
+.water-fold-head { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.water-fold-head .water-v { margin-left: auto; }
+.water-fold-chev { font-size: 13px; color: #0d9488; transition: transform .18s ease; }
+.water-fold-head[aria-expanded="true"] .water-fold-chev { transform: rotate(180deg); }
+/* AUTH-568: la línea plegada del plan de la semana en Comida —
+   misma piel que la tarjeta que sustituye (.plan-card-in), como
+   botón a todo ancho con título, dato de la semana y ›. */
+.food-plan-line { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; box-sizing: border-box; border: 1.5px solid #99ddd0; background: #f2fbf8; border-radius: 16px; padding: 12px 14px; margin: 12px 0 4px; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.food-plan-line-t { font-size: 15.5px; font-weight: 800; color: #0f2e2a; white-space: nowrap; }
+.food-plan-line-d { flex: 1; min-width: 0; font-size: 13px; color: #52706a; line-height: 1.35; }
+.food-plan-line-chev { font-size: 20px; font-weight: 800; color: #0d9488; }
+/* AUTH-568: la explicación larga de cada hoja de registro nace
+   plegada tras su línea «Cómo funciona» (patrón «ver más»). */
+.hint-fold-btn { display: flex; align-items: center; gap: 6px; width: 100%; min-height: 44px; background: none; border: 0; padding: 6px 2px; font: inherit; font-size: 13.5px; font-weight: 700; color: #0f766e; cursor: pointer; text-align: left; }
+.hint-fold-chev { margin-left: auto; font-size: 13px; transition: transform .18s ease; }
+.hint-fold-btn[aria-expanded="true"] .hint-fold-chev { transform: rotate(180deg); }
+.hint-fold-body .photo-hint { margin-top: 0; }
+/* AUTH-568: la línea «Filtrar» del recetario y su hoja. */
+.recipes-filter-line { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; box-sizing: border-box; background: #fff; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 8px 14px; margin: 10px 0 2px; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.recipes-filter-t { font-size: 15px; font-weight: 800; white-space: nowrap; }
+.recipes-filter-d { flex: 1; min-width: 0; font-size: 13.5px; color: #64748b; }
+.recipes-filter-chev { font-size: 20px; font-weight: 800; color: #0d9488; }
+#rcpfilt-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
+#rcpfilt-body .libf-btn { margin: 6px 0 2px; }
+#rcpfilt-body .rcp-chips { margin: 12px 0 4px; }
+/* AUTH-568: las secciones secundarias de la ficha de receta nacen
+   plegadas en su línea (título + ›); ingredientes y pasos quedan
+   visibles, como manda la auditoría. */
+.rcpf-fold { margin-top: 4px; }
+.rcpf-fold-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; background: none; border: 0; border-bottom: 1px solid #e2e8f0; padding: 8px 2px; font: inherit; font-size: 15.5px; font-weight: 800; color: inherit; cursor: pointer; text-align: left; }
+.rcpf-fold-chev { font-size: 18px; font-weight: 800; color: #0d9488; transition: transform .18s ease; }
+.rcpf-fold-line[aria-expanded="true"] .rcpf-fold-chev { transform: rotate(90deg); }
+.rcpf-fold-body { padding: 4px 0 8px; }
 .nutri-zone-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
 .nutri-zone-row { display: flex; gap: 10px; }
 .nutri-zone-row .nutri-zone-btn { flex: 1 1 0; }

@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-inicio-plegado');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-comida-plegada');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -18762,7 +18762,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-inicio-plegado' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-comida-plegada' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -21154,6 +21154,9 @@ if (aiFile) {
    tope, no la puerta de entrada. */
 const foodIsOpen = id => { const el = $(id); return !!el && el.style.display !== 'none'; };
 function foodShowOnly(which) {
+  /* AUTH-568: al cambiar de hoja de la familia, la hoja de filtros
+     del recetario se cierra y sus controles regresan al almacén. */
+  if (which !== 'recipes') { try { recipesFilterClose(); } catch {} }
   /* Hoja 'ai' (puntos 19–20 de la cola): la revisión del análisis con
      IA es HERMANA de la familia — mismo velo, mismo cierre, misma
      gramática; funnels de entrada en aiStartPhotos/aiStartText/
@@ -21173,6 +21176,20 @@ function foodShowOnly(which) {
   if (which === 'float') { try { renderPlanCard(); } catch {} }
 }
 function foodCloseAll() { foodShowOnly(null); }
+/* AUTH-568 (auditoría de pliegues, Comida): la explicación larga
+   de cada hoja de registro (texto, voz, escáner y recetario) nace
+   plegada tras su línea «Cómo funciona» — el patrón «ver más» de
+   la hoja de ayuda (#food-help). Un solo cable delegado para las
+   cuatro; el estado vive en el DOM y las hojas nacen plegadas. */
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-hint-fold]') : null;
+  if (!b) return;
+  const wrap = b.closest('.hint-fold'); if (!wrap) return;
+  const body = wrap.querySelector('.hint-fold-body'); if (!body) return;
+  const open = body.style.display === 'none';
+  body.style.display = open ? '' : 'none';
+  b.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
 function foodOpenFloat() { foodShowOnly('float'); /* CONSERVAR Y SUBIR DESPUÉS: abrir Comida es uno de los disparadores de la subida de pendientes. */ try { pendFlush(); } catch {} }
 function foodOpenText() { foodShowOnly('text'); const ta = $('food-text-desc'); if (ta) { try { ta.focus(); } catch {} } }
 function foodOpenHelp() { foodShowOnly('help'); }
@@ -21743,6 +21760,7 @@ function recipesRenderList() {
   const offered = all.filter(r => !recipeBlockedFor(r, RECIPES_UI.wishes));
   const hiddenN = all.length - offered.length;
   recipesBookSync(offered);
+  try { recipesFilterLineSync(offered); } catch {}
   const shown = recipeFilter(offered, RECIPES_UI.pattern, RECIPES_UI.q, RECIPES_UI.book);
   /* AUTH-467: la lista se pinta por tramos (showN) — con 1.147
      recetas, pintarlas todas de una vez ahoga el teléfono; el
@@ -21985,6 +22003,52 @@ function recipesBookOptions(offered) {
   }
   return [...byId.values()].sort((a, b) => a.num - b.num || a.label.localeCompare(b.label));
 }
+/* AUTH-568 (auditoría de pliegues, Comida): los filtros del
+   recetario (libro + patrones) viven tras UNA línea «Filtrar» en
+   su propia hoja. Los controles NO se duplican: viajan del
+   almacén (#recipes-filter-store) al cuerpo de la hoja al abrir
+   y regresan al cerrar — recipesRenderList y recipesBookSync los
+   pintan y cablean por id, estén donde estén. La línea muestra
+   como dato el filtro activo (libro y/o patrón) o «Sin filtros».
+   La hoja de facetas compartida (#libf-float, el selector de
+   libro) va DESPUÉS en el DOM y se abre encima de esta. */
+function recipesFilterLineSync(offered) {
+  const d = $('recipes-filter-datum'); if (!d) return;
+  const parts = [];
+  if (RECIPES_UI.book !== 'all') {
+    const list = Array.isArray(offered) ? offered : (RECIPES_UI.list || []).filter(r => !recipeBlockedFor(r, RECIPES_UI.wishes));
+    const o = recipesBookOptions(list).find(x => x.key === RECIPES_UI.book);
+    if (o) parts.push(o.label);
+  }
+  if (RECIPES_UI.pattern !== 'all') parts.push(t('recipes.' + RECIPES_UI.pattern));
+  d.textContent = parts.length ? parts.join(' · ') : t('food568.filterNone');
+}
+function recipesFilterOpen() {
+  const bd = $('rcpfilt-backdrop'), f = $('rcpfilt-float'), body = $('rcpfilt-body'), store = $('recipes-filter-store');
+  if (!bd || !f || !body || !store) return;
+  while (store.firstChild) body.appendChild(store.firstChild);
+  bd.style.display = ''; f.style.display = '';
+  try { coverSync(); } catch {}
+}
+function recipesFilterClose() {
+  const bd = $('rcpfilt-backdrop'), f = $('rcpfilt-float'), body = $('rcpfilt-body'), store = $('recipes-filter-store');
+  if (!f || f.style.display === 'none') return;
+  if (body && store) { while (body.firstChild) store.appendChild(body.firstChild); }
+  if (bd) bd.style.display = 'none';
+  f.style.display = 'none';
+  try { coverSync(); } catch {}
+  try { recipesFilterLineSync(); } catch {}
+}
+(function rcpfiltWire() {
+  const open = $('recipes-filter-btn'); if (open) open.onclick = () => recipesFilterOpen();
+  const c = $('btn-rcpfilt-close'); if (c) c.onclick = () => recipesFilterClose();
+  const bd = $('rcpfilt-backdrop'); if (bd) bd.onclick = () => recipesFilterClose();
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const f = $('rcpfilt-float');
+    if (f && f.style.display !== 'none') recipesFilterClose();
+  });
+})();
 function recipesBookSync(offered) {
   const btn = $('recipes-book-btn'); if (!btn) return;
   const sel = recipesBookOptions(offered).find(o => o.key === RECIPES_UI.book);
@@ -22080,26 +22144,46 @@ function rcpfPaint(r) {
   const steps = ((r.steps || {})[L]) || [];
   const times = Array.isArray(f.stepTimesMin) ? f.stepTimesMin : [];
   const stepsHtml = steps.length ? `<p class="rcp-sec">${esc(t('recipes.steps'))}</p><ol class="rcp-steps">${steps.map((s, i) => `<li>${esc(s)}${times[i] ? ` <span class="rcpf-steptime">· ${esc(String(times[i]))} ${esc(t('recipes.min'))}</span>` : ''}</li>`).join('')}</ol>` : '';
-  const secList = (key, arr) => (arr && arr.length) ? `<p class="rcp-sec">${esc(t(key))}</p><ul class="rcp-ings">${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
-  const secTxt = (key, s) => s ? `<p class="rcp-sec">${esc(t(key))}</p><p class="rcpf-txt">${esc(s)}</p>` : '';
+  /* AUTH-568 (auditoría de pliegues, Comida): en la ficha quedan
+     VISIBLES la foto, el título, los valores y las etiquetas, los
+     ingredientes y los pasos; lo demás (descripción, utensilios,
+     consejos, sustituciones, conservación y para servir) nace
+     PLEGADO en su línea — título + › — y se despliega en el sitio
+     con el cable delegado de rcpfWire. */
+  const foldSec = (fk, key, inner) => inner ? `<div class="rcpf-fold"><button type="button" class="rcpf-fold-line" data-rcpf-fold="${fk}" aria-expanded="false"><span>${esc(t(key))}</span><span class="rcpf-fold-chev" aria-hidden="true">›</span></button><div class="rcpf-fold-body" style="display:none">${inner}</div></div>` : '';
+  const secList = (fk, key, arr) => (arr && arr.length) ? foldSec(fk, key, `<ul class="rcp-ings">${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`) : '';
+  const secTxt = (fk, key, s) => s ? foldSec(fk, key, `<p class="rcpf-txt">${esc(s)}</p>`) : '';
   body.innerHTML = `
     ${r.photoUrl ? `<img class="rcp-photo" src="${esc(r.photoUrl)}" alt="">` : `<div class="rcp-photo rcp-photo-ph" aria-hidden="true">🍽️</div>`}
     <h3 class="rcp-title">${esc(title)}</h3>
     <p class="rcpf-origin">${esc(t(r.valuesOrigin === 'libro' ? 'recipes.originBook' : 'recipes.originHouse'))}</p>
     <p class="rcp-vals">${esc(t('recipes.perServing'))}: <b>${esc(String(v.kcal))} kcal</b> · P ${esc(rcpMacroTxt(v, 'prot'))} g · C ${esc(rcpMacroTxt(v, 'carb'))} g · ${esc(t('recipes.sugar'))} ${esc(rcpMacroTxt(v, 'azuc'))} g · ${esc(t('recipes.fat'))} ${esc(rcpMacroTxt(v, 'gras'))} g${v.fiber ? `<br>${esc(t('recipes.fiber'))}: ${v.fiber.full ? esc(String(v.fiber.val)) + ' g' : '≥ ' + esc(String(v.fiber.val)) + ' g — ' + esc(t('recipes.fiberPartialShort'))}` : ''}</p>
     ${meta.length ? `<p class="rcpf-meta">${meta.map(m => `<span class="rcp-tag">${esc(m)}</span>`).join('')}</p>` : ''}
-    ${pick(f.description) ? `<p class="rcpf-txt">${esc(pick(f.description))}</p>` : ''}
+    ${pick(f.description) ? foldSec('desc', 'food568.desc', `<p class="rcpf-txt">${esc(pick(f.description))}</p>`) : ''}
     ${ingHtml}
     ${stepsHtml}
-    ${secList('recipes.utensils', Array.isArray(f.utensils) ? f.utensils : [])}
-    ${secList('recipes.tips', pickArr(f.tips))}
-    ${secList('recipes.substitutions', pickArr(f.substitutions))}
-    ${secTxt('recipes.storage', pick(f.storage))}
-    ${secTxt('recipes.serving', pick(f.servingSuggestions))}`;
+    ${secList('utensils', 'recipes.utensils', Array.isArray(f.utensils) ? f.utensils : [])}
+    ${secList('tips', 'recipes.tips', pickArr(f.tips))}
+    ${secList('substitutions', 'recipes.substitutions', pickArr(f.substitutions))}
+    ${secTxt('storage', 'recipes.storage', pick(f.storage))}
+    ${secTxt('serving', 'recipes.serving', pick(f.servingSuggestions))}`;
 }
 (function rcpfWire() {
   const c = $('btn-rcpf-close'); if (c) c.onclick = rcpfClose;
   const bd = $('rcpf-backdrop'); if (bd) bd.onclick = rcpfClose;
+  /* AUTH-568: el despliegue en el sitio de las secciones plegadas
+     de la ficha — un solo cable delegado sobre #rcpf-body (el
+     cuerpo se repinta entero con cada receta). */
+  const rb = $('rcpf-body');
+  if (rb) rb.addEventListener('click', e => {
+    const b = e.target && e.target.closest ? e.target.closest('[data-rcpf-fold]') : null;
+    if (!b) return;
+    const wrap = b.closest('.rcpf-fold'); if (!wrap) return;
+    const fbody = wrap.querySelector('.rcpf-fold-body'); if (!fbody) return;
+    const open = fbody.style.display === 'none';
+    fbody.style.display = open ? '' : 'none';
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
     const f = $('rcpf-float');
@@ -22118,7 +22202,7 @@ document.addEventListener('click', e => {
      mismo toque que arrancaba el análisis (puntos 19–20). */
   if (e.target && e.target.isConnected === false) return;
   if (!['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai', 'food-scan', 'food-recipes'].some(foodIsOpen)) return;
-  for (const id of ['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai', 'food-scan', 'food-recipes']) { const el = $(id); if (el && el.contains(e.target)) return; }
+  for (const id of ['food-float', 'food-text', 'food-help', 'food-voice', 'food-ai', 'food-scan', 'food-recipes', 'rcpfilt-float']) { const el = $(id); if (el && el.contains(e.target)) return; }
   const l = $('btn-round-food'); if (l && l.contains(e.target)) return;
   /* Superficies cuyos botones ABREN una hoja de Comida (puntos
      19–20): el aviso del borrador (#ai-draft-notice: «Revisarla») y
@@ -61090,7 +61174,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-inicio-plegado';
+const PWA_SW_VERSION = '20261123-comida-plegada';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -63220,12 +63304,28 @@ async function renderNutriMyBox() {
    fecha elegida en Comida, los anillos y la fibra son de esa
    fecha y el agua sigue siendo la de hoy, como cuando vivía en
    la pastilla del coach. */
+/* AUTH-568 (auditoría de pliegues, Comida): la tarjeta del agua
+   nace PLEGADA — su cabecera es la línea (💧 + ml de hoy + ▾) y la
+   fila de sumar se despliega en el sitio. El estado vive en
+   memoria: cada repintado conserva el pliegue como estaba. */
+let WATER_OPEN = false;
+function waterFoldSync() {
+  const body = $('water-body'), btn = $('water-fold-btn');
+  if (body) body.style.display = WATER_OPEN ? '' : 'none';
+  if (btn) btn.setAttribute('aria-expanded', WATER_OPEN ? 'true' : 'false');
+}
 async function renderWaterCard() {
   const card = $('water-card'); if (!card) return;
   const me = auth.currentUser && auth.currentUser.uid;
   const show = !!me && ((typeof ROLE !== 'undefined' && ROLE === 'usuario') || NUTRI.myRel || NUTRI.myFollow || NUTRI.myPlan || (typeof IS_OWNER !== 'undefined' && IS_OWNER));
   if (!show) { card.style.display = 'none'; return; }
   card.style.display = '';
+  const foldBtn = $('water-fold-btn');
+  if (foldBtn && !foldBtn.dataset.wired) {
+    foldBtn.dataset.wired = '1';
+    foldBtn.onclick = () => { WATER_OPEN = !WATER_OPEN; waterFoldSync(); };
+  }
+  waterFoldSync();
   let waterMl = 0;
   try { const ws = await getDoc(doc(db, 'nutrition_water', me + '_' + todayISO())); if (ws.exists()) waterMl = Number(ws.data().ml) || 0; } catch {}
   const lab = $('nutri-water-ml'); if (lab) lab.textContent = waterMl + ' ml';
@@ -69651,16 +69751,15 @@ function schedCardHTML() {
   return `<div class="plan-card-in sched-card-in"><div class="plan-card-txt"><b>🕐 ${esc(t('sched.title'))}</b><span>${esc(line)}</span></div><button type="button" class="btn-primary plan-card-btn" data-sched-open>${esc(t('sched.cardBtn'))}</button></div>`;
 }
 function renderSchedCard() {
+  /* AUTH-568 (auditoría de pliegues, Comida): la tarjeta «Mi
+     horario diario» ya NO se pinta en la ventana de Comida — el
+     plan de la semana quedó como la única línea plegada de esta
+     zona (planCardHTML). La hoja del horario conserva intactas
+     sus puertas: «Mis horarios» en Mi perfil (mishor → la misma
+     hoja) y los saltos desde el planificador. schedCardHTML se
+     conserva sin llamadores vivos, declarado. */
   const slot = $('sched-card'); if (!slot) return;
-  const me = auth.currentUser && auth.currentUser.uid;
-  const show = !!me && ((typeof ROLE !== 'undefined' && ROLE === 'usuario') || (typeof NUTRI !== 'undefined' && (NUTRI.myRel || NUTRI.myFollow || NUTRI.myPlan)) || (typeof IS_OWNER !== 'undefined' && IS_OWNER));
-  if (!show) { slot.innerHTML = ''; slot.style.display = 'none'; return; }
-  slot.style.display = '';
-  slot.innerHTML = schedCardHTML();
-  if ((!SCHED_CTX.ready || !SCHED_PREFS
-    || SCHED_CTX.pendISO !== pendRegDay(new Date(), (SCHED_CTX.cfg && SCHED_CTX.cfg.cutoff) || '04:00'))) {
-    schedGather().then(() => { const ff = $('food-float'); if (ff && ff.style.display !== 'none' && $('sched-card')) slot.innerHTML = schedCardHTML(); }).catch(() => {});
-  }
+  slot.innerHTML = ''; slot.style.display = 'none';
 }
 
 /* ── La hoja «Mi horario diario» ──────────────────────────────── */
@@ -70311,7 +70410,12 @@ function planCardHTML() {
   } else {
     line = t('planwk.cardLineEmpty', { range });
   }
-  return `<div class="plan-card-in"><div class="plan-card-txt"><b>📅 ${esc(t('planwk.title'))}</b><span>${esc(line)}</span></div>${chip}</div>`;
+  /* AUTH-568 (auditoría de pliegues, Comida): la tarjeta nace como
+     UNA LÍNEA PLEGADA — título + el mismo dato de la semana (rango
+     y kcal de hoy contra la meta) + el chip de banda — y la línea
+     entera es la puerta de siempre a la hoja del planificador
+     (data-plan-open, la misma del chip «Asignadas»). */
+  return `<button type="button" class="food-plan-line" data-plan-open aria-haspopup="dialog"><span class="food-plan-line-t">📅 ${esc(t('planwk.title'))}</span><span class="food-plan-line-d">${esc(line)}</span>${chip}<span class="food-plan-line-chev" aria-hidden="true">›</span></button>`;
 }
 function renderPlanCard() {
   const slot = $('plan-card'); if (!slot) return;
