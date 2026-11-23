@@ -7495,6 +7495,28 @@ textarea.gest-in { resize: none; }
 .chal-next-ttl { font-weight: 800; font-size: 1.1rem; }
 .chal-next-body { color: #444; line-height: 1.5; margin: 8px 0 0; }
 
+/* ═══ AUTH-2026-11-23-570 · PENDIENTES Y MI COACH, PLEGADOS ═══
+   Programa «Plegar todo» nº 8. Las hojas nuevas heredan
+   .pend-float: las de Pendientes (#talerts-float y
+   #pendcfg-float) llevan .pend-consult (47) porque abren SOBRE
+   el flotante de Pendientes (45); la del coach de alimentación
+   (#nutribox-float) queda en 44, como las hojas de vista de
+   AUTH-563/565/566/567 — el flotante del módulo nutri (47) y
+   los modales (50) siguen abriendo por encima de ella.
+   La línea de pliegue compartida (.pend570-line) es la fila
+   de la casa: título + dato clave + ›, toque ≥52 px; el
+   espacio se gana plegando, nunca encogiendo toques. La ruta
+   de Pendientes reusa las clases de su pliegue de «Mi perfil»
+   (.route-fold-head), sin la marca de completo. */
+#nutribox-float { z-index: 44; }
+.pend570-line { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; box-sizing: border-box; padding: 10px 14px; margin-top: 10px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 3px rgba(15,23,42,.05); font: inherit; color: #1F2A44; text-align: left; cursor: pointer; }
+.pend570-line:active { opacity: .6; }
+.pend570-line .p570-t { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.pend570-line .p570-d { flex: none; max-width: 52%; color: #666; font-size: 13.5px; text-align: right; overflow-wrap: anywhere; }
+.pend570-line .p570-chev { flex: none; color: #666; font-size: 20px; line-height: 1; }
+#talerts-slot:empty { display: none; }
+.pend-meals-fold-body { margin-top: 2px; }
+
 /* ============ AUTH-2026-11-23-562 · PENDIENTES ACTIVOS ============
    La puerta única «Pendientes activos · N» (ficha y editor) y su
    pantalla propia: la lista pelada reusa las filas .stu-pend-item

@@ -2038,6 +2038,39 @@ function pendRouteHTML() {
     <p class="route-foot">${esc(t('route.foot'))}</p>
   </div>`;
 }
+/* AUTH-570 (programa «Plegar todo» nº 8; auditoría de pliegues,
+   sección «Pendientes»): la ruta INCOMPLETA ya no nace desplegada
+   dentro del flotante — nace PLEGADA en su línea «Tu ruta · N de 6
+   · % ›» (las mismas claves del pliegue de «Mi perfil», sin la
+   marca de completo) y la tarjeta íntegra de siempre
+   (pendRouteHTML, con «Para mantenerla viva», «Modo guiado» y la
+   nota al pie) vive tras ella, con despliegue en el sitio — el
+   mismo patrón de pliegue que la ruta ya usa en «Mi perfil»
+   (routeFoldHTML). El estado es de sesión, como ROUTE_FOLD_OPEN.
+   Ningún pintor ni ninguna lógica cambian: solo dónde nace la
+   tarjeta. */
+let PEND_ROUTE_OPEN = false;
+function pendRouteFoldHTML(R) {
+  return `<div class="route-card route-fold-card">
+    <button type="button" class="route-fold-head" data-pend-route-fold aria-expanded="${PEND_ROUTE_OPEN ? 'true' : 'false'}">
+      <span class="route-fold-ico" aria-hidden="true">🗺️</span>
+      <span class="route-fold-txt"><b>${esc(t('route.foldTitle'))}</b> · ${esc(t('route.foldSteps', { n: R.nDone, total: R.steps.length, pct: R.pct }))}</span>
+      <span class="route-fold-chev" aria-hidden="true">${PEND_ROUTE_OPEN ? '▴' : '▾'}</span>
+    </button>
+    <div class="route-fold-body"${PEND_ROUTE_OPEN ? '' : ' hidden'}>${pendRouteHTML()}</div>
+  </div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-pend-route-fold]') : null;
+  if (!b) return;
+  PEND_ROUTE_OPEN = !PEND_ROUTE_OPEN;
+  const card = b.closest('.route-fold-card');
+  const body = card ? card.querySelector('.route-fold-body') : null;
+  if (body) { if (PEND_ROUTE_OPEN) body.removeAttribute('hidden'); else body.setAttribute('hidden', ''); }
+  b.setAttribute('aria-expanded', PEND_ROUTE_OPEN ? 'true' : 'false');
+  const chev = b.querySelector('.route-fold-chev');
+  if (chev) chev.textContent = PEND_ROUTE_OPEN ? '▴' : '▾';
+});
 /* Tarjeta superior de la ventana de pendientes: para el ALUMNO es
    LA RUTA; para entrenador/administrador, el checklist de siempre. */
 function pendTopCardHTML() {
@@ -2046,11 +2079,12 @@ function pendTopCardHTML() {
     /* La ruta COMPLETA ya no es un pendiente (ampliación de la
        orden de Ronald, 2026-11-08 23:38 CST): no se pinta en esta
        ventana en ningún estado — vive plegada en «Mi perfil»
-       (routeProfileSync). La incompleta se pinta entera, como
-       siempre. Sin ruta computable no hay caída al checklist: es
-       la misma fuente (sin checklist no hay ruta) y pintaría ''. */
+       (routeProfileSync). La incompleta nace plegada en su línea
+       (AUTH-570: pendRouteFoldHTML). Sin ruta computable no hay
+       caída al checklist: es la misma fuente (sin checklist no
+       hay ruta) y pintaría ''. */
     if (!R) return '';
-    return routeIsComplete(R) ? '' : pendRouteHTML();
+    return routeIsComplete(R) ? '' : pendRouteFoldHTML(R);
   }
   return (typeof pendChecklistHTML === 'function') ? pendChecklistHTML() : '';
 }
@@ -4270,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-progreso-plegado');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-pendientes-coach');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -14791,9 +14825,44 @@ async function loadClientAlerts(uid, udata) {
    el MISMO alcance que «Mis clientes» (el entrenador, solo sus
    asignados; el administrador, todos los que su vista alcanza).
    Tocar una línea abre la ficha del cliente. */
+/* AUTH-570 (programa «Plegar todo» nº 8; auditoría de pliegues,
+   sección «Pendientes»): las alertas de alumnos del entrenador/
+   administrador ya no se despliegan al final del flotante de
+   Pendientes: en superficie vive solo su línea «Alertas de
+   alumnos · N ›» (#talerts-slot, la sincroniza el propio render
+   con el conteo real) y el bloque #trainer-alerts VIAJA desde su
+   almacén (#talerts-store) a su pantalla propia (#talerts-float)
+   al tocarla, agrupado por alumno como siempre. El pintor no
+   cambia: pinta por id, esté el bloque donde esté. */
+function talertsLineSync(n) {
+  const slot = $('talerts-slot'); if (!slot) return;
+  if (n == null) { slot.innerHTML = ''; return; }
+  slot.innerHTML = `<button type="button" class="pend570-line" data-talerts-open><span class="p570-t">${esc(t('talert.title'))}</span><span class="p570-d">· ${esc(n)}</span><span class="p570-chev" aria-hidden="true">›</span></button>`;
+}
+function talertsSheetOpen() {
+  const f = $('talerts-float'), body = $('talerts-sheet-body'), node = $('trainer-alerts');
+  if (!f || !body || !node) return;
+  const title = $('talerts-sheet-title');
+  if (title) title.textContent = t('talert.title');
+  body.appendChild(node);
+  f.style.display = '';
+  try { coverSync(); } catch {}
+}
+function talertsSheetClose() {
+  const f = $('talerts-float'), store = $('talerts-store'), node = $('trainer-alerts');
+  if (!f) return;
+  if (node && store && node.parentElement !== store) store.appendChild(node);
+  if (f.style.display !== 'none') { f.style.display = 'none'; try { coverSync(); } catch {} }
+}
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-talerts-open]') : null;
+  if (b) talertsSheetOpen();
+});
+{ const x = document.getElementById('talerts-sheet-x'); if (x) x.onclick = () => talertsSheetClose(); }
+{ const bk = document.getElementById('talerts-sheet-back'); if (bk) bk.onclick = () => talertsSheetClose(); }
 async function trainerAlertsRender() {
   const box = $('trainer-alerts'); if (!box) return;
-  if (ROLE !== 'entrenador' && ROLE !== 'administrador') { box.innerHTML = ''; return; }
+  if (ROLE !== 'entrenador' && ROLE !== 'administrador') { box.innerHTML = ''; talertsLineSync(null); return; }
   if (!auth.currentUser) return;
   const seq = ++TALERTS_SEQ;
   let users = [];
@@ -14834,6 +14903,8 @@ async function trainerAlertsRender() {
       h += `<button type="button" class="talert-line" data-talert-uid="${u.id}" style="${lineStyle};padding-left:16px">⚠️ ${esc(talertText(a))} <span class="muted">· ${esc(talertDateTag(a.date))}</span></button>`;
   }
   cur.innerHTML = h + '</div>';
+  /* AUTH-570: la línea del flotante lleva el conteo total real. */
+  talertsLineSync(withAlerts.reduce((acc, x) => acc + x.alerts.length, 0));
 }
 { const box = document.getElementById('trainer-alerts');
   if (box) box.addEventListener('click', async e => {
@@ -18762,7 +18833,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-progreso-plegado' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-pendientes-coach' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -57179,6 +57250,10 @@ function pendRefreshAfterSave() {
 }
 function pendSetFloat(open) {
   PEND_UI.floatOpen = !!open;
+  /* AUTH-570: al cerrar el flotante se cierran también sus hojas
+     hijas (alertas y configuración), devolviendo cada bloque a
+     su almacén — ninguna queda abierta sobre otra superficie. */
+  if (!open) { try { talertsSheetClose(); } catch {} try { pendCfgSheetClose(); } catch {} }
   const f = $('pend-float'), b = $('btn-toggle-pend');
   if (f) f.style.display = open ? '' : 'none';
   if (b) b.setAttribute('aria-expanded', String(!!open));
@@ -57409,6 +57484,54 @@ function pendItemsGroupedHTML(items, regDay) {
   }
   return h;
 }
+/* AUTH-570 (programa «Plegar todo» nº 8; auditoría de pliegues,
+   sección «Pendientes»): el formulario de configuración — el de
+   activación y el de edición — ya NO sustituye la lista dentro
+   del flotante: vive en su pantalla propia (#pendcfg-float) y se
+   abre desde la línea «Configurar recordatorios ›» (o desde el
+   botón de la cabecera, que sigue alternando el mismo estado
+   PEND_UI.configOpen). La lista queda pintada detrás. El
+   formulario se pinta con el pintor de siempre
+   (pendCfgFormHTML) y sus acciones corren por la delegación de
+   siempre (la de #pend-body, extendida al cuerpo de la hoja).
+   pendCfgSheetSync se llama al final de cada renderPendings:
+   con configOpen pinta el formulario vigente y abre la hoja;
+   sin él, la cierra y vacía su cuerpo (ningún pc-* queda
+   rondando fuera de su pantalla). */
+function pendCfgLineHTML() {
+  return `<button type="button" class="pend570-line" data-pendcfg-open><span class="p570-t">${esc(t('pend570.cfgLine'))}</span><span class="p570-chev" aria-hidden="true">›</span></button>`;
+}
+function pendCfgSheetSync() {
+  const f = $('pendcfg-float'); if (!f) return;
+  const cfg = (typeof PEND_CFG !== 'undefined') ? PEND_CFG : null;
+  const want = !!(cfg && !cfg.__error && PEND_UI.configOpen);
+  if (!want) {
+    if (f.style.display !== 'none') {
+      f.style.display = 'none';
+      const b = $('pendcfg-sheet-body'); if (b) b.innerHTML = '';
+      try { coverSync(); } catch {}
+    }
+    return;
+  }
+  const first = !cfg.activated;
+  const title = $('pendcfg-sheet-title');
+  if (title) title.textContent = first ? t('pend.actTitle') : t('pend.cfgTitle');
+  const body = $('pendcfg-sheet-body'); if (!body) return;
+  body.innerHTML = first ? pendCfgFormHTML(cfg.meals ? cfg : pendDefaults(), true) : pendCfgFormHTML(cfg, false);
+  if (f.style.display === 'none') { f.style.display = ''; try { coverSync(); } catch {} }
+}
+function pendCfgSheetClose() {
+  if (PEND_UI.configOpen) { PEND_UI.configOpen = false; try { renderPendings(); } catch {} }
+  else pendCfgSheetSync();
+}
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-pendcfg-open]') : null;
+  if (!b) return;
+  PEND_UI.configOpen = true;
+  try { renderPendings(); } catch {}
+});
+{ const x = document.getElementById('pendcfg-sheet-x'); if (x) x.onclick = () => pendCfgSheetClose(); }
+{ const bk = document.getElementById('pendcfg-sheet-back'); if (bk) bk.onclick = () => pendCfgSheetClose(); }
 function renderPendings() {
   const body = $('pend-body'); if (!body) return;
   /* Todo render reconstruye el formulario de configuración desde la
@@ -57416,8 +57539,8 @@ function renderPendings() {
   PEND_UI.cfgDirty = false;
   const count = $('pend-count'), cfgBtn = $('btn-pend-config');
   const cfg = PEND_CFG;
-  if (!cfg) { body.innerHTML = `<div class="wempty">${esc(t('train.loading'))}</div>`; pendSyncDock(); return; }
-  if (cfg.__error) { body.innerHTML = `<p class="progress-hint">${esc(t('pend.loadError'))}</p>`; if (count) count.style.display = 'none'; if (cfgBtn) cfgBtn.style.display = 'none'; pendSyncDock(); return; }
+  if (!cfg) { body.innerHTML = `<div class="wempty">${esc(t('train.loading'))}</div>`; pendCfgSheetSync(); pendSyncDock(); return; }
+  if (cfg.__error) { body.innerHTML = `<p class="progress-hint">${esc(t('pend.loadError'))}</p>`; if (count) count.style.display = 'none'; if (cfgBtn) cfgBtn.style.display = 'none'; pendCfgSheetSync(); pendSyncDock(); return; }
   if (!cfg.activated) {
     if (cfgBtn) cfgBtn.style.display = 'none';
     /* Sin activar: el formulario trae los valores SUGERIDOS — o los
@@ -57443,17 +57566,18 @@ function renderPendings() {
         else count.style.display = 'none';
       }
     } catch {}
-    body.innerHTML = pre + pendCfgFormHTML(cfg.meals ? cfg : pendDefaults(), true);
+    /* AUTH-570: sin activar, el cuerpo cierra con la línea que
+       abre el formulario de activación en su pantalla propia;
+       el formulario ya no se pinta aquí. */
+    body.innerHTML = pre + pendCfgLineHTML();
+    pendCfgSheetSync();
     pendSyncDock();
     return;
   }
   if (cfgBtn) cfgBtn.style.display = '';
-  if (PEND_UI.configOpen) {
-    if (count) count.style.display = 'none';
-    body.innerHTML = pendCfgFormHTML(cfg, false);
-    pendSyncDock();
-    return;
-  }
+  /* AUTH-570: con la configuración abierta la lista YA NO se
+     sustituye: se pinta entera y el formulario vive en su hoja
+     (pendCfgSheetSync, al final). */
   const { items, traces, regDay } = pendCompute();
   if (count) {
     if (items.length) { count.textContent = items.length; count.style.display = ''; }
@@ -57475,7 +57599,9 @@ function renderPendings() {
      para los demás roles, la misma lista plana de siempre). */
   html += pendItemsGroupedHTML(items, regDay);
   html += pendMealsChecklistHTML(regDay, new Date());
+  html += pendCfgLineHTML();
   body.innerHTML = html;
+  pendCfgSheetSync();
   pendSyncDock();
 }
 
@@ -57498,6 +57624,14 @@ function renderPendings() {
    motor de pendientes, sus marcas y el rastro interno (traces de
    pendCompute) quedan intactos para la vista del entrenador y el
    historial. Sin Peso, sin Entrenamiento, sin frases largas. */
+/* AUTH-570 (programa «Plegar todo» nº 8; auditoría de pliegues,
+   sección «Pendientes»): el checklist de comidas del día nace en
+   su propia línea plegada — «Comidas de hoy · n de m» (n = las
+   registradas de las que ya aplican hoy, de la misma fuente) — y
+   la lista de siempre vive tras ella, con despliegue en el sitio.
+   Las filas se calculan byte a byte como antes; el estado del
+   pliegue es de sesión, como el de la ruta. */
+let PEND_MEALS_OPEN = false;
 function pendMealsChecklistHTML(regDay, now) {
   const cfg = PEND_CFG || {};
   const defs = pendDefaults();
@@ -57505,16 +57639,28 @@ function pendMealsChecklistHTML(regDay, now) {
     const m = (cfg.meals || []).find(x => x && x.name === name) || defs.meals.find(x => x.name === name);
     return (m && m.time) || '12:00';
   };
-  const rows = PEND_MAIN_MEALS.map(name => {
+  const rowObjs = PEND_MAIN_MEALS.map(name => {
     const logged = (MEALS[regDay] || []).some(x => x.meal === name);
-    if (!logged && pendMealWhen(regDay, timeOf(name), cfg.cutoff) > now) return '';
+    if (!logged && pendMealWhen(regDay, timeOf(name), cfg.cutoff) > now) return null;
     const st = logged ? 'done' : 'missed';
     const mark = logged ? '✓' : '✗';
-    return `<li class="pend-meal-row pend-meal-${st}"><span class="pend-meal-mark">${mark}</span> ${esc(t('pend.mealName.' + name))}</li>`;
-  }).join('');
-  if (!rows) return '';
-  return `<div class="pend-meals"><p class="pend-cfg-h">${esc(t('pend.mealsToday'))}</p><ul class="pend-meals-list">${rows}</ul></div>`;
+    return { logged, html: `<li class="pend-meal-row pend-meal-${st}"><span class="pend-meal-mark">${mark}</span> ${esc(t('pend.mealName.' + name))}</li>` };
+  }).filter(Boolean);
+  if (!rowObjs.length) return '';
+  const rows = rowObjs.map(r => r.html).join('');
+  const nDone = rowObjs.filter(r => r.logged).length;
+  return `<button type="button" class="pend570-line" data-pend-meals-fold aria-expanded="${PEND_MEALS_OPEN ? 'true' : 'false'}"><span class="p570-t">🍽️ ${esc(t('pend.mealsToday'))}</span><span class="p570-d">${esc(t('pend570.mealsCount', { a: nDone, b: rowObjs.length }))}</span><span class="p570-chev" aria-hidden="true">${PEND_MEALS_OPEN ? '▴' : '›'}</span></button><div class="pend-meals pend-meals-fold-body"${PEND_MEALS_OPEN ? '' : ' hidden'}><ul class="pend-meals-list">${rows}</ul></div>`;
 }
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-pend-meals-fold]') : null;
+  if (!b) return;
+  PEND_MEALS_OPEN = !PEND_MEALS_OPEN;
+  const body = b.nextElementSibling;
+  if (body) { if (PEND_MEALS_OPEN) body.removeAttribute('hidden'); else body.setAttribute('hidden', ''); }
+  b.setAttribute('aria-expanded', PEND_MEALS_OPEN ? 'true' : 'false');
+  const chev = b.querySelector('.p570-chev');
+  if (chev) chev.textContent = PEND_MEALS_OPEN ? '▴' : '›';
+});
 
 /* ---------- acciones del panel ---------- */
 function pendReadForm() {
@@ -57602,33 +57748,60 @@ function pendGoWaitingTray() {
    botones de ir) no marca nada y no congela la lista. */
 { const pb = document.getElementById('pend-body');
   if (pb) { const mark = e => { if (e.target && e.target.closest && e.target.closest('.pend-cfg')) PEND_UI.cfgDirty = true; };
-    pb.addEventListener('input', mark); pb.addEventListener('change', mark); } }
+    pb.addEventListener('input', mark); pb.addEventListener('change', mark);
+    /* AUTH-570: el formulario vive ahora en su hoja: la misma
+       marca de edición sin guardar protege lo tecleado allí. */
+    const csb = document.getElementById('pendcfg-sheet-body');
+    if (csb) { csb.addEventListener('input', mark); csb.addEventListener('change', mark); } } }
 /* Cierre tocando fuera de la tarjeta (el botón del dock se excluye:
    su propio onclick ya alterna). */
 document.addEventListener('click', e => {
   if (!PEND_UI.floatOpen) return;
+  /* AUTH-570: el «dentro» se juzga por el camino del evento al
+     despacharse (composedPath): un toque sobre un botón de la
+     lista que se repinta a sí misma al pulsarlo (la línea de
+     configuración, que abre su hoja repintando la lista) deja
+     su nodo fuera del documento cuando este listener corre, y
+     un contains() tardío lo leería como «toque fuera» y
+     cerraría la superficie que el toque acababa de abrir. Con
+     el camino original, el criterio es el de siempre: dónde
+     ocurrió el toque. */
+  const path = (typeof e.composedPath === 'function') ? e.composedPath() : null;
+  const dentro = el => !!el && (path ? path.includes(el) : el.contains(e.target));
   const f = $('pend-float'), b = $('btn-toggle-pend');
-  if (f && f.contains(e.target)) return;
-  if (b && b.contains(e.target)) return;
+  if (dentro(f)) return;
+  if (dentro(b)) return;
   /* El botón «Ver pendientes» del aviso TAMBIÉN abre la tarjeta: un
      toque sobre él nunca es un «toque fuera» (segunda guarda de la
      corrección 2026-10-26, por si un repintado re-cablea el botón). */
   const rb = document.getElementById('btn-role-pend-open');
-  if (rb && rb.contains(e.target)) return;
+  if (dentro(rb)) return;
+  /* AUTH-570: las hojas hijas del flotante (las alertas de
+     alumnos y el formulario de configuración, que desde este
+     paquete viven en sus pantallas propias sobre el flotante)
+     son continuación de esta superficie: un toque dentro de
+     ellas no es un «toque fuera». */
+  const tf = $('talerts-float'), cf = $('pendcfg-float');
+  if (dentro(tf)) return;
+  if (dentro(cf)) return;
   pendSetFloat(false);
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && PEND_UI.floatOpen) pendSetFloat(false); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { try { pendDockTick(); } catch {} } });
 setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
 { const body = document.getElementById('pend-body');
-  if (body) {
-    body.addEventListener('change', e => {
+  /* AUTH-570: los dos manejadores tienen nombre para poder
+     atender TAMBIÉN el cuerpo de la hoja de configuración
+     (#pendcfg-sheet-body), donde el formulario vive ahora: es la
+     misma delegación de siempre, con un segundo contenedor. Los
+     cuerpos de los manejadores no cambian en una coma. */
+  const onPendBodyChange = e => {
       const s = e.target.closest('[data-pend-snooze]');
       if (!s || !s.value) return;
       const res = pendSnoozeTarget(s.value, new Date());
       pendMark(s.dataset.pendSnooze, { st: 'snoozed', until: res.until, whenText: res.when, shifted: res.shifted, chosenHM: res.chosenHM, quietFrom: res.quietFrom, quietTo: res.quietTo });
-    });
-    body.addEventListener('click', async e => {
+    };
+  const onPendBodyClick = async e => {
       const b = e.target.closest('[data-pend-act]');
       if (!b) return;
       const act = b.dataset.pendAct;
@@ -57739,7 +57912,15 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
            pastilla, si el destino es una sección) es la vuelta. */
         backSet('pend');
       }
-    });
+    };
+  if (body) {
+    body.addEventListener('change', onPendBodyChange);
+    body.addEventListener('click', onPendBodyClick);
+  }
+  const cfgSheetBody = document.getElementById('pendcfg-sheet-body');
+  if (cfgSheetBody) {
+    cfgSheetBody.addEventListener('change', onPendBodyChange);
+    cfgSheetBody.addEventListener('click', onPendBodyClick);
   }
 }
 
@@ -61278,7 +61459,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-progreso-plegado';
+const PWA_SW_VERSION = '20261123-pendientes-coach';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
@@ -63318,8 +63499,41 @@ async function nutriViewPlan(body) {
     };
   };
 }
+/* AUTH-570 (programa «Plegar todo» nº 8; auditoría de pliegues,
+   sección «Mi coach de alimentación»): el panel ya no nace
+   desplegado entero — en superficie quedan su línea plegada
+   «🥗 Mi coach de alimentación · {dato clave} ›» y, debajo, el
+   estado del consentimiento (✅), que la auditoría manda dejar
+   visible. TODO el contenido de siempre (relación, seguimiento,
+   línea del plan con «ver plan», aviso de propuesta y la zona de
+   acciones) vive en #nutri-my-block y VIAJA a su pantalla propia
+   (#nutribox-float) al tocar la línea, como las alertas de
+   Pendientes. El pintor sigue pintando por id dentro del
+   bloque, esté donde esté. Y la caja queda con UNA sola puerta
+   al plan: el botón grande del planificador y su pie salen de
+   aquí (el planificador conserva sus puertas de Comida,
+   AUTH-568); la decisión de una propuesta sigue viviendo en la
+   vista del plan, tras «ver plan», como siempre. */
+function nutriBoxOpen() {
+  const f = $('nutribox-float'), body = $('nutribox-sheet-body'), block = $('nutri-my-block');
+  if (!f || !body || !block) return;
+  body.appendChild(block);
+  f.style.display = '';
+  try { coverSync(); } catch {}
+}
+function nutriBoxClose() {
+  const f = $('nutribox-float'), store = $('nutri-my-store'), block = $('nutri-my-block');
+  if (block && store && block.parentElement !== store) store.appendChild(block);
+  if (f && f.style.display !== 'none') { f.style.display = 'none'; try { coverSync(); } catch {} }
+}
+function nutriBoxReset() { nutriBoxClose(); }
+{ const x = document.getElementById('nutribox-sheet-x'); if (x) x.onclick = () => nutriBoxClose(); }
+{ const bk = document.getElementById('nutribox-sheet-back'); if (bk) bk.onclick = () => nutriBoxClose(); }
 async function renderNutriMyBox() {
   const box = $('nutri-my-box'); if (!box) return;
+  /* AUTH-570: todo repintado rescata el bloque a su almacén y
+     cierra su hoja antes de reconstruir la caja. */
+  nutriBoxReset();
   const me = auth.currentUser && auth.currentUser.uid;
   /* Pastilla «Mi coach de alimentación» (decisión de Ronald,
      correo Memphis 2026-11-03 22:16 CST): la caja vive en su
@@ -63335,9 +63549,17 @@ async function renderNutriMyBox() {
   if (nutriCoachTabBtn) nutriCoachTabBtn.style.display = show ? '' : 'none';
   if (!show) { box.innerHTML = ''; return; }
   const rel = NUTRI.myRel, fol = NUTRI.myFollow, plan = NUTRI.myPlan;
-  let h = `<div class="panel nutri-panel"><h3 class="history-title">🥗 ${esc(t('nutri.boxTitle'))}</h3>`;
+  /* AUTH-570: `h` acumula el contenido del BLOQUE (#nutri-my-
+     block, el que viaja a la hoja); la superficie se compone al
+     final con la línea plegada y el estado del consentimiento.
+     `nutriDatum` es el dato clave de la línea: el nombre del
+     coach activo, si no el estado del seguimiento, si no la
+     meta del plan, si no el «todavía no tienes coach». */
+  let h = '';
+  let nutriDatum = '';
   if (rel && rel.status === 'activa' && rel.nutritionistUid) {
     const nm = await nutriNameOf(rel.nutritionistUid);
+    nutriDatum = nm;
     h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.myNutri'))}</span><span class="myprof-v">${esc(nm)} ${roleDiscHTML('coach')}</span></p>`;
     if (rel.followUpCadence) h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.cadence'))}</span><span class="myprof-v">${esc(nutriCadLabel(rel.followUpCadence))}</span></p>`;
     if (rel.pendingChange) {
@@ -63353,22 +63575,23 @@ async function renderNutriMyBox() {
   if (fol && fol.status === 'pendiente_nutricionista') h += `<p class="progress-hint">⏳ ${esc(t('nutri.followPendingNutri'))}</p>`;
   else if (fol && fol.status === 'pendiente_administrador') h += `<p class="progress-hint">⏳ ${esc(t('nutri.followPendingAdmin'))}</p>`;
   else if (fol && fol.status === 'aprobada') h += `<p class="progress-hint">✅ ${esc(t('nutri.followActive'))}</p>`;
-  /* «Su plan para ti» + el botón al planificador (rediseño
-     aprobado por Ronald, 2026-11-09 00:15 CST): la caja queda
-     DESPEJADA — arriba solo vive la información del coach
-     (relación y seguimiento, espejo de «Mi entrenador») y aquí
-     debajo van la línea compacta del plan con su puerta a la
+  if (!nutriDatum && fol) {
+    if (fol.status === 'pendiente_nutricionista') nutriDatum = t('nutri.followPendingNutri');
+    else if (fol.status === 'pendiente_administrador') nutriDatum = t('nutri.followPendingAdmin');
+    else if (fol.status === 'aprobada') nutriDatum = t('nutri.followActive');
+  }
+  /* «Su plan para ti» (rediseño aprobado por Ronald, 2026-11-09
+     00:15 CST): la línea compacta del plan con su puerta a la
      vista completa (nutriOpenFloat('plan'): el plan activo, la
-     adherencia y la Fase 1 entera viven allí, sin perder nada)
-     y el botón grande que abre la hoja del planificador, cuya
-     casa es Comida. Una propuesta de plan PENDIENTE se anuncia
-     en una línea (la tarjeta completa, con la decisión, vive
-     solo en la vista del plan). «Mi menú de la semana» SALE de
-     esta sección: la única puerta al editor es la hoja. */
+     adherencia y la Fase 1 entera viven allí, sin perder nada).
+     Una propuesta de plan PENDIENTE se anuncia en una línea (la
+     tarjeta completa, con la decisión, vive solo en la vista
+     del plan). AUTH-570: el botón grande del planificador y su
+     pie SALEN de esta caja — la auditoría manda una sola puerta
+     al plan y «ver plan» es esa puerta; el planificador
+     conserva sus puertas propias en Comida (AUTH-568). */
   h += mealPlanSummaryHTML(plan);
   if (NUTRI.myProposed) h += `<p class="progress-hint">🍽️ <b>${esc(t('plan.proposalTitle'))}</b> — ${esc(t('plan.proposalSub'))}</p>`;
-  h += `<button type="button" class="btn-primary plan-open-btn" data-plan-open>📅 ${esc(t('planwk.coachBtn'))}</button>
-  <p class="progress-hint plan-caption">${esc(t('planwk.caption', { range: planWeekRange(mmMondayOf(todayISO())) }))}</p>`;
   /* Acciones de la zona, ORDENADAS (AUTH-2026-11-06-274; maqueta
      aprobada por Ronald en el chat el 2026-11-06 01:53 CST): el
      agua ya NO vive en esta zona — se mudó al panel «Hoy» de
@@ -63381,14 +63604,27 @@ async function renderNutriMyBox() {
      Botones uniformes de 48 px: datos y recetas en una fila
      pareja; elegir coach y solicitar seguimiento a todo ancho. */
   const cons = NUTRI.myConsent;
-  if (cons && cons.acceptedAt && !cons.withdrawnAt) h += `<div class="nutri-sub"><span class="nutri-ok">✅ ${esc(t('nutri.consentOn'))}</span></div>`;
+  /* AUTH-570: el estado ✅ del consentimiento NO viaja a la
+     hoja: queda visible en la superficie del panel, bajo la
+     línea plegada (la auditoría lo manda expreso). */
+  const consLine = (cons && cons.acceptedAt && !cons.withdrawnAt) ? `<div class="nutri-sub"><span class="nutri-ok">✅ ${esc(t('nutri.consentOn'))}</span></div>` : '';
+  /* AUTH-570: las acciones de la zona viajan JUNTAS en una sola
+     fila pareja dentro del bloque (la auditoría: «las acciones
+     juntas en una fila») — mismos botones, mismos ids, mismas
+     aperturas; solo cambia la fila que los agrupa. */
   h += `<div class="nutri-zone-actions"><div class="nutri-zone-row"><button type="button" class="btn-ghost nutri-zone-btn" id="nutri-btn-consent">${esc(t('nutri.consentTitle'))}</button>
-  <button type="button" class="btn-ghost nutri-zone-btn" id="nutri-btn-recipes">📖 ${esc(t('nutri.recipes'))}</button></div>
+  <button type="button" class="btn-ghost nutri-zone-btn" id="nutri-btn-recipes">📖 ${esc(t('nutri.recipes'))}</button>
   ${(!rel || rel.status !== 'activa') ? `<button type="button" class="btn-ghost nutri-zone-btn" id="nutri-btn-choose">${esc(t('nutri.choose'))}</button>` : ''}
-  ${(!fol || fol.status === 'rechazada') ? `<button type="button" class="btn-primary nutri-zone-btn" id="nutri-btn-follow">${esc(t('nutri.followReq'))}</button>` : ''}</div>`;
-  h += `</div>`;
+  ${(!fol || fol.status === 'rechazada') ? `<button type="button" class="btn-primary nutri-zone-btn" id="nutri-btn-follow">${esc(t('nutri.followReq'))}</button>` : ''}</div></div>`;
+  /* AUTH-570: composición de la superficie — línea plegada con
+     el dato clave, el estado del consentimiento visible y el
+     almacén oculto con el bloque íntegro. */
+  if (!nutriDatum) nutriDatum = (plan && plan.goals) ? t('planwk.goalsLine', { kcal: Math.round(Number(plan.goals.kcal) || 0), prot: Math.round(Number(plan.goals.prot) || 0) }) : t('nutri.none');
+  const blockHTML = h;
+  h = `<div class="panel nutri-panel"><button type="button" class="pend570-line" id="nutri-box-line" style="margin-top:0"><span class="p570-t">🥗 ${esc(t('nutri.boxTitle'))}</span><span class="p570-d">${esc(nutriDatum)}</span><span class="p570-chev" aria-hidden="true">›</span></button>${consLine}<div id="nutri-my-store" style="display:none"><div id="nutri-my-block">${blockHTML}</div></div></div>`;
   box.innerHTML = h;
   const on = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
+  on('nutri-box-line', () => nutriBoxOpen());
   on('nutri-btn-choose', () => nutriOpenFloat('pool'));
   on('nutri-btn-change', () => nutriOpenFloat('pool'));
   on('nutri-btn-follow', () => nutriOpenFloat('followup'));
