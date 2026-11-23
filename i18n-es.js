@@ -2837,6 +2837,7 @@ export default {
   'train566.alignLine': 'Días por alinear', 'train566.reqLine': 'Peticiones', 'train566.reqOpen': '{n} abiertas',
   'home567.todayDetail': 'Hoy en detalle', 'home567.mealsOf': '{a} de {b} comidas',
   'food568.howItWorks': 'Cómo funciona', 'food568.filter': 'Filtrar', 'food568.filterNone': 'Sin filtros', 'food568.desc': 'Descripción',
+  'prog569.lineMeasures': 'Medidas', 'prog569.lineFicha': 'Ficha', 'prog569.lineComp': 'Composición', 'prog569.lineCfg': 'Configuración', 'prog569.seeMore': 'Ver más', 'prog569.seeLess': 'Ver menos', 'prog569.fullHistory': 'Historial completo',
   'train.view.rpe': 'RPE', 'train.view.rpeNone': 'Sin RPE', 'train.view.exDone': 'Hecho', 'train.view.exInProgress': 'En curso', 'train.view.exToDo': 'Sin empezar', 'train.view.exDoneMarked': '✓ Hecho · toca para desmarcar', 'train.view.save': 'Guardar',
   'train.view.alignBody': 'Tu rutina: {plan}. Tus avisos de entrenamiento: {cfg}. ¿Alineas tus avisos con tu plan?',
   'train.view.sessionsWeek': '{n} sesiones por semana', 'train.view.noDays': 'ningún día configurado',
