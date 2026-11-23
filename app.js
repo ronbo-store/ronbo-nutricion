@@ -7,8 +7,8 @@ import {
 } from "firebase/auth";
 import {
   getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, CACHE_SIZE_UNLIMITED,
-  doc, getDoc as _fsGetDoc, getDocFromServer as _fsGetDocFromServer, collection, getDocs as _fsGetDocs, getDocsFromServer as _fsGetDocsFromServer, addDoc,
-  setDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, Timestamp, query, where, limit, writeBatch, runTransaction, onSnapshot as _fsOnSnapshot,
+  doc, getDoc as _fsGetDoc, getDocFromServer as _fsGetDocFromServer, collection, getDocs as _fsGetDocs, getDocsFromServer as _fsGetDocsFromServer, addDoc as _fsAddDoc,
+  setDoc as _fsSetDoc, updateDoc as _fsUpdateDoc, deleteDoc as _fsDeleteDoc, deleteField, serverTimestamp, Timestamp, query, where, limit, writeBatch as _fsWriteBatch, runTransaction as _fsRunTransaction, onSnapshot as _fsOnSnapshot,
 } from "firebase/firestore";
 import {
   getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject,
@@ -57,6 +57,302 @@ try {
   db = getFirestore(app);
 }
 const storage = getStorage(app);
+
+/* ════════════════════════════════════════════════════════════════════
+   L-5 «PUERTA QUE PINTA PRIMERO» (AUTH-2026-11-22-554; paquete de
+   velocidad del INFORME-LENTITUD-2026-11-15, con la decisión EXPRESA
+   de Ronald en el chat RONBO.NUTRI, 2026-11-22 18:48 CST, que relaja
+   en la práctica la puerta dura de AUTH-141) + RETENCIÓN DE
+   ESCRITURAS DE LA PUERTA.
+
+   Hasta ayer la puerta esperaba la confirmación del servidor
+   (getDocFromServer) ANTES de pintar nada: con red lenta no había
+   app aunque todo estuviera ya en el teléfono. Desde hoy, cuando la
+   vista LOCAL del propio documento dice «enter» (el mismo
+   accessDecision de siempre sobre los datos guardados), la app
+   PINTA Inicio de inmediato desde esa vista y lanza la confirmación
+   contra el servidor EN EL MISMO INSTANTE, en segundo plano. La
+   sesión nace PROVISIONAL y la confirmación manda al llegar:
+
+   - Confirmación positiva (el servidor confirma un estado que
+     entra): la sesión queda CONFIRMADA, se libera la cola de
+     escrituras retenidas y corren los efectos de arranque diferidos.
+   - El servidor declara la cuenta NO válida (la misma decisión que
+     hoy bloquea en la puerta, evaluada sobre los datos CONFIRMADOS):
+     EXPULSIÓN INMEDIATA al mismo destino de hoy (puerta de
+     renovación, espera de aprobación o salida sin acceso, según el
+     caso). Las escrituras retenidas se DESCARTAN: nunca salen.
+   - Sin respuesta (sin conexión o servidor inalcanzable): la
+     persona queda en modo local de SOLO LECTURA con su aviso
+     discreto (#gate-prov-chip), sin escrituras, y la confirmación
+     se sigue intentando (al volver la red y cada 20 s); en cuanto
+     el servidor responda, manda su respuesta.
+   - Sin vista local que pintar (primera entrada de la cuenta en el
+     teléfono) o con una vista local que NO entra: el camino de
+     siempre, intacto — la puerta espera al servidor y un estado
+     expulsable sin confirmar sigue sin presentarse como verdad.
+
+   LA RETENCIÓN: mientras la sesión está PROVISIONAL, ninguna
+   escritura de Firestore sale del teléfono. Las seis funciones de
+   escritura del SDK se importan con alias _fs* y estos envoltorios
+   con su nombre de siempre las retienen en una cola conservada en
+   el dispositivo (localStorage, por cuenta — la disciplina de
+   CONSERVAR Y SUBIR DESPUÉS de AUTH-522): setDoc/updateDoc/
+   deleteDoc/addDoc se encolan y su promesa se resuelve al encolar
+   (la misma semántica local con la que el SDK resuelve al escribir
+   en su caché); writeBatch se graba operación a operación y su
+   commit() encola el lote entero; runTransaction se RECHAZA al
+   momento con código 'unavailable' — sus llamantes ya saben
+   conservar ante ese fallo (el agua suma por la cola de pendientes
+   de AUTH-522) y una transacción nunca se finge hecha. Al
+   confirmarse la sesión, la cola se libera EN ORDEN y un fallo de
+   liberación conserva el resto para el siguiente intento (al
+   volver la red, al confirmar, al reabrir). Las superficies
+   sensibles (Administración, Comunicaciones y Accesos) no se abren
+   antes de la confirmación (guarda en switchTab). Alcance
+   declarado: la retención cubre las escrituras de DATOS de
+   Firestore, que son las escrituras de la app; las subidas de
+   fotos a Storage son acciones expresas de la persona y no forman
+   parte de la disciplina de la cola, como tampoco lo eran en
+   AUTH-522. ════════════════════════════════════════════════════ */
+const GATE = {
+  state: 'boot',      // 'boot' (la puerta aún no decide) · 'provisional' · 'confirmed'
+  uid: null,
+  queue: [],          // escrituras retenidas: { ser, run } (ser = forma conservada; null si no conservable)
+  deferred: [],       // efectos de arranque diferidos hasta la confirmación
+  retryArmed: false,
+  retryTimer: null,
+  flushing: false,
+};
+const GATE_LS_KEY = 'ronbofit-gateq-v1';
+function gateHoldActive() { return GATE.state === 'provisional'; }
+/* Forma conservada de los datos de una escritura: los Timestamp y
+   las marcas del servidor (serverTimestamp/deleteField) viajan con
+   rótulo propio y se reponen al liberar, como hace la batería con
+   sus dobles. */
+function gateSerVal(v) {
+  if (v instanceof Timestamp) return { __gTs: v.toMillis() };
+  if (v instanceof Date) return { __gTs: v.getTime() };
+  if (v && typeof v === 'object') {
+    if (typeof v._methodName === 'string') {
+      if (v._methodName === 'serverTimestamp') return { __gSt: 'server' };
+      if (v._methodName === 'deleteField') return { __gSt: 'delete' };
+      return { __gSt: 'other' };
+    }
+    if (Array.isArray(v)) return v.map(gateSerVal);
+    const o = {};
+    for (const k of Object.keys(v)) { const sv = gateSerVal(v[k]); if (sv !== undefined) o[k] = sv; }
+    return o;
+  }
+  return v;
+}
+function gateRevVal(v) {
+  if (v && typeof v === 'object') {
+    const ks = Object.keys(v);
+    if (ks.length === 1 && typeof v.__gTs === 'number') return Timestamp.fromMillis(v.__gTs);
+    if (ks.length === 1 && v.__gSt === 'server') return serverTimestamp();
+    if (ks.length === 1 && v.__gSt === 'delete') return deleteField();
+    if (Array.isArray(v)) return v.map(gateRevVal);
+    const o = {};
+    for (const k of ks) o[k] = gateRevVal(v[k]);
+    return o;
+  }
+  return v;
+}
+function gateRefFromPath(path) {
+  const seg = String(path).split('/').filter(Boolean);
+  return doc(db, ...seg);
+}
+function gateRunFromSer(ser) {
+  if (!ser || !ser.k) return null;
+  if (ser.k === 'set') return () => (ser.opts ? _fsSetDoc(gateRefFromPath(ser.path), gateRevVal(ser.data), ser.opts) : _fsSetDoc(gateRefFromPath(ser.path), gateRevVal(ser.data)));
+  if (ser.k === 'update') return () => _fsUpdateDoc(gateRefFromPath(ser.path), gateRevVal(ser.data));
+  if (ser.k === 'delete') return () => _fsDeleteDoc(gateRefFromPath(ser.path));
+  if (ser.k === 'batch') return async () => {
+    const b = _fsWriteBatch(db);
+    for (const op of ser.ops || []) {
+      if (op.k === 'set') { if (op.opts) b.set(gateRefFromPath(op.path), gateRevVal(op.data), op.opts); else b.set(gateRefFromPath(op.path), gateRevVal(op.data)); }
+      else if (op.k === 'update') b.update(gateRefFromPath(op.path), gateRevVal(op.data));
+      else if (op.k === 'delete') b.delete(gateRefFromPath(op.path));
+    }
+    await b.commit();
+  };
+  return null;
+}
+function gateQueueSave() {
+  try {
+    if (!GATE.uid) return;
+    const all = JSON.parse(localStorage.getItem(GATE_LS_KEY) || '{}');
+    const items = GATE.queue.filter(i => i.ser).map(i => i.ser);
+    if (items.length) all[GATE.uid] = items; else delete all[GATE.uid];
+    localStorage.setItem(GATE_LS_KEY, JSON.stringify(all));
+  } catch {}
+}
+function gateQueueLoad(uid) {
+  GATE.queue = [];
+  try {
+    const all = JSON.parse(localStorage.getItem(GATE_LS_KEY) || '{}');
+    const items = Array.isArray(all[uid]) ? all[uid] : [];
+    for (const ser of items) {
+      const run = gateRunFromSer(ser);
+      if (run) GATE.queue.push({ ser, run });
+    }
+  } catch {}
+}
+function gateEnqueue(ser, run) {
+  GATE.queue.push({ ser, run });
+  gateQueueSave();
+  return Promise.resolve();
+}
+function gateDiscardQueue() {
+  GATE.queue = [];
+  gateQueueSave();
+}
+/* Liberación EN ORDEN al confirmarse la sesión: un fallo conserva
+   el resto de la cola para el siguiente intento (nunca se pierde
+   una escritura retenida por un fallo de liberación). */
+async function gateFlush() {
+  if (GATE.flushing || GATE.state !== 'confirmed' || !GATE.queue.length) return;
+  GATE.flushing = true;
+  try {
+    while (GATE.queue.length && GATE.state === 'confirmed') {
+      const it = GATE.queue[0];
+      try { await it.run(); GATE.queue.shift(); gateQueueSave(); }
+      catch (e) { break; }
+    }
+  } finally { GATE.flushing = false; }
+}
+try { window.addEventListener('online', () => { try { gateFlush(); } catch {} }); } catch {}
+/* ── Los envoltorios de escritura (el nombre de siempre) ── */
+const setDoc = (ref, data, opts) => gateHoldActive()
+  ? gateEnqueue({ k: 'set', path: ref.path, data: gateSerVal(data), opts: opts || null }, () => _fsSetDoc(ref, data, opts))
+  : _fsSetDoc(ref, data, opts);
+const updateDoc = (ref, data) => gateHoldActive()
+  ? gateEnqueue({ k: 'update', path: ref.path, data: gateSerVal(data) }, () => _fsUpdateDoc(ref, data))
+  : _fsUpdateDoc(ref, data);
+const deleteDoc = (ref) => gateHoldActive()
+  ? gateEnqueue({ k: 'delete', path: ref.path }, () => _fsDeleteDoc(ref))
+  : _fsDeleteDoc(ref);
+const addDoc = (colRef, data) => {
+  if (!gateHoldActive()) return _fsAddDoc(colRef, data);
+  /* El id nace en el cliente (doc() sobre la colección, sin
+     escribir nada): quien llama recibe su referencia verdadera y
+     la escritura queda encolada tras ella, en orden. */
+  const ref = doc(colRef);
+  return gateEnqueue({ k: 'set', path: ref.path, data: gateSerVal(data) }, () => _fsSetDoc(ref, data)).then(() => ref);
+};
+const writeBatch = (dbArg) => {
+  if (!gateHoldActive()) return _fsWriteBatch(dbArg);
+  const ops = [];
+  return {
+    set(ref, data, opts) { ops.push({ k: 'set', path: ref.path, data, opts }); },
+    update(ref, data) { ops.push({ k: 'update', path: ref.path, data }); },
+    delete(ref) { ops.push({ k: 'delete', path: ref.path }); },
+    commit: () => gateEnqueue(
+      { k: 'batch', ops: ops.map(o => ({ k: o.k, path: o.path, data: o.data === undefined ? undefined : gateSerVal(o.data), opts: o.opts || null })) },
+      async () => {
+        const b = _fsWriteBatch(dbArg);
+        for (const o of ops) {
+          if (o.k === 'set') b.set(gateRefFromPath(o.path), o.data, o.opts);
+          else if (o.k === 'update') b.update(gateRefFromPath(o.path), o.data);
+          else b.delete(gateRefFromPath(o.path));
+        }
+        await b.commit();
+      })
+  };
+};
+const runTransaction = (dbArg, fn, opts) => {
+  if (!gateHoldActive()) return _fsRunTransaction(dbArg, fn, opts);
+  /* Retenida = rechazada al momento con 'unavailable': los
+     llamantes conservan por la cola de AUTH-522 ante ese código
+     (el agua) o reintentan con la sesión ya confirmada; una
+     transacción jamás se finge hecha ni se deja colgada. */
+  const e = new Error('gate-provisional: transacción retenida hasta la confirmación de la cuenta');
+  e.code = 'unavailable';
+  return Promise.reject(e);
+};
+/* ── El aviso discreto del modo provisional ── */
+function gateShowChip(mode) {
+  const chip = $('gate-prov-chip'); if (!chip) return;
+  const txt = $('gate-prov-chip-txt');
+  if (txt) txt.textContent = t(mode === 'offline' ? 'gate.provOffline' : 'gate.provVerifying');
+  chip.style.display = 'flex';
+}
+function gateHideChip() {
+  const chip = $('gate-prov-chip'); if (chip) chip.style.display = 'none';
+}
+/* ── El motor de confirmación de la entrada provisional ── */
+function gateStartConfirm(user) {
+  confirmUserDocFromServer(user.uid)
+    .then(conf => gateApplyConfirm(user, conf))
+    .catch(() => gateApplyConfirm(user, { ok: false, data: null }));
+}
+function gateArmRetry(user) {
+  if (GATE.retryArmed) return;
+  GATE.retryArmed = true;
+  const retry = () => {
+    if (GATE.state !== 'provisional' || !GATE.uid || GATE.uid !== user.uid) return;
+    gateStartConfirm(user);
+  };
+  try { window.addEventListener('online', retry); } catch {}
+  if (GATE.retryTimer) clearInterval(GATE.retryTimer);
+  GATE.retryTimer = setInterval(() => {
+    if (GATE.state !== 'provisional') { clearInterval(GATE.retryTimer); GATE.retryTimer = null; return; }
+    retry();
+  }, 20000);
+}
+async function gateApplyConfirm(user, conf) {
+  if (GATE.state !== 'provisional' || !GATE.uid || GATE.uid !== user.uid) return;
+  if (!conf || !conf.ok) {
+    /* Sin respuesta: modo local de solo lectura, con su aviso, y
+       la confirmación se sigue intentando — cuando el servidor
+       responda, manda su respuesta. */
+    gateShowChip('offline');
+    gateArmRetry(user);
+    return;
+  }
+  const d = accessDecision(conf.data);
+  if (d === 'enter') {
+    const prevRole = ROLE, prevOwner = IS_OWNER;
+    UDATA = conf.data;
+    IS_OWNER = UDATA.isOwner === true;
+    ROLE = deriveRole(UDATA, IS_OWNER);
+    GATE.state = 'confirmed';
+    gateHideChip();
+    try { $('who').textContent = UDATA.name ? UDATA.name : user.email; } catch {}
+    try { setAvatar(UDATA.photoURL || ''); } catch {}
+    GOALS = { ...(UDATA.goals || {}) };
+    try { nutriApplyPlanGoals(); } catch {}
+    if (ROLE !== prevRole || IS_OWNER !== prevOwner) { try { applyRoleTabs(); } catch {} }
+    await gateFlush();
+    const defs = GATE.deferred.splice(0);
+    for (const f of defs) { try { f(); } catch {} }
+    return;
+  }
+  /* EXPULSIÓN INMEDIATA: el servidor ha declarado la cuenta no
+     válida con la misma decisión que hoy bloquea en la puerta,
+     evaluada sobre los datos confirmados. Las escrituras
+     retenidas se descartan (nunca salieron ni saldrán) y el
+     destino es el de hoy para cada caso. */
+  GATE.state = 'boot';
+  GATE.deferred = [];
+  gateDiscardQueue();
+  gateHideChip();
+  stopUserDocWatch();
+  if (d === 'gate') {
+    $('app-view').style.display = 'none';
+    $('auth-view').style.display = '';
+    $('actions-dock').style.display = 'none';
+    doorGateErase();
+    showRenewalGate();
+  } else if (d === 'pending') {
+    const pendMsg = await pendingApprovalMsg();
+    await signOut(auth);
+    showAuthError(pendMsg);
+  } else { /* 'nodoc': el servidor no tiene el documento */
+    await doorNoDataExit(user);
+  }
+}
 
 /* ════════════════════════════════════════════════════════════════════
    BANDA C DEL PANEL DE CONSUMO (AUTH-2026-11-05-252, punto 164):
@@ -155,6 +451,10 @@ const onSnapshot = (...a) => {
 };
 async function ucMaybeReport() {
   try {
+    /* L-5 (AUTH-554): con la cuenta aún sin confirmar, tampoco
+       sale el reporte de consumo — queda acumulado y sucio para el
+       siguiente disparador, como si la app siguiera cerrada. */
+    if (GATE.state === 'provisional') return;
     ucRollover();
     if (!UC_DIRTY) return;
     const now = Date.now();
@@ -3970,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261122-arranque-vistas');
+  const mod = await import('./i18n-' + l + '.js?v=20261122-puerta-primero');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -4203,6 +4503,101 @@ function doorAction(u, confirmed) {
   const d = accessDecision(u);
   if (d === 'enter' || d === 'nodoc') return d;
   return confirmed ? d : 'noconnection';
+}
+/* Salida «sin documento» de la puerta (L-5, AUTH-554: extraída del
+   tramo en línea que la puerta de entrada ejecutaba hasta hoy —
+   el mismo comportamiento, palabra a palabra): si existe el
+   recibo de cierre, los datos ya se eliminaron en un intento
+   anterior y solo falta borrar la identidad de Auth — se ofrece
+   completar el cierre ahora (la sesión es reciente); si no, salida
+   con el error de sin acceso. La comparten la puerta de entrada y
+   la expulsión de la entrada provisional cuando el servidor
+   declara que el documento no existe. */
+async function doorNoDataExit(user) {
+  try {
+    const rc = await getDoc(receiptRef(user.uid));
+    if (rc.exists() && rc.data().type === 'account-closed') {
+      if (confirm(t('priv.finishCloseAsk'))) {
+        try { await deleteUser(user); toast(t('priv.deleted')); }
+        catch { toast(t('priv.deleteFail'), true); }
+      } else {
+        toast(t('priv.dataDeletedFinish'), true);
+      }
+      await signOut(auth);
+      return;
+    }
+  } catch {}
+  await signOut(auth);
+  showAuthError(t('err.noAccess'));
+}
+/* El tramo de la puerta DESPUÉS de elegir los datos de evaluación
+   (L-5, AUTH-554: extraído del cuerpo del handler de sesión — el
+   mismo comportamiento de siempre, decisión a decisión): sin
+   datos → la salida sin documento; con datos → el enlace de
+   registro, la acción de la puerta y sus salidas (sin conexión,
+   renovación, espera de aprobación). Devuelve true SOLO si la
+   sesión entra (la cola común de entrada continúa fuera). Al
+   entrar, la sesión queda registrada en la puerta nueva: con la
+   confirmación ya en la mano (pick.confirmed) nace CONFIRMADA; si
+   entró con la vista local sin confirmar (el caso de siempre de
+   AUTH-141: el servidor no respondió y la vista local entra), nace
+   PROVISIONAL — solo lectura, escrituras retenidas — y el motor
+   de reintento de la confirmación queda armado: cuando el servidor
+   responda, su respuesta manda (gateApplyConfirm). */
+async function doorEnterOrExit(user, pick) {
+  if (!pick.data) { await doorNoDataExit(user); return false; }
+  UDATA = pick.data;
+  IS_OWNER = UDATA.isOwner === true;
+  ROLE = deriveRole(UDATA, IS_OWNER);
+  /* AUTH-068: enlaces de registro (confirmación y respaldo de aviso). */
+  const doorRes = await signupLinkDoor(user);
+  const action = doorAction(UDATA, pick.confirmed);
+  /* LA PUERTA NO SE HEREDA: solo la decisión 'gate' de ESTA
+     carga — confirmada contra el servidor — puede dejar la
+     puerta pintada; ante cualquier otra decisión, todo resto
+     pintado de una vida anterior se borra (en 'enter', antes
+     de mostrar la app: entrar y ver la puerta son incompatibles). */
+  if (action !== 'gate') doorGateErase();
+  if (action === 'noconnection') {
+    /* Sin confirmación del servidor no se expulsa con la vista
+       local: se dice la única verdad disponible — no se pudo
+       verificar — y no se presenta ni la puerta de renovación
+       ni la espera de aprobación como si fueran el estado real.
+       Con conexión, la entrada se reevalúa contra el servidor. */
+    await signOut(auth);
+    showAuthError(t('err.noConnection'));
+    return false;
+  }
+  if (action === 'gate') { showRenewalGate(); return false; }
+  if (action === 'pending') {
+    /* DEFECTOS-072 (b): el texto de espera se resuelve ANTES de
+       cerrar la sesión (la lectura del directorio usa la sesión
+       viva) y nombra al entrenador elegido cuando lo hay. */
+    const pendMsg = await pendingApprovalMsg();
+    await signOut(auth);
+    showAuthError(pendMsg);
+    /* AUTH-070: si la puerta acaba de confirmar el correo en ESTA
+       entrada, la pantalla de pendiente lo dice con su línea de
+       éxito (antes la confirmación quedaba invisible tras el
+       cierre de sesión y la tarjeta del administrador seguía
+       mostrando «sin confirmar» sin que el usuario lo supiera). */
+    if (doorRes && doorRes.confirmedNow) {
+      const ae = $('auth-error');
+      if (ae) ae.innerHTML = esc(pendMsg) + '<br>' + esc(t('signup.pendingConfirmed'));
+    }
+    return false;
+  }
+  /* 'enter': la sesión entra y la puerta nueva registra su estado. */
+  GATE.uid = user.uid;
+  gateQueueLoad(user.uid);
+  if (pick.confirmed) {
+    GATE.state = 'confirmed';
+  } else {
+    GATE.state = 'provisional';
+    gateShowChip('offline');
+    gateArmRetry(user);
+  }
+  return true;
 }
 /* Los textos de la puerta, compuestos del estado REAL del usuario:
    al aprobado solo se le habla de su consentimiento; la aprobación
@@ -5413,155 +5808,12 @@ $('link-forgot').addEventListener('click', async e => {
   }
 });
 
-onAuthStateChanged(auth, async user => {
-  if (!user) {
-    /* LA PUERTA NO SE HEREDA: la pantalla sin sesión nace limpia
-       en ESTA carga — cualquier resto de la puerta pintado en una
-       vida anterior se borra aquí. Los avisos verdaderos de la
-       pantalla sin sesión (pendiente de aprobación, sin conexión,
-       sin acceso) se pintan DESPUÉS de esta rama, en su propio
-       flujo, y no se tocan. */
-    doorGateErase();
-    stopUserDocWatch();
-    /* AUTH-070: sin sesión también se capturan los enlaces de la
-       URL y se pinta el aviso de confirmación pendiente, para que
-       quien abre su enlace de confirmación VEA qué paso sigue. */
-    try { captureSignupLinks(); signupPaintConfirmHint(); } catch {}
-    /* AUTH-549: con el enlace del reto en la URL, la portada del
-       carrusel se ve SIN cuenta, sobre la pantalla de acceso. */
-    try { retoCoverMaybeShow(); } catch {}
-    $('auth-view').style.display = '';
-    $('app-view').style.display = 'none';
-    $('actions-dock').style.display = 'none';
-    /* La pantalla de acceso vuelve a mostrarse: la entrada con clave
-       se re-arma con un reto fresco (sugerencia automática o botón,
-       según el soporte real del navegador). */
-    try { pkInitLoginAccess(); } catch {}
-    return;
-  }
-  if (suppressAuthCheck) return;
-  UDATA = {};
-  IS_OWNER = false;
-  try {
-    /* AUTH-141: la puerta evalúa aprobación y consentimiento SOLO
-       sobre el estado confirmado contra el servidor
-       (getDocFromServer). La vista local solo se usa si el servidor
-       no responde, y en ese caso un estado expulsable no se
-       presenta como verdad (doorAction → 'noconnection'): una
-       vista local vieja ya no puede expulsar a quien en el
-       servidor está al día. */
-    const conf = await confirmUserDocFromServer(user.uid);
-    let cached = null;
-    if (!conf.ok) {
-      const snap = await getDoc(doc(db, 'users', user.uid));
-      cached = snap.exists() ? snap.data() : null;
-    }
-    const pick = doorDataPick(conf, cached);
-    if (!pick.data) {
-      /* Cierre veraz (A2): si existe el recibo de cierre, los
-         datos ya se eliminaron en un intento anterior y solo
-         falta borrar la identidad de Auth — se ofrece completar
-         el cierre ahora (la sesión es reciente). */
-      try {
-        const rc = await getDoc(receiptRef(user.uid));
-        if (rc.exists() && rc.data().type === 'account-closed') {
-          if (confirm(t('priv.finishCloseAsk'))) {
-            try { await deleteUser(user); toast(t('priv.deleted')); }
-            catch { toast(t('priv.deleteFail'), true); }
-          } else {
-            toast(t('priv.dataDeletedFinish'), true);
-          }
-          await signOut(auth);
-          return;
-        }
-      } catch {}
-      await signOut(auth);
-      showAuthError(t('err.noAccess'));
-      return;
-    }
-    UDATA = pick.data;
-    IS_OWNER = UDATA.isOwner === true;
-    ROLE = deriveRole(UDATA, IS_OWNER);
-    /* AUTH-068: enlaces de registro (confirmación y respaldo de aviso). */
-    const doorRes = await signupLinkDoor(user);
-    const action = doorAction(UDATA, pick.confirmed);
-    /* LA PUERTA NO SE HEREDA: solo la decisión 'gate' de ESTA
-       carga — confirmada contra el servidor — puede dejar la
-       puerta pintada; ante cualquier otra decisión, todo resto
-       pintado de una vida anterior se borra (en 'enter', antes
-       de mostrar la app: entrar y ver la puerta son incompatibles). */
-    if (action !== 'gate') doorGateErase();
-    if (action === 'noconnection') {
-      /* Sin confirmación del servidor no se expulsa con la vista
-         local: se dice la única verdad disponible — no se pudo
-         verificar — y no se presenta ni la puerta de renovación
-         ni la espera de aprobación como si fueran el estado real.
-         Con conexión, la entrada se reevalúa contra el servidor. */
-      await signOut(auth);
-      showAuthError(t('err.noConnection'));
-      return;
-    }
-    if (action === 'gate') { showRenewalGate(); return; }
-    if (action === 'pending') {
-      /* DEFECTOS-072 (b): el texto de espera se resuelve ANTES de
-         cerrar la sesión (la lectura del directorio usa la sesión
-         viva) y nombra al entrenador elegido cuando lo hay. */
-      const pendMsg = await pendingApprovalMsg();
-      await signOut(auth);
-      showAuthError(pendMsg);
-      /* AUTH-070: si la puerta acaba de confirmar el correo en ESTA
-         entrada, la pantalla de pendiente lo dice con su línea de
-         éxito (antes la confirmación quedaba invisible tras el
-         cierre de sesión y la tarjeta del administrador seguía
-         mostrando «sin confirmar» sin que el usuario lo supiera). */
-      if (doorRes && doorRes.confirmedNow) {
-        const ae = $('auth-error');
-        if (ae) ae.innerHTML = esc(pendMsg) + '<br>' + esc(t('signup.pendingConfirmed'));
-      }
-      return;
-    }
-    GOALS = { ...(UDATA.goals || {}) }; // sin goals en el doc = sin metas (no hay repliegue a valores de la casa)
-    /* MÓDULO NUTRICIONISTA (desarrollo 2026-11-02): la sucesión de
-       metas se aplica DESPUÉS de esta asignación — si el plan
-       nutricional activo ya cargó, sus metas aprobadas mandan en la
-       lectura; si carga después, nutriBoot la aplica al llegar. */
-    try { nutriApplyPlanGoals(); } catch {}
-  } catch (e) {
-    await signOut(auth);
-    showAuthError(t(errCauseKey(e)));
-    return;
-  }
-  $('who').textContent = UDATA.name ? UDATA.name : user.email;
-  try { roleDiscsHeaderSync(); } catch {}
-  setAvatar(UDATA.photoURL || '');
-  /* Mensaje de instalación (pieza C, 2026-10-26): con sesión
-     iniciada en navegador la tarjeta SÍ se ofrece — aparece en
-     cada inicio de sesión hasta que la app corra instalada; la
-     decisión (nunca en modo standalone, nunca si ya se cerró en
-     esta carga) vive en installCardMaybeShow. */
-  setTimeout(() => { try { installCardMaybeShow(); } catch (e) {} }, 400);
-  $('auth-view').style.display = 'none';
-  $('app-view').style.display = '';
-  /* ADMIN-TODOS (2026-11-03, decisión de Ronald): la barra ya es
-     de TODOS los roles — también del alumno, que la estrena con
-     UNA sola pastilla («Administración», ver la regla de abajo). */
-  $('main-tabs').style.display = '';
-  /* El dock vive fuera de #app-view (hijo de body): nace oculto y
-     solo se muestra aquí, con la app ya dentro (corrección
-     2026-11-15: sin sesión no se ve). */
-  $('actions-dock').style.display = '';
-  /* La pastilla sin regla propia de rol («Mi registro») se oculta
-     para el alumno. Las demás caen a 'none' para el rol usuario
-     por sus reglas de siempre (Accesos, Entrenadores, Biblioteca,
-     Mis alumnos y Comunicaciones); «Mi perfil» tiene su regla
-     propia abajo (AUTH-2026-11-06-286: es de TODOS).
-     DEDUPLICACIÓN (AUTH-2026-11-06-287, auditoría punto 4, orden
-     de Ronald «aplica todas»): «Mis clientes» queda SOLO para el
-     administrador, como directorio general de todas las personas.
-     El entrenador pierde la pastilla: su superficie de trabajo
-     única es «Mis alumnos» (las dos listaban a la misma gente y
-     abrían la misma ficha). Sus pendientes de rol que iban a
-     'clients' van ahora a 'students' (rolePendItems). */
+/* Las reglas de visibilidad de las pastillas según el rol (L-5,
+   AUTH-554: extraídas de la cola de entrada de la sesión, palabra
+   a palabra, para que la confirmación de la entrada provisional
+   pueda re-sincronizarlas si el rol confirmado difiere del que la
+   vista local pintó). */
+function applyRoleTabs() {
   const trackTabBtn = document.querySelector('.main-tab[data-tab="track"]');
   if (trackTabBtn) trackTabBtn.style.display = ROLE === 'usuario' ? 'none' : '';
   /* «Mis clientes» ya no es pastilla (AUTH-2026-11-08-299): su
@@ -5651,6 +5903,151 @@ onAuthStateChanged(auth, async user => {
      esta flecha sigue siendo solo del alumno.) */
   const profBackBtn = $('btn-profile-back');
   if (profBackBtn) profBackBtn.style.display = ROLE === 'usuario' ? '' : 'none';
+}
+
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    /* L-5 (AUTH-554): sin sesión, la puerta nueva vuelve a su
+       estado de reposo — la cola conservada queda en el
+       dispositivo, por cuenta, para su próxima entrada. */
+    GATE.state = 'boot';
+    GATE.uid = null;
+    GATE.deferred = [];
+    GATE.retryArmed = false;
+    if (GATE.retryTimer) { clearInterval(GATE.retryTimer); GATE.retryTimer = null; }
+    gateHideChip();
+    /* LA PUERTA NO SE HEREDA: la pantalla sin sesión nace limpia
+       en ESTA carga — cualquier resto de la puerta pintado en una
+       vida anterior se borra aquí. Los avisos verdaderos de la
+       pantalla sin sesión (pendiente de aprobación, sin conexión,
+       sin acceso) se pintan DESPUÉS de esta rama, en su propio
+       flujo, y no se tocan. */
+    doorGateErase();
+    stopUserDocWatch();
+    /* AUTH-070: sin sesión también se capturan los enlaces de la
+       URL y se pinta el aviso de confirmación pendiente, para que
+       quien abre su enlace de confirmación VEA qué paso sigue. */
+    try { captureSignupLinks(); signupPaintConfirmHint(); } catch {}
+    /* AUTH-549: con el enlace del reto en la URL, la portada del
+       carrusel se ve SIN cuenta, sobre la pantalla de acceso. */
+    try { retoCoverMaybeShow(); } catch {}
+    $('auth-view').style.display = '';
+    $('app-view').style.display = 'none';
+    $('actions-dock').style.display = 'none';
+    /* La pantalla de acceso vuelve a mostrarse: la entrada con clave
+       se re-arma con un reto fresco (sugerencia automática o botón,
+       según el soporte real del navegador). */
+    try { pkInitLoginAccess(); } catch {}
+    return;
+  }
+  if (suppressAuthCheck) return;
+  UDATA = {};
+  IS_OWNER = false;
+  try {
+    /* L-5 «PUERTA QUE PINTA PRIMERO» (AUTH-2026-11-22-554): la
+       primera lectura es la vista LOCAL del propio documento
+       (getDoc: la caché persistente de AUTH-238 responde al
+       momento cuando el documento ya está en el teléfono).
+       - Si la vista local viene DE LA CACHÉ (metadata.fromCache)
+         y su decisión es «enter», la sesión entra PROVISIONAL:
+         pinta Inicio ya, con la confirmación contra el servidor
+         lanzada en el mismo instante (gateStartConfirm) — la
+         respuesta del servidor manda al llegar (gateApplyConfirm:
+         confirma y libera, o expulsa al destino de siempre).
+       - Si la lectura local resultó ser EL SERVIDOR mismo (el
+         documento no estaba en caché: la primera entrada de la
+         cuenta en este teléfono), sus datos ya son los
+         confirmados y la puerta decide con ellos, como siempre
+         (doorEnterOrExit con confirmed:true).
+       - En cualquier otro caso (la lectura falló, o la vista
+         local no entra), el camino de AUTH-141 de siempre,
+         intacto, en la rama final. */
+    let fast = null;
+    try {
+      const s0 = await getDoc(doc(db, 'users', user.uid));
+      if (s0.exists()) fast = { data: s0.data(), fromCache: !!(s0.metadata && s0.metadata.fromCache) };
+      else if (s0.metadata && !s0.metadata.fromCache) fast = { data: null, fromCache: false };
+    } catch {}
+    if (fast && fast.fromCache && accessDecision(fast.data) === 'enter') {
+      /* ENTRADA PROVISIONAL: la vista local entra — la app pinta
+         desde el teléfono y la confirmación sale en el mismo
+         instante. El enlace de registro corre SIN bloquear la
+         pintura (su línea de éxito solo alimenta la pantalla de
+         espera de aprobación, que en una entrada no se presenta). */
+      GATE.uid = user.uid;
+      GATE.state = 'provisional';
+      gateQueueLoad(user.uid);
+      UDATA = fast.data;
+      IS_OWNER = UDATA.isOwner === true;
+      ROLE = deriveRole(UDATA, IS_OWNER);
+      try { signupLinkDoor(user).catch(() => {}); } catch {}
+      doorGateErase();
+      gateShowChip('verifying');
+      gateStartConfirm(user);
+    } else if (fast && !fast.fromCache) {
+      const enteredFast = await doorEnterOrExit(user, { data: fast.data, confirmed: true });
+      if (!enteredFast) return;
+    } else {
+      /* AUTH-141: la puerta evalúa aprobación y consentimiento SOLO
+         sobre el estado confirmado contra el servidor
+         (getDocFromServer). La vista local solo se usa si el servidor
+         no responde, y en ese caso un estado expulsable no se
+         presenta como verdad (doorAction → 'noconnection'): una
+         vista local vieja ya no puede expulsar a quien en el
+         servidor está al día. */
+      const conf = await confirmUserDocFromServer(user.uid);
+      let cached = null;
+      if (!conf.ok) {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        cached = snap.exists() ? snap.data() : null;
+      }
+      const pick = doorDataPick(conf, cached);
+      const entered = await doorEnterOrExit(user, pick);
+      if (!entered) return;
+    }
+    GOALS = { ...(UDATA.goals || {}) }; // sin goals en el doc = sin metas (no hay repliegue a valores de la casa)
+    /* MÓDULO NUTRICIONISTA (desarrollo 2026-11-02): la sucesión de
+       metas se aplica DESPUÉS de esta asignación — si el plan
+       nutricional activo ya cargó, sus metas aprobadas mandan en la
+       lectura; si carga después, nutriBoot la aplica al llegar. */
+    try { nutriApplyPlanGoals(); } catch {}
+  } catch (e) {
+    await signOut(auth);
+    showAuthError(t(errCauseKey(e)));
+    return;
+  }
+  $('who').textContent = UDATA.name ? UDATA.name : user.email;
+  try { roleDiscsHeaderSync(); } catch {}
+  setAvatar(UDATA.photoURL || '');
+  /* Mensaje de instalación (pieza C, 2026-10-26): con sesión
+     iniciada en navegador la tarjeta SÍ se ofrece — aparece en
+     cada inicio de sesión hasta que la app corra instalada; la
+     decisión (nunca en modo standalone, nunca si ya se cerró en
+     esta carga) vive en installCardMaybeShow. */
+  setTimeout(() => { try { installCardMaybeShow(); } catch (e) {} }, 400);
+  $('auth-view').style.display = 'none';
+  $('app-view').style.display = '';
+  /* ADMIN-TODOS (2026-11-03, decisión de Ronald): la barra ya es
+     de TODOS los roles — también del alumno, que la estrena con
+     UNA sola pastilla («Administración», ver la regla de abajo). */
+  $('main-tabs').style.display = '';
+  /* El dock vive fuera de #app-view (hijo de body): nace oculto y
+     solo se muestra aquí, con la app ya dentro (corrección
+     2026-11-15: sin sesión no se ve). */
+  $('actions-dock').style.display = '';
+  /* La pastilla sin regla propia de rol («Mi registro») se oculta
+     para el alumno. Las demás caen a 'none' para el rol usuario
+     por sus reglas de siempre (Accesos, Entrenadores, Biblioteca,
+     Mis alumnos y Comunicaciones); «Mi perfil» tiene su regla
+     propia abajo (AUTH-2026-11-06-286: es de TODOS).
+     DEDUPLICACIÓN (AUTH-2026-11-06-287, auditoría punto 4, orden
+     de Ronald «aplica todas»): «Mis clientes» queda SOLO para el
+     administrador, como directorio general de todas las personas.
+     El entrenador pierde la pastilla: su superficie de trabajo
+     única es «Mis alumnos» (las dos listaban a la misma gente y
+     abrían la misma ficha). Sus pendientes de rol que iban a
+     'clients' van ahora a 'students' (rolePendItems). */
+  applyRoleTabs();
   switchTab('track');
   await loadAll();
   /* D1/D2 (puntos 19–20): un borrador de análisis en texto que quedó
@@ -5658,26 +6055,36 @@ onAuthStateChanged(auth, async user => {
   try { aiDraftRestore(); } catch {}
   /* CONSERVAR Y SUBIR DESPUÉS: lo que quedó conservado en el
      dispositivo se pinta en su sitio (aviso y diario) y se intenta
-     subir — al abrir la app es el primer disparador de la subida. */
-  try { pendBoot(); } catch {}
+     subir — al abrir la app es el primer disparador de la subida.
+     L-5 (AUTH-554): en la entrada PROVISIONAL este efecto — y los
+     tres siguientes, que hablan con la red o escriben — se DIFIERE
+     hasta la confirmación de la cuenta (gateApplyConfirm los corre
+     al confirmar; si la cuenta resulta no válida, nunca corren). */
+  if (GATE.state === 'provisional') GATE.deferred.push(() => { try { pendBoot(); } catch {} });
+  else try { pendBoot(); } catch {}
   startUserDocWatch(user.uid);
   appInstallSignal();
   /* AUTH-072: sincronización perezosa de trainer_notify — ancla:
      la carga principal de sesión, con ROLE y UDATA ya fijados y la
      app ya visible (junto a las demás sincronizaciones de sesión);
      la función se auto-protege por rol y corre en silencio. */
-  trainerNotifySync();
+  if (GATE.state === 'provisional') GATE.deferred.push(() => { try { trainerNotifySync(); } catch {} });
+  else trainerNotifySync();
   /* AUTH-2026-11-03-198: el idioma de interfaz queda GUARDADO en
      el propio documento (lang) — la configuración que el correo
-     del destinatario honra. En silencio, idempotente. */
+     del destinatario honra. En silencio, idempotente. (Su escritura
+     pasa por el envoltorio de la puerta: en provisional queda
+     retenida en la cola y sale al confirmar.) */
   langSync();
   /* AUTH-2026-11-01-146: barrido de Comunicaciones al abrir la app
      del administrador (detección silenciosa; solo envía solo las
      plantillas en modo automático — el modo aprobado por Ronald
      es «según tu toque, con previa»). Se auto-protege por rol. */
-  commsWarm();
+  if (GATE.state === 'provisional') GATE.deferred.push(() => { try { commsWarm(); } catch {} });
+  else commsWarm();
   /* AUTH-068: reanudar un enlace de aprobación si lo hay. */
-  signupApproveResume();
+  if (GATE.state === 'provisional') GATE.deferred.push(() => { try { signupApproveResume(); } catch {} });
+  else signupApproveResume();
   /* AUTH-2026-11-02-172: si el enlace ?dia= fijó la fecha de la
      vista al cargar, se abre Entrenamiento en esa fecha. */
   try { if (DAY_LINK_USED) { DAY_LINK_USED = false; navOpenPage('train'); } } catch {}
@@ -5714,6 +6121,11 @@ onAuthStateChanged(auth, async user => {
      propósito se le pide UNA sola vez al entrar (sin bloquear). */
   try { purposeMaybeAsk(); } catch {}
   try { wizMaybeAutoOpen(); } catch {}
+  /* L-5 (AUTH-554): con la sesión CONFIRMADA, la cola de
+     escrituras conservada de una vida provisional anterior se
+     libera aquí (en provisional, gateFlush no hace nada y la
+     liberación la dispara la propia confirmación). */
+  try { gateFlush(); } catch {}
 });
 
 /* ================= REACCIÓN EN VIVO DE LA SESIÓN (H-C2) =================
@@ -17282,7 +17694,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261122-arranque-vistas' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261122-puerta-primero' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -48351,6 +48763,16 @@ async function repeatProposalSend(type, extra) {
 
 /* ================= PESTAÑAS PRINCIPALES ================= */
 function switchTab(name) {
+  /* L-5 (AUTH-554): con la cuenta aún sin confirmar (entrada
+     provisional), las superficies sensibles — Administración,
+     Comunicaciones y Accesos — NO se abren: se avisa con el texto
+     de la puerta y no se cambia de vista. Al confirmarse la
+     cuenta, la guarda deja de aplicar sola (el estado ya no es
+     provisional). */
+  if (GATE.state === 'provisional' && (name === 'admin' || name === 'comms' || name === 'access')) {
+    try { toast(t('gate.provBlock'), true); } catch {}
+    return;
+  }
   backClear();
   /* NAVEGACIÓN FLOTANTE (2026-10-30) · D2 «el último toque manda»:
      la pastilla es la capa visible — cualquier página del dock se
@@ -58675,7 +59097,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261122-arranque-vistas';
+const PWA_SW_VERSION = '20261122-puerta-primero';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
