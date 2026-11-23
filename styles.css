@@ -7508,3 +7508,41 @@ textarea.gest-in { resize: none; }
 .stu-fold-line .stu-line-s { color: #666; font-size: 13.5px; margin-left: auto; text-align: right; min-width: 0; overflow-wrap: anywhere; }
 .stu-fold-line .sx { flex: none; }
 .pendact-met { margin-top: 10px; }
+
+/* ═══ AUTH-2026-11-23-566 · LA VISTA DE ENTRENAMIENTO, PLEGADA ═══
+   La hoja de cada apartado de la vista (#train-sheet) hereda
+   .pend-float y queda en 44, como las hojas de la ficha y del
+   detalle: lo que un apartado abre (la hoja de peticiones, el
+   pesaje, la gestión de planes) sigue abriendo por encima. La
+   hoja de la lista de peticiones (#treq-list-float) también en
+   44 — su hoja de envío (#treq-float, 47) abre sobre ella. La
+   pantalla de cierre (#train-close-sheet) va en 60, sobre el
+   panel de sesión completo (48): el cierre es la última
+   pantalla del día y su encuesta (48) se interpone cerrando
+   esta hoja primero, como hace trainCloseSheetOpen.
+   Las líneas de la vista (.train-fold-line) son la fila
+   plegada de la casa con su dato clave a la derecha; la línea
+   de los bloques de sesión (.train-session-line) vive DENTRO
+   de las tarjetas — clara en las tarjetas claras y con el
+   tratamiento de cristal de la tarjeta vestida, como la línea
+   de hobbies de AUTH-438. */
+#train-sheet { z-index: 44; }
+#treq-list-float { z-index: 44; }
+#train-close-sheet { z-index: 60; }
+.train-fold-line { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; background: none; border: none; border-bottom: 1px dashed #eef1f3; padding: 6px 0; font: inherit; color: inherit; text-align: left; cursor: pointer; box-sizing: border-box; }
+.train-fold-line .tf-t { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.train-fold-line .tf-s { color: #666; font-size: 13.5px; margin-left: auto; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.train-fold-line .tf-chev { flex: none; color: #666; font-size: 20px; line-height: 1; }
+.train-fold-line .my-plans-pill { flex: none; margin-left: auto; }
+.train-fold-line .my-plans-pill + .tf-chev { margin-left: 0; }
+.train-session-fold { margin-top: 8px; }
+.train-session-line { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 8px 12px; border-radius: 12px; background: #f7fafd; border: 1px solid #e3e9f2; color: #1f2a44; font: inherit; text-align: left; cursor: pointer; box-sizing: border-box; }
+.train-session-line .ts-t { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
+.train-session-line .ts-chev { font-size: 25px; font-weight: 700; line-height: 1; color: #666; flex: none; transition: transform .15s ease; }
+.train-session-line[aria-expanded="true"] .ts-chev { transform: rotate(90deg); }
+.train-day-dressed .train-session-line { background: rgba(255, 255, 255, .10); border-color: rgba(255, 255, 255, .28); color: #fff; }
+.train-day-dressed .train-session-line .ts-chev { color: rgba(255, 255, 255, .85); }
+.train-session-fold .train-session { margin-top: 6px; }
+#train-custom-addrow:empty { display: none; }
+#train-custom-addrow { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 10px; }
+#train-custom-addrow .dict-open-btn, #train-custom-addrow .photo-open-btn { flex: 1; min-height: 48px; }

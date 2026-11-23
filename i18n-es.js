@@ -2834,6 +2834,7 @@ export default {
   'train.d.restWord': 'Descanso', 'train.d.notYet': 'Aún sin registrar',
   'train.d.setsLabel': 'Series', 'train.d.skippedNote': 'Marcaste este día como saltado.',
   'train.view.rest': 'Descanso', 'train.view.warmup': 'Aproximación', 'train.view.session': 'Sesión',
+  'train566.alignLine': 'Días por alinear', 'train566.reqLine': 'Peticiones', 'train566.reqOpen': '{n} abiertas',
   'train.view.rpe': 'RPE', 'train.view.rpeNone': 'Sin RPE', 'train.view.exDone': 'Hecho', 'train.view.exInProgress': 'En curso', 'train.view.exToDo': 'Sin empezar', 'train.view.exDoneMarked': '✓ Hecho · toca para desmarcar', 'train.view.save': 'Guardar',
   'train.view.alignBody': 'Tu rutina: {plan}. Tus avisos de entrenamiento: {cfg}. ¿Alineas tus avisos con tu plan?',
   'train.view.sessionsWeek': '{n} sesiones por semana', 'train.view.noDays': 'ningún día configurado',

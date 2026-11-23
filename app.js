@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-detalle-plegado');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-entrenamiento-plegado');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -18029,8 +18029,13 @@ async function treqBoxSync() {
   } catch { mine = null; }
   TREQ_MINE = mine;
   box.innerHTML = treqBoxHTML();
-  const b = $('treq-open-btn');
-  if (b) b.onclick = () => treqSheetOpen();
+  const ln = box.querySelector('[data-treq-line]');
+  if (ln) ln.onclick = () => treqListOpen();
+  /* AUTH-566: si la hoja de la lista está abierta (p. ej. tras
+     enviar una petición), su contenido se repinta con el estado
+     nuevo, como se repintaba la caja. */
+  const lf = $('treq-list-float');
+  if (lf && lf.style.display !== 'none') treqListPaint();
 }
 function treqCardHTML(r) {
   const open = r.status === 'sent';
@@ -18044,7 +18049,21 @@ function treqCardHTML(r) {
   if (d) h += `<div class="treq-card-date">${esc(d)}</div>`;
   return h + '</div>';
 }
+/* ═══ AUTH-566 · LAS PETICIONES NACEN PLEGADAS (programa
+   «Plegar todo» nº 3): la caja de la vista ya no despliega el
+   botón principal, el título «Mis peticiones» y las tarjetas —
+   pinta UNA línea «Peticiones · n abiertas ›» que abre su hoja
+   propia (#treq-list-float), donde vive lo de siempre: el botón
+   de pedir un cambio (que abre la hoja de envío de siempre,
+   #treq-float, por encima) y las tarjetas (las abiertas y la
+   última resuelta, la misma selección de antes). ═══ */
 function treqBoxHTML() {
+  const n = Array.isArray(TREQ_MINE) ? TREQ_MINE.filter(r => r.status === 'sent').length : null;
+  const sub = n == null ? '' : t('train566.reqOpen', { n });
+  return `<button type="button" class="train-fold-line treq-line" data-treq-line="1"><span class="tf-t">${esc(t('train566.reqLine'))}</span>${sub ? `<span class="tf-s">${esc(sub)}</span>` : ''}<span class="tf-chev" aria-hidden="true">›</span></button>`;
+}
+function treqListPaint() {
+  const bd = $('treq-list-body'); if (!bd) return;
   let h = `<button type="button" class="btn-primary treq-open-btn" id="treq-open-btn">${esc(t('treq.btn'))}</button>`;
   if (Array.isArray(TREQ_MINE) && TREQ_MINE.length) {
     const open = TREQ_MINE.filter(r => r.status === 'sent');
@@ -18052,7 +18071,20 @@ function treqBoxHTML() {
     const show = lastResolved ? open.concat([lastResolved]) : open;
     if (show.length) h += `<h3 class="treq-mine-t">${esc(t('treq.mineTitle'))}</h3>` + show.map(treqCardHTML).join('');
   }
-  return h;
+  bd.innerHTML = h;
+  const b = bd.querySelector('#treq-open-btn');
+  if (b) b.onclick = () => treqSheetOpen();
+}
+function treqListOpen() {
+  const fl = $('treq-list-float'); if (!fl) return;
+  treqListPaint();
+  fl.style.display = '';
+  const x = $('treq-list-x'); if (x) x.onclick = () => treqListClose();
+  const bk = $('treq-list-back'); if (bk) bk.onclick = () => treqListClose();
+  try { fl.scrollTop = 0; } catch {}
+}
+function treqListClose() {
+  const fl = $('treq-list-float'); if (fl) fl.style.display = 'none';
 }
 
 /* ---------- la hoja de envío (D1 + defaults del diseño §7) ---------- */
@@ -18620,7 +18652,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-detalle-plegado' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-entrenamiento-plegado' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -28111,7 +28143,15 @@ function trainCustomRenderSession(plan, di, closed, iso) {
      lectura) la fila queda vacía, como quedaba el desplegable
      sin ellos. Esta función busca el contenedor por id: su
      sitio en el DOM no le importa. */
-  const addRow = $('train-add-row');
+  /* AUTH-566 (programa «Plegar todo» nº 3): el contenedor de la
+     fila de añadir vive ahora DENTRO de Personaliza
+     (#train-custom-addrow, en index.html) — la vista deja de
+     llevar la fila suelta bajo el plan (el sitio de AUTH-431) y
+     queda una sola puerta, Personaliza, con todas las vías de
+     añadir juntas. Las guardas y el cableado de los dos botones
+     no cambian: esta función busca el contenedor por id, viva
+     donde viva. */
+  const addRow = $('train-custom-addrow');
   const addRowClear = () => { if (addRow) addRow.innerHTML = ''; };
   if (!plan) { tools.innerHTML = ''; addRowClear(); swapSheetSync(null); return; }
   if (di == null) {
@@ -33676,9 +33716,14 @@ function sessFullSync(run) {
     const pctD = Math.round(sessDayFracFine(dc.plan, dc.di, dc.checks, dc.eff) * 100);   /* AUTH-526: en el cierre manda la misma fracción fina — con una etapa de cardio asignada aún sin hacer, la barra enseña su rebanada pendiente en vez de un 100 % que todavía no es; sin cardio pendiente (o ya hecho) vale 100, como siempre */
     const flameD = pctD <= 8 ? '13px' : (pctD >= 92 ? 'calc(100% - 13px)' : pctD + '%');
     const franjaDone = `<div class="sf-franja" aria-hidden="true"><i style="width:${pctD}%"></i>${sessPillTipHTML(flameD)}</div><div class="sf-prog">${esc(t('train.guide.pos', { n: totalD, m: totalD }))} · ${esc(t('sess.ofDay', { p: pctD }))}</div>`;
-    const doneForm = SESS_DONE_FORM
-      ? trainCloseFormHTML(dc.plan.id, dc.di)
-      : `<button type="button" class="sf-btn fin sf-done-open" data-sess-done-open="1">${esc(t('train.closeFinish'))}</button>`;
+    /* AUTH-566 (programa «Plegar todo» nº 3): el panel ya no
+       despliega el formulario de cierre dentro de su columna —
+       pinta SOLO la puerta «Terminar y guardar ›», que abre la
+       pantalla de cierre (#train-close-sheet) con el formulario
+       de siempre. El formulario deja de presentarse dos veces
+       (vista del día y panel): vive en una sola pantalla y corre
+       por la función única del cierre (trainCloseConfirm). */
+    const doneForm = `<button type="button" class="sf-btn fin sf-done-open" data-sess-done-open="1">${esc(t('train.closeFinish'))}</button>`;
     const askCardio = SESS_DONE_CARDIO === '' && !cardioValid;
     /* CAND-523 · LA ETAPA FINAL MANDA SOBRE LA PREGUNTA:
        si hay un cardio final ASIGNADO, el panel lo trae
@@ -34087,10 +34132,17 @@ function sessPanelWire(el, surface) {
     }
     const dopen = ev.target.closest ? ev.target.closest('[data-sess-done-open]') : null;
     if (dopen) {
-      /* AUTH-507 · REABRIR EL FORMULARIO DE CIERRE del día
-         completado, tras su Cancelar. */
-      SESS_DONE_FORM = true;
-      try { sessPillTick(); } catch {}
+      /* AUTH-566 · LA PUERTA DEL PANEL ABRE LA PANTALLA DE
+         CIERRE: el formulario ya no se despliega dentro del
+         panel (AUTH-507 lo presentaba aquí; la auditoría de
+         pliegues lo unifica en su pantalla propia) — la puerta
+         abre #train-close-sheet con el formulario de siempre
+         para el plan y día completados de este panel, y el
+         confirmar corre por trainCloseConfirm como en la vista
+         del día. */
+      let dcO = null;
+      try { dcO = sessDayCompleteState(sessRunning()); } catch {}
+      if (dcO && dcO.plan) trainCloseSheetOpen(dcO.plan, dcO.di);
       return;
     }
     const dcno = ev.target.closest ? ev.target.closest('[data-sess-cardio-no]') : null;
@@ -35327,7 +35379,13 @@ async function trainCloseConfirm(plan, di, formEl) {
    del guiado sin empezar (trainGuidePreTailHTML) conserva su
    «+ Agregar» de añadir ejercicio, intacta. ═══ */
 function trainEditTailHTML(planId, di, iso) {
-  if (TRAIN_CLOSE_DI === di) return trainChronoHTML(planId, di) + trainCloseFormHTML(planId, di);
+  /* AUTH-566 (programa «Plegar todo» nº 3): con el cierre
+     armado, la cola ya no despliega el formulario en la tarjeta
+     — pinta el reloj de siempre y la PUERTA «Terminar y guardar
+     ›», que abre la pantalla de cierre (#train-close-sheet) con
+     el formulario. El formulario vive en una sola pantalla para
+     la tarjeta y para el panel de sesión. */
+  if (TRAIN_CLOSE_DI === di) return trainChronoHTML(planId, di) + `<button type="button" class="train-finish-btn train-close-door" data-train-close-door="${di}">${t('train.closeFinish')} ›</button>`;
   /* AUTH-402: la fila en reposo lleva LOS CUATRO botones en una sola
      línea, cada uno flex:1 (reparto proporcional del ancho), con su
      data-* y su cableado intactos. La pareja del cronómetro aporta
@@ -37169,6 +37227,19 @@ function trainExCompactHTML(ex, di, ei, mode, de, mv) {
 function trainDayCompactHistHTML(day, log, di) {
   return trainHistRowsVisible(day, log).map((row, ei) => trainRowWithMark(trainExCompactHTML(row.ex, di, ei, 'read', row.de), row.mark)).join('');
 }
+/* ═══ AUTH-566 · LOS BLOQUES DE SESIÓN NACEN PLEGADOS (programa
+   «Plegar todo» nº 3, hallazgos de la auditoría sobre
+   trainSessionHTML y el modo guiado): en TODAS las variantes de
+   tarjeta (lista, guiado, historial y solo lectura) los bloques
+   de texto del día — título y detalle — dejan de pintarse
+   desplegados y quedan tras UNA línea «Sesión · {primer título}
+   ›» que se despliega EN EL SITIO (el patrón del día completado
+   de AUTH-415). El estado del pliegue vive en memoria
+   (TRAIN_SESS_OPEN, por etiqueta + títulos del día) y nace
+   cerrado en cada carga; el cableado es UN oyente delegado,
+   como el de la píldora de sesión. Las filas de dentro no
+   cambian. ═══ */
+const TRAIN_SESS_OPEN = new Set();
 function trainSessionHTML(day) {
   const blocks = Array.isArray(day.sessionBlocks) ? day.sessionBlocks : [];
   const rows = blocks.map(b => {
@@ -37178,8 +37249,25 @@ function trainSessionHTML(day) {
     return `<div class="train-block"><b>${esc(title)}</b>${detail ? `<span>${esc(detail)}</span>` : ''}</div>`;
   }).join('');
   if (!rows) return '';
-  return `<div class="train-session"><h5>${t('train.view.session')}</h5>${rows}</div>`;
+  const firstB = blocks.find(b => (b['title_' + LANG] || b.title_es || b.title_en || ''));
+  const firstTitle = firstB ? (firstB['title_' + LANG] || firstB.title_es || firstB.title_en || '') : '';
+  const skey = (day.label || '') + '|' + blocks.map(b => (b.title_es || b.title_en || '')).join('|');
+  const open = TRAIN_SESS_OPEN.has(skey);
+  return `<div class="train-session-fold"><button type="button" class="train-session-line" data-train-sess-fold="${esc(skey)}" aria-expanded="${open ? 'true' : 'false'}"><span class="ts-t">${esc(t('train.view.session'))} · ${esc(firstTitle)}</span><span class="ts-chev" aria-hidden="true">›</span></button><div class="train-session" data-train-sess-body${open ? '' : ' hidden'}>${rows}</div></div>`;
 }
+(function trainSessFoldInit() {
+  document.addEventListener('click', ev => {
+    const b = (ev.target && ev.target.closest) ? ev.target.closest('[data-train-sess-fold]') : null;
+    if (!b) return;
+    const wrap = b.parentElement;
+    const body = wrap ? wrap.querySelector('[data-train-sess-body]') : null;
+    if (!body) return;
+    const open = body.hasAttribute('hidden');
+    if (open) { body.removeAttribute('hidden'); TRAIN_SESS_OPEN.add(b.dataset.trainSessFold); }
+    else { body.setAttribute('hidden', ''); TRAIN_SESS_OPEN.delete(b.dataset.trainSessFold); }
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+})();
 
 /* Alineación (Pregunta 10, mitad del cliente): los días de sesión del
    plan salen de sus etiquetas cuando TODAS nombran un día de semana
@@ -37212,7 +37300,20 @@ function trainWdName(wd) {
 function trainAlignRender() {
   const slot = $('train-align-slot');
   if (!slot) return;
-  slot.innerHTML = '';
+  /* AUTH-566 (programa «Plegar todo» nº 3): el aviso deja de
+     desplegarse entero bajo la tarjeta del día — la vista lleva
+     solo su LÍNEA «Días por alinear ›» (con los días del plan
+     como dato clave) y la nota completa, con su párrafo y sus
+     dos acciones, vive en su almacén (#train-align-store) y
+     VIAJA a la hoja de la vista al tocar la línea. Las guardas,
+     el cálculo y las dos acciones no cambian. */
+  const store = $('train-align-store');
+  const clearAlign = () => {
+    slot.innerHTML = '';
+    if (store) store.innerHTML = '';
+    if (typeof TRAIN_SHEET !== 'undefined' && TRAIN_SHEET && TRAIN_SHEET.key === 'align') trainSheetClose();
+  };
+  clearAlign();
   if (TRAIN_ALIGN_DISMISSED) return;
   const cfg = PEND_CFG, plan = MY_PLAN;
   if (!cfg || cfg.__error || !cfg.activated || !cfg.trainOn || !plan) return;
@@ -37230,14 +37331,20 @@ function trainAlignRender() {
   if (!misaligned) return;
   const planTxt = W ? W.map(trainWdName).join(', ') : t('train.view.sessionsWeek', { n: days.length });
   const cfgTxt = cur.length ? cur.map(trainWdName).join(', ') : t('train.view.noDays');
-  slot.innerHTML = `<div class="train-align-note">
+  slot.innerHTML = `<button type="button" class="train-fold-line train-align-line" data-train-line="align"><span class="tf-t">⚠ ${esc(t('train566.alignLine'))}</span><span class="tf-s">${esc(planTxt)}</span><span class="tf-chev" aria-hidden="true">›</span></button>`;
+  const lineA = slot.querySelector('[data-train-line]');
+  if (lineA) lineA.onclick = () => trainSheetOpen('align');
+  if (!store) return;
+  store.innerHTML = `<div class="train-align-note">
     <p>${t('train.view.alignBody', { plan: planTxt, cfg: cfgTxt })}</p>
     <div class="train-align-actions">
       <button type="button" class="btn-primary btn-sm" id="train-align-yes">${W ? t('train.view.alignYes') : t('train.view.alignOpen')}</button>
       <button type="button" class="btn-ghost btn-sm" id="train-align-no">${t('train.view.alignNo')}</button>
     </div></div>`;
-  $('train-align-no').onclick = () => { TRAIN_ALIGN_DISMISSED = true; slot.innerHTML = ''; };
-  $('train-align-yes').onclick = async (evYes) => {
+  const noBtn = store.querySelector('#train-align-no');
+  if (noBtn) noBtn.onclick = () => { TRAIN_ALIGN_DISMISSED = true; clearAlign(); };
+  const yesBtn = store.querySelector('#train-align-yes');
+  if (yesBtn) yesBtn.onclick = async (evYes) => {
     /* Sin esto, el mismo toque que abre la tarjeta de pendientes la
        cerraría al instante: el cierre por «toque fuera» escucha en
        document y este botón vive fuera de la tarjeta. */
@@ -37252,7 +37359,7 @@ function trainAlignRender() {
       trainAlignRender();
     } else {
       TRAIN_ALIGN_DISMISSED = true;
-      slot.innerHTML = '';
+      clearAlign();
       PEND_UI.configOpen = true;
       pendSetFloat(true);
       renderPendings();
@@ -42009,10 +42116,18 @@ function fdCamRender() {
   /* La tarjeta tranquila del FINAL: solo cuando la fase de
      anuncio terminó (interés registrado o cinco ingresos). */
   if (phaseOver) {
+    /* AUTH-566 (programa «Plegar todo» nº 3): la tarjeta
+       tranquila del final nace PLEGADA en una línea «📷 Entrena
+       con cámara ›» — tocarla abre la misma hoja de explicación
+       de siempre (#fdcam-float, fdCamOpen), como hacía el botón
+       de la tarjeta. Si la persona ya está en la lista, la línea
+       lo dice como dato clave (el texto de siempre de la
+       tarjeta). El anuncio de los primeros ingresos
+       (#fdcam-ad-box) no cambia. */
     box.style.display = 'block';
-    box.innerHTML = `<div class="panel fdcam-card">${fdcamCardInner(joined, 'fdcam-notify')}</div>`;
+    box.innerHTML = `<button type="button" class="train-fold-line fdcam-line" id="fdcam-line"><span class="tf-t">📷 ${esc(t('fdcam.title'))}</span>${joined ? `<span class="tf-s">${esc(t('fdcam.done'))}</span>` : ''}<span class="tf-chev" aria-hidden="true">›</span></button>`;
     paint();
-    const b = $('fdcam-notify');
+    const b = $('fdcam-line');
     if (b) b.addEventListener('click', fdCamOpen);
   } else { box.style.display = 'none'; box.innerHTML = ''; }
   /* El anuncio de ESTE ingreso: primeros cinco, si la ✕ no lo
@@ -42222,6 +42337,128 @@ async function trainSkipDayApply(plan, di, uid, today, logs) {
   trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: saltar también cierra el día — el borrador de marcas se retira */
   return true;
 }
+/* ═══ AUTH-566 · LA VISTA DE ENTRENAMIENTO, PLEGADA (programa
+   «Plegar todo» nº 3): la vista deja en superficie la tira
+   semanal y la tarjeta del día; cada apartado — el plan, el
+   reto y el aviso de alineación — queda como UNA línea plegada
+   (título + dato clave + ›) que abre su pantalla propia con
+   volver (#train-sheet), y su bloque VIAJA desde su almacén de
+   la vista a la hoja y vuelve a su ancla al cerrar (el patrón
+   de AUTH-563/565, sin reescribir ningún pintor). El dato clave
+   del reto sale de la misma aritmética de su tarjeta
+   (plan21CardRender): día en curso o fecha de inicio.
+   LA PANTALLA DE CIERRE (#train-close-sheet): el formulario de
+   cierre (trainCloseFormHTML) vive SOLO aquí — la tarjeta del
+   día y el panel de sesión lo abren con su puerta, y el
+   confirmar corre por la función única del cierre
+   (trainCloseConfirm) con el formulario de esta hoja. Al
+   confirmar, la hoja se oculta ANTES de llamar (su encuesta de
+   satisfacción, z-48, se interpone sobre la superficie de
+   origen, como siempre); si el confirmar vuelve sin cerrar
+   (la guarda o la validación de la duración), la hoja se
+   reabre con los valores tecleados intactos — el nodo del
+   formulario se conserva hasta que el cierre aterriza. ═══ */
+let TRAIN_SHEET = null;        /* { key, nodes: [{el, anchor}] } */
+function trainSheetNodes(key) {
+  switch (key) {
+    case 'plan': return [$('train-plan-head')];
+    case 'reto': return [$('p21-slot')];
+    case 'align': return [$('train-align-store')];
+  }
+  return [];
+}
+function trainSheetOpen(key) {
+  if (TRAIN_SHEET && TRAIN_SHEET.key === key) return;
+  if (TRAIN_SHEET) trainSheetClose();
+  const sheet = $('train-sheet'), body = $('train-sheet-body'); if (!sheet || !body) return;
+  const nodes = trainSheetNodes(key).filter(Boolean);
+  if (!nodes.length) return;
+  const lineT = document.querySelector('[data-train-line="' + key + '"] .tf-t');
+  const tt = $('train-sheet-title'); if (tt) tt.textContent = lineT ? lineT.textContent : '';
+  const moved = nodes.map(el => {
+    const anchor = document.createElement('div');
+    anchor.className = 'train-anchor'; anchor.style.display = 'none';
+    if (el.parentNode) el.parentNode.insertBefore(anchor, el);
+    body.appendChild(el);
+    return { el, anchor };
+  });
+  TRAIN_SHEET = { key, nodes: moved };
+  sheet.style.display = '';
+  const x = $('train-sheet-x'); if (x) x.onclick = () => trainSheetClose();
+  const bk = $('train-sheet-back'); if (bk) bk.onclick = () => trainSheetClose();
+  try { sheet.scrollTop = 0; } catch {}
+}
+function trainSheetClose() {
+  const S = TRAIN_SHEET; if (!S) return;
+  TRAIN_SHEET = null;
+  S.nodes.forEach(({ el, anchor }) => {
+    if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(el, anchor); anchor.remove(); }
+  });
+  const sheet = $('train-sheet'); if (sheet) sheet.style.display = 'none';
+  const body = $('train-sheet-body'); if (body) body.innerHTML = '';
+}
+/* Al repintar la vista (loadMyTraining pinta todo de nuevo) la
+   hoja se vacía sin devolver nodos: sus bloques viejos se
+   descartan con el resto de la pintura anterior, como en
+   AUTH-565 — y así nunca conviven dos nodos con el mismo id. */
+function trainSheetReset() {
+  TRAIN_SHEET = null;
+  const sheet = $('train-sheet'); if (sheet) sheet.style.display = 'none';
+  const body = $('train-sheet-body'); if (body) body.innerHTML = '';
+}
+function trainP21Datum(plan) {
+  if (!plan || !plan.startsAt) return '';
+  const dayIx = Math.round((Date.parse(todayISO() + 'T12:00:00') - Date.parse(String(plan.startsAt) + 'T12:00:00')) / 86400000);
+  if (dayIx < 0) return plan21DateLabel(plan.startsAt);
+  if (dayIx <= 20) return t('plan21.dayOf', { x: dayIx + 1 });
+  return t('plan21.finished');
+}
+let TRAIN_CLOSE_SHEET = null;        /* { plan, di } */
+function trainCloseSheetOpen(plan, di) {
+  const sheet = $('train-close-sheet'), body = $('train-close-body');
+  if (!sheet || !body || !plan) return;
+  TRAIN_CLOSE_SHEET = { plan, di };
+  const tt = $('train-close-title'); if (tt) tt.textContent = t('train.closeFinish');
+  body.innerHTML = trainCloseFormHTML(plan.id, di);
+  sheet.style.display = '';
+  const x = $('train-close-x'); if (x) x.onclick = () => trainCloseSheetCancel();
+  const bk = $('train-close-back'); if (bk) bk.onclick = () => trainCloseSheetCancel();
+  const form = body.querySelector('.train-close-form');
+  const conf = body.querySelector('[data-train-close-confirm]');
+  if (conf) conf.onclick = async () => {
+    if (!form) return;
+    sheet.style.display = 'none';   /* la encuesta (z-48) se interpone sobre la superficie de origen, no bajo esta hoja */
+    try { await trainCloseConfirm(plan, di, form); } catch {}
+    const sv = $('sess-survey');
+    const surveyOpen = !!(sv && sv.style.display !== 'none');
+    const stillOpen = !((typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : [])
+      .some(l => l && l.date === todayISO() && l.dayIndex === di);
+    if (TRAIN_CLOSE_SHEET && TRAIN_CLOSE_DI === di && stillOpen && !surveyOpen) {
+      sheet.style.display = '';   /* el confirmar volvió sin cerrar: la hoja se reabre con lo tecleado intacto */
+      return;
+    }
+    TRAIN_CLOSE_SHEET = null;
+    if (body) body.innerHTML = '';
+  };
+  const can = body.querySelector('[data-train-close-cancel]');
+  if (can) can.onclick = () => trainCloseSheetCancel();
+  try { sheet.scrollTop = 0; } catch {}
+}
+function trainCloseSheetCancel() {
+  /* Cancelar abandona el cierre armado, como el Cancelar de
+     siempre de la vista del día (TRAIN_CLOSE_DI se retira y la
+     vista se repinta); desde el panel, TRAIN_CLOSE_DI ya es
+     nulo y solo se cierra la hoja. */
+  if (TRAIN_CLOSE_SHEET) TRAIN_CLOSE_DI = null;
+  trainCloseSheetReset();
+  loadMyTraining();
+}
+function trainCloseSheetReset() {
+  TRAIN_CLOSE_SHEET = null;
+  const sheet = $('train-close-sheet'); if (sheet) sheet.style.display = 'none';
+  const body = $('train-close-body'); if (body) body.innerHTML = '';
+}
+
 async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
@@ -42681,7 +42918,20 @@ async function loadMyTraining() {
      asignaciones de hoy» (contenedor #train-custom-plans, tras
      las herramientas de la sesión), bajo su subtítulo: desplegar
      y cambiar el plan vive ahora ahí. */
-  const myPlanLineHTML = canSelfManage ? `<div class="my-plans-line"><span aria-hidden="true">📋</span><span class="my-plans-line-tx"><b>${t('train.planLabel')}:</b> ${mpActive ? esc(mpActive.title || '') : t('train.noActivePlan')}</span>${mpActive ? `<span class="my-plans-pill">● ${t('train.activeBadge')}</span>` : ''}</div>` : '';
+  /* AUTH-566 (programa «Plegar todo» nº 3): la línea informativa
+     de AUTH-411 se convierte en la LÍNEA PLEGADA del plan —
+     «📋 Plan · {título} · ● Activo ›», para toda persona con
+     plan (ya no solo con autogestión) — que abre la pantalla
+     del plan (#train-sheet) con su cabecera de siempre (título,
+     periodo y frecuencia) y el botón de imprimir dentro. La
+     gestión de planes sigue en Personaliza (la línea de
+     CAND-530), sin tocar. Si el plan es el Reto de 21 días, su
+     tarjeta vive tras su propia línea, con el día en curso
+     como dato clave (trainP21Datum, la aritmética de su
+     tarjeta). */
+  const trainPlanLineHTML = `<button type="button" class="train-fold-line train-plan-line" data-train-line="plan"><span class="tf-t">📋 ${esc(t('train.planLabel'))} · ${esc(plan.title || '')}</span><span class="my-plans-pill">● ${esc(t('train.activeBadge'))}</span><span class="tf-chev" aria-hidden="true">›</span></button>`;
+  const trainRetoLineHTML = (plan.genSource && plan.genSource.kind === 'plan21')
+    ? `<button type="button" class="train-fold-line train-reto-line" data-train-line="reto"><span class="tf-t">🏆 ${esc(plan.title || '')}</span><span class="tf-s">${esc(trainP21Datum(plan))}</span><span class="tf-chev" aria-hidden="true">›</span></button>` : '';
   /* CAND-530 — «MIS PLANES», PLEGADO EN UNA LÍNEA (orden de
      Ronald 2026-11-20 12:26 CST, maqueta aprobada tal cual a
      las 12:30: la pila de tarjetas a la vista «es un
@@ -42723,30 +42973,30 @@ async function loadMyTraining() {
      «Tu plan: N días por semana»). El texto entero de las notas
      vive y se edita solo en el editor del plan; el dato guardado
      no se toca — esto es solo de pintado. */
+  trainSheetReset();   /* AUTH-566: las hojas de la vista se vacían con la pintura anterior (el patrón de AUTH-565) */
+  trainCloseSheetReset();
   box.innerHTML = `
-    ${isLoose ? `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div><div id="plan-ai-door"></div>` : `<h3 class="history-title">${esc(plan.title || '')}</h3>
-    
-    ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
-    <p class="progress-hint">${plan && plan.genSource && plan.genSource.kind === 'plan21' ? t('plan21.freqLine', { n: plan.genSource.form || 4 }) : t('train.planFreq', { n: (plan.days || []).length })}</p>
-    <div id="p21-slot"></div>
+    ${isLoose ? `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div><div id="plan-ai-door"></div>` : `${trainPlanLineHTML}
+    ${trainRetoLineHTML}
+    <!-- AUTH-566 · EL ALMACÉN DE LA VISTA: la cabecera del plan
+         (título, periodo, frecuencia y el botón de imprimir —
+         retirado de la fila principal, hallazgo de la
+         auditoría) y la tarjeta del reto viven aquí, ocultos, y
+         VIAJAN a su pantalla (#train-sheet) al tocar su línea.
+         Sus pintores no cambian: plan21CardRender sigue
+         pintando en #p21-slot, viva donde viva. -->
+    <div id="train-store" style="display:none">
+      <div id="train-plan-head"><h3 class="history-title">${esc(plan.title || '')}</h3>
+      ${planPeriodText(plan) ? `<p class="progress-hint">${t('train.dates.clientLine', { period: esc(planPeriodText(plan)) })}</p>` : ''}
+      <p class="progress-hint">${plan && plan.genSource && plan.genSource.kind === 'plan21' ? t('plan21.freqLine', { n: plan.genSource.form || 4 }) : t('train.planFreq', { n: (plan.days || []).length })}</p>
+      <div style="margin:6px 0"><button class="btn-ghost btn-sm" id="btn-print-card">${t('train.print.btn')}</button></div></div>
+      <div id="p21-slot"></div>
+    </div>
     `}
-    ${myPlanLineHTML}
-    <!-- AUTH-431 · LA FILA DE AÑADIR, BAJO EL PLAN (orden
-         de Ronald 2026-11-12 11:37 CST: «Estos iconos debería
-         estar debajo del plan»): el contenedor #train-add-row
-         vive AQUÍ — bajo el bloque del plan (su cabecera y su
-         línea «📋 Plan: …») y sobre la semana —; hasta este
-         paquete vivía fijo en index.html, sobre el plan
-         (AUTH-2026-11-11-403). Lo pinta y lo vacía
-         trainCustomRenderSession (app.js), por id y con las
-         guardas de siempre: solo con el día editable; sin
-         plan, sin sesión, cerrado o en solo lectura queda
-         vacío y no ocupa nada (#train-add-row:empty). -->
-    <div id="train-add-row"></div>
     ${weekHtml}
     ${trainTodayHTML}
-    ${isLoose ? '' : `<div style="margin:6px 0"><button class="btn-ghost btn-sm" id="btn-print-card">${t('train.print.btn')}</button></div>`}
     <div id="train-align-slot"></div>
+    <div id="train-align-store" style="display:none"></div>
     <!-- TARJETA COMPACTA (Ronald, 2026-10-26 07:25 CDT): bajo la
          tarjeta del día visto NO se pinta ningún otro día del
          plan; a los demás días se llega SOLO por la tira semanal
@@ -42777,6 +43027,12 @@ async function loadMyTraining() {
   }
   const pcBtn = $('btn-print-card');
   if (pcBtn) pcBtn.onclick = () => printCardRender(plan);
+  /* AUTH-566: las líneas plegadas de la vista (plan y reto)
+     abren su pantalla; la puerta de cierre de la cola abre la
+     pantalla de cierre. La línea de alineación se cablea en
+     trainAlignRender, que la pinta al final de esta carga. */
+  box.querySelectorAll('[data-train-line]').forEach(b => b.onclick = () => trainSheetOpen(b.dataset.trainLine));
+  box.querySelectorAll('[data-train-close-door]').forEach(b => b.onclick = () => trainCloseSheetOpen(plan, Number(b.dataset.trainCloseDoor)));
   week5Wire(box);
   box.querySelectorAll('[data-train-share]').forEach(b => b.onclick = () => {
     const [diS, iso] = b.dataset.trainShare.split('|');
@@ -43031,9 +43287,14 @@ async function loadMyTraining() {
       /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): TERMINAR abre el
          panel de cierre — duración corregible, intensidad declarada
          y calentamiento a restar (D1/D2/D4). La escritura ocurre al
-         confirmar (data-train-close-confirm), no aquí. */
+         confirmar (data-train-close-confirm), no aquí.
+         AUTH-566: el panel de cierre es ahora la pantalla propia
+         (#train-close-sheet) — se arma el estado de siempre y se
+         abre la pantalla; la cola repintada lleva su puerta por
+         si la persona sale y vuelve. */
       TRAIN_CLOSE_DI = di;
       loadMyTraining();
+      trainCloseSheetOpen(plan, di);
       return;
     }
     const any = trainEffectiveList(plan, di).some((it, ei) => { const c = TRAIN_CHECKS[di + ':' + ei]; return !!c && c.done === true; });
@@ -43041,7 +43302,7 @@ async function loadMyTraining() {
       const lgA = logByDay[di];
       if ((lgA && (trainLogStatus(lgA) === 'done' || trainLogStatus(lgA) === 'partial')) || TRAIN_CLOSED_MARK[trainCloseKey(plan.id, di)]) { toast(t('train.d.alreadyClosed')); loadMyTraining(); return; }
     }
-    trainCloseWarnOpen(plan, di, () => { TRAIN_CLOSE_DI = di; loadMyTraining(); });
+    trainCloseWarnOpen(plan, di, () => { TRAIN_CLOSE_DI = di; loadMyTraining(); trainCloseSheetOpen(plan, di); });
   });
   box.querySelectorAll('[data-train-start]').forEach(b => b.onclick = () => {
     const diS = Number(b.dataset.trainStart);
@@ -60715,7 +60976,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-detalle-plegado';
+const PWA_SW_VERSION = '20261123-entrenamiento-plegado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
