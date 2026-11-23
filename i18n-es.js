@@ -1864,6 +1864,7 @@ export default {
   'pendlist.btn': '✉ Enviarle sus pendientes',
   'pendact.kicker': 'PENDIENTES ACTIVOS',
   'pendact.btn': 'Pendientes activos · {n}',
+  'stu565.chalNone': 'Sin asignar',
   'ficha563.pend': 'Pendientes',
   'ficha563.goals': 'Metas y ritmo',
   'ficha563.weights': 'Historial de pesos',

@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-ficha-plegada');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-detalle-plegado');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -9068,6 +9068,19 @@ function pendActTraceHTML(it) {
     <span class="st-chip ${STU_CHIP[it.state] || 'st-pendiente'}">${esc(t('students.chip.' + it.state))}</span>
   </div>`;
 }
+/* AUTH-565: la acción del aviso de métricas dentro de la
+   pantalla de Pendientes activos — el punto único de aviso
+   del alumno: el mismo estado de siempre (nudgeMetState, la
+   fuente que comparte con el bloque de la ficha), el mismo
+   sello de 7 días y el mismo envío (la hoja del aviso con la
+   plantilla «met» preseleccionada, vía nudgeOpen). */
+function pendActMetHTML(uid) {
+  const st = nudgeMetState(uid);
+  if (st.mode === 'hidden') return '';
+  if (st.mode === 'none') return `<div class="pendact-met"><span class="stu-nudged">${esc(t('nudge.metNone'))}</span></div>`;
+  if (st.mode === 'fresh') return `<div class="pendact-met"><span class="stu-nudged">${esc(t('nudge.nudgedOn', { d: dateName(pendISOof(new Date(st.freshMs))) }))}</span></div>`;
+  return `<div class="pendact-met"><button type="button" class="btn-primary btn-pendact" data-pendact-met="${esc(uid)}">${esc(t('nudge.metBtn'))}</button></div>`;
+}
 function pendActOpen(uid, opts) {
   const o = opts || {};
   PENDACT_CTX = { uid, fromEditor: !!o.fromEditor };
@@ -9106,6 +9119,10 @@ function pendActPaint() {
   if (traces.length) {
     h += `<div class="stu-traces-h">${esc(t('students.resolvedTitle'))}</div>` + traces.map(it => pendActTraceHTML(it)).join('');
   }
+  /* AUTH-565: al pie de la pantalla, el aviso de métricas —
+     el punto único de aviso del alumno reúne aquí también el
+     recordatorio que vivía como botón suelto en la ficha. */
+  if (!ctx.fromEditor) h += pendActMetHTML(uid);
   bd.innerHTML = h;
   /* Las acciones navegan a otras superficies (la ficha, la hoja
      del aviso, la hoja del mensaje combinado — todas por debajo
@@ -9128,6 +9145,14 @@ function pendActPaint() {
     const u2 = b.dataset.stuPendlist;
     pendActClose();
     pendListOpen(u2);
+  });
+  /* AUTH-565: el aviso de métricas, como las demás acciones
+     de la pantalla: se cierra primero y la hoja del aviso de
+     siempre corre detrás, con su plantilla preseleccionada. */
+  bd.querySelectorAll('[data-pendact-met]').forEach(b => b.onclick = () => {
+    const u2 = b.dataset.pendactMet;
+    pendActClose();
+    nudgeOpen(u2, 'met', t('nudge.tpl.met'));
   });
 }
 /* La sección del editor dentro de la pantalla: el estado de la
@@ -9609,10 +9634,15 @@ function studentsListSectionHTML() {
 let STU_PLANS = { uid: null, plans: null, loadingFor: null };
 function stuPlanBlockHTML(u) {
   const loaded = STU_PLANS.uid === u.id && !!STU_PLANS.plans;
+  /* AUTH-565: la fila de botones [Asignar plan] [Asignar reto]
+     (AUTH-560) ya NO vive dentro del bloque: el bloque nace
+     plegado tras su línea (viaja a la hoja del detalle) y la
+     fila queda VISIBLE fuera del pliegue, en su propio
+     contenedor #stu-plan-btnrows que pinta studentsDetailHTML
+     y repintan loadStudentPlans/loadStudentChal. */
   const inner = !loaded
     ? `<div class="wempty">${esc(t('access.loading'))}</div>`
-    : `<div id="stu-plan-btnrows">${stuPlanBtnRowsHTML(u)}</div>`
-      + stuPlanRowsHTML(STU_PLANS.plans)
+    : stuPlanRowsHTML(STU_PLANS.plans)
       + `<button type="button" class="plan-review-btn" data-plan-review="${esc(u.id)}">🗳️ ${esc(t('students.reviewBtn'))}<span class="plan-review-count" data-plan-review-count style="display:none"></span></button>`;
   return `<div class="stu-plan-block" id="stu-plan-block"><h3 class="history-title">${esc(t('students.planBlock'))}</h3>${inner}</div>`;
 }
@@ -9690,16 +9720,26 @@ function stuPlansWireCurrent(uid) {
     card.onclick = e => { if (e.target.closest('[data-plan-menu]')) return; stuPlanCardToggle(blk); };
     card.onkeydown = e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); stuPlanCardToggle(blk); } };
   }
-  const pb = blk.querySelector('[data-plan-progress]');
-  if (pb) pb.onclick = () => stuPlanProgressOpen(uid);
   const rb = blk.querySelector('[data-plan-review]');
   if (rb) rb.onclick = () => stuTrayOpen(uid);
-  /* AUTH-560: la casilla «Asignar reto» de la fila abre la hoja
-     de AUTH-559 (la misma, sin duplicar lógica); con varios
-     retos vigentes, su botón baja al bloque «Retos». */
-  blk.querySelectorAll('[data-chal-assign-open]').forEach(b => b.onclick = () => chalAsgOpen(uid, b.dataset.chalAssignOpen));
-  const gb = blk.querySelector('[data-chal-goto]');
-  if (gb) gb.onclick = () => { const cb = document.querySelector('#stu-chal-block'); if (cb) cb.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  /* AUTH-565: la fila de botones [Asignar plan] [Asignar reto]
+     vive fuera del bloque plegado, en su contenedor visible
+     #stu-plan-btnrows: sus botones se cablean aquí, sobre el
+     contenedor (el «Asignar plan» por el cableado de acciones
+     de siempre; «Progreso» y la casilla de retos como en
+     AUTH-560 — la misma hoja de AUTH-559, sin duplicar lógica;
+     con varios retos vigentes, su botón abre ahora la pantalla
+     del bloque «Retos» en vez de desplazar hasta él, porque el
+     bloque nace plegado). */
+  const brs = document.querySelector('#stu-plan-btnrows');
+  if (brs) {
+    wirePlanActionButtons(brs, brs, uid, STU_PLANS.plans, () => { STU_PLANS.plans = null; loadStudentPlans(uid); });
+    const pb = brs.querySelector('[data-plan-progress]');
+    if (pb) pb.onclick = () => stuPlanProgressOpen(uid);
+    brs.querySelectorAll('[data-chal-assign-open]').forEach(b => b.onclick = () => chalAsgOpen(uid, b.dataset.chalAssignOpen));
+    const gb = brs.querySelector('[data-chal-goto]');
+    if (gb) gb.onclick = () => stuSheetOpen('chal');
+  }
   stuTrayPaintCount(uid);
 }
 /* H-07 (AUTH-2026-11-10-392): el toque de la línea «+ N plan(es) inactivo(s)»
@@ -10022,6 +10062,13 @@ async function loadStudentPlans(uid) {
   if (STUDENTS_DETAIL !== uid) return;
   const blk = document.querySelector('#stu-plan-block');
   if (blk) { blk.outerHTML = stuPlanBlockHTML({ id: uid }); stuPlansWireCurrent(uid); }
+  /* AUTH-565: la fila de botones visible se repinta con los
+     planes recién llegados (su cableado lo rehace
+     stuPlansWireCurrent) y el dato clave de la línea del plan
+     se sincroniza. */
+  const brs = document.querySelector('#stu-plan-btnrows');
+  if (brs) { brs.innerHTML = stuPlanBtnRowsHTML({ id: uid }); stuPlansWireCurrent(uid); }
+  stuFoldSync();
 }
 
 /* ══ AUTH-559 · BLOQUE «RETOS» DE LA FICHA DEL ALUMNO ══════════
@@ -10140,6 +10187,9 @@ async function loadStudentChal(uid) {
        filas de botones del bloque del plan. */
     const brs = document.querySelector('#stu-plan-btnrows');
     if (brs) { brs.innerHTML = stuPlanBtnRowsHTML(u); stuPlansWireCurrent(uid); }
+    /* AUTH-565: el dato clave de la línea «Retos» refleja el
+       estado recién llegado. */
+    stuFoldSync();
   }
 }
 function stuChalWireCurrent(uid) {
@@ -10315,6 +10365,9 @@ async function loadStudentTraining(uid) {
   if (STUDENTS_DETAIL !== uid) return;
   const blk = document.querySelector('#stu-train-block');
   if (blk) { blk.outerHTML = stuTrainBlockHTML({ id: uid }); stuTrainWireCurrent(uid); }
+  /* AUTH-565: el dato clave de la línea «Entrenamiento» (hoy)
+     se sincroniza con los registros recién llegados. */
+  stuFoldSync();
 }
 /* AUTH-352 (ampliación, orden de Ronald 2026-11-09 22:55 CST):
    ORDEN UNIFICADO del perfil del alumno lado entrenador en las dos
@@ -10419,6 +10472,108 @@ function stuCumplHTML(logs, plans) {
   if (m && m.progress) lines.push(`<div class="stu-cumpl-line">${esc(t('students.cumplProgress', { done: m.progress.done, planned: m.progress.planned, pct: m.progress.pct }))}</div>`);
   return `<div class="stu-cumpl"><h4 class="history-title">${esc(t('students.cumplBlock'))}</h4>${lines.join('')}</div>`;
 }
+/* ════════════════════════════════════════════════════════════════
+   AUTH-565 — EL DETALLE RÁPIDO DEL ALUMNO, PLEGADO (programa
+   «Plegar todo» nº 2, orden de Ronald «Hazlo todo» 2026-11-23):
+   los bloques «Su plan de entrenamiento», «Retos» y «El
+   entrenamiento de mi alumno» dejan de nacer desplegados en
+   cadena en el detalle: cada uno queda como UNA LÍNEA (título
+   + dato clave + ›, la fila .stu-train-row de la casa) que abre
+   su propia pantalla con volver (#stu-sheet, el patrón
+   .pend-float de AUTH-563): el bloque VIAJA desde su almacén
+   (#stu-store, oculto dentro del propio detalle) a la hoja y
+   vuelve a su ancla al cerrar — así que ningún pintor cambia:
+   todos siguen pintando por id, esté el bloque en el almacén o
+   en la hoja. SOLO cambia la presentación.
+   DECISIÓN QUE MANDA (la orden más reciente y específica de
+   Ronald, la de AUTH-560): la fila [Asignar plan] [Asignar
+   reto] QUEDA VISIBLE fuera del pliegue, junto a la línea del
+   plan — por eso su contenedor #stu-plan-btnrows vive fuera
+   del bloque y lo repintan loadStudentPlans/loadStudentChal.
+   El dato clave de cada línea se lee de las MISMAS cachés y
+   funciones de estado de los bloques (STU_PLANS · STU_CHAL con
+   stuChalStateTextHTML de AUTH-559/560 · stuTrainTodayState de
+   AUTH-352): ninguna segunda fuente de verdad. ═══ */
+let STU_SHEET = null;        /* { key, nodes: [{el, anchor}] } */
+function stuFoldLineHTML(key, title) {
+  return `<button type="button" class="stu-train-row stu-fold-line" data-stu-line="${key}"><span class="stu-line-t">${esc(title)}</span><span class="stu-line-s" data-stu-sub="${key}"></span><span class="sx">›</span></button>`;
+}
+function stuFoldSync() {
+  const card = document.querySelector('.students-col-detail .detail-card') || document.querySelector('.detail-card');
+  if (!card || !STUDENTS_DETAIL) return;
+  const uid = STUDENTS_DETAIL;
+  const setSub = (k, txt, html) => {
+    const s = card.querySelector('[data-stu-sub="' + k + '"]');
+    if (!s) return;
+    if (html) s.innerHTML = txt || ''; else s.textContent = txt || '';
+  };
+  if (STU_PLANS.uid === uid && STU_PLANS.plans) {
+    const act = STU_PLANS.plans.find(p => p && p.active === true);
+    setSub('plan', act ? (act.title || '') : t('train.noPlan'));
+  } else setSub('plan', '');
+  if (STU_CHAL.uid === uid && STU_CHAL.states) {
+    const vig = chalVigentesList();
+    if (!vig.length) setSub('chal', t('chal.assign.noneLive'));
+    else {
+      const stOf = v => (STU_CHAL.states && STU_CHAL.states[v.kind]) || { state: 'none', plan: null, dayIx: 0 };
+      const first = vig.map(stOf).find(s => s.plan) || stOf(vig[0]);
+      setSub('chal', stuChalStateTextHTML(first, true) || t('stu565.chalNone'), true);
+    }
+  } else setSub('chal', '');
+  if (STU_TRAIN.uid === uid && STU_TRAIN.logs) {
+    const st = stuTrainTodayState(STU_TRAIN.logs, STU_TRAIN.plans);
+    if (st.kind === 'trained') setSub('train', t('students.trainToday') + ': ' + (st.log.dayLabel || dateName(st.log.date)));
+    else if (st.kind === 'free') setSub('train', t('students.trainTodayFree'));
+    else setSub('train', t('students.trainTodayNone'));
+  } else setSub('train', '');
+}
+function stuSheetNodes(key) {
+  switch (key) {
+    case 'plan': return [$('stu-plan-block')];
+    case 'chal': return [$('stu-chal-block')];
+    case 'train': return [$('stu-train-block')];
+  }
+  return [];
+}
+function stuSheetOpen(key) {
+  if (STU_SHEET && STU_SHEET.key === key) return;
+  if (STU_SHEET) stuSheetClose();
+  const sheet = $('stu-sheet'), body = $('stu-sheet-body'); if (!sheet || !body) return;
+  const nodes = stuSheetNodes(key).filter(Boolean);
+  if (!nodes.length) return;
+  const lineT = document.querySelector('[data-stu-line="' + key + '"] .stu-line-t');
+  const tt = $('stu-sheet-title'); if (tt) tt.textContent = lineT ? lineT.textContent : '';
+  const moved = nodes.map(el => {
+    const anchor = document.createElement('div');
+    anchor.className = 'stu-anchor'; anchor.style.display = 'none';
+    if (el.parentNode) el.parentNode.insertBefore(anchor, el);
+    body.appendChild(el);
+    return { el, anchor };
+  });
+  STU_SHEET = { key, nodes: moved };
+  sheet.style.display = '';
+  const x = $('stu-sheet-x'); if (x) x.onclick = () => stuSheetClose();
+  const bk = $('stu-sheet-back'); if (bk) bk.onclick = () => stuSheetClose();
+  try { sheet.scrollTop = 0; } catch {}
+}
+function stuSheetClose() {
+  const S = STU_SHEET; if (!S) return;
+  STU_SHEET = null;
+  S.nodes.forEach(({ el, anchor }) => {
+    if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(el, anchor); anchor.remove(); }
+  });
+  const sheet = $('stu-sheet'); if (sheet) sheet.style.display = 'none';
+  const body = $('stu-sheet-body'); if (body) body.innerHTML = '';
+  stuFoldSync();
+}
+/* Al repintar el detalle (renderStudentsBody pinta todo de
+   nuevo) la hoja se vacía sin devolver nodos: sus bloques
+   viejos se descartan con el resto de la pintura anterior. */
+function stuSheetReset() {
+  STU_SHEET = null;
+  const sheet = $('stu-sheet'); if (sheet) sheet.style.display = 'none';
+  const body = $('stu-sheet-body'); if (body) body.innerHTML = '';
+}
 function studentsDetailHTML(u) {
   const L = STUDENTS_LAST;
   const name = stuName(u);
@@ -10431,16 +10586,24 @@ function studentsDetailHTML(u) {
   let h = `<button type="button" class="back-row" id="stu-back">‹ ${esc(fromLabel)}</button>
   <div class="detail-card">
     <div class="detail-head">${stuAvatarHTML(u, name)}<span class="detail-main"><span class="detail-name">${esc(name)}</span>${alertChipHTML((L.alertsByUid || {})[u.id])}<span class="detail-sub">${err ? esc(t('students.pendLoadError')) : pend.items.length ? esc(t('students.pendToResolve', { n: pend.items.length })) : esc(t('students.upToDate'))}</span></span></div>`;
-  /* AUTH-341: «🏋️ Su plan de entrenamiento», nacido desplegado,
-     inmediatamente tras la cabecera y ANTES de los pendientes. */
-  h += stuPlanBlockHTML(u);
-  /* AUTH-559: el bloque «Retos» nace bajo el plan: los retos
-     vigentes con su estado para este alumno y la asignación
-     directa por su entrenador. */
-  h += stuChalBlockHTML(u);
-  /* AUTH-352: «🏋️ El entrenamiento de mi alumno», nacido
-     visible tras el plan y antes de los pendientes. */
-  h += stuTrainBlockHTML(u);
+  /* AUTH-565 (programa «Plegar todo» nº 2): los tres bloques
+     (plan AUTH-341, retos AUTH-559, entrenamiento AUTH-352)
+     dejan de nacer desplegados en cadena tras la cabecera. La
+     fila de botones de AUTH-560 queda VISIBLE junto a la línea
+     del plan (decisión de Ronald) y cada bloque queda como UNA
+     LÍNEA plegada que abre su propia pantalla con volver; los
+     bloques viven en el almacén oculto #stu-store y VIAJAN a
+     la hoja #stu-sheet al abrir su línea — sus pintores, sus
+     cargas y su cableado no cambian. */
+  h += `<div id="stu-plan-btnrows">${stuPlanBtnRowsHTML(u)}</div>`;
+  h += stuFoldLineHTML('plan', t('students.planBlock'));
+  h += stuFoldLineHTML('chal', t('students.chalBlock'));
+  h += stuFoldLineHTML('train', t('students.trainBlock'));
+  h += `<div id="stu-store" style="display:none">`
+    + stuPlanBlockHTML(u)
+    + stuChalBlockHTML(u)
+    + stuTrainBlockHTML(u)
+    + `</div>`;
   if (err) {
     h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
   } else {
@@ -10475,6 +10638,10 @@ function renderStudentsBody() {
   if (!STUDENTS_LAST) return;
   const du = STUDENTS_DETAIL ? STUDENTS_LAST.clients.find(u => u.id === STUDENTS_DETAIL) : null;
   if (STUDENTS_DETAIL && !du) STUDENTS_DETAIL = null;
+  /* AUTH-565: al repintar, la hoja del detalle se vacía sin
+     devolver nodos (sus bloques viejos se descartan con esta
+     pintura, como en la ficha de AUTH-563). */
+  stuSheetReset();
   el.innerHTML = du
     ? `<div class="students-split"><div class="students-col-list">${studentsListSectionHTML()}</div><div class="students-col-detail">${studentsDetailHTML(du)}</div></div>`
     : studentsListSectionHTML();
@@ -10517,6 +10684,9 @@ function renderStudentsBody() {
   /* AUTH-562: el botón «Pendientes activos» del detalle abre la
      pantalla del paquete. */
   el.querySelectorAll('[data-pendact]').forEach(b => b.onclick = () => pendActOpen(b.dataset.pendact));
+  /* AUTH-565: las líneas plegadas del detalle abren la hoja
+     propia de su bloque (plan / retos / entrenamiento). */
+  el.querySelectorAll('[data-stu-line]').forEach(b => b.onclick = () => stuSheetOpen(b.dataset.stuLine));
   /* ASIGNACIONES (este paquete): el botón de gestión del detalle
      abre la hoja de asignaciones (solo se pinta al administrador). */
   el.querySelectorAll('[data-assign-open]').forEach(b => b.onclick = () => assignOpen(b.dataset.assignOpen, 'students'));
@@ -10537,6 +10707,9 @@ function renderStudentsBody() {
   if (du) loadStudentPlans(du.id);
   if (du) loadStudentTraining(du.id);
   if (du) loadStudentChal(du.id);
+  /* AUTH-565: los datos clave de las líneas con lo que ya esté
+     en caché al pintar (las cargas los refrescan al aterrizar). */
+  if (du) stuFoldSync();
 }
 /* Barra de la vista: buscador + conmutador Lista/Rejilla en una
    fila y las tres pastillas debajo (A-A2), con el estado PROPIO
@@ -18447,7 +18620,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-ficha-plegada' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-detalle-plegado' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -54141,16 +54314,31 @@ function tevalAskRefresh(uid) {
    pasadas (el documento del alumno y el hasResult de su
    checklist); el envío re-verifica contra el servidor y el
    Worker guarda la puerta al componer. */
-function fichaMetBlockHTML(uid) {
-  if (typeof nudgeViewerCan !== 'function' || !nudgeViewerCan(uid)) return '';
+/* AUTH-565: el estado del aviso de métricas («Recordarle sus
+   métricas», subclave «met») como UNA sola fuente: la comparten
+   el bloque de la ficha (fichaMetBlockHTML, su salida no cambia
+   ni un byte) y la acción del mismo aviso dentro de la pantalla
+   de Pendientes activos (pendActMetHTML), el punto único de
+   aviso del alumno. Modos: hidden (sin puerta o sin documento)
+   · none (sin métricas fundadas: la nota honesta) · fresh
+   (avisado hace menos de 7 días: el sello) · ready (el botón). */
+function nudgeMetState(uid) {
+  if (typeof nudgeViewerCan !== 'function' || !nudgeViewerCan(uid)) return { mode: 'hidden' };
   const doc = nudgeStudentDoc(uid);
-  if (!doc) return '';
+  if (!doc) return { mode: 'hidden' };
   const prov = doc.goalsProvenance || null;
   const chkB = ((typeof fichaTpendOf === 'function' ? (fichaTpendOf(uid) || {}).chk : null) || {}).base || null;
   const founded = Number((doc.goals || {}).kcal) > 0 && !!prov && Number(prov.tdeeKcal) > 0 && (!chkB || chkB.hasResult !== false);
-  if (!founded) return `<div class="ficha-met"><span class="stu-nudged">${esc(t('nudge.metNone'))}</span></div>`;
+  if (!founded) return { mode: 'none' };
   const fresh = nudgeFreshMs(uid, 'met');
-  if (fresh) return `<div class="ficha-met"><span class="stu-nudged">${esc(t('nudge.nudgedOn', { d: dateName(pendISOof(new Date(fresh))) }))}</span></div>`;
+  if (fresh) return { mode: 'fresh', freshMs: fresh };
+  return { mode: 'ready' };
+}
+function fichaMetBlockHTML(uid) {
+  const st = nudgeMetState(uid);
+  if (st.mode === 'hidden') return '';
+  if (st.mode === 'none') return `<div class="ficha-met"><span class="stu-nudged">${esc(t('nudge.metNone'))}</span></div>`;
+  if (st.mode === 'fresh') return `<div class="ficha-met"><span class="stu-nudged">${esc(t('nudge.nudgedOn', { d: dateName(pendISOof(new Date(st.freshMs))) }))}</span></div>`;
   return `<div class="ficha-met"><button type="button" class="btn-primary ficha-met-btn" data-ficha-met="${esc(uid)}">${esc(t('nudge.metBtn'))}</button></div>`;
 }
 function fichaMetWire(scope) {
@@ -60527,7 +60715,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-ficha-plegada';
+const PWA_SW_VERSION = '20261123-detalle-plegado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

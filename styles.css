@@ -7491,3 +7491,20 @@ textarea.gest-in { resize: none; }
 .treq-fold-head { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; background: transparent; border: 0; padding: 10px 0; font: inherit; cursor: pointer; text-align: left; min-height: 44px; }
 .treq-fold-head .treq-card-t { flex: 1; min-width: 0; }
 .treq-fold-body { padding-bottom: 8px; }
+
+/* ═══ AUTH-2026-11-23-565 · EL DETALLE RÁPIDO, PLEGADO ═══
+   La hoja de cada bloque del detalle (#stu-sheet) hereda
+   .pend-float y queda BAJO la hoja de asignar reto (45), la
+   bandeja de propuestas (46), el recordatorio (47), el modal
+   de plan (50) y Pendientes activos (60), como la hoja de la
+   ficha (44): todo lo que un bloque abre sigue abriendo por
+   encima de su propia pantalla. Las líneas son la fila
+   plegada de la casa (.stu-train-row) con su dato clave a la
+   derecha, como las de la ficha (AUTH-563). La fila de
+   botones de AUTH-560 queda visible fuera del pliegue. */
+#stu-sheet { z-index: 44; }
+.stu-fold-line { min-height: 48px; }
+.stu-fold-line .stu-line-t { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.stu-fold-line .stu-line-s { color: #666; font-size: 13.5px; margin-left: auto; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.stu-fold-line .sx { flex: none; }
+.pendact-met { margin-top: 10px; }

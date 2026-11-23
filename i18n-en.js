@@ -1867,6 +1867,7 @@ export default {
   'pendlist.btn': '✉ Send them their pending steps',
   'pendact.kicker': 'ACTIVE PENDING ITEMS',
   'pendact.btn': 'Active pending items · {n}',
+  'stu565.chalNone': 'Not assigned',
   'ficha563.pend': 'Pending items',
   'ficha563.goals': 'Goals and pace',
   'ficha563.weights': 'Weight history',
