@@ -4304,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-acceso-rapido');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-reto21-4-series');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -10652,6 +10652,22 @@ async function loadStudentTraining(uid) {
   if (STU_TRAIN.loadingFor === uid) return;
   STU_TRAIN.loadingFor = uid;
   const [logs, plans] = await Promise.all([fetchLogs(uid), fetchPlans(uid)]);
+  /* AUTH-578: la misma corrección del Reto en la sesión del
+     entrenador al cargar el entrenamiento de su alumno — su
+     plan activo del Reto se corrige antes de pintar el bloque
+     y la caché de planes de la ficha se sincroniza con el
+     plan corregido. */
+  const actP21 = (plans || []).find(p => p && p.active === true);
+  if (actP21) {
+    try {
+      if (await plan21SetsEnsure(actP21, logs)) {
+        if (typeof STU_PLANS !== 'undefined' && STU_PLANS && STU_PLANS.uid === uid && Array.isArray(STU_PLANS.plans)) {
+          const ix = STU_PLANS.plans.findIndex(p => p && p.id === actP21.id);
+          if (ix >= 0) STU_PLANS.plans[ix] = actP21;
+        }
+      }
+    } catch {}
+  }
   const open = (STU_TRAIN.uid === uid && STU_TRAIN.open) || {};
   STU_TRAIN = { uid, logs, plans, loadingFor: null, open };
   if (STUDENTS_DETAIL !== uid) return;
@@ -19352,7 +19368,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-acceso-rapido' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-reto21-4-series' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -43275,6 +43291,11 @@ async function loadMyTraining() {
   MY_LOGS_ALL = logsAll;
   MY_PLANS_ALL = plans;
   MY_PLAN = isLoose ? null : plan; MY_LOGS = logs;
+  /* AUTH-578: si su plan activo es del Reto y aún no lleva la
+     regla de 4 series, la app lo corrige AQUÍ — con sus
+     registros ya leídos, antes de pintar el día — para que el
+     día por venir nazca ya a 4 series (plan21SetsEnsure). */
+  if (!isLoose && plan) { try { await plan21SetsEnsure(plan, logs); } catch {} }
   try { const ds2 = $('dateSel'); if (ds2 && typeof render === 'function') render(ds2.value); } catch {}
   const today = todayISO();
   const weekStart = mondayISO(today);
@@ -45520,9 +45541,64 @@ function plan21StartISO(inp) {
   for (let i = 0; i < 7; i++) { const iso = planISOAddDays(today, i); if (avail.includes(plan21Weekday(iso))) return iso; }
   return today;
 }
+/* ═══ AUTH-578 · RETO 21: 4 SERIES, 10 REPETICIONES DE
+   ARRANQUE Y PESO SUGERIDO CON PRUEBA FÍSICA (orden de Ronald
+   en llamada de voz, 2026-11-23: «que todos los ejercicios
+   del reto sean cuatro series… siempre coloca que nazcan con
+   diez repeticiones dentro de cada serie… si tiene hecha
+   prueba física, que haga un aproximado del peso que puede
+   utilizar esa persona… que la persona pueda editar el peso
+   y las repeticiones», también para los planes YA asignados:
+   «incluso el de Alberto que ya lo tiene configurado»).
+   LA REGLA, en una sola función (plan21SetsV2Ex) que corre al
+   construir el plan y al corregirlo ya asignado:
+   – series: 4 en TODOS los ejercicios, sin distinción de
+     semana ni de sesión (antes: 2 en semana 1 y en TC, 3 en
+     semanas 2–3);
+   – repeticiones: cada serie nace con 10 repeticiones
+     planeadas (reps «10», repsMin/repsMax 10) en los
+     ejercicios de repeticiones — es el valor con el que
+     trainDefaultSets hace nacer cada serie (repsPlanned);
+     los ejercicios de tiempo (plancha, lateral, acarreo)
+     conservan sus bandas de segundos, porque no tienen
+     repeticiones; todo queda editable como siempre;
+   – peso sugerido: SOLO si la persona tiene al menos una
+     prueba física registrada (plan21FetchInputs.tests), la
+     fila lleva la semilla de la casa (orgaSeedKg: la tabla
+     fundada de AUTH-541 — % del peso corporal desde los
+     estándares «sin entrenar» de Kilgore/ExRx al 50 %, banda
+     baja del ACSM; sin fuente defendible, la carga fija
+     mínima declarada; a peso corporal, sin semilla) escrita
+     como dictLoad/dictLoadUnit en kg — el MISMO canal de las
+     cargas dictadas y aceptadas (AUTH-541/544): la sesión la
+     precarga en cada serie, visible y editable, jamás
+     impuesta. Sin prueba física, ninguna sugerencia. Una
+     carga ya aceptada (dictLoad de la progresión) manda y no
+     se pisa. ═══ */
+function plan21HasTests(inp) {
+  return !!(inp && inp.tests && Object.keys(inp.tests).length);
+}
+function plan21SeedFor(inp, entry) {
+  if (!plan21HasTests(inp)) return null;
+  const kg = orgaSeedKg(entry || null, (inp && inp.lastWeight) || null);
+  return (kg != null && kg > 0) ? Math.round(kg * 100) / 100 : null;
+}
+function plan21SetsV2Ex(ex, seedKg) {
+  if (!ex) return false;
+  let changed = false;
+  if (Number(ex.sets) !== 4) { ex.sets = 4; changed = true; }
+  const isTime = ex.repsKind === 'time' || /seg/i.test(String(ex.reps || ''));
+  if (!isTime && (String(ex.reps) !== '10' || Number(ex.repsMin) !== 10 || Number(ex.repsMax) !== 10 || ex.repsKind !== 'reps')) {
+    ex.reps = '10'; ex.repsMin = 10; ex.repsMax = 10; ex.repsKind = 'reps'; changed = true;
+  }
+  if (seedKg != null && !(typeof ex.dictLoad === 'number' && ex.dictLoad > 0)) {
+    ex.dictLoad = seedKg; ex.dictLoadUnit = 'kg'; changed = true;
+  }
+  return changed;
+}
 function plan21SessionDay(code, inp, fams, step, wk) {
   const sess = PLAN21_SESSIONS.find(s => s.code === code);
-  const sets = code === 'TC' ? 2 : (wk === 0 ? 2 : 3);
+  const sets = 4;   /* AUTH-578: 4 series para todos (la regla fina la aplica plan21SetsV2Ex abajo) */
   const exs = [];
   let dropped = false;
   for (const slot of sess.slots) {
@@ -45554,12 +45630,15 @@ function plan21SessionDay(code, inp, fams, step, wk) {
     if (role === 'time') { const b = plan21TimeBand(id === 'E088' ? 'plankSide' : (slot.time || 'plank'), step); reps = b[0] + '-' + b[1] + ' seg'; repsMin = b[0]; repsMax = b[1]; repsKind = 'time'; }
     else { const b = plan21Band(role, step, wk); reps = b[0] + '-' + b[1]; repsMin = b[0]; repsMax = b[1]; repsKind = 'reps'; }
     exs.push({
-      name: e2 ? libNameOf(e2) : id, sets: slot.technique ? 2 : sets, reps,
+      name: e2 ? libNameOf(e2) : id, sets, reps,
       note: slot.technique ? t('plan21.noteTech') : (wk === 0 && role !== 'time' ? t('plan21.noteCalib') : ''),
       exerciseId: id, photoUrl: (e2 && e2.foto_url) || '', videoUrl: (e2 && (e2.video_youtube_url || e2.video_url)) || '',
       rest: plan21Rest(role), rest_en: plan21Rest(role), repsMin, repsMax, repsKind,
       warmup: exs.length === 0 ? (LANG === 'es' ? 'Series de aproximación' : 'Warm-up sets') : '', warmup_en: 'Warm-up sets'
     });
+    /* AUTH-578: la regla nueva sobre la fila recién nacida —
+       la misma función que corrige los planes ya asignados. */
+    plan21SetsV2Ex(exs[exs.length - 1], plan21SeedFor(inp, LIB_BY_ID[id] || null));
   }
   return { day: { label: t('plan21.sess' + code), exercises: exs }, dropped };
 }
@@ -45616,7 +45695,11 @@ async function plan21CreatePlan(uid, built, birth) {
     createdBy: (birth && birth.createdBy) || uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
     healthHold: !active, holdAuto: !active,
     sourceRoutineId: PLAN21_TPL_ID, sourceRoutineVersion: PLAN21_TPL_VERSION,
-    genSource: { kind: 'plan21', version: PLAN21_TPL_VERSION, templateId: PLAN21_TPL_ID, form: built.form, step: built.step, equipAssumed: !!built.equipAssumed }
+    genSource: { kind: 'plan21', version: PLAN21_TPL_VERSION, templateId: PLAN21_TPL_ID, form: built.form, step: built.step, equipAssumed: !!built.equipAssumed },
+    /* AUTH-578: nace ya con la regla de 4 series aplicada —
+       el sello que plan21SetsEnsure respeta para no corregir
+       dos veces el mismo plan. */
+    setsV2: true
   };
   /* AUTH-559: el nacimiento por ASIGNACIÓN del entrenador lleva
      su autoría (la misma convención del editor: createdBy es
@@ -46391,6 +46474,59 @@ async function plan21AfterStart(plan) {
   if (!plan || plan.active !== true) return;
   try { await plan21GoalsEnsure(); } catch {}
   try { await plan21FoodEnsure(plan); } catch {}
+}
+/* AUTH-578: LA CORRECCIÓN DE LOS PLANES DEL RETO YA
+   ASIGNADOS, hecha por la PROPIA APP (sin operaciones de
+   datos por detrás): al cargar el plan — en la sesión del
+   alumno (loadMyTraining, antes de pintar) o en la del
+   entrenador (loadStudentTraining) — si el plan es del Reto,
+   está activo y aún no lleva el sello setsV2, sus días POR
+   VENIR se reescriben con la regla nueva (plan21SetsV2Ex):
+   días de fechas pasadas intactos y días con registro
+   cerrado (done/partial en training_logs) intactos — su
+   historial no se toca —; los días libres no llevan
+   ejercicios y no se tocan. La escritura sigue la disciplina
+   de la casa (re-lectura fresca, instantánea §6.4 previa y
+   escritura fusionada {days, setsV2, updatedAt}, la de
+   progDecide/restrWritePlanDay); sin cambios que hacer, solo
+   se sella. Idempotente: con el sello puesto no vuelve a
+   leer insumos ni a escribir. */
+async function plan21SetsEnsure(plan, logs) {
+  if (!plan || plan.setsV2 === true || plan.active !== true) return false;
+  if (!((plan.genSource && plan.genSource.kind === 'plan21') || plan.sourceRoutineId === PLAN21_TPL_ID)) return false;
+  if (!plan.id || !plan.clientUid || !plan.startsAt || !Array.isArray(plan.days)) return false;
+  const today = todayISO();
+  const myLogs = Array.isArray(logs) ? logs : await fetchLogs(plan.clientUid);
+  const doneSet = new Set((myLogs || []).filter(l => l && l.planId === plan.id
+    && (trainLogStatus(l) === 'done' || trainLogStatus(l) === 'partial'))
+    .map(l => String(l.date || '') + '|' + l.dayIndex));
+  const inp = await plan21FetchInputs(plan.clientUid);
+  const ref = doc(db, 'training_plans', plan.id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return false;
+  const prev = snap.data();
+  if (prev.setsV2 === true) { plan.setsV2 = true; if (Array.isArray(prev.days)) plan.days = prev.days; return false; }
+  const days = JSON.parse(JSON.stringify(prev.days || []));
+  let changed = false;
+  days.forEach((d, i) => {
+    if (!d || d.freeDay || !Array.isArray(d.exercises) || !d.exercises.length) return;
+    const iso = planISOAddDays(prev.startsAt || plan.startsAt, i);
+    if (!iso || iso < today) return;
+    if (doneSet.has(iso + '|' + i)) return;
+    d.exercises.forEach(ex => {
+      const seed = plan21SeedFor(inp, (ex && ex.exerciseId) ? (LIB_BY_ID[ex.exerciseId] || null) : null);
+      if (plan21SetsV2Ex(ex, seed)) changed = true;
+    });
+  });
+  if (changed) {
+    await addDoc(collection(db, 'training_plans'), { ...prev, isSnapshot: true, sourcePlanId: plan.id, snapshotAt: serverTimestamp(), active: false });
+    await setDoc(ref, { days, setsV2: true, updatedAt: serverTimestamp() }, { merge: true });
+    plan.days = days;
+  } else {
+    await setDoc(ref, { setsV2: true, updatedAt: serverTimestamp() }, { merge: true });
+  }
+  plan.setsV2 = true;
+  return changed;
 }
 /* --- D10: las metas cuando el motor no las ha calculado --- */
 let PLAN21_GOALS_HELD = false;
@@ -62216,7 +62352,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-acceso-rapido';
+const PWA_SW_VERSION = '20261123-reto21-4-series';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
