@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-inicio-plegado">
+<link rel="stylesheet" href="styles.css?v=20261123-comida-plegada">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1255,8 +1255,8 @@
            (app.js) con la misma puerta de visibilidad de siempre;
            mismo dato y misma escritura (nutrition_water). -->
       <div class="water-card" id="water-card" style="display:none">
-        <div class="water-head"><span class="water-t">💧 <span data-i18n="nutri.water">Water today</span></span><span class="water-v" id="nutri-water-ml">0 ml</span></div>
-        <div class="nutri-water-row"><input type="number" id="nutri-water-in" min="1" max="5000" step="50" placeholder="250" aria-label="Add water (ml)" data-i18n-aria="nutri.waterAdd"><button type="button" class="btn-ghost" id="nutri-water-add">＋ <span data-i18n="nutri.water">Water today</span></button></div>
+        <button type="button" class="water-fold-head" id="water-fold-btn" aria-expanded="false" aria-controls="water-body"><span class="water-t">💧 <span data-i18n="nutri.water">Water today</span></span><span class="water-v" id="nutri-water-ml">0 ml</span><span class="water-fold-chev" aria-hidden="true">▾</span></button>
+        <div class="nutri-water-row" id="water-body" style="display:none"><input type="number" id="nutri-water-in" min="1" max="5000" step="50" placeholder="250" aria-label="Add water (ml)" data-i18n-aria="nutri.waterAdd"><button type="button" class="btn-ghost" id="nutri-water-add">＋ <span data-i18n="nutri.water">Water today</span></button></div>
       </div>
       <!-- DIARIO VISUAL DE LA SEMANA (AUTH-2026-11-10-366) MUDADO
            AQUÍ con AUTH-452 (orden de Ronald del 2026-11-13
@@ -1295,7 +1295,7 @@
       <h2 data-i18n="aiText.label">Describe your meal</h2>
       <button type="button" class="pend-close" id="btn-food-text-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
-    <p class="photo-hint" data-i18n="aiText.hint">No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.</p>
+    <div class="hint-fold"><button type="button" class="hint-fold-btn" data-hint-fold aria-expanded="false"><span aria-hidden="true">💡</span> <span data-i18n="food568.howItWorks">How it works</span><span class="hint-fold-chev" aria-hidden="true">▾</span></button><div class="hint-fold-body" style="display:none"><p class="photo-hint" data-i18n="aiText.hint">No photo? Describe the dish and AI will suggest its components and amounts — you review and edit everything before saving.</p></div></div>
     <p class="progress-hint aiusage-line aiusage-meal-line" style="display:none"></p>
     <span class="ac-wrap"><textarea id="food-text-desc" class="food-textarea" rows="3" maxlength="600" data-i18n-ph="aiText.ph" placeholder="E.g. quinoa tortilla with egg, cottage cheese and turkey ham"></textarea><span class="ac-sug" id="ac-sug-text"></span></span>
     <div class="ai-actions"><button type="button" class="btn-main btn-sm" id="btn-food-text-go" data-i18n="aiText.button">Analyze the description with AI</button></div>
@@ -1308,7 +1308,7 @@
       <h2 data-i18n="aiVoice.label">Dictate your meal</h2>
       <button type="button" class="pend-close" id="btn-food-voice-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
-    <p class="photo-hint" data-i18n="aiVoice.hint">Or say it: tap the button and dictate what you ate — food, amount and preparation (e.g. "300 grams of skinless chicken breast made in the air fryer"). AI transcribes it and suggests the values; you review and edit everything before saving. The audio is never saved.</p>
+    <div class="hint-fold"><button type="button" class="hint-fold-btn" data-hint-fold aria-expanded="false"><span aria-hidden="true">💡</span> <span data-i18n="food568.howItWorks">How it works</span><span class="hint-fold-chev" aria-hidden="true">▾</span></button><div class="hint-fold-body" style="display:none"><p class="photo-hint" data-i18n="aiVoice.hint">Or say it: tap the button and dictate what you ate — food, amount and preparation (e.g. "300 grams of skinless chicken breast made in the air fryer"). AI transcribes it and suggests the values; you review and edit everything before saving. The audio is never saved.</p></div></div>
     <p class="progress-hint aiusage-line aiusage-meal-line" style="display:none"></p>
     <div class="voice-box">
       <button type="button" class="voice-btn" id="fv-voice-btn" aria-label="Dictate your meal" data-i18n-aria="aiVoice.label"><span class="voice-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></button>
@@ -1330,7 +1330,7 @@
       <h2 data-i18n="scan.title">Scan the barcode</h2>
       <button type="button" class="pend-close" id="btn-food-scan-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
-    <p class="photo-hint" data-i18n="scan.hint">Point the camera at the barcode on the package. We look the product up (USDA FoodData Central first; Open Food Facts if USDA does not know it) and fill in the meal form with its label values — you review and edit everything before saving.</p>
+    <div class="hint-fold"><button type="button" class="hint-fold-btn" data-hint-fold aria-expanded="false"><span aria-hidden="true">💡</span> <span data-i18n="food568.howItWorks">How it works</span><span class="hint-fold-chev" aria-hidden="true">▾</span></button><div class="hint-fold-body" style="display:none"><p class="photo-hint" data-i18n="scan.hint">Point the camera at the barcode on the package. We look the product up (USDA FoodData Central first; Open Food Facts if USDA does not know it) and fill in the meal form with its label values — you review and edit everything before saving.</p></div></div>
     <video id="scan-video" class="scan-video" playsinline muted></video>
     <p class="voice-status" id="scan-status" data-i18n="scan.point">Point the camera at the barcode…</p>
     <div class="scan-code-row">
@@ -1353,17 +1353,37 @@
       <h2 data-i18n="recipes.title">Recipe book</h2>
       <button type="button" class="pend-close" id="btn-food-recipes-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
-    <p class="photo-hint" data-i18n="recipes.hint">Real recipes whose values are calculated from the house USDA food table — never typed in by hand. The number shown is the real size of the catalog.</p>
+    <div class="hint-fold"><button type="button" class="hint-fold-btn" data-hint-fold aria-expanded="false"><span aria-hidden="true">💡</span> <span data-i18n="food568.howItWorks">How it works</span><span class="hint-fold-chev" aria-hidden="true">▾</span></button><div class="hint-fold-body" style="display:none"><p class="photo-hint" data-i18n="recipes.hint">Real recipes whose values are calculated from the house USDA food table — never typed in by hand. The number shown is the real size of the catalog.</p></div></div>
     <input type="search" id="recipes-q" autocomplete="off" data-i18n-ph="recipes.searchPh" placeholder="Search by name or ingredient">
     <!-- AUTH-467: el filtro por libro/categoría — el botón-pastilla
          de la casa (el de los filtros de la Biblioteca, AUTH-443);
          abre la hoja compartida de facetas #libf-float. -->
+    <!-- AUTH-568: el botón de libro y las pastillas de patrón viajan
+         a la hoja de filtros (#rcpfilt-float); en la hoja del
+         recetario queda UNA línea plegada «Filtrar» con el filtro
+         activo como dato. El buscador se queda visible. -->
+    <button type="button" class="recipes-filter-line" id="recipes-filter-btn" aria-haspopup="dialog"><span class="recipes-filter-t">🔎 <span data-i18n="food568.filter">Filter</span></span><span class="recipes-filter-d" id="recipes-filter-datum"></span><span class="recipes-filter-chev" aria-hidden="true">›</span></button>
+    <div id="recipes-filter-store" style="display:none">
     <button type="button" class="libf-btn" id="recipes-book-btn" aria-haspopup="dialog"></button>
     <div class="rcp-chips" id="recipes-chips"></div>
+    </div>
     <p class="progress-hint" id="recipes-note"></p>
     <div id="recipes-list"></div>
     <div class="ai-actions"><button type="button" class="btn-secondary" id="btn-recipe-new" style="display:none"></button></div>
     <div id="recipes-form" style="display:none"></div>
+  </div>
+  <!-- AUTH-568: la hoja de filtros del recetario. Vive ANTES de
+       #libf-float en el DOM para que la hoja compartida de facetas
+       (el selector de libro) se abra ENCIMA de esta. Los controles
+       de filtro viajan aquí al abrir y regresan a su almacén
+       (#recipes-filter-store) al cerrar: la lógica no cambia. -->
+  <div id="rcpfilt-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="rcpfilt-float" style="display:none" role="dialog" aria-modal="true" aria-label="Filter" data-i18n-aria="food568.filter">
+    <div class="pend-head">
+      <h2>🔎 <span data-i18n="food568.filter">Filter</span></h2>
+      <button type="button" class="pend-close" id="btn-rcpfilt-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="rcpfilt-body"></div>
   </div>
   <div class="act-float act-sheet" id="food-help" style="display:none" role="dialog" aria-label="Help" data-i18n-aria="food.help">
     <div class="pend-head">
@@ -2776,6 +2796,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-inicio-plegado"></script>
+<script type="module" src="app.js?v=20261123-comida-plegada"></script>
 </body>
 </html>

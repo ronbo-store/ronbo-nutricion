@@ -2839,6 +2839,7 @@ export default {
   'train.view.rest': 'Rest', 'train.view.warmup': 'Warm-up', 'train.view.session': 'Session',
   'train566.alignLine': 'Days to align', 'train566.reqLine': 'Requests', 'train566.reqOpen': '{n} open',
   'home567.todayDetail': 'Today in detail', 'home567.mealsOf': '{a} of {b} meals',
+  'food568.howItWorks': 'How it works', 'food568.filter': 'Filter', 'food568.filterNone': 'No filters', 'food568.desc': 'Description',
   'train.view.rpe': 'RPE', 'train.view.rpeNone': 'No RPE', 'train.view.exDone': 'Done', 'train.view.exInProgress': 'In progress', 'train.view.exToDo': 'Not started', 'train.view.exDoneMarked': '✓ Done · tap to unmark', 'train.view.save': 'Save',
   'train.view.alignBody': 'Your routine: {plan}. Your training reminders: {cfg}. Align your reminders with your plan?',
   'train.view.sessionsWeek': '{n} sessions a week', 'train.view.noDays': 'no days set',
