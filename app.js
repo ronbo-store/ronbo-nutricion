@@ -4304,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-calentamiento-plegado');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-cierre-directo');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -19032,7 +19032,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-calentamiento-plegado' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-cierre-directo' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -26042,7 +26042,7 @@ let TRAIN_CHECKS = {};         // "di:ei" -> { rpe: n|null, sets: [...] } — es
 let TRAIN_CHECKS_CTX = '';     // planId|fecha a la que pertenecen las marcas
 let TRAIN_CHECKS_EPOCH = 0;    // AUTH-497: «la sesión avanzó» — sube en cada guardado del borrador de marcas (trainChecksPersist)
 let TRAIN_PAINT_EPOCH = 0;     // AUTH-497: la época con la que la vista de Entrenamiento pintó por última vez (loadMyTraining)
-let TRAIN_CLOSE_DI = null;     // día con el panel de cierre abierto (solo memoria)
+let TRAIN_CLOSE_DI = null;     // vestigio del panel de cierre (AUTH-574 lo retiró del proceso): el cierre y el salto lo dejan en null al aterrizar, como siempre
 let TRAIN_CLOSING = {};        // AUTH-517: cierres EN VUELO (clave plan|fecha|día) — el candado de re-entrada del confirmar
 let TRAIN_CLOSE_ANYWAY = {};   // AUTH-557: cierres que ya pasaron por la hoja de aviso con «Terminar de todos modos» (misma clave) — el confirmar no vuelve a frenar lo ya avisado
 let TRAIN_CLOSED_MARK = {};    // AUTH-517: días ya cerrados y guardados EN ESTA SESIÓN (misma clave) — la guarda consulta el resultado, no solo el borrador
@@ -34159,16 +34159,13 @@ function sessFullSync(run) {
        porque el día está HECHO, no porque falte estado — el
        panel lo dice y lo CIERRA AQUÍ (corrección de Ronald,
        2026-11-19 12:20 CST: nada de viajar a la vista del día
-       a hacer un segundo cierre). La confirmación de la casa
-       — su formulario de cierre, trainCloseFormHTML, con su
-       superficie clara propia — se presenta en el propio
-       panel, nacida abierta, y corre por la función única
-       del cierre (trainCloseConfirm, cableada en
-       sessPanelWire): la misma escritura, la misma hoja de
-       satisfacción interpuesta, el mismo apagado del
-       cronómetro. Su «Cancelar» repliega el formulario al
-       resumen con la puerta de reapertura (el par
-       abrir/cancelar de la vista del día, en el sitio). */
+       a hacer un segundo cierre). La confirmación corre por
+       la función única del cierre (trainCloseConfirm): la
+       misma escritura, la misma hoja de satisfacción
+       interpuesta, el mismo apagado del cronómetro.
+       (AUTH-574: el formulario de cierre que AUTH-507
+       presentaba aquí y AUTH-566 mudó a su pantalla salió del
+       proceso entero — la puerta guarda directo.) */
     const dKey = dc.plan.id + '|' + todayISO() + '|' + dc.di;
     if (SESS_DONE_KEY !== dKey) { SESS_DONE_KEY = dKey; SESS_DONE_FORM = true; }
     /* AUTH-516 · LA PREGUNTA DE CARDIO AL FINALIZAR (regla de
@@ -34196,11 +34193,10 @@ function sessFullSync(run) {
     const franjaDone = `<div class="sf-franja" aria-hidden="true"><i style="width:${pctD}%"></i>${sessPillTipHTML(flameD)}</div><div class="sf-prog">${esc(t('train.guide.pos', { n: totalD, m: totalD }))} · ${esc(t('sess.ofDay', { p: pctD }))}</div>`;
     /* AUTH-566 (programa «Plegar todo» nº 3): el panel ya no
        despliega el formulario de cierre dentro de su columna —
-       pinta SOLO la puerta «Terminar y guardar ›», que abre la
-       pantalla de cierre (#train-close-sheet) con el formulario
-       de siempre. El formulario deja de presentarse dos veces
-       (vista del día y panel): vive en una sola pantalla y corre
-       por la función única del cierre (trainCloseConfirm). */
+       pinta SOLO la puerta «Terminar y guardar».
+       AUTH-574: la puerta ya no abre pantalla alguna — guarda
+       directo por la función única del cierre
+       (trainCloseConfirm) con los valores automáticos. */
     const doneForm = `<button type="button" class="sf-btn fin sf-done-open" data-sess-done-open="1">${esc(t('train.closeFinish'))}</button>`;
     const askCardio = SESS_DONE_CARDIO === '' && !cardioValid;
     /* CAND-523 · LA ETAPA FINAL MANDA SOBRE LA PREGUNTA:
@@ -34594,7 +34590,7 @@ function sessPanelWire(el, surface) {
          por el camino de siempre. */
       const planC = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
       if (planC && TRAIN_CHECKS_CTX === planC.id + '|' + todayISO()) {
-        try { trainCloseConfirm(planC, Number(dconf.dataset.trainCloseConfirm), dconf.closest('.train-close-form')); } catch {}
+        try { trainCloseConfirm(planC, Number(dconf.dataset.trainCloseConfirm)); } catch {}
       }
       return;
     }
@@ -34610,17 +34606,17 @@ function sessPanelWire(el, surface) {
     }
     const dopen = ev.target.closest ? ev.target.closest('[data-sess-done-open]') : null;
     if (dopen) {
-      /* AUTH-566 · LA PUERTA DEL PANEL ABRE LA PANTALLA DE
-         CIERRE: el formulario ya no se despliega dentro del
-         panel (AUTH-507 lo presentaba aquí; la auditoría de
-         pliegues lo unifica en su pantalla propia) — la puerta
-         abre #train-close-sheet con el formulario de siempre
-         para el plan y día completados de este panel, y el
-         confirmar corre por trainCloseConfirm como en la vista
-         del día. */
+      /* AUTH-574 · LA PUERTA DEL PANEL GUARDA DIRECTO: la
+         pantalla de cierre de AUTH-566 salió del proceso — la
+         puerta del día completado corre la función única del
+         cierre (trainCloseConfirm) con los valores automáticos
+         para el plan y día de este panel, como «Terminar» en
+         la vista del día. La encuesta se interpone sola cuando
+         el cronómetro corre, y finishClose apaga el cronómetro
+         y retira el panel por el camino de siempre. */
       let dcO = null;
       try { dcO = sessDayCompleteState(sessRunning()); } catch {}
-      if (dcO && dcO.plan) trainCloseSheetOpen(dcO.plan, dcO.di);
+      if (dcO && dcO.plan) { try { trainCloseConfirm(dcO.plan, dcO.di); } catch {} }
       return;
     }
     const dcno = ev.target.closest ? ev.target.closest('[data-sess-cardio-no]') : null;
@@ -35471,39 +35467,28 @@ function trainCloseAlreadySaved(plan, di) {
     return all.some(l => l && l.planId === plan.id && l.date === today && l.dayIndex === di && (trainLogStatus(l) === 'done' || trainLogStatus(l) === 'partial'));
   } catch { return false; }
 }
-/* Panel de cierre (D1/D2/D4): duración corregible (pre-rellenada
-   con la sugerencia del cronómetro), intensidad declarada
-   (moderada por defecto; el RPE NO entra en el cálculo) y minutos
-   de calentamiento que se RESTAN antes de estimar. */
-function trainCloseFormHTML(planId, di) {
-  const sug = trainChronoSuggestion(planId);
-  /* AUTH-517 · EL PARCIAL SE ANUNCIA: si algo está hecho y algo
-     quedará fuera, la hoja lo dice por su nombre ANTES de
-     confirmar — cerrar a medias nunca es sorpresa. Con todo
-     hecho la línea no nace; con nada hecho manda el aviso con
-     nombres del confirmar. */
-  let pendLine = '';
-  const planC = trainPlanForClose(planId);
-  if (planC) {
-    const pendN = trainClosePendingNames(planC, di);
-    if (pendN.length) {
-      const totalC = trainEffectiveList(planC, di).length;
-      if (totalC > pendN.length) pendLine = `<p class="act-note train-close-pend">${esc(t('train.d.willSaveOpen', { names: pendN.join(', ') }))}</p>`;
+/* ═══ AUTH-574 · LOS MINUTOS DE CALENTAMIENTO DEL CIERRE,
+   DESDE LA TARJETA (orden de Ronald, 2026-11-23 12:01 CST: la
+   hoja de cierre enseñaba 0 pese a sus 15 minutos ya marcados
+   en la tarjeta del día): el cierre ya no pregunta — lee los
+   minutos del MISMO documento que pinta la tarjeta del
+   calentamiento. Con el registro nuevo (cardio2) manda su
+   calentamiento HECHO (la misma vista que el propio cierre
+   proyecta al registro: trainCardio2DoneViewOf); sin clave
+   cardio2, el borrador legado de siempre (trainCardioForClose).
+   Con «No» (la marca warmOff de AUTH-573) o sin responder no
+   hay entrada de calentamiento: 0, como hoy. ═══ */
+function trainCloseAutoWarmMin(planId) {
+  try {
+    let has2 = false;
+    try { has2 = localStorage.getItem(trainCardio2Key(planId)) != null; } catch {}
+    if (has2) {
+      const w = trainCardio2DoneViewOf(trainCardio2Read(planId).warm);
+      return w && w.minutes ? Math.floor(w.minutes) : 0;
     }
-  }
-  return `<div class="train-close-form">
-    <label class="act-lab">${t('train.durLabel')}
-      <input type="number" data-tclose-dur min="1" max="600" step="1" inputmode="numeric" value="${sug ? sug.min : ''}"></label>
-    ${sug ? `<p class="act-note">${t('train.durAutoNote')}${sug.capped ? ' ' + t('train.durCapped') : ''}</p>` : ''}
-    <label class="act-lab">${t('train.intLabel')}
-      <select data-tclose-int>${ACT_INTENSITIES.map(x => `<option value="${x}"${x === 'moderada' ? ' selected' : ''}>${t('act.int.' + x)}</option>`).join('')}</select></label>
-    <label class="act-lab">${t('train.warmLabel')}
-      <input type="number" data-tclose-warm min="0" max="300" step="1" inputmode="numeric" value="0"></label>
-    <p class="act-note">${t('train.noDurNoEstimate')}</p>
-    ${pendLine}
-    <div style="margin-top:10px"><button type="button" class="train-finish-btn" data-train-close-confirm="${di}">${t('train.closeFinish')}</button></div>
-    <div style="margin-top:6px"><button type="button" class="btn-ghost btn-sm" data-train-close-cancel="${di}">${t('form.cancel')}</button></div>
-  </div>`;
+    const leg = trainCardioForClose(planId);
+    return leg && leg.minutes ? Math.floor(leg.minutes) : 0;
+  } catch { return 0; }
 }
 /* ═══ AUTH-507 · EL CIERRE DEL DÍA, UNA SOLA FUNCIÓN (extracción
    mecánica del handler de confirmar de la vista del día, sin
@@ -35514,8 +35499,19 @@ function trainCloseFormHTML(planId, di) {
    escritor (el finishClose de dentro y su única escritura en
    training_logs), la misma hoja de satisfacción interpuesta
    cuando el cronómetro corre. El sellado por ejercicio no se
-   toca; «Saltar este día» sigue por su puerta de siempre. ═══ */
-async function trainCloseConfirm(plan, di, formEl) {
+   toca; «Saltar este día» sigue por su puerta de siempre.
+   AUTH-574 · SIN FORMULARIO (orden de Ronald, 2026-11-23
+   12:01 CST: «esta pantalla no responde y tampoco es
+   necesaria, quítala del proceso»): la hoja de cierre de
+   AUTH-566 sale del proceso y TODOS los llamantes corren
+   esta función sin formulario — la duración sale de la
+   sugerencia del cronómetro (la que la hoja precargaba; sin
+   cronómetro, sin duración, como el campo vacío de siempre),
+   el calentamiento de los minutos ya marcados en la tarjeta
+   del día (trainCloseAutoWarmMin) y la intensidad es la
+   preseleccionada de siempre («moderada»). La escritura, la
+   encuesta interpuesta y el resto del cierre no cambian. ═══ */
+async function trainCloseConfirm(plan, di) {
   const uid = auth.currentUser ? auth.currentUser.uid : '';
   const today = todayISO();
   const day = (plan.days || [])[di] || {};
@@ -35680,14 +35676,16 @@ async function trainCloseConfirm(plan, di, formEl) {
   }
   const total = trainEffectiveList(plan, di).length;
   const status = doneList.length >= total ? 'done' : 'partial';
-  const form = formEl || null;
-  const durRaw = form ? String(form.querySelector('[data-tclose-dur]').value || '').trim() : '';
-  const warmRaw = form ? String(form.querySelector('[data-tclose-warm]').value || '').trim() : '';
-  const inten = form ? String(form.querySelector('[data-tclose-int]').value || 'moderada') : 'moderada';
-  let durMin = null;
-  if (durRaw !== '') { durMin = Math.floor(Number(durRaw)); if (!(durMin >= 1 && durMin <= 600)) { toast(t('act.errDuration'), true); return; } }
-  let warmMin = 0;
-  if (warmRaw !== '') { warmMin = Math.floor(Number(warmRaw)); if (!(warmMin >= 0 && warmMin <= 300)) warmMin = 0; }
+  /* AUTH-574: los tres valores del cierre son automáticos —
+     duración = la sugerencia del cronómetro (la misma que la
+     hoja precargaba; sin cronómetro, null: sin estimación,
+     como el campo vacío de siempre); calentamiento = los
+     minutos ya marcados en la tarjeta del día; intensidad =
+     la preseleccionada de siempre. */
+  const sug = trainChronoSuggestion(plan.id);
+  const durMin = sug ? sug.min : null;
+  const warmMin = trainCloseAutoWarmMin(plan.id);
+  const inten = 'moderada';
   /* D4: el calentamiento se resta ANTES de estimar. D6: la
      sesión parcial vale por la duración completa declarada, sin
      descuento proporcional. El RPE NO entra en el cálculo (regla
@@ -35695,7 +35693,6 @@ async function trainCloseConfirm(plan, di, formEl) {
   const effMin = durMin == null ? null : Math.max(0, durMin - warmMin);
   const w = actLastWeight();
   const sessionKcal = (effMin != null && effMin > 0 && w) ? actKcalOf('entrenamiento_plan', inten, effMin, w.weight) : null;
-  const sug = trainChronoSuggestion(plan.id);
   const rpes = doneList.map(e => e.rpe).filter(r => r != null);
   const rpeAvg = rpes.length ? Math.round(rpes.reduce((a, c) => a + c, 0) / rpes.length) : null;
   /* QUITADOS AL CERRAR (2026-10-30): los ejercicios quitados
@@ -35779,11 +35776,10 @@ async function trainCloseConfirm(plan, di, formEl) {
     try {
       await setDoc(doc(db, 'training_logs', `${uid}_${plan.id}_${today}_${di}`), data);
     } catch (e) {
-      /* AUTH-517: la escritura falló — el candado se libera y el
-         botón revive: el cierre se puede reintentar, como hoy. */
+      /* AUTH-517: la escritura falló — el candado se libera:
+         el cierre se puede reintentar con otro toque en
+         «Terminar», como hoy. */
       delete TRAIN_CLOSING[closeKey];
-      const btnF = form ? form.querySelector('[data-train-close-confirm]') : null;
-      if (btnF) btnF.disabled = false;
       failToast(e); return;
     }
     /* AUTH-517: desde este instante el día CONSTA guardado — la
@@ -35807,11 +35803,9 @@ async function trainCloseConfirm(plan, di, formEl) {
   };
   /* AUTH-517 · EL CANDADO, ESCRITURA: pasadas las guardas, la
      secuencia se compromete — la bandera cubre desde aquí la
-     interposición de la encuesta y la escritura entera, y el
-     botón de este formulario nace deshabilitado. Solo el fallo
-     de la escritura la libera (en finishClose). */
+     interposición de la encuesta y la escritura entera. Solo
+     el fallo de la escritura la libera (en finishClose). */
   TRAIN_CLOSING[closeKey] = true;
-  if (form) { const btnC = form.querySelector('[data-train-close-confirm]'); if (btnC) btnC.disabled = true; }
   if (chronoC) { sessSurveyOpen(elapsedSec, finishClose); return; }
   await finishClose(null);
 }
@@ -35857,13 +35851,10 @@ async function trainCloseConfirm(plan, di, formEl) {
    del guiado sin empezar (trainGuidePreTailHTML) conserva su
    «+ Agregar» de añadir ejercicio, intacta. ═══ */
 function trainEditTailHTML(planId, di, iso) {
-  /* AUTH-566 (programa «Plegar todo» nº 3): con el cierre
-     armado, la cola ya no despliega el formulario en la tarjeta
-     — pinta el reloj de siempre y la PUERTA «Terminar y guardar
-     ›», que abre la pantalla de cierre (#train-close-sheet) con
-     el formulario. El formulario vive en una sola pantalla para
-     la tarjeta y para el panel de sesión. */
-  if (TRAIN_CLOSE_DI === di) return trainChronoHTML(planId, di) + `<button type="button" class="train-finish-btn train-close-door" data-train-close-door="${di}">${t('train.closeFinish')} ›</button>`;
+  /* AUTH-574: la cola ya no conoce estado de «cierre armado»
+     ni puerta alguna — «Terminar» guarda directo (la hoja de
+     cierre de AUTH-566 salió del proceso); la cola pinta
+     siempre su fila de siempre con la pareja del cronómetro. */
   /* AUTH-402: la fila en reposo lleva LOS CUATRO botones en una sola
      línea, cada uno flex:1 (reparto proporcional del ancho), con su
      data-* y su cableado intactos. La pareja del cronómetro aporta
@@ -42863,17 +42854,12 @@ async function trainSkipDayApply(plan, di, uid, today, logs) {
    de AUTH-563/565, sin reescribir ningún pintor). El dato clave
    del reto sale de la misma aritmética de su tarjeta
    (plan21CardRender): día en curso o fecha de inicio.
-   LA PANTALLA DE CIERRE (#train-close-sheet): el formulario de
-   cierre (trainCloseFormHTML) vive SOLO aquí — la tarjeta del
-   día y el panel de sesión lo abren con su puerta, y el
-   confirmar corre por la función única del cierre
-   (trainCloseConfirm) con el formulario de esta hoja. Al
-   confirmar, la hoja se oculta ANTES de llamar (su encuesta de
-   satisfacción, z-48, se interpone sobre la superficie de
-   origen, como siempre); si el confirmar vuelve sin cerrar
-   (la guarda o la validación de la duración), la hoja se
-   reabre con los valores tecleados intactos — el nodo del
-   formulario se conserva hasta que el cierre aterriza. ═══ */
+   LA PANTALLA DE CIERRE YA NO EXISTE (AUTH-574, orden de
+   Ronald 2026-11-23: «esta pantalla no responde y tampoco es
+   necesaria, quítala del proceso»): «Terminar» guarda directo
+   por la función única del cierre (trainCloseConfirm) con los
+   valores automáticos, y la encuesta de satisfacción se sigue
+   interponiendo sobre la superficie de origen, como siempre. ═══ */
 let TRAIN_SHEET = null;        /* { key, nodes: [{el, anchor}] } */
 function trainSheetNodes(key) {
   switch (key) {
@@ -42929,52 +42915,6 @@ function trainP21Datum(plan) {
   if (dayIx <= 20) return t('plan21.dayOf', { x: dayIx + 1 });
   return t('plan21.finished');
 }
-let TRAIN_CLOSE_SHEET = null;        /* { plan, di } */
-function trainCloseSheetOpen(plan, di) {
-  const sheet = $('train-close-sheet'), body = $('train-close-body');
-  if (!sheet || !body || !plan) return;
-  TRAIN_CLOSE_SHEET = { plan, di };
-  const tt = $('train-close-title'); if (tt) tt.textContent = t('train.closeFinish');
-  body.innerHTML = trainCloseFormHTML(plan.id, di);
-  sheet.style.display = '';
-  const x = $('train-close-x'); if (x) x.onclick = () => trainCloseSheetCancel();
-  const bk = $('train-close-back'); if (bk) bk.onclick = () => trainCloseSheetCancel();
-  const form = body.querySelector('.train-close-form');
-  const conf = body.querySelector('[data-train-close-confirm]');
-  if (conf) conf.onclick = async () => {
-    if (!form) return;
-    sheet.style.display = 'none';   /* la encuesta (z-48) se interpone sobre la superficie de origen, no bajo esta hoja */
-    try { await trainCloseConfirm(plan, di, form); } catch {}
-    const sv = $('sess-survey');
-    const surveyOpen = !!(sv && sv.style.display !== 'none');
-    const stillOpen = !((typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : [])
-      .some(l => l && l.date === todayISO() && l.dayIndex === di);
-    if (TRAIN_CLOSE_SHEET && TRAIN_CLOSE_DI === di && stillOpen && !surveyOpen) {
-      sheet.style.display = '';   /* el confirmar volvió sin cerrar: la hoja se reabre con lo tecleado intacto */
-      return;
-    }
-    TRAIN_CLOSE_SHEET = null;
-    if (body) body.innerHTML = '';
-  };
-  const can = body.querySelector('[data-train-close-cancel]');
-  if (can) can.onclick = () => trainCloseSheetCancel();
-  try { sheet.scrollTop = 0; } catch {}
-}
-function trainCloseSheetCancel() {
-  /* Cancelar abandona el cierre armado, como el Cancelar de
-     siempre de la vista del día (TRAIN_CLOSE_DI se retira y la
-     vista se repinta); desde el panel, TRAIN_CLOSE_DI ya es
-     nulo y solo se cierra la hoja. */
-  if (TRAIN_CLOSE_SHEET) TRAIN_CLOSE_DI = null;
-  trainCloseSheetReset();
-  loadMyTraining();
-}
-function trainCloseSheetReset() {
-  TRAIN_CLOSE_SHEET = null;
-  const sheet = $('train-close-sheet'); if (sheet) sheet.style.display = 'none';
-  const body = $('train-close-body'); if (body) body.innerHTML = '';
-}
-
 async function loadMyTraining() {
   const box = $('my-training');
   if (!box || !auth.currentUser) return;
@@ -43490,7 +43430,6 @@ async function loadMyTraining() {
      vive y se edita solo en el editor del plan; el dato guardado
      no se toca — esto es solo de pintado. */
   trainSheetReset();   /* AUTH-566: las hojas de la vista se vacían con la pintura anterior (el patrón de AUTH-565) */
-  trainCloseSheetReset();
   box.innerHTML = `
     ${isLoose ? `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div><div id="plan-ai-door"></div>` : `${trainPlanLineHTML}
     ${trainRetoLineHTML}
@@ -43544,11 +43483,9 @@ async function loadMyTraining() {
   const pcBtn = $('btn-print-card');
   if (pcBtn) pcBtn.onclick = () => printCardRender(plan);
   /* AUTH-566: las líneas plegadas de la vista (plan y reto)
-     abren su pantalla; la puerta de cierre de la cola abre la
-     pantalla de cierre. La línea de alineación se cablea en
+     abren su pantalla. La línea de alineación se cablea en
      trainAlignRender, que la pinta al final de esta carga. */
   box.querySelectorAll('[data-train-line]').forEach(b => b.onclick = () => trainSheetOpen(b.dataset.trainLine));
-  box.querySelectorAll('[data-train-close-door]').forEach(b => b.onclick = () => trainCloseSheetOpen(plan, Number(b.dataset.trainCloseDoor)));
   week5Wire(box);
   box.querySelectorAll('[data-train-share]').forEach(b => b.onclick = () => {
     const [diS, iso] = b.dataset.trainShare.split('|');
@@ -43794,23 +43731,19 @@ async function loadMyTraining() {
        ya no se frena con el aviso rojo de nombres de AUTH-517 —
        la hoja de aviso (trainCloseWarnOpen) los nombra y ofrece
        «Terminar de todos modos» y «Seguir entrenando». Con todo
-       hecho, el panel de cierre se abre directo, como siempre.
+       hecho, el cierre guarda directo (AUTH-574: sin hoja).
        El aviso de «ya consta cerrado» se conserva SOLO para el
        toque sin nada hecho sobre un día ya guardado: es un
        aviso de estado, no una puerta. */
     const pendA = trainClosePendingNames(plan, di);
     if (!pendA.length) {
-      /* PUENTE ENTRENAMIENTO→LLAMITA (2026-10-27): TERMINAR abre el
-         panel de cierre — duración corregible, intensidad declarada
-         y calentamiento a restar (D1/D2/D4). La escritura ocurre al
-         confirmar (data-train-close-confirm), no aquí.
-         AUTH-566: el panel de cierre es ahora la pantalla propia
-         (#train-close-sheet) — se arma el estado de siempre y se
-         abre la pantalla; la cola repintada lleva su puerta por
-         si la persona sale y vuelve. */
-      TRAIN_CLOSE_DI = di;
-      loadMyTraining();
-      trainCloseSheetOpen(plan, di);
+      /* AUTH-574 · TERMINAR GUARDA DIRECTO: sin hoja ni
+         formulario — la función única del cierre escribe con
+         los valores automáticos (duración del cronómetro,
+         calentamiento ya marcado en la tarjeta, intensidad
+         por defecto). La encuesta se interpone sola cuando el
+         cronómetro corre, como siempre. */
+      trainCloseConfirm(plan, di);
       return;
     }
     const any = trainEffectiveList(plan, di).some((it, ei) => { const c = TRAIN_CHECKS[di + ':' + ei]; return !!c && c.done === true; });
@@ -43818,7 +43751,7 @@ async function loadMyTraining() {
       const lgA = logByDay[di];
       if ((lgA && (trainLogStatus(lgA) === 'done' || trainLogStatus(lgA) === 'partial')) || TRAIN_CLOSED_MARK[trainCloseKey(plan.id, di)]) { toast(t('train.d.alreadyClosed')); loadMyTraining(); return; }
     }
-    trainCloseWarnOpen(plan, di, () => { TRAIN_CLOSE_DI = di; loadMyTraining(); trainCloseSheetOpen(plan, di); });
+    trainCloseWarnOpen(plan, di, () => { trainCloseConfirm(plan, di); });
   });
   box.querySelectorAll('[data-train-start]').forEach(b => b.onclick = () => {
     const diS = Number(b.dataset.trainStart);
@@ -43831,11 +43764,6 @@ async function loadMyTraining() {
     sessPillTick();
     loadMyTraining();
   });
-  box.querySelectorAll('[data-train-close-cancel]').forEach(b => b.onclick = () => {
-    TRAIN_CLOSE_DI = null;
-    loadMyTraining();
-  });
-  box.querySelectorAll('[data-train-close-confirm]').forEach(b => b.onclick = () => trainCloseConfirm(plan, Number(b.dataset.trainCloseConfirm), b.closest('.train-close-form')));
   box.querySelectorAll('[data-train-skip]').forEach(b => b.onclick = () => {
     const di = Number(b.dataset.trainSkip);
     /* AUTH-487: la puerta es la hoja de la casa
@@ -61968,7 +61896,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-calentamiento-plegado';
+const PWA_SW_VERSION = '20261123-cierre-directo';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

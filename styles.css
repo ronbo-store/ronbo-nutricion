@@ -1502,9 +1502,6 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
 .limreg-field input { width: 100%; box-sizing: border-box; }
 .limreg-actions { display: flex; gap: 6px; flex: none; }
 /* == FIN AUTH-162 == */
-.train-close-form { margin-top: 10px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
-.train-close-form .act-lab { display: block; margin-bottom: 8px; }
-.train-close-form .train-close-pend { color: #b45309; font-weight: 600; }
 @keyframes act-flick { 0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; } 50% { transform: scale(1.16) rotate(2.5deg); opacity: .85; } }
 @media (prefers-reduced-motion: reduce) { .act-flame-ico { animation: none; } }
 @media (max-width: 480px) {
@@ -6731,9 +6728,9 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
    línea de avance — letra pequeña y atenuada, sin fondo. */
 .sf-mood { color: #8fa9c4; font-weight: 600; font-size: 12px; white-space: nowrap; }
 /* AUTH-507 · EL BLOQUE DE DÍA COMPLETADO de la completa: su
-   título y su resumen sobre el azul del panel; el formulario
-   de cierre que vive dentro trae su propia superficie clara
-   (.train-close-form), como las hojas de la casa. */
+   título y su resumen sobre el azul del panel. (AUTH-574: el
+   formulario de cierre que vivía aquí salió del proceso con
+   la hoja; la puerta guarda directo.) */
 .sf-done { margin-top: 2px; }
 .sf-done-title { font-size: 21px; font-weight: 800; color: #fff; line-height: 1.2; }
 .sf-done-sum { font-size: 14.5px; font-weight: 600; color: rgba(255,255,255,.85); margin-top: 3px; font-variant-numeric: tabular-nums; }
@@ -7581,10 +7578,9 @@ textarea.gest-in { resize: none; }
    pesaje, la gestión de planes) sigue abriendo por encima. La
    hoja de la lista de peticiones (#treq-list-float) también en
    44 — su hoja de envío (#treq-float, 47) abre sobre ella. La
-   pantalla de cierre (#train-close-sheet) va en 60, sobre el
-   panel de sesión completo (48): el cierre es la última
-   pantalla del día y su encuesta (48) se interpone cerrando
-   esta hoja primero, como hace trainCloseSheetOpen.
+   pantalla de cierre salió del proceso en AUTH-574: «Terminar»
+   guarda directo y su encuesta (48) se interpone sobre la
+   superficie de origen.
    Las líneas de la vista (.train-fold-line) son la fila
    plegada de la casa con su dato clave a la derecha; la línea
    de los bloques de sesión (.train-session-line) vive DENTRO
@@ -7593,7 +7589,6 @@ textarea.gest-in { resize: none; }
    de hobbies de AUTH-438. */
 #train-sheet { z-index: 44; }
 #treq-list-float { z-index: 44; }
-#train-close-sheet { z-index: 60; }
 .train-fold-line { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; background: none; border: none; border-bottom: 1px dashed #eef1f3; padding: 6px 0; font: inherit; color: inherit; text-align: left; cursor: pointer; box-sizing: border-box; }
 .train-fold-line .tf-t { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .train-fold-line .tf-s { color: #666; font-size: 13.5px; margin-left: auto; text-align: right; min-width: 0; overflow-wrap: anywhere; }
