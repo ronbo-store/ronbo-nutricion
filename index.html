@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-botones-juntos">
+<link rel="stylesheet" href="styles.css?v=20261123-pendientes-activos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -676,6 +676,24 @@
       <button type="button" class="pend-close" id="pendlist-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="pendlist-body"></div>
+  </div>
+
+  <!-- PENDIENTES ACTIVOS (AUTH-2026-11-23-562): la pantalla propia
+       de «lo que le falta» al alumno. Un solo botón la abre desde
+       la ficha (detalle de «Mis alumnos» y ficha completa) y desde
+       el editor de planes; dentro va la lista PELADA (una línea
+       por falta con su acción), la barra del mensaje combinado,
+       los resueltos y — cuando se abre desde el editor — la
+       sección de salud con la casilla de activación automática y
+       el recordatorio. El contenido lo pinta pendActOpen (app.js);
+       la ✕ y el «‹ Volver» regresan a la superficie de origen. -->
+  <div class="pend-float pend-consult" id="pendact-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span class="nudge-kicker" data-i18n="pendact.kicker">ACTIVE PENDING ITEMS</span><br><span id="pendact-title">Active pending items</span></h2>
+      <button type="button" class="pend-close" id="pendact-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row pendact-back" id="pendact-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="pendact-body"></div>
   </div>
 
   <!-- PETICIONES DEL ALUMNO A SU ENTRENADOR (AUTH-2026-11-04-237):
@@ -2636,6 +2654,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-botones-juntos"></script>
+<script type="module" src="app.js?v=20261123-pendientes-activos"></script>
 </body>
 </html>
