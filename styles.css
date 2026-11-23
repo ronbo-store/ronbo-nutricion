@@ -7458,3 +7458,16 @@ textarea.gest-in { resize: none; }
 .chal-nextcard { border: 2px solid #0d9488; border-radius: 14px; padding: 14px; background: rgba(13, 148, 136, 0.05); }
 .chal-next-ttl { font-weight: 800; font-size: 1.1rem; }
 .chal-next-body { color: #444; line-height: 1.5; margin: 8px 0 0; }
+
+/* ============ AUTH-2026-11-23-562 · PENDIENTES ACTIVOS ============
+   La puerta única «Pendientes activos · N» (ficha y editor) y su
+   pantalla propia: la lista pelada reusa las filas .stu-pend-item
+   y los encabezados .pend-cat de siempre; la sección de salud
+   reusa .pl-gate.warn con su casilla y su recordatorio. La
+   pantalla sube sobre el modal del editor (z 50) porque también
+   se abre desde dentro de él. */
+#pendact-float { z-index: 60; }
+.btn-pendact { width: 100%; min-height: 48px; font-size: 15px; font-weight: 800; margin: 10px 0; }
+.pendact-back { margin: 0 0 10px; }
+.pendact-health { margin: 0 0 8px; }
+.pendact-health-t { font-weight: 800; margin-bottom: 4px; }

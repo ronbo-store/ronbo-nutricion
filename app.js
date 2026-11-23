@@ -4270,7 +4270,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-botones-juntos');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-pendientes-activos');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -7439,13 +7439,14 @@ function fichaPendBlockHTML(uid) {
      El viaje es idéntico entrando desde Alumnos o desde Clientes.
      La fila del paso del administrador (solo propietario) va
      fuera de la unión y de su total, como en el detalle. */
-  if (items.length) h += studentsPendGroupedHTML(uid, items);
-  /* MENSAJE COMBINADO (este paquete): la barra «✉ Enviarle sus
-     pendientes» cierra la lista en la ficha, como en el detalle. */
-  if (items.length) h += studentsPendListBarHTML(uid, items);
+  /* AUTH-562: la lista desplegada, su barra del mensaje
+     combinado y la línea del total desaparecen de la ficha: un
+     solo botón «Pendientes activos · N» (el conteo va EN el
+     botón) abre la pantalla del paquete, con la lista pelada,
+     la barra y los resueltos dentro. */
+  h += pendActDoorHTML(uid, f.t);
   h += stuAdminStepRowHTML(uid);
   h += studentsEqRowHTML(uid, f.chk);
-  if (items.length) h += `<div class="client-chk"><b>${esc(t('students.pendToResolve', { n: items.length }))}</b></div>`;
   /* AUTH-121 (R4): la clase ficha-pend-block da al retorno tras
      guardar su punto exacto de aterrizaje en la ficha. */
   return h ? `<div class="ficha-pend-block" style="margin-bottom:10px">${h}</div>` : '';
@@ -8964,6 +8965,202 @@ function pendListOpen(uid) {
   pendListRenderPreview();
   pendListBasePrime();
 }
+/* ================================================================
+   AUTH-2026-11-23-562 · «PENDIENTES ACTIVOS»: TODO LO QUE LE FALTA
+   AL ALUMNO, EN UN SOLO BOTÓN Y PELADO.
+   Órdenes expresas de Ronald (chat RONBO.NUTRI, 2026-11-23 01:21
+   CST): «Lo coloca todo el asunto de lo que hace falta en otro
+   botón de pendientes activos» y, sobre la lista actual de
+   tarjetas gigantes, «Todo esto pelado en un solo campeón».
+   SOLO cambia la PRESENTACIÓN y la ENTRADA: el motor de
+   pendientes (studentsPendCompute + trainerPendUnion: qué falta,
+   severidades y acciones) no se toca. La ficha (detalle de «Mis
+   alumnos» y ficha completa) ya no despliega la lista: pinta UN
+   botón «Pendientes activos · N» que abre esta pantalla propia
+   (con volver), donde la lista va PELADA — una línea por falta:
+   icono + qué falta (+ su detalle corto, el mismo sub de siempre)
+   + su acción compacta a la derecha (la de studentsActFor y/o el
+   «✉ Avisar» de siempre, con su tope y su registro). Sin sellos
+   de responsable ni chips de categoría por fila: la severidad la
+   dice el encabezado de su grupo (Indispensables / Importantes,
+   pendCatHeadHTML, el de siempre). La barra del mensaje combinado
+   («✉ Enviarle sus pendientes») vive al pie de la lista, dentro
+   de la pantalla. Las TRAZAS («Resueltos») van al final de la
+   pantalla, en líneas peladas con su chip y su fecha; si no
+   falta nada pero hay resueltos, la ficha ofrece la misma
+   pantalla con un botón fantasma «Resueltos · N»; si no hay ni
+   unos ni otros, la línea serena de siempre (students.detailClear).
+   DESDE EL EDITOR DE PLANES: las dos cajas amarillas desaparecen
+   — la puerta (planGateRender) y el panel del programa
+   automático (autoRenderPanel) pintan el MISMO botón cuando
+   falta algo, y la sección de salud vive AQUÍ dentro al abrir
+   desde el editor: el estado de la declaración con su causa
+   corta, la casilla de activación automática (el MISMO
+   #pl-autoact de siempre: su estado se anota en
+   planCtx.holdAutoSaved al cambiarla, la precedencia que
+   planHoldAutoChecked comparte con la puerta) y el botón
+   «Enviar recordatorio al cliente» (planHoldRemind, el de
+   siempre; al tocarlo esta pantalla se cierra y se abre la hoja
+   del aviso). El comportamiento NO cambia: sin declaración
+   legible no se genera nada, el plan se guarda oculto en espera
+   y la activación automática sigue operando. */
+let PENDACT_CTX = null;
+function pendActDataOf(uid) {
+  if (typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.pendByUid && STUDENTS_LAST.pendByUid[uid])
+    return { items: STUDENTS_LAST.pendByUid[uid].items || [], traces: STUDENTS_LAST.pendByUid[uid].traces || [] };
+  const f = (typeof fichaTpendOf === 'function') ? fichaTpendOf(uid) : null;
+  return { items: (f && f.t && f.t.items) || [], traces: (f && f.t && f.t.traces) || [] };
+}
+/* La puerta en la ficha: un solo elemento según el estado —
+   botón principal con el conteo si falta algo; botón fantasma
+   «Resueltos · N» si solo queda historial; nada si está al día
+   (la línea serena la pinta cada superficie como hasta hoy). */
+function pendActDoorHTML(uid, pend) {
+  const items = (pend && pend.items) || [];
+  const traces = (pend && pend.traces) || [];
+  if (items.length) return `<button type="button" class="btn-primary btn-pendact" data-pendact="${uid}">${esc(t('pendact.btn', { n: items.length }))}</button>`;
+  if (traces.length) return `<button type="button" class="btn-ghost btn-pendact" data-pendact="${uid}">${esc(t('pendact.resolvedBtn', { n: traces.length }))}</button>`;
+  return '';
+}
+/* La línea PELADA de una falta viva: el mismo título, el mismo
+   detalle y las mismas acciones de studentsPendItemHTML, sin el
+   sello de responsable ni el chip de categoría (la severidad la
+   dice el encabezado del grupo). Los atributos data-stu-act /
+   data-stu-nudge son los de siempre y el cableado de la pantalla
+   los recoge igual que el del detalle. */
+function pendActRowHTML(uid, it) {
+  const [bg, emoji] = STU_ITEM_ICON[it.kind] || ['#f1f5f9', '•'];
+  const act = studentsActFor(it);
+  const sub = esc(studentsItemSub(it));
+  let right = '';
+  if (it.auto) {
+    right = (it.auto === 'eval' && act && act.btn)
+      ? `<button type="button" class="btn-primary btn-sm" data-stu-act="${it.kind}" data-stu-req="${it.reqKey || ''}" data-stu-uid="${uid}">${esc(t(act.btn))}</button>`
+      : '';
+  } else {
+    const parts = [];
+    if (act.btn) parts.push(`<button type="button" class="btn-primary btn-sm" data-stu-act="${it.kind}" data-stu-req="${it.reqKey || ''}" data-stu-uid="${uid}">${esc(t(act.btn))}</button>`);
+    const sub2 = nudgeSubFor(it);
+    if (sub2 && nudgeViewerCan(uid)) {
+      const freshMs = nudgeFreshMs(uid, sub2);
+      parts.push(freshMs
+        ? `<span class="stu-nudged">${esc(t('nudge.nudgedOn', { d: dateName(pendISOof(new Date(freshMs))) }))}</span>`
+        : `<button type="button" class="btn-nudge" data-stu-nudge="${sub2}" data-stu-uid="${uid}">${esc(t('nudge.btn'))}</button>`);
+    }
+    if (!parts.length) parts.push(`<span class="stu-pend-whose">${esc(t('students.pend.byStudent'))}</span>`);
+    right = parts.length > 1 ? `<span class="stu-pend-btns">${parts.join('')}</span>` : parts[0];
+  }
+  return `<div class="stu-pend-item pendact-row">
+    <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
+    <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}</span>
+    ${sub ? `<span class="stu-pend-sub">${sub}</span>` : ''}${it.auto === 'eval' ? `<span class="stu-pend-sub stu-pend-note">${esc(t('students.cause.autoNote'))}</span>` : ''}</span>
+    ${right}
+  </div>`;
+}
+/* La línea pelada de una traza («Resueltos»): icono, título, su
+   chip de estado y su fecha — historial, sin acciones. */
+function pendActTraceHTML(it) {
+  const [bg, emoji] = STU_ITEM_ICON[it.kind] || ['#f1f5f9', '•'];
+  return `<div class="stu-pend-item trace pendact-row">
+    <span class="stu-pend-ico" style="background:${bg}">${emoji}</span>
+    <span class="stu-pend-main"><span class="stu-pend-title">${esc(studentsItemTitle(it))}</span>
+    ${it.date ? `<span class="stu-pend-sub">${esc(dateName(it.date))}</span>` : ''}</span>
+    <span class="st-chip ${STU_CHIP[it.state] || 'st-pendiente'}">${esc(t('students.chip.' + it.state))}</span>
+  </div>`;
+}
+function pendActOpen(uid, opts) {
+  const o = opts || {};
+  PENDACT_CTX = { uid, fromEditor: !!o.fromEditor };
+  const fl = $('pendact-float'); if (!fl) return;
+  const u = nudgeStudentDoc(uid) || { id: uid };
+  const tt = $('pendact-title'); if (tt) tt.textContent = t('pendlist.titleFor', { name: u.name || u.email || '' });
+  pendActPaint();
+  fl.style.display = '';
+  const x = $('pendact-x'); if (x) x.onclick = () => pendActClose();
+  const bk = $('pendact-back'); if (bk) bk.onclick = () => pendActClose();
+  if (PENDACT_CTX.fromEditor) pendActEditorLoad(uid);
+}
+function pendActClose() {
+  const fl = $('pendact-float'); if (fl) fl.style.display = 'none';
+  PENDACT_CTX = null;
+}
+function pendActPaint() {
+  const ctx = PENDACT_CTX; if (!ctx) return;
+  const bd = $('pendact-body'); if (!bd) return;
+  const uid = ctx.uid;
+  const { items, traces } = pendActDataOf(uid);
+  let h = '';
+  if (ctx.fromEditor) h += `<div id="pendact-editor"></div>`;
+  if (!items.length) {
+    h += `<p class="pend-none">${esc(t('students.detailClear'))}</p>`;
+  } else {
+    const groups = { ind: [], imp: [] };
+    for (const it of items) groups[studentsPendCatOf(it)].push(it);
+    for (const cat of ['ind', 'imp']) {
+      if (!groups[cat].length) continue;
+      h += pendCatHeadHTML(cat, groups[cat].length);
+      for (const it of groups[cat]) h += pendActRowHTML(uid, it);
+    }
+    h += studentsPendListBarHTML(uid, items);
+  }
+  if (traces.length) {
+    h += `<div class="stu-traces-h">${esc(t('students.resolvedTitle'))}</div>` + traces.map(it => pendActTraceHTML(it)).join('');
+  }
+  bd.innerHTML = h;
+  /* Las acciones navegan a otras superficies (la ficha, la hoja
+     del aviso, la hoja del mensaje combinado — todas por debajo
+     de esta pantalla): la pantalla se cierra primero y la acción
+     de siempre corre detrás, idéntica a la del detalle. */
+  bd.querySelectorAll('[data-stu-act]').forEach(b => b.onclick = () => {
+    const u2 = b.dataset.stuUid, k2 = b.dataset.stuAct, r2 = b.dataset.stuReq || '';
+    pendActClose();
+    studentsOpenRecord(u2, k2, r2);
+  });
+  bd.querySelectorAll('[data-stu-nudge]').forEach(b => b.onclick = () => {
+    const row = b.closest('.stu-pend-item');
+    const tt2 = row ? row.querySelector('.stu-pend-title') : null;
+    const title = tt2 && tt2.childNodes[0] ? tt2.childNodes[0].textContent.trim() : '';
+    const u2 = b.dataset.stuUid, s2 = b.dataset.stuNudge;
+    pendActClose();
+    nudgeOpen(u2, s2, title);
+  });
+  bd.querySelectorAll('[data-stu-pendlist]').forEach(b => b.onclick = () => {
+    const u2 = b.dataset.stuPendlist;
+    pendActClose();
+    pendListOpen(u2);
+  });
+}
+/* La sección del editor dentro de la pantalla: el estado de la
+   declaración de salud con su causa corta y, para el
+   entrenador, la casilla de activación automática y el
+   recordatorio — los mismos controles que vivían en la caja
+   amarilla de la puerta, con el mismo comportamiento. La causa
+   sale de la MISMA lectura condicionada de siempre
+   (fetchClientHealth; jamás contenido de la declaración). */
+async function pendActEditorLoad(uid) {
+  if (!planCtx || planCtx.clientUid !== uid) return;
+  const self = !!(auth.currentUser && uid === auth.currentUser.uid);
+  let ch = (typeof AUTO_CTX !== 'undefined' && AUTO_CTX && AUTO_CTX.uid === uid) ? AUTO_CTX.ch : null;
+  if (!ch) {
+    const s = await getDoc(doc(db, 'users', uid)).catch(() => null);
+    const udata = s && s.exists() ? s.data() : null;
+    ch = udata ? await fetchClientHealth(uid, udata).catch(() => ({ available: false, decl: null, cause: 'error' })) : { available: false, decl: null, cause: null };
+  }
+  if (!PENDACT_CTX || PENDACT_CTX.uid !== uid || !PENDACT_CTX.fromEditor) return;
+  const host = $('pendact-editor'); if (!host) return;
+  if (ch && ch.available) { host.innerHTML = ''; return; }
+  host.innerHTML = `<div class="pl-gate warn pendact-health">
+    <div class="pendact-health-t">${esc(t('pendact.healthTitle'))}</div>
+    <div>${esc(t(self ? 'train.gate.holdLineSelf' : 'train.gate.holdLine'))}</div>
+    ${ch ? `<div class="progress-hint" style="margin-top:6px">${esc(clientHealthCauseText(ch))}</div>` : ''}
+    ${self ? '' : `<label class="check-row pl-hold-row"><input type="checkbox" id="pl-autoact"${planHoldAutoChecked() ? ' checked' : ''}> <span>${esc(t('train.gate.autoOn'))}</span></label><button type="button" class="btn-primary pl-remind-btn" id="pendact-remind">${esc(t('train.gate.remind'))}</button>`}
+  </div>`;
+  const cb = $('pl-autoact');
+  if (cb) cb.onchange = () => { if (planCtx) planCtx.holdAutoSaved = !!cb.checked; };
+  const rb = $('pendact-remind');
+  if (rb) rb.onclick = () => { pendActClose(); planHoldRemind(); };
+}
+
 /* Con evaluación o metas en la lista, la vista previa lee el
    estado vivo de la base (su enlace ?base= apunta a la primera
    pieza que falta, como el correo D5): al abrir la hoja y otra
@@ -10247,17 +10444,21 @@ function studentsDetailHTML(u) {
   if (err) {
     h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
   } else {
-    h += studentsPendGroupedHTML(u.id, pend.items);
-    /* MENSAJE COMBINADO (este paquete): la barra «✉ Enviarle sus
-       pendientes» va a nivel del alumno, bajo su lista completa. */
-    h += studentsPendListBarHTML(u.id, pend.items);
+    /* AUTH-562: la lista desplegada y su barra del mensaje
+       combinado desaparecen del detalle: un solo botón
+       «Pendientes activos · N» abre la pantalla del paquete, con
+       la lista pelada, la barra y los resueltos dentro. */
+    h += pendActDoorHTML(u.id, pend);
     h += stuAdminStepRowHTML(u.id);
     h += studentsEqRowHTML(u.id, (L.chkByUid || {})[u.id]);
     /* ASIGNACIONES (este paquete): quién es su entrenador y su
        coach, con la gestión completa para el administrador. */
     h += stuAssignFoldHTML(u, { trainerUid: u.trainerUid || null, coachUid: (L.coachByUid || {})[u.id] || null, coachKnown: !!(L.coachByUid && (u.id in L.coachByUid)) });
     if (!pend.items.length && !pend.traces.length) h += `<p class="pend-none">${esc(t('students.detailClear'))}</p>`;
-    if (pend.traces.length) h += `<div class="stu-traces-h">${esc(t('students.resolvedTitle'))}</div>` + pend.traces.map(it => studentsPendItemHTML(u.id, it, true)).join('');
+    /* AUTH-562: las trazas («Resueltos») también viven dentro de
+       la pantalla de pendientes activos, en líneas peladas; el
+       detalle solo conserva la puerta (botón principal o el
+       fantasma «Resueltos · N» de pendActDoorHTML). */
   }
   h += `<button type="button" class="btn-ficha" data-stu-ficha="${u.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>${esc(t('students.viewFull'))}</button>
   </div>`;
@@ -10313,6 +10514,9 @@ function renderStudentsBody() {
   /* MENSAJE COMBINADO (este paquete): la barra del alumno abre
      la hoja del correo con TODOS sus pendientes. */
   el.querySelectorAll('[data-stu-pendlist]').forEach(b => b.onclick = () => pendListOpen(b.dataset.stuPendlist));
+  /* AUTH-562: el botón «Pendientes activos» del detalle abre la
+     pantalla del paquete. */
+  el.querySelectorAll('[data-pendact]').forEach(b => b.onclick = () => pendActOpen(b.dataset.pendact));
   /* ASIGNACIONES (este paquete): el botón de gestión del detalle
      abre la hoja de asignaciones (solo se pinta al administrador). */
   el.querySelectorAll('[data-assign-open]').forEach(b => b.onclick = () => assignOpen(b.dataset.assignOpen, 'students'));
@@ -13426,6 +13630,9 @@ async function openClient(uid) {
   /* MENSAJE COMBINADO (este paquete): la barra del bloque de
      pendientes de la ficha abre la hoja del correo combinado. */
   box.querySelectorAll('[data-stu-pendlist]').forEach(b => b.onclick = () => pendListOpen(b.dataset.stuPendlist));
+  /* AUTH-562: el botón «Pendientes activos» de la ficha abre la
+     pantalla del paquete. */
+  box.querySelectorAll('[data-pendact]').forEach(b => b.onclick = () => pendActOpen(b.dataset.pendact));
   box.querySelectorAll('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
   loadClientTraining(uid);
   const evBtn = $('btn-client-evals');
@@ -17919,7 +18126,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-botones-juntos' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-pendientes-activos' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -43273,35 +43480,40 @@ async function planGateState(clientUid) {
     return ch && ch.available ? 'valid' : 'missing';
   } catch { return 'missing'; }
 }
+/* AUTH-562: la precedencia de la casilla de activación
+   automática es UNA sola y la comparten la puerta y la pantalla
+   de pendientes activos: manda la casilla VIVA si está pintada
+   (hoy vive dentro de la pantalla, con el mismo id pl-autoact);
+   si no, lo que esta sesión del editor ya dejó anotado en
+   planCtx.holdAutoSaved; si no, lo que el plan abierto trae
+   (nace marcada salvo holdAuto === false). Repintar nunca
+   «rebota» una casilla que el entrenador ya tocó. */
+function planHoldAutoChecked() {
+  const liveBox = $('pl-autoact');
+  return liveBox ? !!liveBox.checked
+    : planCtx && planCtx.holdAutoSaved != null ? planCtx.holdAutoSaved
+    : !(planCtx && planCtx.planData && planCtx.planData.holdAuto === false);
+}
 function planGateRender(state) {
   const box = $('pl-gate');
   if (!box) return;
   if (state === 'checking') { box.className = 'pl-gate'; box.textContent = t('train.gate.checking'); return; }
   if (state === 'valid') { box.className = 'pl-gate ok'; box.textContent = t('train.gate.ok'); return; }
-  /* AUTH-493: el muro rojo desaparece. En su sitio, UNA línea
-     tranquila con el estado; en el editor del entrenador, además,
-     la casilla de activación automática (marcada por defecto) y
-     el botón grande del recordatorio por el aviso existente. En
-     el editor PROPIO (el cliente es uno mismo) no hay casilla ni
-     botón: la activación automática es el camino natural y el
-     recordatorio no tiene destinatario. */
-  const self = !!(planCtx && auth.currentUser && planCtx.clientUid === auth.currentUser.uid);
-  /* La casilla nace marcada, salvo que el plan abierto ya viva
-     con holdAuto:false o esta misma sesión del editor la haya
-     guardado desmarcada: repintar la puerta no debe «rebotarla».
-     Y manda siempre la casilla VIVA si ya está pintada: la
-     comprobación asíncrona de la puerta puede resolverse DESPUÉS
-     de que el entrenador la desmarque, y ese repintado tardío no
-     puede volver a marcarla a sus espaldas. */
-  const liveBox = $('pl-autoact');
-  const autoChecked = liveBox ? !!liveBox.checked
-    : planCtx && planCtx.holdAutoSaved != null ? planCtx.holdAutoSaved
-    : !(planCtx && planCtx.planData && planCtx.planData.holdAuto === false);
+  /* AUTH-493: el muro rojo desaparece; la línea tranquila con el
+     estado, la casilla de activación automática y el recordatorio
+     vivían desplegados en esta caja.
+     AUTH-562: la caja amarilla desplegada desaparece también. En
+     su sitio, el botón único «Pendientes activos · N» que abre
+     la pantalla del paquete AUTH-562, donde vive la sección de
+     salud con esa misma línea, la misma casilla y el mismo
+     recordatorio — el mismo comportamiento, sin la caja. El
+     conteo sale de la última pasada de pendientes del alumno. */
+  const cuid = planCtx ? planCtx.clientUid : null;
+  const n = cuid ? pendActDataOf(cuid).items.length : 0;
   box.className = 'pl-gate warn';
-  box.innerHTML = `<div>${esc(t(self ? 'train.gate.holdLineSelf' : 'train.gate.holdLine'))}</div>` +
-    (self ? '' : `<label class="check-row pl-hold-row"><input type="checkbox" id="pl-autoact"${autoChecked ? ' checked' : ''}> <span>${esc(t('train.gate.autoOn'))}</span></label><button type="button" class="btn-primary pl-remind-btn" id="pl-remind">${esc(t('train.gate.remind'))}</button>`);
-  const rb = $('pl-remind');
-  if (rb) rb.onclick = () => planHoldRemind();
+  box.innerHTML = cuid ? `<button type="button" class="btn-primary btn-pendact" id="pl-pendact">${esc(t('pendact.btn', { n }))}</button>` : '';
+  const pb = $('pl-pendact');
+  if (pb) pb.onclick = () => pendActOpen(cuid, { fromEditor: true });
 }
 let planGateSeq = 0;
 async function planGateRefresh() {
@@ -48778,7 +48990,14 @@ $('form-plan').addEventListener('submit', async e => {
      puerta válida, el guardado limpia cualquier espera previa. */
   const wantActive = $('pl-active').checked;
   const autoActEl = $('pl-autoact');
-  const wantAuto = autoActEl ? autoActEl.checked : true;
+  /* AUTH-562: la casilla vive en la pantalla de pendientes
+     activos; si no está pintada en este momento, manda lo que
+     esta sesión del editor dejó anotado en planCtx.holdAutoSaved
+     (la pantalla lo anota al cambiarla; la misma precedencia de
+     planHoldAutoChecked) y, en su defecto, el defecto de
+     siempre: true — la automática es el camino natural. */
+  const wantAuto = autoActEl ? autoActEl.checked
+    : (planCtx && planCtx.holdAutoSaved != null ? planCtx.holdAutoSaved : true);
   const onHold = gateState !== 'valid' && (wantActive || wantAuto);
   const active = gateState === 'valid' ? wantActive : false;
   const data = { clientUid: planCtx.clientUid, title, notes: $('pl-notes').value.trim(), days, active, updatedAt: serverTimestamp() };
@@ -49265,7 +49484,16 @@ function autoRenderPanel() {
   }
   if (!C.ch.available) {
     if (note) note.textContent = '';
-    body.innerHTML = `<div class="pl-auto-block">${esc(t('train.auto.healthBlocked'))}<br><span class="progress-hint">${esc(clientHealthCauseText(C.ch))}</span></div>`;
+    /* AUTH-562: la caja amarilla del programa automático
+       desaparece: en su sitio, el botón único «Pendientes
+       activos · N» — la explicación de salud vive dentro de la
+       pantalla, con su causa corta. Sin declaración legible el
+       programa sigue sin generarse: en este estado el panel no
+       ofrece generación, como hasta hoy. */
+    const nPend = pendActDataOf(C.uid).items.length;
+    body.innerHTML = `<button type="button" class="btn-primary btn-pendact" id="pl-auto-pendact">${esc(t('pendact.btn', { n: nPend }))}</button>`;
+    const pb = $('pl-auto-pendact');
+    if (pb) pb.onclick = () => pendActOpen(C.uid, { fromEditor: true });
     return;
   }
   if (note) note.textContent = '';
@@ -59978,7 +60206,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-botones-juntos';
+const PWA_SW_VERSION = '20261123-pendientes-activos';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
