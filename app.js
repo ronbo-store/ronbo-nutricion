@@ -4304,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-reto21-4-series');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-sesion-sin-repintado');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -19368,7 +19368,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-reto21-4-series' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-sesion-sin-repintado' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -34631,7 +34631,7 @@ function sessFullSync(run) {
   }
   if (sig !== SESS_FULL_SIG) {
     SESS_FULL_SIG = sig;
-    full.innerHTML = html;
+    sessFullPaint(full, html);   /* AUTH-579: el panel se pinta por bloques en el sitio — la columna y su .sf-body NO se recrean: el desplazamiento se conserva y el círculo tocado no se desprende */
     full.setAttribute('aria-label', t('sess.fullLabel'));
   }
   const tEl = $('sess-full-time');
@@ -34645,6 +34645,103 @@ function sessFullSync(run) {
       cEls.forEach(el => { el.textContent = exTxt; });
     }
   }
+}
+/* ═══ AUTH-579 · P1 «SESIÓN SIN REPINTADO» — EL PANEL SE
+   PINTA POR BLOQUES, EN EL SITIO (auditoría de repintado
+   del 2026-11-23, hallazgo B1+D2: cada toque en un círculo
+   de serie cambiaba la firma de sessFullSync y el panel
+   ENTERO se reconstruía con innerHTML — el círculo tocado
+   se desprendía del DOM, el desplazamiento de .sf-body se
+   destruía y el gesto pagaba dos repintados completos).
+   Ahora sessFullSync sigue componiendo el mismo html y la
+   misma firma, pero el pintado reconcilia el árbol vivo
+   contra el nuevo por bloques (la clave de un bloque es su
+   etiqueta + su clase):
+   — la columna .sf-col y su .sf-body NUNCA se recrean: el
+     nodo que desplaza es el mismo y su scrollTop se
+     conserva solo;
+   — dentro de .sf-body y de .sf-now se reconcilia hijo a
+     hijo: el bloque cuyo html no cambió no se toca; el que
+     cambió se sustituye SOLO él (la franja, el siguiente,
+     el bloque de acciones…);
+   — la fila de círculos (.sf-dots) se reconcilia BOTÓN A
+     BOTÓN y en el sitio (sessMorphDots): el botón que
+     persiste conserva su nodo — solo cambian su clase, su
+     contenido y sus atributos —, así que el círculo que la
+     persona acaba de tocar NO se desprende del DOM;
+   — los relojes que ya se pintaban en el sitio (la hora de
+     la sesión, la del resumen y los del ejercicio) conservan
+     su texto vivo: se copia al árbol nuevo antes de
+     reconciliar, para que su bloque salga idéntico y no se
+     sustituya por el «00:00» de la plantilla.
+   Sin estructura previa (el primer pintado) se cae al
+   innerHTML de siempre. El estado sigue siendo DATO (el
+   borrador de marcas): esto solo cambia CÓMO se pinta. ═══ */
+function sessBlkKey(el) { return el.tagName + '|' + (el.getAttribute('class') || ''); }
+function sessDotKeyOf(el) {
+  const attrs = ['data-sess-dot', 'data-sess-dotq', 'data-sess-warm', 'data-sess-warmq', 'data-sess-edit', 'data-sess-voice'];
+  for (const a of attrs) { const v = el.getAttribute(a); if (v != null) return a + '=' + v; }
+  return null;
+}
+function sessSyncAttrs(oldEl, newEl) {
+  for (const a of Array.from(oldEl.attributes)) if (!newEl.hasAttribute(a.name)) oldEl.removeAttribute(a.name);
+  for (const a of Array.from(newEl.attributes)) if (oldEl.getAttribute(a.name) !== a.value) oldEl.setAttribute(a.name, a.value);
+}
+function sessMorphDots(oldRow, newRow) {
+  const news = Array.from(newRow.children);
+  const olds = Array.from(oldRow.children);
+  /* Sin clave en algún hijo no hay identidad que conservar:
+     se cae a sustituir la fila entera (no ocurre con los
+     botones que pinta sessDotsHTML: todos llevan su data-*). */
+  if (news.some(n => !sessDotKeyOf(n)) || olds.some(o => !sessDotKeyOf(o))) { oldRow.innerHTML = newRow.innerHTML; return; }
+  const byKey = new Map();
+  for (const o of olds) { const k = sessDotKeyOf(o); if (!byKey.has(k)) byKey.set(k, o); }
+  const used = new Set();
+  let prev = null;
+  for (const n of news) {
+    const m = byKey.get(sessDotKeyOf(n));
+    if (m && !used.has(m)) {
+      used.add(m);
+      sessSyncAttrs(m, n);
+      if (m.innerHTML !== n.innerHTML) m.innerHTML = n.innerHTML;
+      const want = prev ? prev.nextElementSibling : oldRow.firstElementChild;
+      if (want !== m) oldRow.insertBefore(m, want);
+      prev = m;
+    } else {
+      oldRow.insertBefore(n, prev ? prev.nextElementSibling : oldRow.firstElementChild);
+      prev = n;
+    }
+  }
+  for (const o of olds) if (!used.has(o)) o.remove();
+}
+function sessMorphKids(oldP, newP) {
+  const news = Array.from(newP.children);
+  let cursor = oldP.firstElementChild;
+  for (const n of news) {
+    let m = cursor;
+    while (m && sessBlkKey(m) !== sessBlkKey(n)) m = m.nextElementSibling;
+    if (!m) { oldP.insertBefore(n, cursor); continue; }
+    while (cursor !== m) { const nx = cursor.nextElementSibling; cursor.remove(); cursor = nx; }
+    if (m.classList.contains('sf-body') || m.classList.contains('sf-now')) { sessMorphKids(m, n); cursor = m.nextElementSibling; }
+    else if (m.classList.contains('sf-dots')) { sessMorphDots(m, n); cursor = m.nextElementSibling; }
+    else if (m.outerHTML !== n.outerHTML) { m.replaceWith(n); cursor = n.nextElementSibling; }
+    else cursor = m.nextElementSibling;
+  }
+  while (cursor) { const nx = cursor.nextElementSibling; cursor.remove(); cursor = nx; }
+}
+function sessFullPaint(full, html) {
+  const oldCol = full.firstElementChild;
+  if (!oldCol || !oldCol.classList || !oldCol.classList.contains('sf-col')) { full.innerHTML = html; return; }
+  const box = document.createElement('div');
+  box.innerHTML = html;
+  const newCol = box.firstElementChild;
+  if (!newCol) { full.innerHTML = html; return; }
+  const cp = sel => {
+    const o = full.querySelectorAll(sel), n = newCol.querySelectorAll(sel);
+    o.forEach((el, i) => { if (n[i]) n[i].textContent = el.textContent; });
+  };
+  cp('#sess-full-time'); cp('.sf-done-clock'); cp('.sess-full-exclock');
+  sessMorphKids(oldCol, newCol);
 }
 /* ── LA PUERTA «VER CÓMO SE HACE» (R2): abre la ficha
    EXISTENTE del ejercicio como hoja sobre el panel, sin
@@ -34686,6 +34783,46 @@ function sessFullFichaOpen() {
 function sessPanelRepaint(plan) {
   if (!plan || NAV_PAGE !== 'train') return;
   if (TRAIN_CHECKS_CTX !== plan.id + '|' + todayISO()) return;
+  try { loadMyTraining(); } catch {}
+}
+/* ═══ AUTH-579 · EL REFRESCO MÍNIMO DEL GESTO DE LA SERIE
+   (P1 de la auditoría de repintado): el toque en un círculo
+   y el toque en una marca de aproximación terminaban en
+   sessPanelRepaint — loadMyTraining() entero, con sus
+   lecturas de planes y registros ANTES de pintar — aunque
+   la marca (`dot`) NO se pinta en la vista de Entrenamiento:
+   sus tarjetas leen el DATO de cada serie (repeticiones,
+   carga, segundos) y el estado del ejercicio, nunca la
+   marca del checklist (AUTH-496). La firma de abajo lo
+   comprueba gesto a gesto: recoge SOLO lo que la tarjeta
+   sí pinta (el hecho sellado, el estado del flujo y, por
+   serie, sus datos y su `pend`; en la aproximación, sus
+   cargas) — la marca queda FUERA a propósito. Si la firma
+   no cambia, el gesto no repinta la vista NI relee nada:
+   la marca vive en el panel (que se pinta en el sitio) y en
+   el borrador, y la época de AUTH-497 sigue garantizando la
+   foto fresca al abrir la página. Si la firma cambia — el
+   toque finalizó el ejercicio (su hecho o su cierre), la
+   cuenta de una serie por tiempo bancó sus segundos, la
+   aproximación adoptó una carga — el refresco es el
+   completo de AUTH-488, como hoy: es un gesto por ejercicio
+   o por cuenta, no el gesto repetido de cada serie.
+   Declarado: el dictado por voz conserva el repintado
+   completo (escribe datos por su propio camino y no es el
+   gesto caliente), y las caras y los botones de flujo
+   (iniciar/pausar/finalizar) tampoco cambian. ═══ */
+function sessChkSig(key) {
+  const chk = TRAIN_CHECKS[key] || null;
+  const fs = TRAIN_FLOW[key] || null;
+  if (!chk) return 'n|' + (fs ? fs.st : '');
+  const rows = (Array.isArray(chk.sets) ? chk.sets : []).map(s => s ? [s.repsDone == null ? '' : s.repsDone, s.loadVal == null ? '' : s.loadVal, typeof s.secDone === 'number' ? s.secDone : '', s.pend === true ? 1 : 0].join(',') : '').join(';');
+  const warm = (chk.warmup && Array.isArray(chk.warmup.sets) ? chk.warmup.sets : []).map(s => s ? [s.loadVal == null ? '' : s.loadVal, s.repsDone == null ? '' : s.repsDone].join(',') : '').join(';');
+  return (chk.done === true ? 1 : 0) + '|' + (fs ? fs.st : '') + '|' + rows + '|' + warm;
+}
+function sessPanelRepaintLight(plan, key, sigBefore) {
+  if (!plan || NAV_PAGE !== 'train') return;
+  if (TRAIN_CHECKS_CTX !== plan.id + '|' + todayISO()) return;
+  if (sigBefore != null && sessChkSig(key) === sigBefore) return;
   try { loadMyTraining(); } catch {}
 }
 /* ═══ AUTH-497 · LA LISTA NACE FRESCA AL ABRIRLA (auditoría
@@ -34837,11 +34974,14 @@ function sessPanelWire(el, surface) {
          EN EL SITIO, con la misma guarda de contexto de las
          caras y del Finalizar de este panel. */
       const planD = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
+      let keyD = null, sigD = null;
       if (planD && TRAIN_CHECKS_CTX === planD.id + '|' + todayISO()) {
         const partsD = String(dot.dataset.sessDot).split(':');
-        sessDotTap(planD, partsD[0] + ':' + partsD[1], Number(partsD[2]));
+        keyD = partsD[0] + ':' + partsD[1];
+        sigD = sessChkSig(keyD);   /* AUTH-579: la foto de lo que la tarjeta pinta, ANTES del gesto */
+        sessDotTap(planD, keyD, Number(partsD[2]));
       }
-      sessPanelRepaint(planD);   /* AUTH-488: el círculo escribe la marca — la tarjeta se repinta */
+      sessPanelRepaintLight(planD, keyD, sigD);   /* AUTH-579 (P1): la marca sola no repinta la vista ni relee planes/registros — solo si el gesto cambió lo que la tarjeta pinta corre el repintado de AUTH-488 */
       try { sessPillTick(); } catch {}
       return;
     }
@@ -34853,11 +34993,14 @@ function sessPanelWire(el, surface) {
          no cuenta, no finaliza y no arranca cuentas: solo
          escribe el `dot` de esa fila del bloque warmup. */
       const planW = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
+      let keyW = null, sigW = null;
       if (planW && TRAIN_CHECKS_CTX === planW.id + '|' + todayISO()) {
         const partsW = String(wrm.dataset.sessWarm).split(':');
-        sessWarmTap(planW, partsW[0] + ':' + partsW[1], Number(partsW[2]));
+        keyW = partsW[0] + ':' + partsW[1];
+        sigW = sessChkSig(keyW);   /* AUTH-579: la misma foto que en el círculo — marcar sin adoptar carga no repinta la vista */
+        sessWarmTap(planW, keyW, Number(partsW[2]));
       }
-      sessPanelRepaint(planW);
+      sessPanelRepaintLight(planW, keyW, sigW);   /* AUTH-579 (P1): idem el círculo */
       try { sessPillTick(); } catch {}
       return;
     }
@@ -62352,7 +62495,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-reto21-4-series';
+const PWA_SW_VERSION = '20261123-sesion-sin-repintado';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
