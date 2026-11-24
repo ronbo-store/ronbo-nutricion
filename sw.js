@@ -55,19 +55,19 @@
  * app.js). La caché de imágenes NO se borra entre versiones: guarda
  * contenido ya visto, con su tope.
  */
-const SW_VERSION = '20261124-mapa-musculos';
+const SW_VERSION = '20261124-pliegues-alumnos';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const IMG_CACHE_NAME = 'ronbofit-img-v1';
 const IMG_CACHE_MAX = 300;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261124-mapa-musculos',
-  './app.js?v=20261124-mapa-musculos',
-  './i18n-en.js?v=20261124-mapa-musculos',
-  './i18n-es.js?v=20261124-mapa-musculos',
-  './view-comms.js?v=20261124-mapa-musculos',
-  './view-library.js?v=20261124-mapa-musculos',
+  './styles.css?v=20261124-pliegues-alumnos',
+  './app.js?v=20261124-pliegues-alumnos',
+  './i18n-en.js?v=20261124-pliegues-alumnos',
+  './i18n-es.js?v=20261124-pliegues-alumnos',
+  './view-comms.js?v=20261124-pliegues-alumnos',
+  './view-library.js?v=20261124-pliegues-alumnos',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
