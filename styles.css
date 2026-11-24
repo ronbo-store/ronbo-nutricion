@@ -3039,7 +3039,7 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
    repintado de loadClients pueda mostrarlos ni un instante. La
    barra de regreso (#ficha-backbar) es el único acompañante. */
 #clients-section.ficha-solo > *:not(#ficha-backbar):not(#client-detail),
-#clients-section.ficha-solo-meal > *:not(#ficha-backbar):not(#meal-trainer-box) { display: none !important; }
+#clients-section.ficha-solo-meal > *:not(#ficha-backbar):not(#adm597-unit-clients-meal) { display: none !important; }
 #clients-section.ficha-solo #ficha-backbar,
 #clients-section.ficha-solo-meal #ficha-backbar { display: block !important; }
 #ficha-backbar { margin-bottom: 4px; }
@@ -8093,3 +8093,28 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .prof595-mlh .eval-more-btn { margin-top: 2px; }
 /* — la línea de la membresía dentro de «Mi consulta» — */
 .prof595-membfold { margin: 10px 0 4px; }
+
+/* ============ AUTH-597 · PLIEGUES Nº15 — Administración y comunicaciones ============
+   El molde de la 595 aplicado a la zona de administración: cada
+   bloque vive en su almacén oculto dentro de su pestaña y VIAJA a
+   su pantalla propia (.pend-float + .adm597-sheet, z-index 44)
+   al tocar su puerta; las puertas son la línea .pl-fold de la
+   casa (52 px) con su cuenta cuando la hay. Ningún toque baja de
+   44 px: el espacio se gana recogiendo, nunca achicando (regla
+   permanente de crecimiento). En «Permisos y privacidad» cada
+   apartado nace recogido en su línea .perms597-fold y su cuerpo
+   solo voltea el display: lo tecleado nunca se pierde. */
+.adm597-sheet { z-index: 44; }
+.adm597-doors { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.adm597-doors:empty { display: none; margin: 0; }
+.adm597-count { color: #47605a; font-weight: 600; font-size: 13px; }
+.adm597-unit > .history-title:first-child, .adm597-unit > h3:first-child { margin-top: 0; }
+.perms597-fold { margin: 16px 0 0; }
+#perms-panel .perms597-body { margin-top: 10px; }
+/* La vista de solo-comidas de la ficha (AUTH-571): la unidad de
+   la bandeja de comidas es ahora la hija directa exenta; dentro,
+   la caja se ve como siempre. */
+#clients-section.ficha-solo-meal #adm597-unit-clients-meal { display: block !important; }
+/* Comunicaciones: la previa y la lista de destinatarios del
+   panel de envío nacen tras «Ver más» (patrón 593/595). */
+.comms597-morewrap { margin-top: 4px; }

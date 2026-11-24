@@ -367,6 +367,47 @@ function commsFillPreview(tpl, lang, u, plan) {
   return { subject: fill(subj), body: fill(s) };
 }
 
+/* ═══════════ AUTH-597 · PLIEGUES Nº15 — Comunicaciones ═══════════
+   Barrido, Plantillas y Enviar dejan de apilarse en la vista:
+   son tres PUERTAS (líneas .pl-fold en el HTML) y cada bloque
+   vive en su almacén oculto y VIAJA a su pantalla propia
+   (.adm597-sheet de index.html, z-index 44, con ✕ y «‹ Volver»)
+   al patrón del bloque viajero de la casa (595/597 en app.js);
+   los pintores de siempre pintan por id, esté el bloque donde
+   esté. Hay UN solo «Enviar»: la puerta de envío, y dentro de
+   su pantalla se elige pool o una persona (el bloque de una
+   persona, que vivía dentro de la tarjeta de «beneficios», vive
+   ahora en el panel de envío). La previa y la lista de
+   destinatarios del envío nacen tras «Ver más». */
+const COMMS597 = {
+  'comms-sweep': { block: 'comms-sweep', store: 'adm597-store-comms-sweep', titleKey: 'comms.sweepTitle' },
+  'comms-tpl': { block: 'adm597-unit-comms-tpl', store: 'adm597-store-comms-tpl', titleKey: 'comms.tplTitle' },
+  'comms-send': { block: 'adm597-unit-comms-send', store: 'adm597-store-comms-send', titleKey: 'comms.sendTitle' }
+};
+function comms597Open(key) {
+  const c = COMMS597[key]; if (!c) return;
+  const f = document.getElementById('adm597-float-' + key), body = document.getElementById('adm597-' + key + '-body'), block = document.getElementById(c.block);
+  if (!f || !body || !block) return;
+  const ttl = document.getElementById('adm597-' + key + '-title'); if (ttl) ttl.textContent = t(c.titleKey);
+  if (block.parentElement !== body) body.appendChild(block);
+  f.style.display = '';
+  try { coverSync(); } catch {}
+}
+function comms597Close(key) {
+  const c = COMMS597[key]; if (!c) return;
+  const f = document.getElementById('adm597-float-' + key), store = document.getElementById(c.store), block = document.getElementById(c.block);
+  if (block && store && block.parentElement !== store) store.appendChild(block);
+  if (f && f.style.display !== 'none') { f.style.display = 'none'; try { coverSync(); } catch {} }
+}
+Object.keys(COMMS597).forEach(k => {
+  const x = document.getElementById('adm597-' + k + '-x'); if (x) x.onclick = () => comms597Close(k);
+  const bk = document.getElementById('adm597-' + k + '-back'); if (bk) bk.onclick = () => comms597Close(k);
+});
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-comms597-open]') : null;
+  if (b) comms597Open(b.dataset.comms597Open);
+});
+
 async function renderComms() {
   const sec = $('comms-section');
   if (!sec) return;
@@ -429,12 +470,11 @@ function commsRenderTplCard() {
   const key = COMMS.selTpl;
   const tpl = COMMS.templates[key];
   if (!tpl) { box.innerHTML = ''; return; }
-  const onePerson = key === 'benefits' ? `
-    <div class="comms-oneperson">
-      <label class="muted">${esc(t('comms.onePersonLabel'))} <select id="comms-one-user">${COMMS.users.filter(u => !u.isOwner && u.email && u.approved === true).map(u => `<option value="${esc(u.id)}">${esc(u.name || u.email)} (${esc(u.email)})</option>`).join('')}</select></label>
-      <button type="button" class="btn-ghost btn-sm" id="comms-one-send">${esc(t('comms.onePersonBtn'))}</button>
-      <span class="muted" id="comms-one-status"></span>
-    </div>` : '';
+  /* AUTH-597 (pliegues nº 15): la tarjeta ya no lleva el botón
+     «Enviar a un pool» ni el bloque de envío a una persona: hay
+     UN solo «Enviar» (la puerta de la pantalla de envío) y el
+     bloque de una persona vive en esa pantalla
+     (commsRenderOneBox). */
   box.innerHTML = `<div class="panel comms-card">
     <div class="comms-card-head">
       ${tpl.artUrl ? `<img class="comms-thumb" src="${esc(tpl.artUrl)}" alt="">` : `<div class="comms-thumb comms-thumb-none">✉️</div>`}
@@ -443,11 +483,26 @@ function commsRenderTplCard() {
     </div>
     <div class="eval-actions">
       <button type="button" class="btn-primary btn-sm" id="comms-tpl-edit">${esc(t('comms.editBtn'))}</button>
-      <button type="button" class="btn-ghost btn-sm" id="comms-tpl-sendpool">${esc(t('comms.sendPoolBtn'))}</button>
-    </div>${onePerson}
+    </div>
   </div>`;
   const ed = $('comms-tpl-edit'); if (ed) ed.onclick = () => commsOpenEditor(key);
-  const sp = $('comms-tpl-sendpool'); if (sp) sp.onclick = () => { const p = $('comms-pool-sel'); if (p) p.focus(); const b = $('comms-send-box'); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+}
+
+/* AUTH-597: el envío a UNA persona (la plantilla «beneficios»,
+   como siempre) vive en la pantalla de envío, junto a la
+   elección de pool: un solo sitio para enviar. Mismo gesto,
+   misma vía (mailSend con el idioma guardado de esa persona). */
+function commsRenderOneBox() {
+  const box = $('comms-one-box');
+  if (!box || !COMMS || !COMMS.templates) return;
+  const key = COMMS.selTpl;
+  if (key !== 'benefits' || !COMMS.templates[key]) { box.innerHTML = ''; return; }
+  box.innerHTML = `
+    <div class="comms-oneperson">
+      <label class="muted">${esc(t('comms.onePersonLabel'))} <select id="comms-one-user">${COMMS.users.filter(u => !u.isOwner && u.email && u.approved === true).map(u => `<option value="${esc(u.id)}">${esc(u.name || u.email)} (${esc(u.email)})</option>`).join('')}</select></label>
+      <button type="button" class="btn-ghost btn-sm" id="comms-one-send">${esc(t('comms.onePersonBtn'))}</button>
+      <span class="muted" id="comms-one-status"></span>
+    </div>`;
   const os = $('comms-one-send');
   if (os) os.onclick = async () => {
     const uid = ($('comms-one-user') || {}).value || '';
@@ -591,6 +646,9 @@ function commsRenderSendPanel() {
   const sel = $('comms-pool-sel');
   const box = $('comms-send-box');
   if (!sel || !box || !COMMS.templates) return;
+  /* AUTH-597: el bloque de envío a una persona vive en esta
+     misma pantalla, sobre el panel de pool. */
+  commsRenderOneBox();
   const cur = COMMS.selPool && COMMS_POOLS.some(p => p.id === COMMS.selPool) ? COMMS.selPool : 'allApproved';
   COMMS.selPool = cur;
   sel.innerHTML = COMMS_POOLS.map(p => {
@@ -608,11 +666,23 @@ function commsRenderSendPanel() {
      guardado del primer destinatario — el correo exacto que
      recibirá — y no en el idioma de la sesión del propietario. */
   const pv = first ? commsFillPreview(tpl, nudgeMailLangOf(first.u), first.u, first.plan) : null;
+  /* AUTH-597 (pliegues nº 15): la previa y la lista de
+     destinatarios nacen recogidas tras «Ver más»; la línea de
+     cuenta queda a la vista como resumen. */
   box.innerHTML = `<p class="progress-hint">${esc(t('comms.recipients', { n: members.length }))} · ${esc(commsTplTitle(COMMS.selTpl))} · ${esc(t('comms.todayCount', { n: commsTodayCount(), cap: COMMS_CAP }))}</p>
-    ${first ? `<div class="comms-preview"><div class="muted">${esc(t('comms.previewFor', { name: first.u.name || first.u.email }))}</div><b>${esc(pv.subject)}</b><pre>${esc(pv.body)}</pre></div>
-    <div class="comms-preview-list">${members.map(m => `<div class="comms-run-line">${esc(m.u.name || m.u.email)} (${esc(m.u.email)})</div>`).join('')}</div>`
+    ${first ? `<div class="comms597-morewrap"><button type="button" class="eval-more-btn" id="comms597-more-btn" aria-expanded="false">${esc(t('prof595.more'))} <span aria-hidden="true">▾</span></button>
+    <div id="comms597-more-body" style="display:none"><div class="comms-preview"><div class="muted">${esc(t('comms.previewFor', { name: first.u.name || first.u.email }))}</div><b>${esc(pv.subject)}</b><pre>${esc(pv.body)}</pre></div>
+    <div class="comms-preview-list">${members.map(m => `<div class="comms-run-line">${esc(m.u.name || m.u.email)} (${esc(m.u.email)})</div>`).join('')}</div></div></div>`
     : `<p class="progress-hint">${esc(t('comms.noRecipients'))}</p>`}
     <div class="comms-run" id="comms-send-run" style="display:none"><div class="comms-run-head"></div>${commsRunControlsHTML()}<div class="comms-run-list"></div></div>`;
+  const moreBtn = $('comms597-more-btn');
+  if (moreBtn) moreBtn.onclick = () => {
+    const mb = $('comms597-more-body'); if (!mb) return;
+    const open = mb.style.display !== 'none';
+    mb.style.display = open ? 'none' : '';
+    moreBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    moreBtn.innerHTML = `${esc(t(open ? 'prof595.more' : 'prof595.less'))} <span aria-hidden="true">${open ? '▾' : '▴'}</span>`;
+  };
   if (sendBtn) {
     sendBtn.disabled = !members.length || tpl.enabled === false;
     sendBtn.onclick = async () => {

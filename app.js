@@ -1378,8 +1378,10 @@ async function escChangeTrainer(newTrainerUid) {
 async function renderMembershipBox() {
   const box = $('membership-box');
   if (!box) return;
-  if (ROLE !== 'entrenador') { box.style.display = 'none'; return; }
+  if (ROLE !== 'entrenador') { box.style.display = 'none'; try { ADM597_SHOW['clients-membership'] = false; adm597DoorsSync(); } catch {} return; }
   box.style.display = '';
+  /* AUTH-597: la bandeja vive tras su puerta en Mis clientes. */
+  try { ADM597_SHOW['clients-membership'] = true; adm597DoorsSync(); } catch {}
   const me = auth.currentUser.uid;
   const st = await escTrainerStanding(me, false);
   const m = st.memb || {};
@@ -1452,7 +1454,7 @@ function escMealDelayed(req) {
 async function renderMealTrainerBox() {
   const box = $('meal-trainer-box');
   if (!box) return;
-  if (ROLE !== 'entrenador' && ROLE !== 'administrador') { box.style.display = 'none'; return; }
+  if (ROLE !== 'entrenador' && ROLE !== 'administrador') { box.style.display = 'none'; try { ADM597_SHOW['clients-meal'] = false; adm597DoorsSync(); } catch {} return; }
   const me = auth.currentUser.uid;
   let reqs = [];
   try {
@@ -1460,6 +1462,8 @@ async function renderMealTrainerBox() {
     snap.forEach(d => { const v = d.data(); if (v.trainerUid === me && v.status === 'pendiente_entrenador') reqs.push({ id: d.id, ...v }); });
   } catch {}
   box.style.display = '';
+  /* AUTH-597: la bandeja vive tras su puerta, con su cuenta. */
+  try { ADM597_SHOW['clients-meal'] = true; ADM597_COUNTS['clients-meal'] = reqs.length; adm597DoorsSync(); } catch {}
   box.innerHTML = `
   <div class="panel">
     <h3 class="history-title">${esc(t('esc.mealRequestsTitle'))} (${reqs.length})</h3>
@@ -1492,7 +1496,7 @@ async function renderMealTrainerBox() {
 async function renderModalityTrainerBox() {
   const box = $('modality-trainer-box');
   if (!box) return;
-  if (ROLE !== 'entrenador' && ROLE !== 'administrador') { box.style.display = 'none'; return; }
+  if (ROLE !== 'entrenador' && ROLE !== 'administrador') { box.style.display = 'none'; try { ADM597_SHOW['clients-modality'] = false; adm597DoorsSync(); } catch {} return; }
   const me = auth.currentUser.uid;
   let reqs = [];
   try {
@@ -1500,6 +1504,8 @@ async function renderModalityTrainerBox() {
     snap.forEach(d => { const v = d.data(); if (v.trainerUid === me && v.status === 'pendiente_entrenador') reqs.push({ id: d.id, ...v }); });
   } catch {}
   box.style.display = '';
+  /* AUTH-597: la bandeja vive tras su puerta, con su cuenta. */
+  try { ADM597_SHOW['clients-modality'] = true; ADM597_COUNTS['clients-modality'] = reqs.length; adm597DoorsSync(); } catch {}
   box.innerHTML = `
   <div class="panel">
     <h3 class="history-title">${esc(t('esc.modRequestsTitle'))} (${reqs.length})</h3>
@@ -1541,6 +1547,8 @@ async function renderEscAdminBoxes() {
     try { const snap = await getDocs(collection(db, 'trainer_profiles')); snap.forEach(d => { profs[d.id] = d.data(); }); } catch {}
     const trainers = ADMIN_USERS.filter(u => !u.isOwner && u.role === 'entrenador');
     const pendingM = Object.entries(membs).filter(([, m]) => m.status === 'pendiente');
+    /* AUTH-597: la cuenta de la puerta «Membresías de entrenadores». */
+    try { ADM597_COUNTS['trainers-memberships'] = pendingM.length; } catch {}
     mbox.innerHTML = `
       <h4 class="eval-cfg-group">${esc(t('esc.membershipRequests'))} (${pendingM.length})</h4>
       ${pendingM.length ? pendingM.map(([uid, m]) => `
@@ -1647,6 +1655,8 @@ async function renderEscAdminBoxes() {
       </div>
       <div id="meal-delay-${r.id}" style="display:none"></div>`).join('')}` : '';
     abox.innerHTML = (delayedHtml + confirmHtml) || `<div class="wempty">${esc(t('esc.noMealRequests'))}</div>`;
+    /* AUTH-597: la cuenta de la puerta «Confirmaciones de comidas». */
+    try { ADM597_COUNTS['trainers-meals'] = reqs.length; } catch {}
     document.querySelectorAll('[data-meal-confirm]').forEach(b => b.onclick = async () => {
       const alumno = b.dataset.alumno;
       let feats = { ...ESC_FEATURE_DEFAULTS };
@@ -1712,6 +1722,8 @@ async function renderEscAdminBoxes() {
         <button class="btn-ghost btn-sm" data-mod-admin-reject="${r.id}">${esc(t('esc.rejectBtn'))}</button>
       </div>
     </div>`).join('') : `<div class="wempty">${esc(t('esc.noModRequests'))}</div>`;
+    /* AUTH-597: la cuenta de la puerta «Confirmaciones de modalidad». */
+    try { ADM597_COUNTS['trainers-modality'] = reqs.length; } catch {}
     document.querySelectorAll('[data-mod-confirm]').forEach(b => b.onclick = async () => {
       const alumno = b.dataset.modConfirm;
       const req = reqs.find(x => x.id === alumno);
@@ -1772,6 +1784,9 @@ function paintFlagsBox() {
     toast(t('esc.flagsSaved'));
     applyFeatureGates();
   });
+  /* AUTH-597: las puertas de Entrenadores se repintan con las
+     cuentas recién guardadas por esta pasada. */
+  try { adm597DoorsSync(); } catch {}
 }
 /* ============ DOSSIER DEL ENTRENADOR (2026-10-24, SOLO desarrollo) ============
    Diseño: DISEÑO-DOSSIER-ENTRENADOR-2026-10-24.md. Orden de Ronald
@@ -2664,6 +2679,135 @@ function prof595DoorsSync() {
   if (db && db.style.display !== 'none' && db.innerHTML.trim()) h += door('dossier', t('prof595.dossier'), '');
   host.innerHTML = h;
 }
+
+/* ============ AUTH-597 · PLIEGUES Nº15 — Administración y comunicaciones ============
+   La ficha Nº15 de la auditoría de pliegues (2026-11-23) contra
+   la zona de administración: Accesos apilaba pendientes, usuarios
+   y límites con cuatro párrafos sueltos; Entrenadores, seis
+   bloques con el botón suelto de «Actualizar directorio»;
+   Coaches de alimentación, siete apartados apilados; las
+   bandejas de Mis clientes se apilaban bajo la lista; y
+   «Permisos y privacidad» desplegaba sus siete apartados en
+   columna. Ahora cada bloque es UNA puerta (la línea .pl-fold de
+   la casa, con su cuenta cuando la hay) y su bloque VIAJA a su
+   pantalla propia (.adm597-sheet en index.html, cabecera con
+   título y ✕ y «‹ Volver» siempre visible — regla de navegación
+   de la casa) al patrón del bloque viajero de la 595: los
+   pintores de siempre pintan por id, esté el bloque donde esté,
+   y plegar/desplegar jamás repinta — nada tecleado se pierde.
+   En «Permisos y privacidad» cada apartado nace recogido en su
+   línea y su cuerpo solo voltea el display: al abrirlo se ven
+   dentro sus consentimientos, alertas y estados de salud.
+   Las pantallas de la 590 («Errores de la IA») y la 591
+   («Métricas») NO se tocan. Comunicaciones tiene su propio
+   mecanismo hermano en view-comms.js (comms597). */
+const ADM597 = {
+  'access-pending':       { block: 'adm597-unit-access-pending',       store: 'adm597-store-access-pending',       titleKey: 'adm597.pending',          countKey: 'access-pending' },
+  'access-users':         { block: 'adm597-unit-access-users',         store: 'adm597-store-access-users',         titleKey: 'access.users' },
+  'access-limits':        { block: 'adm597-unit-access-limits',        store: 'adm597-store-access-limits',        titleKey: 'limits.title' },
+  'trainers-requests':    { block: 'adm597-unit-trainers-requests',    store: 'adm597-store-trainers-requests',    titleKey: 'adm597.roleReqs',         countKey: 'trainers-requests' },
+  'trainers-approvals':   { block: 'adm597-unit-trainers-approvals',   store: 'adm597-store-trainers-approvals',   titleKey: 'appr.title' },
+  'trainers-memberships': { block: 'adm597-unit-trainers-memberships', store: 'adm597-store-trainers-memberships', titleKey: 'esc.membershipAdminTitle', countKey: 'trainers-memberships' },
+  'trainers-trial':       { block: 'adm597-unit-trainers-trial',       store: 'adm597-store-trainers-trial',       titleKey: 'purpose.trialAdminTitle' },
+  'trainers-meals':       { block: 'adm597-unit-trainers-meals',       store: 'adm597-store-trainers-meals',       titleKey: 'esc.mealAdminTitle',      countKey: 'trainers-meals' },
+  'trainers-modality':    { block: 'adm597-unit-trainers-modality',    store: 'adm597-store-trainers-modality',    titleKey: 'esc.modAdminTitle',       countKey: 'trainers-modality' },
+  'trainers-directory':   { block: 'adm597-unit-trainers-directory',   store: 'adm597-store-trainers-directory',   titleKey: 'adm597.directory' },
+  'clients-membership':   { block: 'membership-box',                   store: 'adm597-unit-clients-membership',   titleKey: 'esc.membershipTitle',     group: 'clients' },
+  'clients-meal':         { block: 'meal-trainer-box',                 store: 'adm597-unit-clients-meal',           titleKey: 'esc.mealRequestsTitle',   countKey: 'clients-meal',     group: 'clients' },
+  'clients-modality':     { block: 'modality-trainer-box',             store: 'adm597-unit-clients-modality',       titleKey: 'esc.modRequestsTitle',    countKey: 'clients-modality', group: 'clients' },
+  'clients-waiting':      { block: 'waiting-box',                      store: 'adm597-unit-clients-waiting',        titleKey: 'roles.waitingTitle',      countKey: 'clients-waiting',  group: 'clients' },
+  'clients-approvals':    { block: 'approvals-box',                    store: 'adm597-unit-clients-approvals',      titleKey: 'appr.trayTitle',          countKey: 'clients-approvals', group: 'clients' },
+  'coaches-requests':     { block: 'adm597-unit-coaches-requests',     store: 'adm597-store-coaches-requests',     titleKey: 'nutri.admin.proApps',             group: 'coaches' },
+  'coaches-memberships':  { block: 'adm597-unit-coaches-memberships',  store: 'adm597-store-coaches-memberships',  titleKey: 'nutri.admin.membReqs',            group: 'coaches' },
+  'coaches-followups':    { block: 'adm597-unit-coaches-followups',    store: 'adm597-store-coaches-followups',    titleKey: 'nutri.admin.followConf',          group: 'coaches' },
+  'coaches-changes':      { block: 'adm597-unit-coaches-changes',      store: 'adm597-store-coaches-changes',      titleKey: 'nutri.admin.changeConf',         group: 'coaches' },
+  'coaches-waiting':      { block: 'adm597-unit-coaches-waiting',      store: 'adm597-store-coaches-waiting',      titleKey: 'nutri.admin.waiting',         group: 'coaches' },
+  'coaches-recipes':      { block: 'adm597-unit-coaches-recipes',      store: 'adm597-store-coaches-recipes',      titleKey: 'nutri.admin.recipeProps',         group: 'coaches' },
+  'coaches-pool':         { block: 'adm597-unit-coaches-pool',         store: 'adm597-store-coaches-pool',         titleKey: 'nutri.admin.pool',            group: 'coaches' }
+};
+const ADM597_COUNTS = {};
+const ADM597_SHOW = {};
+const ADM597_OPEN = new Set();
+function adm597Open(key) {
+  const c = ADM597[key]; if (!c) return;
+  const f = document.getElementById('adm597-float-' + key), body = document.getElementById('adm597-' + key + '-body'), block = document.getElementById(c.block);
+  if (!f || !body || !block) return;
+  const ttl = document.getElementById('adm597-' + key + '-title'); if (ttl) ttl.textContent = t(c.titleKey);
+  if (block.parentElement !== body) body.appendChild(block);
+  f.style.display = '';
+  ADM597_OPEN.add(key);
+  try { coverSync(); } catch {}
+}
+function adm597Close(key) {
+  const c = ADM597[key]; if (!c) return;
+  const f = document.getElementById('adm597-float-' + key), store = document.getElementById(c.store), block = document.getElementById(c.block);
+  if (block && store && block.parentElement !== store) store.appendChild(block);
+  if (f && f.style.display !== 'none') { f.style.display = 'none'; try { coverSync(); } catch {} }
+  ADM597_OPEN.delete(key);
+}
+function adm597CloseGroup(group) { Object.keys(ADM597).forEach(k => { if (ADM597[k].group === group) { try { adm597Close(k); } catch {} } }); }
+/* nutriAdminPaint repinta #coaches-admin-box entero con cada
+   acción: si una pantalla de coaches está abierta, su bloque
+   recién pintado vuelve a viajar a la hoja que sigue abierta. */
+function adm597RestoreCoaches() {
+  Object.keys(ADM597).forEach(k => {
+    if (ADM597[k].group !== 'coaches' || !ADM597_OPEN.has(k)) return;
+    const body = document.getElementById('adm597-' + k + '-body'), block = document.getElementById(ADM597[k].block);
+    if (body && block && block.parentElement !== body) body.appendChild(block);
+  });
+}
+/* El cableado de ✕/Volver va con document.getElementById, no
+   con $: este bloque corre al evaluar el módulo y el atajo $
+   se declara más abajo en el archivo (la lección de la 595). */
+Object.keys(ADM597).forEach(k => {
+  const x = document.getElementById('adm597-' + k + '-x'); if (x) x.onclick = () => adm597Close(k);
+  const bk = document.getElementById('adm597-' + k + '-back'); if (bk) bk.onclick = () => adm597Close(k);
+});
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-adm597-open]') : null;
+  if (b) adm597Open(b.dataset.adm597Open);
+});
+function adm597DoorHTML(key) {
+  const c = ADM597[key]; if (!c) return '';
+  const n = c.countKey ? ADM597_COUNTS[c.countKey] : null;
+  return `<button type="button" class="pl-fold adm597-door" data-adm597-open="${key}"><span class="pl-fold-label">${esc(t(c.titleKey))}</span>${n != null ? `<span class="adm597-count">(${n})</span>` : ''}<span class="pl-fold-chev" aria-hidden="true">›</span></button>`;
+}
+function adm597DoorsSync() {
+  const acc = document.getElementById('adm597-access-doors');
+  if (acc) acc.innerHTML = IS_OWNER ? ['access-pending', 'access-users', 'access-limits'].map(adm597DoorHTML).join('') : '';
+  const trn = document.getElementById('adm597-trainers-doors');
+  if (trn) trn.innerHTML = IS_OWNER ? ['trainers-requests', 'trainers-approvals', 'trainers-memberships', 'trainers-trial', 'trainers-meals', 'trainers-modality', 'trainers-directory'].map(adm597DoorHTML).join('') : '';
+  const cli = document.getElementById('adm597-clients-doors');
+  if (cli) cli.innerHTML = ['clients-membership', 'clients-meal', 'clients-modality', 'clients-waiting', 'clients-approvals'].filter(k => ADM597_SHOW[k]).map(adm597DoorHTML).join('');
+}
+/* Las explicaciones de Accesos y Entrenadores nacen recogidas
+   tras «Qué es esta vista» (el patrón de la 589/592): el cuerpo
+   solo voltea su display. */
+function adm597HintWire(btnId, bodyId) {
+  const b = document.getElementById(btnId), p = document.getElementById(bodyId);
+  if (!b || !p) return;
+  b.onclick = () => { const open = p.style.display !== 'none'; p.style.display = open ? 'none' : ''; b.setAttribute('aria-expanded', open ? 'false' : 'true'); };
+}
+adm597HintWire('adm597-access-hint-btn', 'adm597-access-hint');
+adm597HintWire('adm597-trainers-hint-btn', 'adm597-trainers-hint');
+/* «Permisos y privacidad»: cada apartado nace recogido en su
+   línea; desplegar solo voltea el display de su cuerpo — los
+   formularios en edición (declaración, espacio privado, claves)
+   nunca se repintan al plegar, así que nada tecleado se pierde.
+   Las rutas que aterrizan en un apartado (declaración de salud,
+   tipo corporal, metas) lo despliegan con perms597Open. */
+const PERMS597 = ['health', 'energy', 'bt', 'actshare', 'units', 'privacy', 'pk'];
+function perms597Set(key, open) {
+  const body = document.getElementById('perms597-' + key + '-body');
+  const btn = document.getElementById('perms597-' + key + '-btn');
+  if (body) body.style.display = open ? '' : 'none';
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function perms597Open(key) { perms597Set(key, true); }
+PERMS597.forEach(k => {
+  const btn = document.getElementById('perms597-' + k + '-btn');
+  if (btn) btn.onclick = () => { const body = document.getElementById('perms597-' + k + '-body'); perms597Set(k, !(body && body.style.display !== 'none')); };
+});
 
 async function renderProfileView() {
   const box = $('profile-card-box'); if (!box) return;
@@ -7013,6 +7157,9 @@ async function loadAdmin() {
   const trc = $('trainer-req-count'); if (trc) trc.textContent = pendingTrainer.length;
   const trl = $('trainer-requests-list');
   if (trl) trl.innerHTML = pendingTrainer.length ? pendingTrainer.map(roleReqRow).join('') : `<div class="wempty">${t('admin.noPending')}</div>`;
+  /* AUTH-597 (pliegues nº 15): las cuentas que llevan las
+     puertas de Accesos y Entrenadores en su línea. */
+  try { ADM597_COUNTS['access-pending'] = pending.length; ADM597_COUNTS['trainers-requests'] = pendingTrainer.length; adm597DoorsSync(); } catch {}
   /* Punto 10 de la cola (decisión de Ronald, 2026-11-01 18:12 CST):
      la ventana flotante «Pendientes de aprobación» se pinta EN ESTA
      MISMA pasada, con la MISMA fuente (pendingAll — todas las
@@ -10186,8 +10333,9 @@ function stuAdminStepRowHTML(uid) {
 function stuGoAdminMeals() {
   if (typeof FICHA_MODE !== 'undefined' && FICHA_MODE) fichaClose();
   switchTab('trainers');
-  const b = $('meal-admin-box');
-  if (b) { try { b.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+  /* AUTH-597 (pliegues nº 15): el destino es la pantalla propia
+     de «Confirmaciones de comidas» de Entrenadores. */
+  try { adm597Open('trainers-meals'); } catch {}
 }
 
 /* ---------- filas, rejilla, filtros y detalle ---------- */
@@ -12364,6 +12512,10 @@ function studentsCloseDetail() {
 let FICHA_MODE = null;   // { origin: 'students'|'clients', surface: 'ficha'|'meal' }
 function fichaSetMode(origin, surface) {
   const sec = $('clients-section'); if (!sec) return;
+  /* AUTH-597 (pliegues nº 15): antes de aislar la superficie,
+     las bandejas vuelven a su almacén (la de comidas debe estar
+     en casa para que la vista de solo-comidas la exima). */
+  try { adm597CloseGroup('clients'); } catch {}
   FICHA_MODE = { origin, surface };
   sec.classList.remove('ficha-solo', 'ficha-solo-meal');
   sec.classList.add(surface === 'meal' ? 'ficha-solo-meal' : 'ficha-solo');
@@ -13104,7 +13256,7 @@ function openStudent(uid) {
    del propietario en las reglas vigentes ya lo permite). */
 function renderWaitingTray(users) {
   const box = $('waiting-box'); if (!box) return;
-  if (ROLE !== 'administrador') { box.style.display = 'none'; box.innerHTML = ''; return; }
+  if (ROLE !== 'administrador') { box.style.display = 'none'; box.innerHTML = ''; try { ADM597_SHOW['clients-waiting'] = false; adm597DoorsSync(); } catch {} return; }
   /* AUTH-183 (D6): la bandeja es de ALUMNOS en espera — el
      personal (rol entrenador o administrador) NUNCA aparece en
      ella, aunque su cuenta conserve assignmentStatus 'waiting'
@@ -13119,6 +13271,8 @@ function renderWaitingTray(users) {
   const waiting = (users || []).filter(u => !u.isOwner && u.role !== 'entrenador' && u.role !== 'administrador' && u.approved === true && u.assignmentStatus === 'waiting' && !selfTrainedOf(u));
   const trainers = (users || []).filter(u => u.isOwner || u.role === 'entrenador');
   box.style.display = '';
+  /* AUTH-597: la bandeja vive tras su puerta, con su cuenta. */
+  try { ADM597_SHOW['clients-waiting'] = true; ADM597_COUNTS['clients-waiting'] = waiting.length; adm597DoorsSync(); } catch {}
   box.innerHTML = `<h3 class="history-title">${t('roles.waitingTitle')} (${waiting.length})</h3>
     <p class="progress-hint">${t('roles.waitingHint')}</p>`
     + (waiting.length ? waiting.map(u => `
@@ -13179,7 +13333,7 @@ function renderWaitingTray(users) {
    límite ni contador. */
 async function renderApprovalsTray(myUsers) {
   const box = $('approvals-box'); if (!box) return;
-  if (ROLE !== 'entrenador') { box.style.display = 'none'; box.innerHTML = ''; return; }
+  if (ROLE !== 'entrenador') { box.style.display = 'none'; box.innerHTML = ''; try { ADM597_SHOW['clients-approvals'] = false; adm597DoorsSync(); } catch {} return; }
   const me = auth.currentUser.uid;
   let limit = null;
   try { const s = await getDoc(doc(db, 'app_settings', 'approvals')); if (s.exists() && isFinite(Number(s.data().maxPerTrainer))) limit = Number(s.data().maxPerTrainer); } catch {}
@@ -13195,6 +13349,8 @@ async function renderApprovalsTray(myUsers) {
   [...minePending, ...waiting.filter(u => !u.isOwner && u.approved !== true)].forEach(u => { if (!seen.has(u.id)) { seen.add(u.id); pend.push(u); } });
   const canApprove = limit !== null && myUsed < limit;
   box.style.display = '';
+  /* AUTH-597: la bandeja vive tras su puerta, con su cuenta. */
+  try { ADM597_SHOW['clients-approvals'] = true; ADM597_COUNTS['clients-approvals'] = pend.length; adm597DoorsSync(); } catch {}
   box.innerHTML = `<h3 class="history-title">${t('appr.trayTitle')} (${pend.length})</h3>
     <p class="progress-hint">${t('appr.trayHint')}</p>
     <p class="progress-hint">${limit === null ? t('appr.noLimit') : (canApprove ? t('appr.usedOf', { used: myUsed, limit }) : t('appr.exhausted'))}</p>`
@@ -39862,9 +40018,9 @@ function irLinkApply() {
   try {
     const scroll = id2 => { const r = $(id2); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } };
     if (route === 'mytrainer') { switchTab('trainer'); scroll('my-trainer-box'); }
-    else if (route === 'perms') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); }
-    else if (route === 'perms-spec') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); pendRevealSpecDirect(); }
-    else if (route === 'perms-bt') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); const bd = $('bt-details'); if (bd) bd.open = true; const gb = $('btn-bt-grant'); if (gb) { try { gb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } else scroll('bt-section'); }
+    else if (route === 'perms') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); try { perms597Open('health'); } catch {} scroll('health-section'); }
+    else if (route === 'perms-spec') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); try { perms597Open('health'); } catch {} scroll('health-section'); pendRevealSpecDirect(); }
+    else if (route === 'perms-bt') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); try { perms597Open('bt'); } catch {} const bd = $('bt-details'); if (bd) bd.open = true; const gb = $('btn-bt-grant'); if (gb) { try { gb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } else scroll('bt-section'); }
     else if (route === 'weight') { openWeightModal(null); const wd = $('w-date'); if (wd) wd.value = todayISO(); }
     else return false;
     return true;
@@ -46934,6 +47090,8 @@ async function planAiDoorHealth(host) {
 function planAiGoDeclaration() {
   switchTab('admin');
   const pb = $('btn-perms'); if (pb && !permsOpen) pb.click();
+  /* AUTH-597: el apartado de salud nace recogido: se despliega. */
+  try { perms597Open('health'); } catch {}
   const hs = $('health-section'); if (hs) { try { hs.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
 }
 /* El perfil de la propuesta [parámetros declarados en el PLAN]:
@@ -61236,6 +61394,9 @@ function pendGoWaitingTray() {
   let tries = 0;
   const arrive = () => {
     if (!box) return;
+    /* AUTH-597 (pliegues nº 15): la bandeja vive tras su puerta:
+       la llegada abre su pantalla propia y el realce cae dentro. */
+    try { adm597Open('clients-waiting'); } catch {}
     const go = () => { try { box.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} };
     go(); setTimeout(go, 800);
     const prevShadow = box.style.boxShadow, prevRadius = box.style.borderRadius, prevTrans = box.style.transition;
@@ -61406,24 +61567,24 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
           const route = b.dataset.route;
           const scroll = id2 => { const r = $(id2); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } };
           if (route === 'dossier-editor') { switchTab('profile'); try { prof595Open('dossier'); } catch {} }
-          else if (route === 'membership') { switchTab('clients'); scroll('membership-box'); }
+          else if (route === 'membership') { switchTab('clients'); try { adm597Open('clients-membership'); } catch {} }
           else if (route === 'mytrainer') { switchTab('trainer'); scroll('my-trainer-box'); }
           else if (route === 'eval') { navOpenPage('progress'); progSetSub('fotos'); scroll('eval-root'); }
           /* ADMIN-TODOS (2026-11-03): las rutas al panel «Permisos
              y privacidad» caen primero en su nueva casa, la vista
              «Administración», y allí abren el panel como siempre. */
-          else if (route === 'perms') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); }
-          else if (route === 'perms-spec') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); scroll('health-section'); pendRevealSpecDirect(); }
-          else if (route === 'perms-bt') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); const bd = $('bt-details'); if (bd) bd.open = true; const gb = $('btn-bt-grant'); if (gb) { try { gb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } else scroll('bt-section'); }
+          else if (route === 'perms') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); try { perms597Open('health'); } catch {} scroll('health-section'); }
+          else if (route === 'perms-spec') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); try { perms597Open('health'); } catch {} scroll('health-section'); pendRevealSpecDirect(); }
+          else if (route === 'perms-bt') { switchTab('admin'); const pb = $('btn-perms'); if (pb && !permsOpen) pb.click(); try { perms597Open('bt'); } catch {} const bd = $('bt-details'); if (bd) bd.open = true; const gb = $('btn-bt-grant'); if (gb) { try { gb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } else scroll('bt-section'); }
           else if (route === 'goals') { switchTab('track'); scroll('rings'); }
-          else if (route === 'goals-setup') { switchTab('admin'); const pb2 = $('btn-perms'); if (pb2 && !permsOpen) pb2.click(); scroll('energy-section'); }
+          else if (route === 'goals-setup') { switchTab('admin'); const pb2 = $('btn-perms'); if (pb2 && !permsOpen) pb2.click(); try { perms597Open('energy'); } catch {} scroll('energy-section'); }
           else if (route === 'base-flow') { baseFlowOpen(); }
           else if (route === 'clients') { switchTab('clients'); }
           else if (route === 'students') { switchTab('students'); }
           else if (route === 'admin-pending') { apprFloatOpen(); }
-          else if (route === 'admin-membership') { switchTab('trainers'); scroll('membership-admin-box'); }
-          else if (route === 'admin-rolerequests') { switchTab('trainers'); scroll('trainer-requests-list'); }
-          else if (route === 'admin-meals') { switchTab('trainers'); scroll('meal-admin-box'); }
+          else if (route === 'admin-membership') { switchTab('trainers'); try { adm597Open('trainers-memberships'); } catch {} }
+          else if (route === 'admin-rolerequests') { switchTab('trainers'); try { adm597Open('trainers-requests'); } catch {} }
+          else if (route === 'admin-meals') { switchTab('trainers'); try { adm597Open('trainers-meals'); } catch {} }
           else if (route === 'admin-waiting') { pendGoWaitingTray(); }
         }
         /* El destino hereda la deuda de regreso: el flotante se
@@ -68000,27 +68161,43 @@ async function nutriAdminPaint(body) {
   for (const w of waiting) w._name = await nutriNameOf(w.studentUid || w.uid);
   const pool = await nutriPool();
   const sec = (title, inner) => `<div class="nutri-sub"><b>${esc(title)}</b></div>${inner || `<p class="progress-hint">${esc(t('nutri.admin.empty'))}</p>`}`;
+  /* AUTH-597 (pliegues nº 15): los siete apartados dejan de
+     apilarse: cada uno es una PUERTA y su sección vive en su
+     almacén, viajando a su pantalla propia (adm597Open); el
+     botón de publicar el directorio vive dentro de la pantalla
+     del pool. Las secciones vacías quedan como su línea. */
+  const sec597 = (key, title, inner) => `<div id="adm597-store-${key}" style="display:none"><div class="adm597-unit" id="adm597-unit-${key}">${sec(title, inner)}</div></div>`;
+  const door597 = (key, title, n) => `<button type="button" class="pl-fold adm597-door" data-adm597-open="${key}"><span class="pl-fold-label">${esc(title)}</span>${n ? `<span class="adm597-count">(${n})</span>` : ''}<span class="pl-fold-chev" aria-hidden="true">›</span></button>`;
   body.innerHTML =
-    sec(t('nutri.admin.proApps'), apps.map(a => `<div class="nutri-card"><b>${esc(a._name)}</b><br><span class="muted">${esc(t('nutri.pro.formation'))}: ${esc(a.formation || '—')}</span>
+    `<div class="adm597-doors">` +
+    door597('coaches-requests', t('nutri.admin.proApps'), apps.length) +
+    door597('coaches-memberships', t('nutri.admin.membReqs'), membs.length) +
+    door597('coaches-followups', t('nutri.admin.followConf'), follows.length) +
+    door597('coaches-changes', t('nutri.admin.changeConf'), changes.length) +
+    door597('coaches-waiting', t('nutri.admin.waiting'), waiting.length) +
+    door597('coaches-recipes', t('nutri.admin.recipeProps'), props.length) +
+    door597('coaches-pool', t('nutri.admin.pool'), pros.length) +
+    `</div>` +
+    sec597('coaches-requests', t('nutri.admin.proApps'), apps.map(a => `<div class="nutri-card"><b>${esc(a._name)}</b><br><span class="muted">${esc(t('nutri.pro.formation'))}: ${esc(a.formation || '—')}</span>
       <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-na-approve="${esc(a.uid)}">${esc(t('nutri.approve'))}</button>
       <button type="button" class="btn-ghost btn-sm" data-na-reject="${esc(a.uid)}">${esc(t('nutri.reject'))}</button></div></div>`).join('')) +
-    sec(t('nutri.admin.membReqs'), membs.map(m => `<div class="nutri-card"><b>${esc(NUTRI.names[m.uid] || m.uid)}</b> · ${esc(escLevelLabel(m.requestedLevel))} (${membershipQuotaOf(m.requestedLevel)})
+    sec597('coaches-memberships', t('nutri.admin.membReqs'), membs.map(m => `<div class="nutri-card"><b>${esc(NUTRI.names[m.uid] || m.uid)}</b> · ${esc(escLevelLabel(m.requestedLevel))} (${membershipQuotaOf(m.requestedLevel)})
       <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nm-approve="${esc(m.uid)}">${esc(t('nutri.approve'))}</button>
       <button type="button" class="btn-ghost btn-sm" data-nm-reject="${esc(m.uid)}">${esc(t('nutri.reject'))}</button></div></div>`).join('')) +
-    sec(t('nutri.admin.followConf'), follows.map(f => `<div class="nutri-card"><b>${esc(f._name)}</b>${f._nutri ? ` · ${esc(f._nutri)}` : ''} · ${esc(nutriCadLabel(f.cadence))}
+    sec597('coaches-followups', t('nutri.admin.followConf'), follows.map(f => `<div class="nutri-card"><b>${esc(f._name)}</b>${f._nutri ? ` · ${esc(f._nutri)}` : ''} · ${esc(nutriCadLabel(f.cadence))}
       <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nf-confirm="${esc(f.id)}">${esc(t('nutri.admin.confirm'))}</button>
       <button type="button" class="btn-ghost btn-sm" data-nf-reject="${esc(f.id)}">${esc(t('nutri.reject'))}</button></div></div>`).join('')) +
-    sec(t('nutri.admin.changeConf'), changes.map(c => `<div class="nutri-card"><b>${esc(c._name)}</b> → ${esc(c._to)}
+    sec597('coaches-changes', t('nutri.admin.changeConf'), changes.map(c => `<div class="nutri-card"><b>${esc(c._name)}</b> → ${esc(c._to)}
       <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nchg-confirm="${esc(c.studentUid || c.uid)}">${esc(t('nutri.admin.confirm'))}</button>
       <button type="button" class="btn-ghost btn-sm" data-nchg-reject="${esc(c.studentUid || c.uid)}">${esc(t('nutri.reject'))}</button></div></div>`).join('')) +
-    sec(t('nutri.admin.waiting'), waiting.map(w => `<div class="nutri-card"><b>${esc(w._name)}</b>
+    sec597('coaches-waiting', t('nutri.admin.waiting'), waiting.map(w => `<div class="nutri-card"><b>${esc(w._name)}</b>
       <div class="eval-actions">${pool.map(p => `<button type="button" class="btn-ghost btn-sm" data-nw-assign="${esc(w.studentUid || w.uid)}|${esc(p.uid)}">${esc(t('nutri.admin.assign'))}: ${esc(p.displayName || '')}</button>`).join('')}</div></div>`).join('')) +
-    sec(t('nutri.admin.recipeProps'), props.map(r => `<div class="nutri-card"><b>${esc((r.title && r.title.es) || '')}</b> · ${esc(r.scope)}
+    sec597('coaches-recipes', t('nutri.admin.recipeProps'), props.map(r => `<div class="nutri-card"><b>${esc((r.title && r.title.es) || '')}</b> · ${esc(r.scope)}
       <div class="eval-actions"><button type="button" class="btn-primary btn-sm" data-nr-publish="${esc(r.id)}">${esc(t('nutri.admin.publish'))}</button>
       <button type="button" class="btn-ghost btn-sm" data-nr-reject="${esc(r.id)}">${esc(t('nutri.reject'))}</button></div></div>`).join('')) +
-    sec(t('nutri.admin.pool'), pros.map(p => `<div class="nutri-card"><b>${esc(p.displayName || p.uid)}</b> · ${Number(p.activeClients) || 0}
-      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-na-suspend="${esc(p.uid)}">${esc(t('nutri.admin.suspend'))}</button></div></div>`).join('')) +
-    `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="na-pubdir">${esc(t('nutri.admin.publishDir'))}</button></div>`;
+    sec597('coaches-pool', t('nutri.admin.pool'), pros.map(p => `<div class="nutri-card"><b>${esc(p.displayName || p.uid)}</b> · ${Number(p.activeClients) || 0}
+      <div class="eval-actions"><button type="button" class="btn-ghost btn-sm" data-na-suspend="${esc(p.uid)}">${esc(t('nutri.admin.suspend'))}</button></div></div>`).join('') +
+      `<div class="eval-actions"><button type="button" class="btn-ghost btn-sm" id="na-pubdir">${esc(t('nutri.admin.publishDir'))}</button></div>`);
   const wire = (sel, fn) => body.querySelectorAll(sel).forEach(b => b.onclick = () => fn(b));
   wire('[data-na-approve]', async b => {
     try {
@@ -68176,6 +68353,10 @@ async function nutriAdminPaint(body) {
       toast(t('nutri.saved'));
     } catch { toast(t('err.createFail'), true); }
   };
+  /* AUTH-597: con el cableado ya puesto, si una pantalla de
+     coaches seguía abierta durante este repintado, su bloque
+     recién pintado vuelve a viajar a la hoja abierta. */
+  try { adm597RestoreCoaches(); } catch {}
 }
 /* Cableado de la ventana: ✕, clic fuera y Escape (idioma de la
    familia Comida/Pendientes: cada familia lleva el suyo). */
@@ -77596,6 +77777,10 @@ function fitDeltaTxt(cur, ref, test) {
 function fitGoDecl() {
   mpSheetClose('mp-tests');
   try { switchTab('admin'); } catch {}
+  /* AUTH-597: el destino es el apartado de salud de Permisos,
+     que nace recogido: se abre el panel y se despliega. */
+  const pb = $('btn-perms'); if (pb && !permsOpen) pb.click();
+  try { perms597Open('health'); } catch {}
   setTimeout(() => { const h = $('health-section'); if (h) { try { h.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } }, 350);
 }
 /* AUTH-586 (punto 9): el anfitrión de la batería — la hoja de
