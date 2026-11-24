@@ -3050,10 +3050,18 @@ function admuseSkeleton() {
      lleva el título «Personas» — la fila va directamente bajo la
      cabecera de la zona, como primer bloque. */
   const people = admPeopleNavHTML();
+  /* «Errores de la IA» (AUTH-590): una línea MÁS del índice de la
+     zona, con la misma cara que las cabeceras de sección (.admsec
+     + .admsec-head) pero SIN cuerpo desplegable: es una PUERTA —
+     al tocarla se abre su pantalla propia (#aierr-float), por la
+     regla de navegación de la casa (cada botón abre solo su parte
+     como pantalla propia con volver). La atiende el listener
+     delegado de [data-aierr-open] junto a aierrSheetOpen. */
+  const aierrLine = `<div class="admsec"><button type="button" class="admsec-head" data-aierr-open><span>${esc(t('aierr.title'))}</span><span class="admsec-chev" aria-hidden="true">›</span></button></div>`;
   return `<div class="panel admuse-zone"><h3 class="history-title">${esc(t('admuse.title'))}</h3><p class="progress-hint">${esc(t('admuse.sub'))}</p>`
     + `<div class="admuse-subspace">${people}</div>`
     + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subTech'))}</h4>${tech}</div>`
-    + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subSystem'))}</h4>${sys}</div></div>`;
+    + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subSystem'))}</h4>${sys}${aierrLine}</div></div>`;
 }
 function admSecToggle(id) {
   const sec = ADMIN_SECTIONS.find(s => s.id === id);
@@ -3138,6 +3146,104 @@ async function renderAdminZone() {
     } else ADM_SEC_MOUNTED[s.id] = false;
   });
 }
+/* ============ ERRORES DE LA IA (AUTH-590; solo dueño) ============
+   Orden de Ronald (2026-11-24): «Déjalo visible» — el registro de
+   errores REALES de Google que el Worker guarda cuando una llamada
+   de IA falla (clave KV «gerr:log», últimos 50) se ve DENTRO de la
+   app. La línea vive en el índice de «Administración» (subespacio
+   SISTEMA de admuseSkeleton, puerta de rol de la zona entera:
+   solo ROLE administrador la pinta) y abre su pantalla propia
+   (#aierr-float), como manda la regla de navegación de la casa.
+   La llamada sigue EXACTAMENTE el patrón de las vistas hermanas
+   (usageCall / limitsCall): aiEndpoint() + getIdToken() + Bearer,
+   y el error sale como 'aierr-' + status. La puerta fina es la
+   del propio Worker — la misma de /admin/limits (token válido o
+   401; propietario o 403) — y aquí se refleja ANTES de llamar,
+   como hace limregLoad: sin IS_OWNER no se llama y se dice.
+   SOLO LECTURA: la pantalla lee UNA vez al abrirse (nada en el
+   arranque) y no borra ni modifica el registro; el Worker no
+   ofrece esa vía y no se inventa. Sin Firestore: cero lecturas
+   y cero escrituras de la base de datos en todo el bloque. */
+let AIERR_SEQ = 0;
+async function aierrCall() {
+  const ep = aiEndpoint();
+  if (!ep) throw new Error('ai-off');
+  const idToken = await auth.currentUser.getIdToken();
+  const r = await fetch(ep + '/admin/gemini-errors', { headers: { Authorization: 'Bearer ' + idToken } });
+  if (!r.ok) throw new Error('aierr-' + r.status);
+  return r.json();
+}
+function aierrWhenTxt(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '—';
+  const loc = LANG === 'es' ? 'es' : 'en';
+  return d.toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' }) + ' · ' + d.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' });
+}
+/* La ruta de origen del registro (el «src» del Worker) traducida
+   a palabras: qué estaba intentando hacer la app cuando la
+   llamada falló. Los valores son los de WS_SOURCES del Worker;
+   lo desconocido cae a «otra tarea», sin enseñar el código crudo
+   como única explicación. */
+const AIERR_SRC_KEYS = {
+  'puerta-ia': 'aierr.srcPuertaIa',
+  'despertador-resumen': 'aierr.srcResumen',
+  'despertador-atencion': 'aierr.srcAtencion',
+  'despertador-semanal': 'aierr.srcSemanal',
+  'despertador-entregas': 'aierr.srcEntregas',
+  'rutas-admin': 'aierr.srcAdmin',
+  'correo-y-registro': 'aierr.srcCorreo'
+};
+function aierrRowHTML(rec) {
+  const r = rec || {};
+  const kindKey = r.kind === 'http' ? 'aierr.kindHttp' : r.kind === 'network' ? 'aierr.kindNetwork' : r.kind === 'shape' ? 'aierr.kindShape' : 'aierr.kindOther';
+  let kind = t(kindKey);
+  if (r.kind === 'http' && r.status != null) { kind += ' · ' + r.status; if (r.gstatus) kind += ' ' + r.gstatus; }
+  const gm = String(r.gmessage || '').trim();
+  return `<div class="aierr-row"><div class="aierr-top"><b>${esc(kind)}</b><span class="muted">${esc(aierrWhenTxt(r.at))}</span></div>`
+    + `<div class="aierr-sub">${esc(t(AIERR_SRC_KEYS[r.src] || 'aierr.srcOther'))}</div>`
+    + (r.model ? `<div class="aierr-sub">${esc(t('aierr.model'))}: ${esc(r.model)}</div>` : '')
+    + (gm ? `<div class="aierr-msg">${esc(t('aierr.googleSays'))}: «${esc(gm)}»</div>` : '')
+    + `</div>`;
+}
+async function aierrLoad() {
+  const body = $('aierr-sheet-body');
+  if (!body) return;
+  if (!(IS_OWNER && ROLE === 'administrador')) { body.innerHTML = `<div class="wempty">${esc(t('aierr.forbidden'))}</div>`; return; }
+  const seq = ++AIERR_SEQ;
+  body.innerHTML = `<div class="wempty">${esc(t('aierr.loading'))}</div>`;
+  try {
+    const data = await aierrCall();
+    if (seq !== AIERR_SEQ) return;
+    const errs = (data && Array.isArray(data.errors)) ? data.errors : [];
+    if (!errs.length) { body.innerHTML = `<div class="wempty">${esc(t('aierr.empty'))}</div><p class="progress-hint">${esc(t('aierr.emptyHint'))}</p>`; return; }
+    body.innerHTML = errs.map(aierrRowHTML).join('');
+  } catch (e) {
+    if (seq !== AIERR_SEQ) return;
+    const msg = String((e && e.message) || '');
+    const key = msg === 'aierr-401' ? 'aierr.unauth' : msg === 'aierr-403' ? 'aierr.forbidden' : 'aierr.error';
+    body.innerHTML = `<div class="wempty">${esc(t(key))}</div>`;
+  }
+}
+function aierrSheetOpen() {
+  const f = $('aierr-float'), body = $('aierr-sheet-body');
+  if (!f || !body) return;
+  const title = $('aierr-sheet-title');
+  if (title) title.textContent = t('aierr.title');
+  f.style.display = '';
+  try { coverSync(); } catch {}
+  aierrLoad();
+}
+function aierrSheetClose() {
+  const f = $('aierr-float');
+  if (!f) return;
+  if (f.style.display !== 'none') { f.style.display = 'none'; try { coverSync(); } catch {} }
+}
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-aierr-open]') : null;
+  if (b) aierrSheetOpen();
+});
+{ const x = document.getElementById('aierr-sheet-x'); if (x) x.onclick = () => aierrSheetClose(); }
+{ const bk = document.getElementById('aierr-sheet-back'); if (bk) bk.onclick = () => aierrSheetClose(); }
 /* ════════════════════════════════════════════════════════════════════
    INFORME DE ATENCIÓN DE ENTRENADORES (punto 93 de la cola) — AUTH-193.
    Decisiones de Ronald (propuesta del 2026-11-02, decisiones cerradas

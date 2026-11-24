@@ -2678,6 +2678,18 @@ div.cgrid-cell { cursor: default; }
 .admsec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; box-sizing: border-box; background: #f6faf9; border: 0; padding: 12px 14px; font-size: 15px; font-weight: 700; color: #14201f; cursor: pointer; text-align: left; }
 .admsec-chev { color: #0d9488; font-weight: 800; }
 .admsec-body { padding: 4px 14px 14px; }
+/* AUTH-590 · «Errores de la IA»: las filas del registro de
+   errores de Google dentro de su hoja propia (#aierr-float). */
+/* La línea-puerta garantiza el alto táctil mínimo de la casa
+   (44 px), como ya hizo la sección del editor de FAQ: la
+   cabecera común .admsec-head pinta ~41-42 px y los controles
+   deben ser grandes y fáciles de tocar. Solo esta línea: las
+   demás cabeceras quedan como estaban. */
+.admsec-head[data-aierr-open] { min-height: 44px; }
+.aierr-row { border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; padding: 10px 14px; margin: 10px 0; }
+.aierr-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.aierr-sub { color: #5b6b68; font-size: 13px; margin-top: 2px; }
+.aierr-msg { margin-top: 6px; font-size: 14px; overflow-wrap: anywhere; }
 .admuse-fetched { font-size: 12.5px; color: #6b7280; margin: 6px 0; }
 .admuse-stale { background: #fdf3e3; border: 1px dashed #d97706; border-radius: 10px; color: #7c4a03; font-size: 13px; line-height: 1.45; margin: 8px 0; padding: 8px 10px; }
 /* ============ DÍA ACCIONABLE + ASIGNAR (2026-10-30) ============ */
