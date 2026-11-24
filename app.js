@@ -47549,7 +47549,8 @@ async function r21InviterName(uid) {
   } catch {}
   return '';
 }
-async function r21ProgramOpen(opts = {}) {
+async function r21ProgramOpen(opts) {
+  opts = opts || {};
   const fl = $('reto21-float'); if (!fl) return;
   const me = auth.currentUser && auth.currentUser.uid;
   R21V = { open: new Set(), built: null, st: null, food: null, deName: '', returnTo: R21 ? 'cover' : null, mode: 'program', busy: false, err: '', leaveKind: 'cancel', loadErr: false };
