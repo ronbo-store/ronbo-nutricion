@@ -4304,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-sesion-sin-repintado');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-dia-en-su-sitio');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -19368,7 +19368,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-sesion-sin-repintado' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-dia-en-su-sitio' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -28740,10 +28740,10 @@ document.addEventListener('pointerup', () => {
   if (guideRouteLive(d.plan, d.di)) {
     const mv = TRAIN_GUIDE.order.splice(d.from, 1)[0];
     TRAIN_GUIDE.order.splice(to, 0, mv);
-    loadMyTraining();
+    trainDayRepaint();
     return;
   }
-  if (trainSessionReorder(d.plan, d.di, d.from, to)) loadMyTraining();
+  if (trainSessionReorder(d.plan, d.di, d.from, to)) trainDayRepaint();
 });
 document.addEventListener('pointercancel', () => {
   if (TRAIN_ROW_DRAG) { const d = TRAIN_ROW_DRAG; TRAIN_ROW_DRAG = null; trainRowDragEnd(d); d.row.classList.remove('train-ex-dragging'); }
@@ -28785,7 +28785,7 @@ document.addEventListener('pointerup', () => {
   d.row.classList.remove('guide-stop-dragging');
   const stops = [...d.box.querySelectorAll(':scope > .guide-stop')];
   const to = stops.indexOf(d.row);
-  if (to >= 0 && to !== d.from && trainSessionReorder(d.plan, d.di, d.from, to)) loadMyTraining();
+  if (to >= 0 && to !== d.from && trainSessionReorder(d.plan, d.di, d.from, to)) trainDayRepaint();
 });
 document.addEventListener('pointercancel', () => {
   if (TRAIN_STOP_DRAG) { const d = TRAIN_STOP_DRAG; TRAIN_STOP_DRAG = null; trainRowDragEnd(d); d.row.classList.remove('guide-stop-dragging'); }
@@ -29242,7 +29242,7 @@ function trainCustomWire(plan, di, iso) {
   const isTodayView = viewIso === todayISO();
   const tools = $('train-custom-tools');
   if (!tools || !plan) return;
-  tools.querySelectorAll('[data-tcu-swap]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'swap', idx: Number(b.dataset.tcuSwap) }; SWAP_QUERY = ''; loadMyTraining(); });
+  tools.querySelectorAll('[data-tcu-swap]').forEach(b => b.onclick = () => { TRAIN_PICK = { kind: 'swap', idx: Number(b.dataset.tcuSwap) }; SWAP_QUERY = ''; trainDayRepaint(); });
   /* DICTADO SIN IA (2026-11-06): abre la hoja de dictado para el día
      VISTO (mismas condiciones de visibilidad que «＋ Añadir»). */
   tools.querySelectorAll('[data-tcu-dict]').forEach(b => b.onclick = () => dictSheetOpen(plan, di, viewIso));
@@ -29251,7 +29251,7 @@ function trainCustomWire(plan, di, iso) {
     const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [] };
     delete ed.swaps[String(b.dataset.tcuUndoSwap)];
     trainEditsWrite(plan.id, ed, viewIso);
-    loadMyTraining();
+    trainDayRepaint();
   });
   tools.querySelectorAll('[data-tcu-unadd]').forEach(b => b.onclick = () => {
     const effIdx = Number(b.dataset.tcuUnadd);
@@ -29280,7 +29280,7 @@ function trainCustomWire(plan, di, iso) {
       trainChecksPersist(plan.id);   /* MARCAS QUE SOBREVIVEN: el remapeo también se guarda (las marcas restauradas caen en su índice efectivo nuevo) */
     }
     if (TRAIN_FLOAT) trainFloatClose();
-    loadMyTraining();
+    trainDayRepaint();
   });
   tools.querySelectorAll('[data-tcu-remove]').forEach(b => b.onclick = () => {
     trainSessionRemoveAt(plan, di, Number(b.dataset.tcuRemove), viewIso);
@@ -29288,8 +29288,8 @@ function trainCustomWire(plan, di, iso) {
   tools.querySelectorAll('[data-tcu-restore]').forEach(b => b.onclick = () => {
     trainSessionRestoreSlot(plan, di, Number(b.dataset.tcuRestore), viewIso);
   });
-  tools.querySelectorAll('[data-tcu-up]').forEach(b => b.onclick = () => { const i = Number(b.dataset.tcuUp); if (trainSessionReorder(plan, di, i, i - 1, viewIso)) loadMyTraining(); });
-  tools.querySelectorAll('[data-tcu-down]').forEach(b => b.onclick = () => { const i = Number(b.dataset.tcuDown); if (trainSessionReorder(plan, di, i, i + 1, viewIso)) loadMyTraining(); });
+  tools.querySelectorAll('[data-tcu-up]').forEach(b => b.onclick = () => { const i = Number(b.dataset.tcuUp); if (trainSessionReorder(plan, di, i, i - 1, viewIso)) trainDayRepaint(); });
+  tools.querySelectorAll('[data-tcu-down]').forEach(b => b.onclick = () => { const i = Number(b.dataset.tcuDown); if (trainSessionReorder(plan, di, i, i + 1, viewIso)) trainDayRepaint(); });
 }
 /* QUITAR UN EJERCICIO SOLO DE LA SESIÓN DE HOY (encargo por correo
    de Ronald, 2026-10-30; mecánica declarada en la nota de diseño
@@ -29373,7 +29373,7 @@ function trainSessionRemoveAt(plan, di, effIdx, iso, skipConfirm) {
   TRAIN_PICK = null;
   if (TRAIN_FLOAT) trainFloatClose();
   toast(t(isTodayView ? 'train.remove.done' : 'train.remove.doneDate'));
-  loadMyTraining();
+  trainDayRepaint();
 }
 function trainSessionRestoreSlot(plan, di, slot, iso) {
   if (!plan) return;
@@ -29399,7 +29399,7 @@ function trainSessionRestoreSlot(plan, di, slot, iso) {
   /* Las marcas suben un índice solo si la fecha restaurada es
      hoy: son del día en curso; otro día no tiene marcas. */
   if (viewIso === todayISO()) trainChecksShiftUp(plan, di, effIdx);
-  loadMyTraining();
+  trainDayRepaint();
 }
 
 /* ═══ AUTH-484 · LA HOJA DE CONFIRMACIÓN DE «QUITAR»
@@ -29934,7 +29934,7 @@ function swapSheetApply(plan, di, entry, iso) {
     }
     TRAIN_PICK = null;
     SWAP_QUERY = '';
-    loadMyTraining();
+    trainDayRepaint();
     return;
   }
   const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
@@ -29948,7 +29948,7 @@ function swapSheetApply(plan, di, entry, iso) {
        abierto con el aviso de siempre — nada se escribe. */
     const effR = trainEffectiveList(plan, di, iso);
     const itR = effR[TRAIN_PICK.idx];
-    if (!itR || itR.kind !== 'add') { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); return; }
+    if (!itR || itR.kind !== 'add') { TRAIN_PICK = null; SWAP_QUERY = ''; trainDayRepaint(); return; }
     /* CAND-527: el duplicado es la FORMA exacta elegida (aquí,
        la base) en otro puesto — otra forma de la misma ficha
        no bloquea el cambio. */
@@ -29956,14 +29956,14 @@ function swapSheetApply(plan, di, entry, iso) {
     if (dupR) { toast(t('train.pick.inSession')); return; }
     const addPos = effR.slice(0, TRAIN_PICK.idx).filter(x => x.kind === 'add').length;
     const old = (Array.isArray(ed.added) ? ed.added : [])[addPos];
-    if (!old) { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); return; }
+    if (!old) { TRAIN_PICK = null; SWAP_QUERY = ''; trainDayRepaint(); return; }
     const rec = { exerciseId: entry.id, name: libNameOf(entry), sets: old.sets || '', reps: old.reps || '' };
     if (typeof old.load === 'number' && old.load > 0) { rec.load = old.load; rec.loadUnit = old.loadUnit === 'lb' ? 'lb' : 'kg'; }
     ed.added[addPos] = rec;
     trainEditsWrite(plan.id, ed, iso);
     TRAIN_PICK = null;
     SWAP_QUERY = '';
-    loadMyTraining();
+    trainDayRepaint();
     return;
   }
   if (TRAIN_PICK.kind === 'swap') {
@@ -29973,7 +29973,7 @@ function swapSheetApply(plan, di, entry, iso) {
     trainEditsWrite(plan.id, ed, iso);
     TRAIN_PICK = null;
     SWAP_QUERY = '';
-    loadMyTraining();
+    trainDayRepaint();
     return;
   }
   /* AUTH-340 — «agregar» SIN duplicados y SIN cerrar la hoja
@@ -30025,7 +30025,7 @@ function swapSheetApplyVariant(plan, di, entry, vi, iso) {
   trainEditsWrite(plan.id, ed, iso);
   TRAIN_PICK = null;
   SWAP_QUERY = '';
-  loadMyTraining();
+  trainDayRepaint();
 }
 /* AUTH-424: elegir una FORMA concreta (base o variante de CUALQUIER
    ficha, no solo la del ejercicio del slot) — la escritura gemela
@@ -30075,13 +30075,13 @@ function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
     trainEditsWrite(plan.id, ed, iso);
     TRAIN_PICK = null;
     SWAP_QUERY = '';
-    loadMyTraining();
+    trainDayRepaint();
     return;
   }
   if (TRAIN_PICK.kind === 'replace-add') {
     const effR = trainEffectiveList(plan, di, iso);
     const itR = effR[TRAIN_PICK.idx];
-    if (!itR || itR.kind !== 'add') { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); return; }
+    if (!itR || itR.kind !== 'add') { TRAIN_PICK = null; SWAP_QUERY = ''; trainDayRepaint(); return; }
     /* CAND-527: el duplicado es la FORMA exacta elegida en
        otro puesto — otra forma de la misma ficha no bloquea. */
     const dupR = effR.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && swapFormKey(x.ex.exerciseId, x.ex.variantIndex) === swapFormKey(entry.id, withVar ? vi : -1));
@@ -30089,7 +30089,7 @@ function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
     const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
     const addPos = effR.slice(0, TRAIN_PICK.idx).filter(x => x.kind === 'add').length;
     const old = (Array.isArray(ed.added) ? ed.added : [])[addPos];
-    if (!old) { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); return; }
+    if (!old) { TRAIN_PICK = null; SWAP_QUERY = ''; trainDayRepaint(); return; }
     const rec = { exerciseId: entry.id, name: libNameOf(entry), sets: old.sets || '', reps: old.reps || '' };
     if (typeof old.load === 'number' && old.load > 0) { rec.load = old.load; rec.loadUnit = old.loadUnit === 'lb' ? 'lb' : 'kg'; }
     if (withVar) rec.variantIndex = vi;
@@ -30097,7 +30097,7 @@ function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
     trainEditsWrite(plan.id, ed, iso);
     TRAIN_PICK = null;
     SWAP_QUERY = '';
-    loadMyTraining();
+    trainDayRepaint();
     return;
   }
 }
@@ -30315,7 +30315,7 @@ function swapSheetSync(plan, di, iso) {
     <div id="swap-groups-slot">${swapGroupsHTML()}</div>
     <div id="swap-results" class="pick-results">${swapSheetResultsHTML(plan, di, iso)}</div>
     ${TRAIN_PICK.kind === 'add' ? `<div class="myb-pick-foot"><span class="myb-pick-count" id="swap-pick-count">${esc(swapPickCountText(plan, iso))}</span><button type="button" class="myb-pick-done" data-swap-close="1">${esc(t('train.n09.mybDone'))}</button></div>` : ''}`;
-  sheet.querySelectorAll('[data-swap-close]').forEach(b => b.onclick = () => { TRAIN_PICK = null; SWAP_QUERY = ''; loadMyTraining(); });
+  sheet.querySelectorAll('[data-swap-close]').forEach(b => b.onclick = () => { TRAIN_PICK = null; SWAP_QUERY = ''; trainDayRepaint(); });
   /* AUTH-370: la puerta del escáner de máquinas DENTRO del
      selector, en modo «agregar» — corre la identificación de
      siempre (mphSheetOpen, AUTH-304: la misma puerta de IA y su
@@ -30697,7 +30697,7 @@ function dictSheetApply() {
   if (!okDict) { toast(t('common.error'), true); return; }
   trainAddPlaceFront(D.plan, D.di, D.iso, okRows.length);   /* AUTH-490: el bloque dictado nace al frente de los pendientes */
   dictSheetClose();
-  loadMyTraining();
+  trainDayRepaint();
   toast(t('train.pick.addedOk', { name: okRows.map(r => libNameOf(r.entry)).join(', ') }));
 }
 
@@ -31140,7 +31140,7 @@ async function mphSheetApply() {
        casa): se avisa y se vuelve a la sesión, sin agregar nada. */
     if (mphAlreadyInSession(D.plan, D.di, D.iso, r.entry.id)) {
       mphSheetClose();
-      loadMyTraining();
+      trainDayRepaint();
       toast(t('train.pick.inSession'));
       return;
     }
@@ -31159,7 +31159,7 @@ async function mphSheetApply() {
        guardaba en silencio. */
     if (!okPhoto) { toast(t('common.error'), true); return; }
     mphSheetClose();
-    loadMyTraining();
+    trainDayRepaint();
     toast(t('train.pick.addedOk', { name: mphName }));
     return;
   }
@@ -35719,7 +35719,7 @@ function sessCStageSetDone(plan, T) {
   if (T !== 'warm') SESS_CSTAGE_END_DONE = T;   /* sobre este cardio va el cierre de la jornada */
   if (SESS_CSTAGE_CD && SESS_CSTAGE_CD.T === T) SESS_CSTAGE_CD = null;
   try { sessPillTick(); } catch {}
-  try { loadMyTraining(); } catch {}
+  try { trainDayRepaint(); } catch {}
 }
 function sessCStageRemove(plan, T) {
   const doc = trainCardio2Read(plan.id);
@@ -35729,7 +35729,7 @@ function sessCStageRemove(plan, T) {
   if (SESS_CSTAGE_CD && SESS_CSTAGE_CD.T === T) SESS_CSTAGE_CD = null;
   if (SESS_CSTAGE_END_DONE === T) SESS_CSTAGE_END_DONE = '';
   try { sessPillTick(); } catch {}
-  try { loadMyTraining(); } catch {}
+  try { trainDayRepaint(); } catch {}
 }
 function sessCStageCdToggle(plan, T) {
   const v = sessCStageView(plan.id, T);
@@ -37422,17 +37422,17 @@ function trainFlowWarmWire(box, plan) {
     const p = String(b.dataset.flowWarmDel).split(':');
     const w = warmOf(p[0] + ':' + p[1]); if (!w) return;
     w.sets.splice(Number(p[2]), 1);
-    trainChecksPersist(plan.id); loadMyTraining();
+    trainChecksPersist(plan.id); trainDayRepaint();
   }; });
   box.querySelectorAll('[data-flow-warm-change]').forEach(b => { b.onclick = () => {
     TRAIN_PICK = { kind: 'warm', idx: Number(String(b.dataset.flowWarmChange).split(':')[1]) };
     SWAP_QUERY = '';
-    loadMyTraining();
+    trainDayRepaint();
   }; });
   box.querySelectorAll('[data-flow-warm-back]').forEach(b => { b.onclick = () => {
     const w = warmOf(b.dataset.flowWarmBack); if (!w) return;
     delete w.exerciseId; delete w.name;
-    trainChecksPersist(plan.id); loadMyTraining();
+    trainChecksPersist(plan.id); trainDayRepaint();
   }; });
   box.querySelectorAll('[data-tf-chip^="cardw:"]').forEach(ch => { ch.onclick = () => {
     const p = String(ch.dataset.tfChip).split(':');
@@ -38043,7 +38043,7 @@ function trainFlowWire(box, plan) {
     if (trainManageHasRecord(diF, eiF)) { toast(t('manage.swapLogged', { name: trainExName(itF.ex) || itF.ex.name || '' }), true); return; }
     TRAIN_PICK = { kind: itF.kind === 'add' ? 'replace-add' : 'swap', idx: eiF };
     SWAP_QUERY = '';
-    loadMyTraining();
+    trainDayRepaint();
   });
   box.querySelectorAll('[data-flow-restore]').forEach(b => b.onclick = () => {
     const [diF, slotF] = String(b.dataset.flowRestore).split(':').map(Number);
@@ -40102,7 +40102,7 @@ function trainCardioWire(box) {
          del estudio: 5 minutos, sin modalidad aún. */
       if (!read()) trainCardioWrite(planId, { on: true, mode: null, minutes: 5, dist: null, floors: null, kcal: null, folded: false }, iso);
     } else trainCardioWrite(planId, null, iso);   /* No = ausencia de dato: el borrador se retira */
-    loadMyTraining();
+    trainDayRepaint();
   });
   root.querySelectorAll('[data-cardio-mode]').forEach(b => b.onclick = () => {
     const d = read(); if (!d) return;
@@ -40110,7 +40110,7 @@ function trainCardioWire(box) {
        anterior (distancia, pisos y calorías eran de ESA
        máquina); los minutos se conservan. */
     trainCardioWrite(planId, { ...d, mode: b.dataset.cardioMode, dist: null, floors: null, kcal: null, folded: false }, iso);
-    loadMyTraining();
+    trainDayRepaint();
   });
   root.querySelectorAll('[data-cardio-f]').forEach(inp => inp.onchange = () => {
     const d = read(); if (!d) return;
@@ -40129,13 +40129,13 @@ function trainCardioWire(box) {
     if (!d.mode) { toast(t('train.cardio.needMode'), true); return; }
     if (!(d.minutes > 0)) { toast(t('train.cardio.needMin'), true); return; }
     trainCardioWrite(planId, { ...d, folded: true }, iso);
-    loadMyTraining();
+    trainDayRepaint();
   };
   const ed = root.querySelector('[data-cardio-edit]');
   if (ed) ed.onclick = () => {
     const d = read(); if (!d) return;
     trainCardioWrite(planId, { ...d, folded: false }, iso);
-    loadMyTraining();
+    trainDayRepaint();
   };
 }
 /* ═══ AUTH-481 · EL CALENTAMIENTO DENTRO DE LOS PUNTOS DEL DÍA +
@@ -40646,7 +40646,7 @@ function trainCardio2Wire(box) {
       delete doc.warmOff;   /* AUTH-573: decir Sí retira la marca del «No» guardado */
     } else { doc.warm = null; doc.warmOff = true; }   /* AUTH-573: el dato de ejecución sigue siendo ausencia (el borrador de la entrada se retira, como siempre), pero la RESPUESTA «No» queda guardada con su marca en el mismo borrador — es lo que deja a la tarjeta plegarse a su línea en vez de seguir enseñando la pregunta */
     trainCardio2Write(c.planId, doc, c.iso);
-    loadMyTraining();
+    trainDayRepaint();
   });
   box.querySelectorAll('[data-cardio2-machine]').forEach(b => b.onclick = () => {
     const c = ctxOf(b); if (!c) return;
@@ -40657,7 +40657,7 @@ function trainCardio2Wire(box) {
        conservan — la regla de AUTH-426. */
     setE(doc, T, { ...e, machine: b.dataset.cardio2Machine, dist: null, hr: null, kcal: null, spec: {}, folded: false });
     trainCardio2Write(c.planId, doc, c.iso);
-    loadMyTraining();
+    trainDayRepaint();
   });
   const applyField = (T, c, f, val) => {
     const doc = trainCardio2Read(c.planId, c.iso), e = getE(doc, T);
@@ -40731,7 +40731,7 @@ function trainCardio2Wire(box) {
       if (!e) return;
       setE(doc, T, { ...e, photo: url });
       trainCardio2Write(c.planId, doc, c.iso);
-      loadMyTraining();
+      trainDayRepaint();
     } catch { toast(t('common.error'), true); }
   });
   box.querySelectorAll('[data-cardio2-photo-del]').forEach(b => b.onclick = () => {
@@ -40740,7 +40740,7 @@ function trainCardio2Wire(box) {
     if (!e) return;
     setE(doc, T, { ...e, photo: null });
     trainCardio2Write(c.planId, doc, c.iso);
-    loadMyTraining();
+    trainDayRepaint();
   });
   box.querySelectorAll('[data-cardio2-save]').forEach(b => b.onclick = () => {
     const c = ctxOf(b); if (!c) return;
@@ -40762,7 +40762,7 @@ function trainCardio2Wire(box) {
     if (T !== 'warm' && root527 && root527.dataset.cardio2Exec === '1' && !(e.kcal > 0)) { toast(t('train.cardio2.needKcal'), true); return; }
     setE(doc, T, { ...e, folded: true });
     trainCardio2Write(c.planId, doc, c.iso);
-    loadMyTraining();
+    trainDayRepaint();
   });
   box.querySelectorAll('[data-cardio2-edit]').forEach(b => b.onclick = () => {
     const c = ctxOf(b); if (!c) return;
@@ -40770,7 +40770,7 @@ function trainCardio2Wire(box) {
     if (!e) return;
     setE(doc, T, { ...e, folded: false });
     trainCardio2Write(c.planId, doc, c.iso);
-    loadMyTraining();
+    trainDayRepaint();
   });
   /* AUTH-573: editar la línea del «No» guardado retira su
      marca y la tarjeta vuelve a la pregunta de siempre —
@@ -40781,7 +40781,7 @@ function trainCardio2Wire(box) {
     const doc = trainCardio2Read(c.planId, c.iso);
     delete doc.warmOff;
     trainCardio2Write(c.planId, doc, c.iso);
-    loadMyTraining();
+    trainDayRepaint();
   });
   box.querySelectorAll('[data-cardio2-del]').forEach(b => b.onclick = () => {
     const c = ctxOf(b); if (!c) return;
@@ -40789,12 +40789,12 @@ function trainCardio2Wire(box) {
     const i = Number(T.slice(1));
     if (Number.isInteger(i) && doc.extras[i]) doc.extras.splice(i, 1);
     trainCardio2Write(c.planId, doc, c.iso);
-    loadMyTraining();
+    trainDayRepaint();
   });
   box.querySelectorAll('[data-cardio2-add]').forEach(b => b.onclick = () => {
     const c = ctxOf(b); if (!c) return;
     trainCardio2AddBlank(c.planId, c.iso);   /* AUTH-516: la creación vive en la entrada compartida */
-    loadMyTraining();
+    trainDayRepaint();
   });
 }
 /* MIS HOBBIES EN LA TARJETA (AUTH-438; orden de Ronald
@@ -43466,8 +43466,65 @@ async function loadMyTraining() {
     FLOW_AREA_FOLD = {};   /* AUTH-495: el pliegue de las áreas de series muere con el contexto, como el flujo */
     trainFlowRehydrate(plan.id);   /* AUTH-451: …y renace de su propio borrador, como las marcas */
   }
+  return trainViewPaint(false);   /* AUTH-580 (P2): la composición y la pintura viven en trainViewPaint — la comparten esta carga completa y el repintado ligero del día */
+}
+/* ═══ AUTH-580 · P2 «EL DÍA EN SU SITIO» (auditoría de repintado
+   del 2026-11-23, clase B3 + D5) ═══
+   Hasta este paquete, TODO gesto del día — reordenar (flechas y
+   arrastre), cambiar/quitar/restaurar un ejercicio, el pin y el
+   orden de la ruta guiada, las respuestas del calentamiento y
+   del cardio, abrir y cerrar el selector del día y el aterrizaje
+   tras agregar — terminaba en loadMyTraining(): la vista entera
+   se reconstruía DESPUÉS de releer planes y registros de
+   Firestore (y de reevaluar dolores, meta de tiempo, planes en
+   espera y la corrección del Reto). Ninguno de esos gestos
+   escribe en Firestore: viven en la capa de ediciones de la
+   sesión y en los borradores locales (marcas y cardio), que el
+   propio gesto ya deja guardados. La pintura se separa de la
+   carga: trainViewPaint compone y pinta la vista desde la
+   memoria que la carga dejó (MY_PLAN / MY_LOGS / MY_PLANS_ALL)
+   y trainDayRepaint la invoca en modo ligero — sin una sola
+   relectura — sustituyendo SOLO la tarjeta del día
+   (.train-today) en su sitio y recableándola con el mismo
+   cableado de siempre (trainTodayWire); la tira semanal, la
+   línea del plan y el resto de la vista conservan su nodo, y
+   las herramientas de Personaliza se repintan por su pintor de
+   siempre (trainCustomRenderSession). La carga completa queda
+   para lo estructural: entrar en la vista, cambiar de
+   día/plan/fecha, deshacer un cierre, reabrir un día guardado
+   a medias, cambiar las unidades y los botones del flujo (lo
+   declarado en AUTH-579). Sin la memoria cargada, o con el
+   contexto de marcas de otro plan/día, el gesto cae a la carga
+   completa de siempre. La foto del flujo (trainFlowPersist)
+   sigue guardándose en cada carga completa, como quedó en
+   AUTH-579: las marcas y las ediciones — el DATO — se guardan
+   en el acto por el propio gesto, como siempre. ═══ */
+function trainViewCtx() {
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  const plans = Array.isArray(MY_PLANS_ALL) ? MY_PLANS_ALL : [];
+  let plan = MY_PLAN || null;
+  const isLoose = !plan;
+  if (isLoose) plan = { id: 'suelta', title: '', notes: '', days: [], __loose: true };   /* el mismo plan sintético de la carga (D5) */
+  const logs = Array.isArray(MY_LOGS) ? MY_LOGS : [];
+  const today = todayISO();
+  const doneToday = new Set(logs.filter(l => l.date === today).map(l => l.dayIndex));
   const logByDay = {};
   logs.filter(l => l.date === today).forEach(l => { logByDay[l.dayIndex] = l; });
+  const ctx = plan.id + '|' + today;
+  return { uid, plans, plan, isLoose, logs, today, doneToday, logByDay, ctx };
+}
+async function trainDayRepaint() {
+  const box = $('my-training');
+  if (!box || !auth.currentUser || !Array.isArray(MY_PLANS_ALL)) return loadMyTraining();
+  const planIdNow = MY_PLAN ? MY_PLAN.id : 'suelta';
+  if (TRAIN_CHECKS_CTX !== planIdNow + '|' + todayISO()) return loadMyTraining();
+  if (typeof TRAIN_VIEW !== 'undefined' && TRAIN_VIEW && TRAIN_VIEW.planId && TRAIN_VIEW.planId !== planIdNow) return loadMyTraining();
+  return trainViewPaint(true);
+}
+async function trainViewPaint(light) {
+  const box = $('my-training');
+  if (!box || !auth.currentUser) return;
+  const { uid, plans, plan, isLoose, logs, today, doneToday, logByDay, ctx } = trainViewCtx();
   /* Tarjeta interactiva de UN día del plan para el cierre de HOY
      (la misma que pinta la lista completa; la tarjeta HOY de la
      tira la reutiliza tal cual: mismos checks y mismo cierre). */
@@ -43913,6 +43970,64 @@ async function loadMyTraining() {
      «Tu plan: N días por semana»). El texto entero de las notas
      vive y se edita solo en el editor del plan; el dato guardado
      no se toca — esto es solo de pintado. */
+  /* PERSONALIZA (2026-10-27): las herramientas de la sesión de
+     hoy dentro del desplegable — el día de hoy se resuelve con la
+     misma semántica de la tarjeta (pares/plancal/rotación) y un
+     día ya cerrado no se edita desde aquí. */
+  const tDiCustom = isLoose
+    ? (trainBaseRead(plan.id) ? -1 : (logByDay[-1] ? -1 : null))
+    : ((tmap.pairs || isCal) ? trainTodayDiEffective(plan, diForDate(today)) : trainRotationNext(plan, logs, today));
+  /* FECHA VISTA (2026-11-01, decisión de Ronald): el desplegable
+     personaliza la fecha VISTA (sel), no siempre hoy. Con la vista
+     en hoy la resolución es exactamente la de siempre (tDiCustom,
+     cerrado si hay registro) y nada cambia; con otra fecha:
+     mapa → su día efectivo para esa fecha (la base de sesión solo
+     existe para hoy); rotación futura → la misma proyección que
+     la tarjeta ya declara ((hoy + desplazamiento) mód n);
+     rotación pasada → el dayIndex de su registro, si lo hay.
+     «Cerrado» solo aplica a hoy. */
+  let customDi = tDiCustom, customClosed = tDiCustom != null ? !!logByDay[tDiCustom] : false;
+  if (sel !== today) {
+    customClosed = false;
+    if (tmap.pairs || isCal) customDi = effDiForDate(sel);
+    else if (sel > today) {
+      const nDaysC = (plan.days || []).length;
+      const offC = Math.round((new Date(sel + 'T12:00:00') - new Date(today + 'T12:00:00')) / 86400000);
+      customDi = (tDiCustom != null && nDaysC > 0) ? (((tDiCustom + offC) % nDaysC) + nDaysC) % nDaysC : null;
+    } else {
+      const logP = logs.find(l => l.date === sel);
+      customDi = logP ? logP.dayIndex : null;
+    }
+  }
+  if (isLoose) {
+    const bSelL = trainBaseRead(plan.id, sel);
+    const logSelL = logs.find(l => l.date === sel) || null;
+    customDi = bSelL ? -1 : (logSelL ? logSelL.dayIndex : null);
+    customClosed = sel === today && customDi != null ? !!logByDay[customDi] : false;
+  }
+  if (light) {
+    /* AUTH-580 (P2) · EL REPINTADO LIGERO: solo la tarjeta del
+       día se sustituye en su sitio — la tira semanal, la línea
+       del plan, el almacén de la vista y el aviso de alineación
+       conservan su nodo y su cableado — y la tarjeta nueva se
+       cablea con el cableado de siempre. Sin tarjeta viva (la
+       vista aún no se pintó), sigue la pintura completa. */
+    const oldToday = box.querySelector('.train-today');
+    if (oldToday) {
+      const tmpL = document.createElement('div');
+      tmpL.innerHTML = trainTodayHTML;
+      oldToday.replaceWith(tmpL.firstElementChild);
+      TRAIN_PAINT_EPOCH = TRAIN_CHECKS_EPOCH;   /* AUTH-497: este pintado ya refleja el borrador hasta esta época — un gesto posterior vuelve a separarlas */
+      trainTodayWire(box, { uid, plan, logs, sel, today, logByDay });
+      trainCustomRenderSession(plan, customDi, customClosed, sel);
+      trainAlignRender();
+      trainAddLandAfterPaint(plan.id, sel);   /* AUTH-490: el aterrizaje tras agregar se consume sobre la tarjeta ya pintada en su sitio — la carrera del D5 desaparece */
+      libEnsure().then(() => {
+        if (LIB_STATE === 'ok' && TRAIN_LIB_CTX !== ctx && $('my-training') === box) { TRAIN_LIB_CTX = ctx; loadMyTraining(); }
+      });
+      return;
+    }
+  }
   trainSheetReset();   /* AUTH-566: las hojas de la vista se vacían con la pintura anterior (el patrón de AUTH-565) */
   box.innerHTML = `
     ${isLoose ? `<div class="wempty compact" id="train-none-msg">${t('train.none')}</div><div id="plan-ai-door"></div>` : `${trainPlanLineHTML}
@@ -43971,6 +44086,26 @@ async function loadMyTraining() {
      trainAlignRender, que la pinta al final de esta carga. */
   box.querySelectorAll('[data-train-line]').forEach(b => b.onclick = () => trainSheetOpen(b.dataset.trainLine));
   week5Wire(box);
+  trainTodayWire(box, { uid, plan, logs, sel, today, logByDay });
+  trainCustomRenderSession(plan, customDi, customClosed, sel);
+  trainAlignRender();
+  trainAddLandAfterPaint(plan.id, sel);   /* AUTH-490: consume el aterrizaje en la lista tras agregar (desplaza a la tarjeta nueva) */
+  /* Biblioteca (una sola lectura con caché por sesión de página): al
+     llegar, se re-pinta UNA vez por plan/día para resolver nombres y
+     fotos por idioma; si no se puede leer, la vista queda con los
+     nombres guardados, sin error (degradación honesta). */
+  libEnsure().then(() => {
+    if (LIB_STATE === 'ok' && TRAIN_LIB_CTX !== ctx && $('my-training') === box) { TRAIN_LIB_CTX = ctx; loadMyTraining(); }
+  });
+}
+
+/* AUTH-580 (P2): el cableado de la tarjeta del día, extraído de
+   la pintura tal cual — lo comparten la pintura completa y el
+   repintado ligero, que cablea la tarjeta nueva en su sitio. W
+   trae el contexto de la pintura: el plan, sus registros, la
+   fecha vista y el mapa de registros de hoy. */
+function trainTodayWire(box, W) {
+  const { uid, plan, logs, sel, today, logByDay } = W;
   box.querySelectorAll('[data-train-share]').forEach(b => b.onclick = () => {
     const [diS, iso] = b.dataset.trainShare.split('|');
     trainShareOpen(trainShareModel(plan, logs, Number(diS), iso));
@@ -44064,11 +44199,11 @@ async function loadMyTraining() {
   box.querySelectorAll('[data-guided-toggle]').forEach(b => b.onclick = () => { trainGuideApplyMode(b.dataset.guidedToggle); loadMyTraining(); });
   box.querySelectorAll('[data-guided-reopen]').forEach(b => b.onclick = () => {
     TRAIN_GUIDE.pin = Number(String(b.dataset.guidedReopen).split(':')[1]);
-    loadMyTraining();
+    trainDayRepaint();
   });
   box.querySelectorAll('[data-guided-rest-skip]').forEach(b => b.onclick = () => {
     TRAIN_GUIDE.restSkipFor = TRAIN_GUIDE.restFor; TRAIN_GUIDE.restFor = null;
-    loadMyTraining();
+    trainDayRepaint();
   });
   box.querySelectorAll('[data-guided-skip]').forEach(b => b.onclick = () => {
     const ei = Number(String(b.dataset.guidedSkip).split(':')[1]);
@@ -44076,7 +44211,7 @@ async function loadMyTraining() {
     if (i >= 0) { TRAIN_GUIDE.order.splice(i, 1); TRAIN_GUIDE.order.push(ei); }
     if (TRAIN_GUIDE.pin === ei) TRAIN_GUIDE.pin = null;
     guideSkipAdd(ei);   /* AUTH-462: el salto entra en el conjunto de sesión que lo hace visible (D-A/D-B/D-C) */
-    loadMyTraining();
+    trainDayRepaint();
   });
   /* AUTH-406: el «✓ Hecho» de la ruta SALE con su cableado —
      era la segunda puerta de la marca de AUTH-344 y, con el avance
@@ -44142,11 +44277,11 @@ async function loadMyTraining() {
       if (posV < 0 || toV < 0 || toV >= TRAIN_GUIDE.order.length) return;
       const mvV = TRAIN_GUIDE.order.splice(posV, 1)[0];
       TRAIN_GUIDE.order.splice(toV, 0, mvV);
-      loadMyTraining();
+      trainDayRepaint();
       return;
     }
     if (trainMoveFlowHits(diV, eiV, eiV + dirV)) return;
-    if (trainSessionReorder(plan, diV, eiV, eiV + dirV)) loadMyTraining();
+    if (trainSessionReorder(plan, diV, eiV, eiV + dirV)) trainDayRepaint();
   });
   /* AUTH-544 · SUGERENCIAS DE PROGRESIÓN: el pliegue abre y
      cierra en su sitio (estado de pantalla por identidad); los
@@ -44353,42 +44488,6 @@ async function loadMyTraining() {
     const D = TRAIN_MANAGE_DOOR;
     if (D && D.log) trainManageReopen(D.plan, D.di, D.log);
   });
-  /* PERSONALIZA (2026-10-27): las herramientas de la sesión de
-     hoy dentro del desplegable — el día de hoy se resuelve con la
-     misma semántica de la tarjeta (pares/plancal/rotación) y un
-     día ya cerrado no se edita desde aquí. */
-  const tDiCustom = isLoose
-    ? (trainBaseRead(plan.id) ? -1 : (logByDay[-1] ? -1 : null))
-    : ((tmap.pairs || isCal) ? trainTodayDiEffective(plan, diForDate(today)) : trainRotationNext(plan, logs, today));
-  /* FECHA VISTA (2026-11-01, decisión de Ronald): el desplegable
-     personaliza la fecha VISTA (sel), no siempre hoy. Con la vista
-     en hoy la resolución es exactamente la de siempre (tDiCustom,
-     cerrado si hay registro) y nada cambia; con otra fecha:
-     mapa → su día efectivo para esa fecha (la base de sesión solo
-     existe para hoy); rotación futura → la misma proyección que
-     la tarjeta ya declara ((hoy + desplazamiento) mód n);
-     rotación pasada → el dayIndex de su registro, si lo hay.
-     «Cerrado» solo aplica a hoy. */
-  let customDi = tDiCustom, customClosed = tDiCustom != null ? !!logByDay[tDiCustom] : false;
-  if (sel !== today) {
-    customClosed = false;
-    if (tmap.pairs || isCal) customDi = effDiForDate(sel);
-    else if (sel > today) {
-      const nDaysC = (plan.days || []).length;
-      const offC = Math.round((new Date(sel + 'T12:00:00') - new Date(today + 'T12:00:00')) / 86400000);
-      customDi = (tDiCustom != null && nDaysC > 0) ? (((tDiCustom + offC) % nDaysC) + nDaysC) % nDaysC : null;
-    } else {
-      const logP = logs.find(l => l.date === sel);
-      customDi = logP ? logP.dayIndex : null;
-    }
-  }
-  if (isLoose) {
-    const bSelL = trainBaseRead(plan.id, sel);
-    const logSelL = logs.find(l => l.date === sel) || null;
-    customDi = bSelL ? -1 : (logSelL ? logSelL.dayIndex : null);
-    customClosed = sel === today && customDi != null ? !!logByDay[customDi] : false;
-  }
-  trainCustomRenderSession(plan, customDi, customClosed, sel);
   /* DÍA ACCIONABLE (2026-10-30): los botones del día en blanco
      fijan la base de sesión y re-pintan — toda la maquinaria de la
      sesión (tarjeta, desplegable, cierre) resuelve hoy con esa
@@ -44416,22 +44515,13 @@ async function loadMyTraining() {
     TRAIN_CUSTOM_OPEN_STASH = null;   /* AUTH-370: abrirlo a propósito manda sobre la guarda del guiado */
     TRAIN_PICK = { kind: 'add' };
     SWAP_PRESET_GROUP = null;
-    loadMyTraining();
+    trainDayRepaint();
     setTimeout(() => { const tc = $('train-custom-tools'); if (tc) tc.scrollIntoView({ block: 'start' }); }, 80);
   });
   /* Los antiguos chips Cardio · Core · Estirar de la tira ya no
      se pintan ni se cablean aquí (decisión de Ronald 2026-11-06):
      viven dentro del flujo de «+ Agregar» (swapPresetRowHTML en
      la hoja del selector, el mismo SWAP_PRESET_GROUP). */
-  trainAlignRender();
-  trainAddLandAfterPaint(plan.id, sel);   /* AUTH-490: consume el aterrizaje en la lista tras agregar (desplaza a la tarjeta nueva) */
-  /* Biblioteca (una sola lectura con caché por sesión de página): al
-     llegar, se re-pinta UNA vez por plan/día para resolver nombres y
-     fotos por idioma; si no se puede leer, la vista queda con los
-     nombres guardados, sin error (degradación honesta). */
-  libEnsure().then(() => {
-    if (LIB_STATE === 'ok' && TRAIN_LIB_CTX !== ctx && $('my-training') === box) { TRAIN_LIB_CTX = ctx; loadMyTraining(); }
-  });
 }
 
 /* ================= PAQUETE 7 — PLANTILLAS VISIBLES AL CLIENTE +
@@ -62495,7 +62585,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-sesion-sin-repintado';
+const PWA_SW_VERSION = '20261123-dia-en-su-sitio';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.
