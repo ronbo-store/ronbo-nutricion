@@ -22561,13 +22561,109 @@ async function recipesPaint() {
   }
   recipesRenderList();
 }
+/* ═══ P5 «SELECTOR Y RECETAS PARCIALES» (auditoría de repintado
+   2026-11-23, B2 + B5 + D3) — el pintado parcial en su sitio,
+   con el patrón de P1/P2, para el selector de ejercicios y la
+   lista de recetas. Hasta aquí, cada gesto parcial de estas dos
+   superficies (buscar, filtrar por grupo, agregar, paginar,
+   marcar raciones) repintaba la lista ENTERA con innerHTML: el
+   nodo tocado se desprendía del DOM a mitad del gesto (la
+   pérdida de toques del pullover E104, diagnóstico del
+   2026-11-23), el desplazamiento saltaba y la cabecera fija de
+   la hoja competía con la sustitución (capas fantasma en iOS).
+   La reconciliación: el HTML nuevo se compone con los pintores
+   de siempre y se aplica hijo a hijo — el hijo cuya clave y
+   cuyo HTML no cambiaron CONSERVA su nodo; el que cambió se
+   repinta solo él (su estado visible cambió: es el repintado
+   de sí mismo declarado en P1); los nuevos se insertan y los
+   que sobran se retiran, en su orden. Sin lecturas nuevas: se
+   trabaja sobre los datos ya cargados, como P2. ═══ */
+function p5Reconcile(box, html, keyOf) {
+  if (!box) return;
+  const tpl = document.createElement('template');
+  tpl.innerHTML = html || '';
+  const news = [...tpl.content.children];
+  const olds = new Map();
+  [...box.children].forEach(el => { const k = keyOf(el); if (k != null && !olds.has(k)) olds.set(k, el); });
+  const placed = new Set();
+  let anchor = null;
+  const place = node => {
+    const ref = anchor ? anchor.nextSibling : box.firstChild;
+    if (ref !== node) box.insertBefore(node, ref);
+    anchor = node; placed.add(node);
+  };
+  for (const n of news) {
+    const k = keyOf(n);
+    const old = (k != null) ? olds.get(k) : null;
+    if (old && !placed.has(old)) {
+      place(old);
+      if (old.outerHTML !== n.outerHTML && !p5ReconcileInner(old, n, keyOf)) {
+        box.replaceChild(n, old); placed.delete(old); placed.add(n); anchor = n;
+      }
+    } else place(n);
+  }
+  [...box.children].forEach(el => { if (!placed.has(el)) el.remove(); });
+}
+/* Contenedores cuyos hijos llevan clave (la fila de atajos y la
+   parrilla de grupos del selector): si ambos lados tienen hijos
+   con clave, se reconcilian los hijos y se sincronizan los
+   atributos del contenedor, en vez de sustituirlo entero. */
+function p5ReconcileInner(oldEl, newEl, keyOf) {
+  if (!oldEl.children || !newEl.children || !oldEl.children.length || !newEl.children.length) return false;
+  const oc = [...oldEl.children], nc = [...newEl.children];
+  if (!oc.every(el => keyOf(el) != null) || !nc.every(el => keyOf(el) != null)) return false;
+  [...oldEl.attributes].forEach(a => { if (!newEl.hasAttribute(a.name)) oldEl.removeAttribute(a.name); });
+  [...newEl.attributes].forEach(a => oldEl.setAttribute(a.name, a.value));
+  p5Reconcile(oldEl, newEl.innerHTML, keyOf);
+  return true;
+}
+/* Claves de los hijos del selector: la tarjeta por su ficha y
+   su forma; el título de sección por su texto; el botón de
+   grupo por su grupo; el atajo por su clave. */
+function p5SwapKey(el) {
+  const d = el.dataset || {};
+  if (d.swapPick) return 'pick:' + d.swapPick;
+  if (d.swapVariantPick) return 'vpick:' + d.swapVariantPick + ':' + d.swapVariantVi;
+  if (typeof d.swapVariant === 'string') return 'var:' + d.swapVariant + ':' + (el.textContent || '').trim().slice(0, 60);
+  if (d.swapPreset) return 'preset:' + d.swapPreset;
+  if (d.swapGroup) return 'group:' + d.swapGroup;
+  if (typeof d.swapGroupClear === 'string') return 'groupclear';
+  if (typeof d.swapPresetClear === 'string') return 'presetclear';
+  if (typeof d.swapVariantsBack === 'string') return 'formsback';
+  const cl = el.classList;
+  if (cl) {
+    if (cl.contains('swap-sec-title')) return 'sec:' + (el.textContent || '').trim();
+    if (cl.contains('swap-presets')) return 'presets';
+    if (cl.contains('swap-groups-grid')) return 'groupsgrid';
+    if (cl.contains('swap-groups-label')) return 'groupslabel';
+    if (cl.contains('swap-presets-all')) return 'presetsall';
+  }
+  return null;
+}
+/* Claves de los hijos de la lista de recetas y de sus chips:
+   la tarjeta por la receta de su stepper; el bloque «ver más»
+   es uno solo; el chip por su patrón. */
+function p5RcpKey(el) {
+  const cl = el.classList;
+  if (!cl) return null;
+  if (cl.contains('rcp-card')) {
+    const b = el.querySelector('[data-rcp-plus],[data-rcp-minus],[data-rcp-use]');
+    return b ? 'rcp:' + (b.dataset.rcpPlus || b.dataset.rcpMinus || b.dataset.rcpUse) : null;
+  }
+  if (cl.contains('rcp-more')) return 'more';
+  if (cl.contains('rcp-chip')) return 'chip:' + ((el.dataset || {}).rcpPat || '');
+  return null;
+}
 function recipesRenderList() {
   const listEl = $('recipes-list'); if (!listEl) return;
   if (!RECIPES_UI.list) return; // aún cargando: la hoja muestra su aviso
   const chipsEl = $('recipes-chips');
   if (chipsEl) {
-    chipsEl.innerHTML = RECIPE_PATTERNS.map(p =>
-      `<button type="button" class="rcp-chip${RECIPES_UI.pattern === p ? ' on' : ''}" data-rcp-pat="${p}">${esc(t(p === 'all' ? 'recipes.all' : 'recipes.' + p))}</button>`).join('');
+    /* P5: los chips se reconcilian — el que no cambió de estado
+       conserva su nodo; solo se repinta el que gana o pierde
+       la marca «on». */
+    p5Reconcile(chipsEl, RECIPE_PATTERNS.map(p =>
+      `<button type="button" class="rcp-chip${RECIPES_UI.pattern === p ? ' on' : ''}" data-rcp-pat="${p}">${esc(t(p === 'all' ? 'recipes.all' : 'recipes.' + p))}</button>`).join(''), p5RcpKey);
     chipsEl.querySelectorAll('[data-rcp-pat]').forEach(b => b.onclick = () => { RECIPES_UI.pattern = b.dataset.rcpPat; RECIPES_UI.showN = 30; recipesRenderList(); });
   }
   const all = RECIPES_UI.list || [];
@@ -22585,9 +22681,13 @@ function recipesRenderList() {
     noteEl.textContent = (shown.length === 1 ? t('recipes.countOne') : t('recipes.count', { n: shown.length })) +
       (hiddenN > 0 ? ' · ' + t('recipes.hiddenAllergy', { n: hiddenN }) : '');
   }
-  if (!shown.length) { listEl.innerHTML = `<p class="progress-hint">${esc(t('recipes.none'))}</p>`; return; }
+  if (!shown.length) { p5Reconcile(listEl, `<p class="progress-hint">${esc(t('recipes.none'))}</p>`, p5RcpKey); return; }
   const L = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'es';
-  listEl.innerHTML = page.map(r => {
+  /* P5: la lista se reconcilia tarjeta a tarjeta (p5Reconcile)
+     en vez de sustituirse entera: las tarjetas que no cambiaron
+     conservan su nodo — el «ver más» solo añade el tramo nuevo
+     y un cambio de filtro conserva las tarjetas que siguen. */
+  const listHTML = page.map(r => {
     const v = recipeValues(r);
     const tags = [...recipeTags(r)].filter(x => RECIPE_PATTERNS.includes(x));
     const title = (r.title && (r.title[L] || r.title.es || r.title.en)) || '';
@@ -22616,22 +22716,32 @@ function recipesRenderList() {
       </div>
     </article>`;
   }).join('') + (shown.length > page.length ? `<div class="rcp-more"><button type="button" class="btn-secondary" data-rcp-more="1">${esc(t('recipes.moreBtn', { n: shown.length - page.length }))}</button></div>` : '');
+  p5Reconcile(listEl, listHTML, p5RcpKey);
   listEl.querySelectorAll('[data-rcp-ficha]').forEach(b => b.onclick = () => rcpfOpen(b.dataset.rcpFicha));
   listEl.querySelectorAll('[data-rcp-more]').forEach(b => b.onclick = () => { RECIPES_UI.showN += 30; recipesRenderList(); });
   listEl.querySelectorAll('[data-rcp-use]').forEach(b => b.onclick = () => {
     const r = (RECIPES_UI.list || []).find(x => x.id === b.dataset.rcpUse);
     if (r) recipeUseDraft(r);
   });
-  listEl.querySelectorAll('[data-rcp-minus]').forEach(b => b.onclick = () => {
-    const id = b.dataset.rcpMinus;
-    RECIPES_UI.servings[id] = Math.max(1, (RECIPES_UI.servings[id] || 1) - 1);
-    recipesRenderList();
-  });
-  listEl.querySelectorAll('[data-rcp-plus]').forEach(b => b.onclick = () => {
-    const id = b.dataset.rcpPlus;
-    RECIPES_UI.servings[id] = Math.min(20, (RECIPES_UI.servings[id] || 1) + 1);
-    recipesRenderList();
-  });
+  listEl.querySelectorAll('[data-rcp-minus]').forEach(b => b.onclick = () => recipesServingsStep(b, -1));
+  listEl.querySelectorAll('[data-rcp-plus]').forEach(b => b.onclick = () => recipesServingsStep(b, 1));
+}
+/* P5 · EL STEPPER DE RACIONES PINTA SOLO SU TARJETA (B5): las
+   raciones elegidas no cambian ningún otro valor de la tarjeta
+   (sus valores son POR ración; las raciones solo viajan al
+   registrar la comida), así que el gesto actualiza en su sitio
+   el texto de raciones de SU tarjeta y nada más — el botón
+   tocado sobrevive y se puede tocar seguido, sin que renazca.
+   Sin tarjeta a la vista, cae a la pintura de siempre. */
+function recipesServingsStep(btn, delta) {
+  const id = btn.dataset.rcpPlus || btn.dataset.rcpMinus;
+  if (!id) return;
+  const next = Math.max(1, Math.min(20, (RECIPES_UI.servings[id] || 1) + delta));
+  RECIPES_UI.servings[id] = next;
+  const card = btn.closest ? btn.closest('.rcp-card') : null;
+  const servEl = card ? card.querySelector('.rcp-serv') : null;
+  if (!servEl) { recipesRenderList(); return; }
+  servEl.textContent = next + ' ' + t(next === 1 ? 'recipes.portionOne' : 'recipes.portionMany');
 }
 /* — Añadir recetas por la misma forma: la paleta de ingredientes
    sale de las comidas preparadas (los anclas de la casa); los
@@ -30455,12 +30565,21 @@ function swapSheetWireResults(plan, di, iso) {
 function swapSheetRepaintResults(plan, di, iso) {
   const sheet = document.getElementById('swap-sheet');
   if (!sheet) return;
+  /* P5: resultados, atajos y parrilla se RECONCILIAN en su
+     sitio (p5Reconcile) en vez de sustituirse con innerHTML:
+     la tarjeta, el botón o el título que no cambió conserva su
+     nodo — el gesto (buscar, fijar un grupo, agregar) ya no
+     desprende lo que la persona está mirando ni tocando, y la
+     hoja conserva su desplazamiento. Solo se repinta el hijo
+     cuyo estado visible cambió (la tarjeta agregada con su
+     «✓ Añadido», el grupo que se activa). La cuenta del pie ya
+     se pintaba por textContent. */
   const box = sheet.querySelector('#swap-results');
-  if (box) box.innerHTML = swapSheetResultsHTML(plan, di, iso);
+  if (box) p5Reconcile(box, swapSheetResultsHTML(plan, di, iso), p5SwapKey);
   const slot = sheet.querySelector('#swap-presets-slot');
-  if (slot) slot.innerHTML = swapPresetRowHTML();
+  if (slot) p5Reconcile(slot, swapPresetRowHTML(), p5SwapKey);
   const gslot = sheet.querySelector('#swap-groups-slot');
-  if (gslot) gslot.innerHTML = swapGroupsHTML();
+  if (gslot) p5Reconcile(gslot, swapGroupsHTML(), p5SwapKey);
   const cnt = sheet.querySelector('#swap-pick-count');
   if (cnt) cnt.textContent = swapPickCountText(plan, iso);
   swapSheetWireResults(plan, di, iso);
@@ -30537,8 +30656,10 @@ function swapSheetSync(plan, di, iso) {
   if (search) search.oninput = () => {
     SWAP_QUERY = search.value;
     SWAP_ADD_FORMS_ID = null;
-    const box = sheet.querySelector('#swap-results');
-    if (box) { box.innerHTML = swapSheetResultsHTML(plan, di, iso); swapSheetWireResults(plan, di, iso); }
+    /* P5: buscar repinta por la vía reconciliada de la hoja
+       (antes sustituía los resultados con innerHTML a cada
+       tecla, desprendiendo las tarjetas a mitad del gesto). */
+    swapSheetRepaintResults(plan, di, iso);
   };
 }
 
