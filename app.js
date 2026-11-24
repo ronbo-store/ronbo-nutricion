@@ -11594,7 +11594,7 @@ function studentsDetailHTML(u) {
      corporal» comparten fila y estilo — el informe de
      composición corporal (foto, imagen o PDF) se guarda como
      archivo en el historial del alumno, sin tocar sus medidas. */
-  h += `<div class="stu-meas-row"><button type="button" class="btn-tmeas" data-stu-tmeas="${u.id}">📏 ${esc(t('tmeas.btn'))}</button><button type="button" class="btn-breport" data-stu-breport="${u.id}">📄 ${esc(t('r10.breportBtn'))}</button></div>`;
+  h += `<button type="button" class="btn-tmeas" data-stu-tmeas="${u.id}">📏 ${esc(t('tmeas.btn'))}</button><button type="button" class="btn-breport" data-stu-breport="${u.id}">📄 ${esc(t('r10.breportBtn'))}</button>`;
   /* AUTH-577: la puerta del acceso rápido a su progreso — ancho
      completo, fuera de todo pliegue, justo bajo «Tomar medidas»;
      abre su pantalla propia (#stu-qprog-float). Vive SOLO en esta

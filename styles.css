@@ -7884,9 +7884,7 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 /* Punto 10 — «Tomar medidas» y «Subir informe corporal» en una
    fila, con el mismo estilo; la hoja de informes con su vista
    previa, su estado de subida y su lista de anteriores. */
-.stu-meas-row { display: flex; gap: 10px; margin: 10px 0 2px; }
-.stu-meas-row .btn-tmeas, .stu-meas-row .btn-breport { flex: 1; margin: 0; }
-.btn-breport { display: block; width: 100%; padding: 13px 10px; min-height: 48px; background: #fff; color: #0d7a78; border: 2px solid #0d7a78; border-radius: 14px; font-size: 15.5px; font-weight: 800; cursor: pointer; font-family: inherit; }
+.btn-breport { display: block; width: 100%; margin: 8px 0 2px; padding: 13px 16px; min-height: 48px; background: #fff; color: #0d7a78; border: 2px solid #0d7a78; border-radius: 14px; font-size: 17px; font-weight: 800; cursor: pointer; font-family: inherit; }
 .br-pickrow { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
 .br-pickrow .btn-ghost, .br-pickrow .btn-primary { flex: 1 1 150px; min-height: 50px; }
 .br-prev { margin: 10px 0; border: 1px solid var(--line, #d8e2de); border-radius: 12px; padding: 10px; background: #fbfdfc; }
