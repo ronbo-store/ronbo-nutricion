@@ -3262,6 +3262,8 @@ export default {
   'adm597.pending': 'Pendientes de aprobación',
   'adm597.roleReqs': 'Solicitudes de rol',
   'adm597.directory': 'Directorio',
+  'acct598.privacyNotice': 'Aviso de privacidad',
+  'acct598.continue': 'Continuar',
   'prof595.dossier': 'Mi dossier',
   'prof595.more': 'Ver más',
   'prof595.less': 'Ver menos',
