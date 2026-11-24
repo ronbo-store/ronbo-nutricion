@@ -7976,3 +7976,22 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
    la celda de la rejilla a ancho completo dentro de su envoltorio. */
 .br-row-ic { font-size: 26px; width: 44px; text-align: center; flex: none; }
 .cgrid-cellwrap .cgrid-cell { width: 100%; }
+/* ===== AUTH-592 · Pliegues nº 10 «Biblioteca» =====
+   Cabecera con «Nuevo» junto al título, línea de pliegue del
+   texto fijo, líneas de pliegue de bandeja y «Mis aportes»,
+   botón único «Filtros», botón «Acciones» por fila (≥44 px),
+   velos del editor-hoja y de la hoja de acciones (espejo del
+   #libf-backdrop) y pliegues del editor (sección «Variantes»
+   y cada variante en su línea). La fila de chips de grupos no
+   se toca: va con el rediseño del selector. */
+.lib592-headrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lib592-headrow h2 { flex: 1; min-width: 0; margin: 0; }
+.lib592-headrow #lib-admin-new { min-height: 44px; }
+.lib592-hintline { margin-top: 10px; }
+#lib-hint { margin-top: 10px; }
+.lib592-foldline { margin: 12px 0 6px; }
+.lib592-actbtn { min-height: 44px; }
+#libed-backdrop, #libact-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
+.lib592-varsline { margin: 0 0 6px; }
+.lib592-varfold { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; box-sizing: border-box; background: none; border: none; font: inherit; color: inherit; cursor: pointer; padding: 4px 2px; text-align: left; }
+.lib592-varfold .lib592-varname { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

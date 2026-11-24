@@ -20397,6 +20397,11 @@ const VIEW_HOST_GETTERS = {
   libCardOpen: () => libCardOpen, libOpenEditor: () => libOpenEditor,
   libMemPut: () => libMemPut, libMemDrop: () => libMemDrop,
   deleteDoc: () => deleteDoc,
+  /* AUTH-592 (pliegues nº 10): la hoja de acciones de una fila
+     de la Biblioteca vive en la vista y abre «Asignar» por esta
+     puerta; coverSync le da la misma disciplina de tapas que a
+     las hojas del núcleo. */
+  libAssignOpen: () => libAssignOpen, coverSync: () => coverSync,
 };
 for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
   if (!Object.prototype.hasOwnProperty.call(globalThis, _vk)) {
@@ -43889,7 +43894,11 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
   /* CAMPO «AGARRE»: en la ficha (modo 'card') manda la base; en la
      sesión manda la forma activa (la variante elegida si la hay). */
   const gripHTML = gripLineHTML(entry, mode === 'card' ? null : vChosen, mode !== 'card');
-  const muscHTML = musclesLineHTML(entry);
+  /* AUTH-592 (pliegues nº 10, hallazgo «Ficha de ejercicio» de
+     la auditoría): la línea de músculos estructurados que se
+     pintaba SOBRE las pestañas se retira — los músculos viven
+     solo en su pestaña «Músculos» (mapa y pastillas), donde ya
+     se repetían. musclesLineHTML queda sin llamadores. */
   const vBlock = vChosen ? `<div class="excard-sec">${esc(t('train.variantLabel'))}: ${esc(libField(vChosen, 'nombre'))}</div>${libField(vChosen, 'cambio') ? excardStepsHTML(libField(vChosen, 'cambio')) : ''}${libField(vChosen, 'nota') ? `<p class="excard-text">${esc(libField(vChosen, 'nota'))}</p>` : ''}` : '';
   const how = entry ? libField(entry, 'como_se_hace') : '';
   const avoid = entry ? libField(entry, 'errores_a_evitar') : '';
@@ -43912,7 +43921,6 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
     <div class="excard-head">${group ? `<div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${metaLine}</div>
     ${trainPainCautionHTML(ex)}
     ${gripHTML}
-    ${muscHTML}
     ${mode === 'edit' ? trainLastTimeHTML(ex, allLogs, (typeof TRAIN_FLOAT !== 'undefined' && TRAIN_FLOAT) ? TRAIN_FLOAT.iso : null) : ''}
     ${sessionHTML || ''}
     <div class="excard-tabs" role="tablist">
@@ -50307,8 +50315,20 @@ let LIBF = null; // { title, allLabel, total, options, current, onPick }
 function libFacetSheetPaint() {
   const S = LIBF; if (!S) return;
   const title = $('libf-title'); if (title) title.textContent = S.title;
-  const sub = $('libf-sub'); if (sub) sub.textContent = t('libf.pickHint');
+  const sub = $('libf-sub'); if (sub) sub.textContent = S.sub || t('libf.pickHint');
   const body = $('libf-body'); if (!body) return;
+  /* AUTH-592 (pliegues nº 10): el modo «home» de la hoja — la
+     puerta «Filtros» de la Biblioteca la abre con una puerta
+     por faceta (etiqueta + valor elegido + ›); tocar una puerta
+     abre la hoja de opciones de esa faceta en esta misma hoja
+     (su open llama a libFacetSheetOpen con la faceta). El modo
+     de opciones de siempre (constructor visual incluido) no
+     cambia. */
+  if (S.mode === 'home') {
+    body.innerHTML = S.doors.map((d, i) => `<button type="button" class="libf-opt" data-libf-door="${i}"><span>${esc(d.label)}</span><span class="libf-opt-n">${esc(d.value)}</span><span class="libf-chev">›</span></button>`).join('');
+    body.querySelectorAll('[data-libf-door]').forEach(b => b.onclick = () => { const d = S.doors[Number(b.dataset.libfDoor)]; if (d && d.open) d.open(); });
+    return;
+  }
   const row = (key, label, n, sel) => `<button type="button" class="libf-opt${sel ? ' sel' : ''}" data-libf-key="${esc(key)}"><span>${esc(label)}</span><span class="libf-opt-n">${n}</span><span class="libf-opt-check">${sel ? '✓' : ''}</span></button>`;
   body.innerHTML = row('', S.allLabel, S.total, !S.current) + S.options.map(o => row(o.key, o.label, o.n, o.key === S.current)).join('');
   body.querySelectorAll('[data-libf-key]').forEach(b => b.onclick = () => {
@@ -50431,6 +50451,13 @@ let LIB_EDIT_VARS_LOCKED = 0;
    PENDIENTE (enmienda de Ronald, 2026-11-13 10:11 CST: el tipo
    se presenta siempre y se pide, pero NO bloquea el guardado). */
 let LIB_EDIT_GRIP = '';
+/* AUTH-592 (pliegues nº 10): estado de pliegue del editor-hoja —
+   la sección «Variantes» nace recogida en su línea y cada
+   variante en la suya; el estado vive en memoria de sesión y
+   los campos plegados quedan en el DOM (la cosecha de guardado
+   los lee igual, abiertos o cerrados). */
+let LIB592_VARS_OPEN = false;
+let LIB592_VAR_OPEN = new Set();
 /* PUERTA DE COMPOSICIÓN (despliegue reprueba, 2026-10-24): las reglas
    VIVAS (ruleset 3c3790d8) dicen de exercise_library «allow write:
    if false» — la escritura del administrador es el delta N-09, que
@@ -50886,6 +50913,25 @@ const LIB_FIELDS = [
   ['errores_a_evitar_es', 'libcom.f.avoidEs', 'ta'], ['errores_a_evitar_en', 'libcom.f.avoidEn', 'ta'],
   ['foto_url', 'libadm.f.photo', 'in'], ['video_youtube_url', 'libcom.f.video', 'in'],
 ];
+/* AUTH-592 (pliegues nº 10): el cierre único del editor-hoja —
+   lo usan la ✕, Cancelar, Escape y el guardado con éxito:
+   descarta el estado de edición y baja la hoja y su velo, como
+   hacía el Cancelar de siempre cuando el editor vivía dentro
+   de la pestaña. */
+function libEditorClose() {
+  LIB_EDIT = null; LIB_EDIT_VARS = []; LIB_EDIT_VARS_LOCKED = 0; LIB_EDIT_GRIP = '';
+  LIB592_VARS_OPEN = false; LIB592_VAR_OPEN = new Set();
+  const ed = $('lib-admin-editor'); if (ed) { ed.style.display = 'none'; ed.innerHTML = ''; }
+  const bd = $('libed-backdrop'); if (bd) bd.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+(function libedWireSheet() {
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const ed = $('lib-admin-editor');
+    if (ed && ed.style.display !== 'none') libEditorClose();
+  });
+})();
 function libOpenEditor(id, ctx) {
   const ed = $('lib-admin-editor'); if (!ed) return;
   if (!LIBADM_WRITE_ENABLED) { toast(t('libadm.readonlyNote')); return; } // puerta de composición: ver LIBADM_WRITE_ENABLED
@@ -50899,10 +50945,12 @@ function libOpenEditor(id, ctx) {
   LIB_EDIT_VARS = id && Array.isArray(ex.variantes) ? JSON.parse(JSON.stringify(ex.variantes)) : [];
   LIB_EDIT_VARS_LOCKED = id ? LIB_EDIT_VARS.length : 0;
   LIB_EDIT_GRIP = gripTypeOf(ex);
+  LIB592_VARS_OPEN = false; LIB592_VAR_OPEN = new Set();
   const F = ([key, label, kind]) => kind === 'ta'
     ? `<div class="eval-field"><label for="la-${key}">${esc(t(label))}</label><textarea id="la-${key}" rows="3">${esc(ex[key] || '')}</textarea></div>`
     : `<div class="eval-field"><label for="la-${key}">${esc(t(label))}</label><input type="text" id="la-${key}" value="${esc(ex[key] || '')}"></div>`;
-  ed.innerHTML = `<div class="eval-block"><p class="eval-ficha-title">${id ? esc(id) + ' · ' + esc(libNameOf(ex)) : esc(t(ctx === 'admin' ? 'libadm.new' : 'libcom.createBtn'))}</p>
+  ed.innerHTML = `<div class="act-sheet-head"><h2 class="act-sheet-title">${id ? esc(id) + ' · ' + esc(libNameOf(ex)) : esc(t(ctx === 'admin' ? 'libadm.new' : 'libcom.createBtn'))}</h2><button type="button" class="act-sheet-x" id="la-close" aria-label="${esc(t('client.close'))}">✕</button></div>
+  <div class="eval-block">
     <div class="eval-form">
     ${LIB_FIELDS.map(F).join('')}
     ${libGripBaseHTML(ex)}
@@ -50910,11 +50958,14 @@ function libOpenEditor(id, ctx) {
     <div id="la-vars">${libVarsSectionHTML()}</div>
     <div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="la-save">${esc(t('libadm.save'))}</button>
     <button type="button" class="btn-ghost btn-sm" id="la-cancel">${esc(t('libadm.cancel'))}</button></div></div>`;
+  const bd = $('libed-backdrop'); if (bd) bd.style.display = '';
   ed.style.display = '';
-  try { ed.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+  ed.scrollTop = 0;
+  try { coverSync(); } catch {}
   libVarsWire();
   ed.querySelectorAll('[data-grip-base]').forEach(b => b.onclick = () => { LIB_EDIT_GRIP = b.dataset.gripBase; ed.querySelectorAll('[data-grip-base]').forEach(x => x.classList.toggle('sel', x === b)); const gp = $('la-grip-pend'); if (gp) gp.style.display = 'none'; });
-  $('la-cancel').onclick = () => { LIB_EDIT = null; LIB_EDIT_VARS = []; LIB_EDIT_VARS_LOCKED = 0; LIB_EDIT_GRIP = ''; ed.style.display = 'none'; ed.innerHTML = ''; };
+  $('la-close').onclick = () => libEditorClose();
+  $('la-cancel').onclick = () => libEditorClose();
   $('la-save').onclick = libSaveEditor;
 }
 /* FUNCIÓN DE VARIANTES (2026-10-30): la sección «Variantes» del
@@ -50930,8 +50981,10 @@ function libVarRowHTML(v, i) {
   const fld = (key, label, val, ta) => ta
     ? `<div class="eval-field"><label>${esc(t(label))}</label><textarea data-lv="${key}" rows="2">${esc(val || '')}</textarea></div>`
     : `<div class="eval-field"><label>${esc(t(label))}</label><input type="text" data-lv="${key}" value="${esc(val || '')}"></div>`;
+  const vOpen = LIB592_VAR_OPEN.has(i);
   return `<div class="eval-block libv-row" data-lv-row="${i}">
-    <div class="frow"><b>${esc(libField(v, 'nombre') || ('#' + (i + 1)))}</b><span style="flex:1"></span>${ctrls}</div>
+    <div class="frow"><button type="button" class="lib592-varfold" data-lv-fold="${i}" aria-expanded="${vOpen ? 'true' : 'false'}"><span class="lib592-varname">${esc(libField(v, 'nombre') || ('#' + (i + 1)))}</span><span class="p569-chev" aria-hidden="true">${vOpen ? '▴' : '▾'}</span></button>${ctrls}</div>
+    <div data-lv-body="${i}"${vOpen ? '' : ' style="display:none"'}>
     ${fld('nombre_es', 'libv.nameEs', v.nombre_es)}${fld('nombre_en', 'libv.nameEn', v.nombre_en)}
     <div class="eval-field"><label><input type="radio" name="la-v-std" data-lv="std"${v.es_estandar ? ' checked' : ''}> ${esc(t('libv.standard'))}</label></div>
     <div class="eval-field"><label>${esc(t('libg.title'))}</label><div class="grip-pills">${gripPillsHTML(gripTypeOf(v), 'data-lv-grip')}</div>
@@ -50941,14 +50994,19 @@ function libVarRowHTML(v, i) {
     ${fld('enfasis_es', 'libv.emphEs', v.enfasis_es)}${fld('enfasis_en', 'libv.emphEn', v.enfasis_en)}
     ${fld('nota_es', 'libv.noteEs', v.nota_es, 1)}${fld('nota_en', 'libv.noteEn', v.nota_en, 1)}
     ${fld('foto_url', 'libv.photo', v.foto_url)}${fld('video_youtube_url', 'libv.video', v.video_youtube_url)}
+    </div>
   </div>`;
 }
 function libVarsSectionHTML() {
-  return `<div class="eval-field"><label>${esc(t('libv.title'))}</label>
+  /* AUTH-592 (pliegues nº 10): la sección nace recogida en su
+     línea («Variantes · n») y su cuerpo — ayuda, lista y el
+     botón de añadir — queda en el DOM tras ella. */
+  return `<div class="eval-field"><button type="button" class="prog569-line lib592-varsline" id="la-vars-fold" aria-expanded="${LIB592_VARS_OPEN ? 'true' : 'false'}"><span class="p569-tx">${esc(t('libv.title'))} · ${LIB_EDIT_VARS.length}</span><span class="p569-chev" aria-hidden="true">${LIB592_VARS_OPEN ? '▴' : '▾'}</span></button>
+    <div id="la-vars-body"${LIB592_VARS_OPEN ? '' : ' style="display:none"'}>
     <p class="muted">${esc(t('libv.hint'))}</p>
     ${LIB_EDIT_VARS_LOCKED ? `<p class="muted">${esc(t('libv.lockedNote'))}</p>` : ''}
     <div id="la-vars-list">${LIB_EDIT_VARS.map((v, i) => libVarRowHTML(v, i)).join('')}</div>
-    <button type="button" class="btn-ghost btn-sm" id="la-v-add">${esc(t('libv.add'))}</button></div>`;
+    <button type="button" class="btn-ghost btn-sm" id="la-v-add">${esc(t('libv.add'))}</button></div></div>`;
 }
 function libVarsHarvest() {
   const list = $('la-vars-list');
@@ -50979,24 +51037,47 @@ function libVarsRerender() {
   libVarsWire();
 }
 function libVarsWire() {
+  /* AUTH-592: los dos pliegues del editor — la línea de la
+     sección y la línea de cada variante — solo enseñan u
+     ocultan el cuerpo ya pintado: nada se re-pinta al plegar,
+     así que lo tecleado en los campos nunca se pierde al
+     desplegar o recoger. */
+  const vfold = $('la-vars-fold');
+  if (vfold) vfold.onclick = () => {
+    LIB592_VARS_OPEN = !LIB592_VARS_OPEN;
+    const b = $('la-vars-body'); if (b) b.style.display = LIB592_VARS_OPEN ? '' : 'none';
+    vfold.setAttribute('aria-expanded', LIB592_VARS_OPEN ? 'true' : 'false');
+    const ch = vfold.querySelector('.p569-chev'); if (ch) ch.textContent = LIB592_VARS_OPEN ? '▴' : '▾';
+  };
   const add = $('la-v-add');
   if (add) add.onclick = () => {
     libVarsHarvest();
     LIB_EDIT_VARS.push({ nombre_es: '', nombre_en: '', cambio_es: '', cambio_en: '', enfasis_es: '', enfasis_en: '', nota_es: '', nota_en: '', agarre_tipo: '', agarre_es: '', agarre_en: '', es_estandar: LIB_EDIT_VARS.length === 0 });
+    LIB592_VARS_OPEN = true; LIB592_VAR_OPEN = new Set([LIB_EDIT_VARS.length - 1]);
     libVarsRerender();
   };
   const list = $('la-vars-list'); if (!list) return;
+  list.querySelectorAll('[data-lv-fold]').forEach(b => b.onclick = () => {
+    const i = Number(b.dataset.lvFold);
+    const open = LIB592_VAR_OPEN.has(i);
+    if (open) LIB592_VAR_OPEN.delete(i); else LIB592_VAR_OPEN.add(i);
+    const body = list.querySelector(`[data-lv-body="${i}"]`);
+    if (body) body.style.display = open ? 'none' : '';
+    b.setAttribute('aria-expanded', open ? 'false' : 'true');
+    const ch = b.querySelector('.p569-chev'); if (ch) ch.textContent = open ? '▾' : '▴';
+  });
   list.querySelectorAll('[data-lv-grip]').forEach(b => b.onclick = () => { const row = b.closest('[data-lv-row]'); if (row) { row.querySelectorAll('[data-lv-grip]').forEach(x => x.classList.toggle('sel', x === b)); const pn = row.querySelector('[data-lv-grip-pend]'); if (pn) pn.style.display = 'none'; } });
   list.querySelectorAll('[data-lv-del]').forEach(b => b.onclick = () => {
     const i = Number(b.dataset.lvDel);
     if (i < LIB_EDIT_VARS_LOCKED) return; // V-2: las guardadas no se borran
-    libVarsHarvest(); LIB_EDIT_VARS.splice(i, 1); libVarsRerender();
+    libVarsHarvest(); LIB_EDIT_VARS.splice(i, 1); LIB592_VAR_OPEN = new Set(); libVarsRerender();
   });
   list.querySelectorAll('[data-lv-up]').forEach(b => b.onclick = () => {
     const i = Number(b.dataset.lvUp);
     if (i <= 0 || LIB_EDIT_VARS_LOCKED > 0) return;
     libVarsHarvest();
     const tmp = LIB_EDIT_VARS[i - 1]; LIB_EDIT_VARS[i - 1] = LIB_EDIT_VARS[i]; LIB_EDIT_VARS[i] = tmp;
+    LIB592_VAR_OPEN = new Set();
     libVarsRerender();
   });
   list.querySelectorAll('[data-lv-down]').forEach(b => b.onclick = () => {
@@ -51004,6 +51085,7 @@ function libVarsWire() {
     if (i >= LIB_EDIT_VARS.length - 1 || LIB_EDIT_VARS_LOCKED > 0) return;
     libVarsHarvest();
     const tmp = LIB_EDIT_VARS[i + 1]; LIB_EDIT_VARS[i + 1] = LIB_EDIT_VARS[i]; LIB_EDIT_VARS[i] = tmp;
+    LIB592_VAR_OPEN = new Set();
     libVarsRerender();
   });
 }
@@ -51039,7 +51121,7 @@ async function libSaveEditor() {
   data.agarre_tipo = GRIP_TYPES.indexOf(LIB_EDIT_GRIP) >= 0 ? LIB_EDIT_GRIP : '';
   data.agarre_es = (($('la-agarre_es') || {}).value || '').trim();
   data.agarre_en = (($('la-agarre_en') || {}).value || '').trim();
-  const closeEditor = () => { LIB_EDIT = null; LIB_EDIT_VARS = []; LIB_EDIT_VARS_LOCKED = 0; LIB_EDIT_GRIP = ''; const ed = $('lib-admin-editor'); if (ed) { ed.style.display = 'none'; ed.innerHTML = ''; } };
+  const closeEditor = libEditorClose; // AUTH-592: el cierre único del editor-hoja
   try {
     if (ctx === 'admin' && !id) {
       /* Alta del administrador: siguiente E### libre sobre TODO lo

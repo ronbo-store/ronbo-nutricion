@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-metricas">
+<link rel="stylesheet" href="styles.css?v=20261124-pliegues-biblioteca">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1723,6 +1723,30 @@
     <p class="libf-sheet-sub" id="libf-sub"></p>
     <div id="libf-body"></div>
   </div>
+  <!-- Editor de ejercicio como HOJA PROPIA (AUTH-592, pliegues
+       nº 10): el formulario completo de la ficha deja de
+       insertarse en mitad de la pestaña Biblioteca empujando el
+       catálogo y vive en su pantalla completa, hermana de
+       #libf-float en la familia .act-float/.act-sheet con su
+       velo propio (#libed-backdrop) y la disciplina de tapas de
+       la casa (role="dialog"). Su contenido lo pinta
+       libOpenEditor (app.js); el velo NO cierra — es un
+       formulario de trabajo: cierran la ✕, Cancelar y Escape,
+       que descartan como hacía el Cancelar de siempre. -->
+  <div id="libed-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="lib-admin-editor" style="display:none" role="dialog" aria-modal="true" aria-label="Exercise editor"></div>
+  <!-- Hoja de ACCIONES de una fila de la Biblioteca (AUTH-592,
+       pliegues nº 10): cada fila del catálogo y de «Mis aportes»
+       lleva UN solo botón «Acciones» que abre esta hoja con lo
+       que la fila puede hacer (Asignar · Editar · Borrar, según
+       su estado y el rol). La pinta libRowActionsOpen en la
+       vista partida (view-library.js); abrirla no escribe nada. -->
+  <div id="libact-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="libact-float" style="display:none" role="dialog" aria-modal="true" aria-label="Exercise actions">
+    <div class="act-sheet-head"><h2 class="act-sheet-title" id="libact-title"></h2><button type="button" class="act-sheet-x" id="libact-close" aria-label="Close" data-i18n-aria="client.close">✕</button></div>
+    <p class="libf-sheet-sub" id="libact-sub"></p>
+    <div id="libact-body"></div>
+  </div>
   <!-- «Los que siguen» del modo guiado (AUTH-446, decisión
        D3 de Ronald, 2026-11-13): la hoja con los ejercicios
        que faltan del día en curso y sus dos acciones
@@ -2246,21 +2270,28 @@ cuando no hay declaración legible (decisión 5). -->
        intacto). -->
   <div class="tab-pane" id="tab-library" style="display:none">
   <div class="admin-section" id="library-section" style="display:none">
-    <h2><span data-i18n="libadm.title">📚 Exercise library</span> <span class="h2-sub" id="lib-role-sub">· administrator</span></h2>
-    <p class="progress-hint" id="lib-hint" data-i18n="libadm.hint">The library that feeds the plan editor. Everyone reads it; trainers contribute new exercises and the administrator approves them before they appear for everyone. Edits apply to the library itself — plans already saved keep their own copies.</p>
+    <!-- AUTH-592 (pliegues nº 10): «Nuevo» sube a la cabecera
+         junto al título; el texto explicativo fijo nace recogido
+         tras la línea «Qué es esta vista» (el patrón de la 589);
+         los dos botones de facetas se consolidan en UN botón
+         «Filtros» que abre la hoja de filtros. La fila de chips
+         de grupos NO se toca: va con el rediseño del selector. -->
+    <div class="lib592-headrow">
+      <h2><span data-i18n="libadm.title">📚 Exercise library</span> <span class="h2-sub" id="lib-role-sub">· administrator</span></h2>
+      <button type="button" class="btn-primary btn-sm" id="lib-admin-new" data-i18n="libadm.new">＋ New exercise</button>
+    </div>
+    <button type="button" class="prog569-line lib592-hintline" id="lib592-hint-btn" aria-expanded="false"><span class="p569-tx" data-i18n="lib592.whatIs">What is this view?</span><span class="p569-chev" aria-hidden="true">▾</span></button>
+    <p class="progress-hint" id="lib-hint" data-i18n="libadm.hint" style="display:none">The library that feeds the plan editor. Everyone reads it; trainers contribute new exercises and the administrator approves them before they appear for everyone. Edits apply to the library itself — plans already saved keep their own copies.</p>
     <div id="lib-pending-box" style="display:none"></div>
     <div class="eval-actions" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">
       <label class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input type="search" id="lib-admin-q" data-i18n-ph="libadm.search" placeholder="Search by name, muscle group or equipment…" autocomplete="off"></label>
-      <button type="button" class="btn-primary btn-sm" id="lib-admin-new" data-i18n="libadm.new">＋ New exercise</button>
     </div>
     <div id="lib-admin-chips" class="libcat-chips"></div>
     <div class="libcat-filters">
-      <button type="button" class="libf-btn" id="lib-admin-cat-btn" aria-haspopup="dialog"></button>
-      <button type="button" class="libf-btn" id="lib-admin-level-btn" aria-haspopup="dialog"></button>
+      <button type="button" class="libf-btn" id="lib-admin-filters-btn" aria-haspopup="dialog"></button>
     </div>
     <p class="progress-hint" id="lib-admin-count"></p>
     <div id="lib-admin-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
-    <div id="lib-admin-editor" style="display:none"></div>
     <div id="lib-mine-box"></div>
   </div>
   </div><!-- /tab-library -->
@@ -2978,6 +3009,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-metricas"></script>
+<script type="module" src="app.js?v=20261124-pliegues-biblioteca"></script>
 </body>
 </html>

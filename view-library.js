@@ -28,7 +28,7 @@
  * libGroupCounts, libChipsHTML, libWireChips, libFacetSheetOpen,
  * libFacetCounted, libFacetBtnFace, libFacetBtnWire,
  * libFacetValueLabel, libThumbSrc, ytThumbOf, libCardOpen,
- * libOpenEditor, libMemPut, libMemDrop), enlaces del SDK (auth, db,
+ * libOpenEditor, libMemPut, libMemDrop, libAssignOpen, coverSync), enlaces del SDK (auth, db,
  * setDoc, deleteDoc, doc, serverTimestamp) y estado/constantes
  * (ROLE, LANG, LIB, LIB_BY_ID, LIB_OWN, LIB_PENDING, LIB_STATE,
  * LIBADM_WRITE_ENABLED, LIB_CAT_ORDER, LIB_LEVEL_ORDER) —. La
@@ -67,6 +67,14 @@
    como estaban. Las reglas del paquete son la barrera real; la
    interfaz solo ofrece lo que cada rol puede hacer. */
 const LIBADM_F = { group: '', cat: '', level: '' }; // facetas de la vista (paquete de categorías): grupo (chip) + categoría + nivel
+/* AUTH-592 (pliegues nº 10): estado de los tres pliegues de la
+   vista — el texto explicativo fijo, la bandeja del
+   administrador y «Mis aportes» nacen recogidos en su línea
+   (título + nº + ›) y su estado vive en memoria de sesión,
+   como los pliegues de la 589. */
+let LIB592_HINT_OPEN = false;
+let LIB592_TRAY_OPEN = false;
+let LIB592_MINE_OPEN = false;
 async function renderLibrary() {
   const sec = $('library-section'); if (!sec) return;
   if (ROLE !== 'administrador' && ROLE !== 'entrenador') { sec.style.display = 'none'; return; }
@@ -75,6 +83,25 @@ async function renderLibrary() {
   if (sub) sub.textContent = t(ROLE === 'administrador' ? 'libcom.subAdmin' : 'libcom.subTrainer');
   const hint = $('lib-hint');
   if (hint) hint.textContent = t(ROLE === 'administrador' ? 'libadm.hint' : 'libcom.hintTrainer');
+  /* AUTH-592: la línea «Qué es esta vista» (botón estático de
+     index.html) despliega el texto de siempre, que nace oculto.
+     Se cablea una sola vez y su cara se sincroniza con el
+     estado en cada apertura de la vista. */
+  const hb = $('lib592-hint-btn');
+  if (hb) {
+    if (!hb.dataset.wired592) {
+      hb.dataset.wired592 = '1';
+      hb.onclick = () => {
+        LIB592_HINT_OPEN = !LIB592_HINT_OPEN;
+        const b = $('lib-hint'); if (b) b.style.display = LIB592_HINT_OPEN ? '' : 'none';
+        hb.setAttribute('aria-expanded', LIB592_HINT_OPEN ? 'true' : 'false');
+        const ch = hb.querySelector('.p569-chev'); if (ch) ch.textContent = LIB592_HINT_OPEN ? '▴' : '▾';
+      };
+    }
+    hb.setAttribute('aria-expanded', LIB592_HINT_OPEN ? 'true' : 'false');
+    const chb = hb.querySelector('.p569-chev'); if (chb) chb.textContent = LIB592_HINT_OPEN ? '▴' : '▾';
+    if (hint) hint.style.display = LIB592_HINT_OPEN ? '' : 'none';
+  }
   const nb = $('lib-admin-new');
   if (nb) nb.textContent = t(ROLE === 'administrador' ? 'libadm.new' : 'libcom.createBtn');
   if (nb && !nb.dataset.wired) {
@@ -120,12 +147,18 @@ function libRenderTray() {
   if (ROLE !== 'administrador' || !LIB_PENDING || !LIB_PENDING.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
   box.style.display = '';
   const rows = [...LIB_PENDING].sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  box.innerHTML = `<h3 class="history-title">${esc(t('libcom.trayTitle', { n: rows.length }))}</h3>` + rows.map(ex => `
+  /* AUTH-592 (pliegues nº 10): la bandeja nace recogida en su
+     línea (título + nº + ›); las filas quedan en el DOM tras
+     ella y Aprobar/Rechazar funcionan igual al desplegarla. */
+  box.innerHTML = `<button type="button" class="prog569-line lib592-foldline" data-lib592-tray aria-expanded="${LIB592_TRAY_OPEN ? 'true' : 'false'}"><span class="p569-tx">${esc(t('libcom.trayTitle', { n: rows.length }))}</span><span class="p569-chev" aria-hidden="true">${LIB592_TRAY_OPEN ? '▴' : '▾'}</span></button>
+  <div data-lib592-tray-body${LIB592_TRAY_OPEN ? '' : ' style="display:none"'}>` + rows.map(ex => `
     <div class="user-row lib-ex-row">
       ${libCardMediaHTML(ex)}
       <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${gripPendMarkHTML(ex)}<br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
       <div class="user-actions"><button type="button" class="btn-primary btn-sm" data-lib-approve="${esc(ex.id)}">${esc(t('libcom.approve'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-reject="${esc(ex.id)}">${esc(t('libcom.reject'))}</button></div></div>
-    </div>`).join('');
+    </div>`).join('') + `</div>`;
+  const tb = box.querySelector('[data-lib592-tray]');
+  if (tb) tb.onclick = () => { LIB592_TRAY_OPEN = !LIB592_TRAY_OPEN; libRenderTray(); };
   box.querySelectorAll('[data-lib-approve]').forEach(b => b.onclick = () => libDecide(b.dataset.libApprove, true));
   box.querySelectorAll('[data-lib-reject]').forEach(b => b.onclick = () => libDecide(b.dataset.libReject, false));
 }
@@ -152,7 +185,13 @@ async function libDecide(id, approve) {
 function libRenderMine() {
   const box = $('lib-mine-box'); if (!box) return;
   const rows = [...(LIB_OWN || [])].sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  box.innerHTML = `<h3 class="history-title">${esc(t('libcom.mineTitle'))}</h3>
+  /* AUTH-592 (pliegues nº 10): «Mis aportes» nace recogido en
+     su línea (título + nº + ›), con su explicación y sus filas
+     en el DOM tras ella; y cada fila lleva UN solo botón
+     «Acciones» que abre la hoja de acciones (hallazgo de las
+     filas del catálogo), en vez de los botones sueltos. */
+  box.innerHTML = `<button type="button" class="prog569-line lib592-foldline" data-lib592-mine aria-expanded="${LIB592_MINE_OPEN ? 'true' : 'false'}"><span class="p569-tx">${esc(t('libcom.mineTitle'))} · ${rows.length}</span><span class="p569-chev" aria-hidden="true">${LIB592_MINE_OPEN ? '▴' : '▾'}</span></button>
+  <div data-lib592-mine-body${LIB592_MINE_OPEN ? '' : ' style="display:none"'}>
     <p class="progress-hint">${esc(t('libcom.mineHint'))}</p>` + (rows.length ? rows.map(ex => {
     const editable = ex.estado === 'pendiente' || ex.estado === 'rechazado';
     const note = ex.estado === 'rechazado' ? `<br><span class="muted">${esc(t('libcom.rejectedNote'))}</span>`
@@ -161,11 +200,12 @@ function libRenderMine() {
     <div class="user-row lib-ex-row">
       ${libCardMediaHTML(ex)}
       <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${libStateBadge(ex)}${gripPendMarkHTML(ex)}<br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}${note}</div>
-      ${(editable && LIBADM_WRITE_ENABLED) || ex.estado === 'aprobado' ? `<div class="user-actions">${ex.estado === 'aprobado' ? `<button type="button" class="btn-ghost btn-sm" data-lib-assign="${esc(ex.id)}">${esc(t('lib.assign.btn'))}</button>` : ''}${editable && LIBADM_WRITE_ENABLED ? `<button type="button" class="btn-ghost btn-sm" data-lib-mine-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-mine-del="${esc(ex.id)}">${esc(t('libcom.del'))}</button>` : ''}</div>` : ''}</div>
+      ${(editable && LIBADM_WRITE_ENABLED) || ex.estado === 'aprobado' ? `<div class="user-actions"><button type="button" class="btn-ghost btn-sm lib592-actbtn" data-lib592-mine-actions="${esc(ex.id)}">${esc(t('lib592.actions'))}</button></div>` : ''}</div>
     </div>`;
-  }).join('') : `<div class="wempty">${esc(t('libcom.mineEmpty'))}</div>`);
-  box.querySelectorAll('[data-lib-mine-edit]').forEach(b => b.onclick = () => libOpenEditor(b.dataset.libMineEdit, 'mine'));
-  box.querySelectorAll('[data-lib-mine-del]').forEach(b => b.onclick = () => libDeleteOwn(b.dataset.libMineDel));
+  }).join('') : `<div class="wempty">${esc(t('libcom.mineEmpty'))}</div>`) + `</div>`;
+  const mb = box.querySelector('[data-lib592-mine]');
+  if (mb) mb.onclick = () => { LIB592_MINE_OPEN = !LIB592_MINE_OPEN; libRenderMine(); };
+  box.querySelectorAll('[data-lib592-mine-actions]').forEach(b => b.onclick = () => libRowActionsOpen(b.dataset.lib592MineActions, 'mine'));
 }
 async function libDeleteOwn(id) {
   const ex = LIB_BY_ID[id]; if (!ex) return;
@@ -201,19 +241,81 @@ function libAdminRowHTML(ex) {
     <div class="user-row lib-ex-row lib-card-row" data-lib-card="${esc(ex.id)}">
       ${libCardMediaHTML(ex)}
       <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${gripPendMarkHTML(ex)} <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
-      <div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-assign="${esc(ex.id)}">${esc(t('lib.assign.btn'))}</button>${ROLE === 'administrador' && LIBADM_WRITE_ENABLED ? `<button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button>` : ''}</div></div>
+      <div class="user-actions"><button type="button" class="btn-ghost btn-sm lib592-actbtn" data-lib592-actions="${esc(ex.id)}">${esc(t('lib592.actions'))}</button></div></div>
     </div>`;
 }
-/* Las caras de los dos botones del catálogo: se repintan con
-   cada pintado de la lista — el mismo latido con el que antes
-   se rellenaban los selectores — y su toque abre la hoja. */
-function libAdminFacetBtns() {
-  const catBtn = $('lib-admin-cat-btn'), lvlBtn = $('lib-admin-level-btn');
-  libFacetBtnWire(catBtn, () => libAdminFacetOpen('cat'));
-  libFacetBtnWire(lvlBtn, () => libAdminFacetOpen('level'));
-  libFacetBtnFace(catBtn, 'libcat.category', libFacetValueLabel('categoria', LIB_CAT_ORDER, t('libcat.allCategories'), LIBADM_F.cat), !!LIBADM_F.cat);
-  libFacetBtnFace(lvlBtn, 'libcat.level', libFacetValueLabel('nivel', LIB_LEVEL_ORDER, t('libcat.allLevels'), LIBADM_F.level), !!LIBADM_F.level);
+/* AUTH-592 (pliegues nº 10): la cara del botón ÚNICO «Filtros»
+   del catálogo — se repinta con cada pintado de la lista, como
+   antes las caras de los dos botones de facetas —: la etiqueta
+   «Filtros», el valor con lo elegido (o «Todos») y el tinte de
+   filtro activo. Su toque abre la hoja de filtros en su modo
+   puerta (una por faceta), y cada puerta abre la hoja de
+   opciones de siempre de esa faceta. La fila de chips de
+   grupos NO se toca: va con el rediseño del selector. */
+function libAdminFiltersBtn() {
+  const btn = $('lib-admin-filters-btn'); if (!btn) return;
+  libFacetBtnWire(btn, () => libAdminFiltersOpen());
+  const cat = LIBADM_F.cat ? libFacetValueLabel('categoria', LIB_CAT_ORDER, t('libcat.allCategories'), LIBADM_F.cat) : '';
+  const lvl = LIBADM_F.level ? libFacetValueLabel('nivel', LIB_LEVEL_ORDER, t('libcat.allLevels'), LIBADM_F.level) : '';
+  libFacetBtnFace(btn, 'lib592.filters', [cat, lvl].filter(Boolean).join(' · ') || t('lib592.filtersNone'), !!(cat || lvl));
 }
+function libAdminFiltersOpen() {
+  libFacetSheetOpen({
+    mode: 'home', title: t('lib592.filters'), sub: t('lib592.filtersHint'),
+    doors: [
+      { label: t('libcat.category'), value: libFacetValueLabel('categoria', LIB_CAT_ORDER, t('libcat.allCategories'), LIBADM_F.cat), open: () => libAdminFacetOpen('cat') },
+      { label: t('libcat.level'), value: libFacetValueLabel('nivel', LIB_LEVEL_ORDER, t('libcat.allLevels'), LIBADM_F.level), open: () => libAdminFacetOpen('level') },
+    ]
+  });
+}
+/* AUTH-592 (pliegues nº 10): la hoja de ACCIONES de una fila —
+   un solo botón por fila abre su pantalla con lo que la fila
+   puede hacer según su contexto: en el catálogo, Asignar y (el
+   administrador con escritura) Editar; en «Mis aportes»,
+   Asignar si está aprobado y Editar/Borrar si es del autor y
+   sigue pendiente o rechazado — las mismas puertas que ponían
+   los botones sueltos de antes. La hoja es la #libact-float
+   estática de index.html, hermana de #libf-float. */
+function libRowActionsOpen(id, ctx) {
+  const ex = LIB_BY_ID[id]; if (!ex) return;
+  const fl = $('libact-float'); if (!fl) return;
+  const title = $('libact-title'); if (title) title.textContent = libNameOf(ex);
+  const sub = $('libact-sub'); if (sub) sub.textContent = [ex.id, libField(ex, 'grupo_muscular'), libField(ex, 'equipo')].filter(Boolean).join(' · ');
+  const body = $('libact-body'); if (!body) return;
+  const opts = [];
+  if (ctx === 'admin') {
+    opts.push({ key: 'assign', label: t('lib.assign.btn') });
+    if (ROLE === 'administrador' && LIBADM_WRITE_ENABLED) opts.push({ key: 'edit', label: t('libadm.edit') });
+  } else {
+    if (ex.estado === 'aprobado') opts.push({ key: 'assign', label: t('lib.assign.btn') });
+    if ((ex.estado === 'pendiente' || ex.estado === 'rechazado') && LIBADM_WRITE_ENABLED) { opts.push({ key: 'edit', label: t('libadm.edit') }); opts.push({ key: 'del', label: t('libcom.del') }); }
+  }
+  body.innerHTML = opts.map(o => `<button type="button" class="libf-opt" data-libact="${o.key}"><span>${esc(o.label)}</span><span class="libf-chev">›</span></button>`).join('');
+  body.querySelectorAll('[data-libact]').forEach(b => b.onclick = () => {
+    const k = b.dataset.libact;
+    libRowActionsClose();
+    if (k === 'assign') libAssignOpen(id);
+    else if (k === 'edit') libOpenEditor(id, ctx);
+    else if (k === 'del') libDeleteOwn(id);
+  });
+  const bd = $('libact-backdrop'); if (bd) bd.style.display = '';
+  fl.style.display = '';
+  try { coverSync(); } catch {}
+}
+function libRowActionsClose() {
+  const bd = $('libact-backdrop'); if (bd) bd.style.display = 'none';
+  const fl = $('libact-float'); if (fl) fl.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+(function libactWireSheet() {
+  const c = $('libact-close'); if (c) c.onclick = libRowActionsClose;
+  const bd = $('libact-backdrop'); if (bd) bd.onclick = libRowActionsClose;
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const f = $('libact-float');
+    if (f && f.style.display !== 'none') libRowActionsClose();
+  });
+})();
 function libAdminRenderList() {
   const box = $('lib-admin-list'); if (!box) return;
   const cnt = $('lib-admin-count');
@@ -224,7 +326,7 @@ function libAdminRenderList() {
     chipsBox.innerHTML = libChipsHTML(libGroupCounts(ctx), ctx.length, LIBADM_F.group);
     libWireChips(chipsBox, k => { LIBADM_F.group = k; libAdminListReset(); });
   }
-  libAdminFacetBtns();
+  libAdminFiltersBtn();
   const rows = libAdminFaceted();
   if (cnt) cnt.textContent = t('libadm.count', { n: rows.length });
   const gateNote = LIBADM_WRITE_ENABLED ? '' : `<div class="wempty">${esc(t('libadm.readonlyNote'))}</div>`;
@@ -293,7 +395,11 @@ function libAdminMoreHTML(total) {
   return LIBADM_SHOWN < total ? `<div class="rcp-more lib-more-wrap"><button type="button" class="btn-secondary" data-lib-more="1">${esc(t('recipes.moreBtn', { n: total - LIBADM_SHOWN }))}</button></div>` : '';
 }
 function libAdminWireRows(scope) {
-  scope.querySelectorAll('[data-lib-edit]').forEach(b => b.onclick = () => libOpenEditor(b.dataset.libEdit, 'admin'));
+  /* AUTH-592: la fila ya no lleva botones sueltos de Editar ni
+     de Asignar (Asignar lo cogía un oyente delegado del núcleo
+     sobre [data-lib-assign], que queda sin elementos) — su
+     botón «Acciones» abre la hoja de acciones de la fila. */
+  scope.querySelectorAll('[data-lib592-actions]').forEach(b => b.onclick = () => libRowActionsOpen(b.dataset.lib592Actions, 'admin'));
 }
 function libAdminWireMore(box) {
   box.querySelectorAll('[data-lib-more]').forEach(b => b.onclick = () => libAdminShowMore());
