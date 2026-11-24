@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-pliegues-alumnos">
+<link rel="stylesheet" href="styles.css?v=20261124-errores-ia">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -711,6 +711,24 @@
     </div>
     <button type="button" class="back-row" id="nutribox-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="nutribox-sheet-body"></div>
+  </div>
+
+  <!-- «Errores de la IA» (candidato AUTH-590, orden de Ronald
+       2026-11-24 «Déjalo visible»): hoja propia del registro de
+       errores reales de Google que guarda el Worker (GET
+       /admin/gemini-errors). Su línea vive en el índice de la
+       zona «Administración» (admuseSkeleton) y al tocarla se
+       abre ESTA pantalla, con volver siempre visible (regla de
+       navegación de la casa). La pintan y la mueven
+       aierrSheetOpen / aierrSheetClose / aierrLoad (app.js);
+       solo lectura: nada aquí borra ni modifica el registro. -->
+  <div class="pend-float" id="aierr-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="aierr-sheet-title"></span></h2>
+      <button type="button" class="pend-close" id="aierr-sheet-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="aierr-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="aierr-sheet-body"></div>
   </div>
 
   <!-- BOTÓN «← ATRÁS» A PENDIENTES (corrección 2026-11-01): pastilla
@@ -2933,6 +2951,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-pliegues-alumnos"></script>
+<script type="module" src="app.js?v=20261124-errores-ia"></script>
 </body>
 </html>
