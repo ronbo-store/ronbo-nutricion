@@ -10214,6 +10214,164 @@ function stuQDayEdit(di) {
   const wraps = document.querySelectorAll('#pl-days .pl-day');
   if (wraps[di]) planDayOpenOnly(wraps[di]);
 }
+/* ════════════════════════════════════════════════════════════════
+   AUTH-585 — «MI PLAN» DEL ALUMNO (orden de Ronald 2026-11-23
+   18:48: «El alumno no puede ver con facilidad su planificación
+   de días y semana y en total de los asignado… debería verlo
+   así como lo veo yo»; maqueta aprobada por Ronald el mismo
+   día a las 20:54: «Bien así, constrúyelo»).
+   El alumno gana la MISMA claridad que el entrenador tiene en
+   su acceso rápido (AUTH-577), sobre SU PROPIO plan y de SOLO
+   LECTURA: la tarjeta con los totales EN PALABRAS (la semana
+   en curso de cuántas, los días que entrena por semana, las
+   sesiones de todo el plan y su avance), la tira de la semana
+   con el estado de cada día EN PALABRAS y la pantalla limpia
+   de cada día (sus ejercicios con series × repeticiones, sin
+   ningún botón de edición). Vive en la pantalla del plan de
+   Entrenamiento (#train-sheet, bajo la cabecera que ya viajaba
+   ahí — la puerta natural del diagnóstico) y el botón «Ver mi
+   plan» de Retos abre ESA misma pantalla, ya no salta a
+   Entrenamiento a secas. Sin cálculos nuevos ni paralelos: los
+   modelos son los de la casa (stuCumplModel, stuPlanProgressModel,
+   stuQProgStrip, stuTrainTodayState, careDayFor) y los datos,
+   la memoria que la carga de Entrenamiento ya dejó (MY_PLAN /
+   MY_LOGS / MY_PLANS_ALL / MY_LOGS_ALL). Abrir estas pantallas
+   no escribe NADA: ningún camino suyo guarda, edita ni abre el
+   editor — mirar el plan es solo mirar. ════════════════════════ */
+let MYPLAN_DAY_ISO = null;   /* el día abierto en #myplan-day-float */
+/* Los datos del propio alumno, de la memoria de la vista (con
+   la guarda de la casa: si la memoria aún no existe, el vacío
+   honesto y la pantalla no pinta nada). */
+function myPlanData() {
+  const plans = (typeof MY_PLANS_ALL !== 'undefined' && Array.isArray(MY_PLANS_ALL)) ? MY_PLANS_ALL : [];
+  const plan = ((typeof MY_PLAN !== 'undefined' && MY_PLAN) || plans.find(p => p && p.active === true) || null);
+  const logs = (typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : [];
+  const logsAll = (typeof MY_LOGS_ALL !== 'undefined' && Array.isArray(MY_LOGS_ALL)) ? MY_LOGS_ALL : logs;
+  return { plan, plans, logs, logsAll };
+}
+/* La ventana del plan (inicio..final válidos) y sus totales,
+   del modelo de la casa (stuPlanProgressModel): las sesiones
+   de TODO el plan y las ya hechas dentro de la ventana, la
+   semana en curso y el total de semanas. Sin ventana, null. */
+function myPlanWindow(plan, logs) {
+  const s = String((plan && plan.startsAt) || '').slice(0, 10), e = String((plan && plan.endsAt) || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || !/^\d{4}-\d{2}-\d{2}$/.test(e) || e < s) return null;
+  const m = stuPlanProgressModel(plan, logs);
+  const span = Math.round((Date.parse(e + 'T12:00:00') - Date.parse(s + 'T12:00:00')) / 86400000) + 1;
+  const totalWeeks = Math.ceil(span / 7);
+  const today = todayISO();
+  const weekNow = today < s ? 0 : today > e ? totalWeeks
+    : Math.floor(Math.round((Date.parse(today + 'T12:00:00') - Date.parse(s + 'T12:00:00')) / 86400000) / 7) + 1;
+  return { s, e, totalWeeks, weekNow, total: m.planned, done: m.done };
+}
+/* La tira de la semana: con el plan en curso, la del acceso
+   rápido del entrenador (stuQProgStrip), sin recomputar; si el
+   plan aún no empieza (o ya terminó), la MISMA regla anclada
+   en la semana de su inicio (o de su final) — ninguna regla
+   nueva. */
+function myPlanStrip(plan, logs) {
+  const w = myPlanWindow(plan, logs);
+  const today = todayISO();
+  if (!w || (today >= w.s && today <= w.e)) return stuQProgStrip(plan, logs);
+  const anchor = mondayISO(today < w.s ? w.s : w.e);
+  const doneDates = new Set((Array.isArray(logs) ? logs : []).filter(wkIsClosed).map(l => l.date));
+  const out = [];
+  for (let i = 0; i < 7; i++) {
+    const iso = addDaysISO(anchor, i);
+    const r = careDayFor(plan, null, iso);
+    const isPlanDay = !!(r && r.mode !== 'rotation' && r.idx != null);
+    const free = isPlanDay && (((plan.days || [])[r.idx] || {}).freeDay === true);
+    out.push({ iso, wd: i, planDay: isPlanDay && !free, free, done: doneDates.has(iso), today: iso === today });
+  }
+  return out;
+}
+/* Cada celda dice su estado EN PALABRAS, como la maqueta:
+   Hecho / Toca / Día libre (y «Libre» corto el fin de semana
+   sin sesión, como la pinta la maqueta aprobada). */
+function myPlanStripHTML(plan, logs) {
+  return myPlanStrip(plan, logs).map(c => {
+    const st = c.done ? t('students.progDayDone')
+      : c.free ? t('train.free.label')
+      : c.planDay ? t('students.progDayDue')
+      : (c.wd >= 5 ? t('myplan.freeShort') : t('train.free.label'));
+    return `<button type="button" class="qprog-cell myplan-cell${c.done ? ' done' : ''}${c.today ? ' today' : ''}${MYPLAN_DAY_ISO === c.iso ? ' sel' : ''}" data-myday="${c.iso}"><span class="mpc-wd">${esc((DAYNAMES[LANG] || DAYNAMES.en)[c.wd])}</span><b class="mpc-n">${Number(c.iso.slice(8, 10))}</b><span class="mpc-st">${esc(st)}</span></button>`;
+  }).join('');
+}
+/* La tarjeta de totales EN PALABRAS de la maqueta aprobada:
+   semana de cuántas · días por semana · sesiones de todo el
+   plan; debajo, la línea de hoy (el pintor de la casa) y la
+   semana y el avance juntos, como los lee el entrenador. */
+function myPlanCardHTML(plan, logsAll, plans) {
+  const w = myPlanWindow(plan, logsAll);
+  const today = todayISO();
+  const segs = [];
+  if (w) {
+    if (today < w.s) segs.push(esc(t('myplan.startsOn', { date: dateName(w.s) })));
+    else if (today > w.e) segs.push(esc(t('myplan.finished')));
+    else segs.push(esc(t('myplan.weekOf', { w: w.weekNow, n: w.totalWeeks })));
+  }
+  const perWeek = (plan.genSource && plan.genSource.kind === 'plan21') ? (plan.genSource.form || 4) : carePlanCalWeekly(plan);
+  segs.push(esc(t('myplan.perWeek', { d: perWeek })));
+  if (w) segs.push(esc(t('myplan.totalSessions', { s: w.total })));
+  const cm = stuCumplModel(logsAll, plans);
+  const tail = [];
+  if (cm && cm.week) tail.push(esc(t('students.cumplWeek', { done: cm.week.done, planned: cm.week.planned })));
+  if (w) tail.push(esc(t('myplan.progress', { done: w.done, total: w.total })));
+  else if (cm && cm.progress) tail.push(esc(t('myplan.progress', { done: cm.progress.done, total: cm.progress.planned })));
+  return `<div class="qprog-card myplan-card"><div class="qprog-card-t">${esc(t('train.title'))}</div>`
+    + `<p class="qprog-card-sub"><b>${esc(plan.title || '')}</b> · <span class="myplan-active">● ${esc(t('train.activeBadge'))}</span></p>`
+    + `<p class="myplan-totals">${segs.join(' · ')}</p>`
+    + stuTrainTodayLineHTML(stuTrainTodayState(logsAll, plans))
+    + (tail.length ? `<div class="stu-cumpl-line">${tail.join(' · ')}</div>` : '')
+    + `</div>`;
+}
+/* La pintura de «Mi plan» dentro de la pantalla del plan: la
+   tarjeta de totales, la tira tocable y su pista. Defensiva
+   por diseño: si los datos no están, pinta el vacío honesto o
+   nada — nunca rompe la hoja que la hospeda. */
+function myPlanPaint() {
+  const slot = $('myplan-slot'); if (!slot) return;
+  try {
+    const { plan, plans, logsAll } = myPlanData();
+    if (!plan) { slot.innerHTML = `<div class="wempty">${esc(t('train.noPlan'))}</div>`; return; }
+    slot.innerHTML = myPlanCardHTML(plan, logsAll, plans)
+      + `<div class="qprog-strip myplan-strip">${myPlanStripHTML(plan, logsAll)}</div><p class="qprog-hint">${esc(t('students.qprogTapDay'))}</p>`;
+    slot.querySelectorAll('[data-myday]').forEach(b => b.onclick = () => myPlanDayOpen(b.dataset.myday));
+  } catch { try { slot.innerHTML = ''; } catch {} }
+}
+/* El día asignado, en su propia pantalla de SOLO LECTURA
+   (#myplan-day-float): sus ejercicios numerados con la
+   pastilla de series × repeticiones — el espejo para el
+   alumno del día del entrenador (stuQDayOpen), SIN su botón
+   de editar: aquí no se entra a la sesión de trabajo. */
+function myPlanDayOpen(iso) {
+  const fl = $('myplan-day-float'); if (!fl) return;
+  const { plan, logsAll } = myPlanData(); if (!plan) return;
+  MYPLAN_DAY_ISO = iso;
+  const r = careDayFor(plan, null, iso);
+  const idx = (r && r.mode !== 'rotation' && r.idx != null) ? r.idx : null;
+  const day = idx != null ? (plan.days || [])[idx] : null;
+  const done = (logsAll || []).some(l => l && l.date === iso && l.planId === plan.id && wkIsClosed(l));
+  const ttl = $('myplan-day-title'); if (ttl) ttl.textContent = stuShortDay(iso) + (day && day.label ? ' — ' + day.label : '');
+  const x = $('myplan-day-x'); if (x) x.onclick = () => myPlanCloseAll();
+  const bk = $('myplan-day-back'); if (bk) bk.onclick = () => myPlanDayHide();
+  const body = $('myplan-day-body'); if (!body) return;
+  let inner;
+  if (!day) inner = `<div class="wempty">${esc(t('myplan.noDay'))}</div>`;
+  else if (day.freeDay === true) inner = `<p class="qprog-sub2">${esc(t('students.qprogDaySub'))} · <b>${esc(t('train.free.label'))}</b></p><div class="wempty">${esc(t('train.freeDay.assignedNote'))}</div>`;
+  else {
+    const state = done ? t('students.progDayDone') : t('myplan.dayDue');
+    const rows = (day.exercises || []).map((ex, i) => `<div class="qprog-exrow"><span class="qprog-exn">${i + 1}</span><span class="qprog-exname">${esc(trainExName(ex) || ex.name || '')}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</span><span class="qprog-chip">${esc([ex.sets, ex.reps].filter(Boolean).join(' × '))}</span></div>`).join('');
+    inner = `<p class="qprog-sub2">${esc(t('students.qprogDaySub'))} · <b>${esc(state)}</b></p>${plan21HealthShortHTML(day)}${rows || `<div class="wempty">${esc(t('myplan.noDay'))}</div>`}${iso >= todayISO() ? `<p class="qprog-hint myplan-foot">${esc(t('myplan.dayFoot'))}</p>` : ''}`;
+  }
+  body.innerHTML = inner;
+  fl.style.display = '';
+  try { coverSync(); } catch {}
+  const slot = $('myplan-slot');
+  if (slot) slot.querySelectorAll('[data-myday]').forEach(b => b.classList.toggle('sel', b.dataset.myday === iso));
+}
+function myPlanDayHide() { const fl = $('myplan-day-float'); if (fl) fl.style.display = 'none'; try { coverSync(); } catch {} }
+function myPlanCloseAll() { myPlanDayHide(); try { trainSheetClose(); } catch {} }
 /* LA BANDEJA «Revisar propuestas» — junta las tres familias que
    el entrenador decide, cada una con SU pintor y SU resolvedor de
    siempre. El contador del botón del bloque cuenta pendientes de
@@ -43754,12 +43912,25 @@ function trainSheetOpen(key) {
     return { el, anchor };
   });
   TRAIN_SHEET = { key, nodes: moved };
+  /* AUTH-585: bajo la cabecera del plan vive «Mi plan» — los
+     totales en palabras, la tira de la semana y la pantalla de
+     cada día (myPlanPaint, de solo lectura). Su contenedor nace
+     con la hoja y muere con su vaciado de siempre. */
+  if (key === 'plan') {
+    try {
+      const slot = document.createElement('div');
+      slot.id = 'myplan-slot';
+      body.appendChild(slot);
+      myPlanPaint();
+    } catch {}
+  }
   sheet.style.display = '';
   const x = $('train-sheet-x'); if (x) x.onclick = () => trainSheetClose();
   const bk = $('train-sheet-back'); if (bk) bk.onclick = () => trainSheetClose();
   try { sheet.scrollTop = 0; } catch {}
 }
 function trainSheetClose() {
+  try { myPlanDayHide(); } catch {}   /* AUTH-585: el día de «Mi plan» nunca sobrevive a su hoja */
   const S = TRAIN_SHEET; if (!S) return;
   TRAIN_SHEET = null;
   S.nodes.forEach(({ el, anchor }) => {
@@ -43773,6 +43944,7 @@ function trainSheetClose() {
    descartan con el resto de la pintura anterior, como en
    AUTH-565 — y así nunca conviven dos nodos con el mismo id. */
 function trainSheetReset() {
+  try { myPlanDayHide(); } catch {}   /* AUTH-585: ídem al repintar la vista */
   TRAIN_SHEET = null;
   const sheet = $('train-sheet'); if (sheet) sheet.style.display = 'none';
   const body = $('train-sheet-body'); if (body) body.innerHTML = '';
@@ -67759,7 +67931,7 @@ function chalActDispatch(el) {
   if (act === 'open') { if (el.dataset.chalCat) chalSheetOpenCat(el.dataset.chalCat); else chalSheetOpenId(id); }
   else if (act === 'assign') { chalAssignOpen(el.dataset.chalCat ? 'cat:' + el.dataset.chalCat : undefined); }
   else if (act === 'p21start') { r21Open('retos'); }
-  else if (act === 'p21view') { Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} }); }
+  else if (act === 'p21view') { Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} try { trainSheetOpen('plan'); } catch {} }); }   /* AUTH-585: «Ver mi plan» abre la pantalla del plan («Mi plan»), ya no salta a Entrenamiento a secas */
   else if (act === 'leave') chalLeave(id);
   else if (act === 'abandon') chalAbandon(id);
   else if (act === 'delcreated') chalDeleteCreated(id);

@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-reto21-hallazgos">
+<link rel="stylesheet" href="styles.css?v=20261123-mi-plan">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1568,6 +1568,19 @@
     <div id="stu-qday-body"></div>
   </div>
 
+  <!-- «MI PLAN» DEL ALUMNO (AUTH-585): la pantalla del día
+       asignado que se abre desde la tira de «Mi plan» (la vista
+       de totales vive en la pantalla del plan de Entrenamiento,
+       #train-sheet, bajo su cabecera); hoja hermana en la
+       familia .act-float, de SOLO LECTURA — ningún botón suyo
+       escribe ni edita. La pintan myPlanDayOpen / myPlanDayHide
+       (app.js). -->
+  <div class="act-float act-sheet" id="myplan-day-float" style="display:none" role="dialog" aria-label="Plan day">
+    <div class="act-sheet-head"><h2 class="act-sheet-title" id="myplan-day-title"></h2><button type="button" class="act-sheet-x" id="myplan-day-x" aria-label="Close">✕</button></div>
+    <button type="button" class="back-row" id="myplan-day-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="myplan-day-body"></div>
+  </div>
+
   <!-- «Mi horario diario» — Horarios de alimentación sugeridos
        (especificación de Ronald, 2026-11-09; SOLO desarrollo):
        hoja hermana de #plan-float en la familia .act-float; reúne
@@ -2878,6 +2891,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-reto21-hallazgos"></script>
+<script type="module" src="app.js?v=20261123-mi-plan"></script>
 </body>
 </html>

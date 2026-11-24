@@ -7615,6 +7615,21 @@ textarea.gest-in { resize: none; }
 #stu-tray-float { z-index: 49; }
 #stu-prog-float { z-index: 49; }
 #stu-qprog-float, #stu-qdays-float, #stu-qday-float { z-index: 49; }
+/* AUTH-585 · «MI PLAN» DEL ALUMNO: su pantalla del día flota
+   sobre la pantalla del plan (#train-sheet, 48) como la del
+   día del entrenador sobre la suya (49); la tarjeta y la tira
+   reutilizan las piezas .qprog-* del acceso rápido (AUTH-577)
+   y solo se añade la celda en tres líneas de la maqueta
+   aprobada (día · número · estado en palabras). */
+#myplan-day-float { z-index: 49; }
+.myplan-active { color: #16a34a; font-weight: 800; }
+.myplan-totals { margin: 2px 0 6px; color: #33475b; font-size: 14px; }
+.myplan-cell { gap: 1px; padding: 7px 1px; }
+.myplan-cell .mpc-wd { font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #5b7a74; }
+.myplan-cell .mpc-n { font-size: 17px; font-weight: 800; color: #1f2a44; line-height: 1.1; }
+.myplan-cell .mpc-st { font-size: 10.5px; color: #5b7a74; }
+.myplan-cell.done .mpc-st { color: #15803d; font-weight: 700; }
+.myplan-foot { margin-top: 12px; }
 
 /* ═══ AUTH-2026-11-23-566 · LA VISTA DE ENTRENAMIENTO, PLEGADA ═══
    La hoja de cada apartado de la vista (#train-sheet) hereda
