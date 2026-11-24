@@ -68902,6 +68902,20 @@ function chalItemActionsOpen(chalId) {
     const act = b.dataset.chal593Opt;
     chalItemActionsClose();
     chalActDispatch({ dataset: { chalAct: act, chalId } });
+    /* AUTH-593: «Tabla» alterna el estado y carga las partes,
+       pero el despachador de siempre solo repinta la página —
+       dentro de una hoja, la tabla no se veía hasta reabrirla
+       (con el botón suelto de antes pasaba igual). Al despachar
+       desde ESTA hoja, la hoja abierta se repinta al llegar las
+       partes, para que la acción se vea donde la persona está.
+       Salir y Abandonar ya repintan la hoja al completarse. */
+    if (act === 'table') {
+      const fl = $('chal-ficha-float');
+      if (fl && fl.style.display !== 'none' && typeof CHAL_SHEET !== 'undefined' && CHAL_SHEET) {
+        try { chalSheetPaint(); } catch {}
+        chalLoadParts(chalId).then(() => { try { if (fl.style.display !== 'none') chalSheetPaint(); } catch {} }).catch(() => {});
+      }
+    }
   });
   if (!CHAL593_ACT_WIRED) {
     CHAL593_ACT_WIRED = true;
