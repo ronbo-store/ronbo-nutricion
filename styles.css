@@ -7800,3 +7800,108 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .p4-foot { position: sticky; bottom: 0; z-index: 6; margin: 10px -16px 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: #fff; border-top: 1px solid rgba(15,23,42,.10); box-shadow: 0 -6px 16px rgba(15,23,42,.06); }
 .p4-foot::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: calc(120px + env(safe-area-inset-bottom, 0px)); background: #fff; }
 .p4-foot .pend-actions, .p4-foot .eval-actions, .p4-foot .ai-actions, .p4-foot .act-cfg-actions { margin-top: 0; }
+
+/* ═══ AUTH-586 · RETOS: LAS DIEZ CORRECCIONES ═══════════════════
+   Punto 5 — la pantalla completa de los retos: la información del
+   reto y su inscripción ocupan TODA el área disponible de la app
+   (sin la ventana estrecha sobre otra pantalla), con la cabecera
+   fija — Volver y Cerrar siempre accesibles —, un único scroll
+   vertical (el de la propia hoja; el fondo lo congela el sistema
+   de tapas de la casa) y el contenido centrado con lectura cómoda
+   en pantallas anchas. Las zonas seguras se respetan con el
+   relleno de siempre de .pend-float más el de la cabecera. */
+.r10-screen { left: 0; right: 0; top: 0; bottom: 0; width: auto; transform: none; border: 0; border-radius: 0; box-shadow: none; padding: 0 16px calc(120px + env(safe-area-inset-bottom, 0px)); }
+.r10-screen .pend-head { position: sticky; top: 0; z-index: 5; background: #fff; margin: 0 -16px 10px; padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 8px; border-bottom: 1px solid rgba(15,23,42,.08); }
+.r10-screen #reto21-body, .r10-screen #chal-ficha-sheet-body, .r10-screen #plan21-body { max-width: 780px; margin: 0 auto; }
+.pend-back { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; padding: 6px 10px 6px 4px; background: none; border: 0; font: inherit; font-size: 16px; font-weight: 700; color: #0F766E; cursor: pointer; }
+.pend-back:active { opacity: .6; }
+/* Punto 4 — la tarjeta del reto: portada que abre su información,
+   acciones en fila y el bloque de compartir INTEGRADO en la misma
+   tarjeta (sin la caja independiente de AUTH-572). */
+.chal-cover { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 12px; overflow: hidden; }
+.chal-cover img { display: block; width: 100%; height: 132px; object-fit: cover; border-radius: 12px; }
+.chal-cover:active { opacity: .75; }
+.chal-name-btn { display: block; width: 100%; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.chal-card-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.chal-card-actions .btn-primary, .chal-card-actions .btn-ghost { flex: 1 1 150px; min-height: 50px; font-size: 15.5px; }
+.chal-card-actions .btn-leave { flex: 1 1 150px; min-height: 50px; font-size: 15.5px; background: #fff; color: #b91c1c; border: 2px solid #fca5a5; border-radius: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.chal-share-in { margin-top: 14px; border-top: 1px solid var(--line, #d8e2de); padding-top: 12px; }
+.chal-share-in .rlink-card { margin-top: 0; border: 0; box-shadow: none; padding: 0; background: transparent; }
+.chal-state-line { display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(13,148,136,.12); color: #0F766E; font-size: 13px; font-weight: 700; }
+/* Puntos 1 y 8 — el programa completo: semanas y días plegados,
+   con su línea de antes de abrir (día, fecha, grupos, cantidad y
+   cardio real) y el detalle con «Qué buscamos hoy». */
+.r10-prog-note { font-size: 14px; line-height: 1.55; color: #33475b; }
+.r10-prog-sec { margin-top: 14px; }
+.r10-prog-sec h4 { margin: 0 0 6px; font-size: 16.5px; }
+.r10-prog-sec p { margin: 0; font-size: 14.5px; line-height: 1.6; color: #33475b; }
+.r10-muscles { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.r10-muscle-chip { padding: 5px 10px; border-radius: 999px; background: #f2f7f5; border: 1px solid #d8e2de; font-size: 13px; font-weight: 600; }
+.r10-week { margin-top: 12px; border: 1px solid var(--line, #d8e2de); border-radius: 14px; background: #fff; overflow: hidden; }
+.r10-week-head { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 52px; box-sizing: border-box; padding: 10px 14px; background: #fbfdfc; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.r10-week-head b { flex: 1; font-size: 16px; }
+.r10-week-body { padding: 4px 10px 10px; }
+.r10-day { border: 1px solid var(--line, #e2e8f0); border-radius: 12px; margin-top: 8px; background: #fff; overflow: hidden; }
+.r10-day.rest { background: #f8fafc; }
+.r10-day-head { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 52px; box-sizing: border-box; padding: 9px 12px; background: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.r10-day-head .r10-day-t { flex: 1; min-width: 0; }
+.r10-day-head .r10-day-t b { display: block; font-size: 15px; }
+.r10-day-head .r10-day-t span { display: block; font-size: 12.5px; color: var(--muted, #5b6b66); margin-top: 1px; }
+.r10-day-body { padding: 2px 12px 12px; }
+.r10-goal { font-size: 14px; line-height: 1.55; color: #33475b; background: rgba(13,148,136,.06); border-radius: 10px; padding: 9px 11px; margin: 4px 0 8px; }
+.r10-goal b { color: #0F766E; }
+.r10-exrow { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid #eef2f0; }
+.r10-exrow img { width: 40px; height: 40px; border-radius: 9px; object-fit: cover; flex: none; }
+.r10-exrow .r10-ex-n { flex: 1; min-width: 0; font-size: 14.5px; }
+.r10-exrow .r10-ex-s { font-size: 13px; font-weight: 700; color: #0F766E; white-space: nowrap; }
+.r10-exrow .r10-ex-r { display: block; font-size: 12px; color: var(--muted, #5b6b66); font-weight: 400; }
+.r10-cardio { margin-top: 8px; font-size: 13.5px; font-weight: 600; color: #9a3412; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 8px 11px; }
+.r10-fold-a { flex: none; color: #0F766E; font-size: 17px; font-weight: 800; }
+/* Punto 6 — las dos casillas de la inscripción: toda la tarjeta
+   marca o desmarca; la marca se ve (casilla con ✓ y borde verde)
+   y el aviso de «al menos una» va en rojo bajo las tarjetas. */
+.r10-check { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 68px; box-sizing: border-box; text-align: left; padding: 14px; border: 2px solid #E7E1D3; border-radius: 14px; background: #fff; font: inherit; color: #111827; cursor: pointer; }
+.r10-check .r10-box { flex: none; width: 30px; height: 30px; border-radius: 9px; border: 2.5px solid #94a3b8; display: inline-flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 900; color: #fff; background: #fff; }
+.r10-check.on { border-color: #0D9488; background: rgba(13,148,136,.09); box-shadow: 0 0 0 1px #0D9488 inset; }
+.r10-check.on .r10-box { background: #0D9488; border-color: #0D9488; }
+.r10-check .wiz-card-tx { display: flex; flex-direction: column; gap: 2px; font-size: 16.5px; }
+.r10-need { color: #b91c1c; font-weight: 700; font-size: 14px; margin-top: 10px; }
+/* Punto 9 — los ajustes iniciales del ejemplo y la marca de
+   calibración pendiente en cada ejercicio que la lleva. */
+.r10-adj { border: 1px solid var(--line, #d8e2de); border-radius: 12px; padding: 10px 12px; margin-top: 10px; background: #fbfdfc; }
+.r10-adj h4 { margin: 0 0 6px; font-size: 15.5px; }
+.r10-adj-row { font-size: 13.5px; line-height: 1.5; padding: 5px 0; border-top: 1px solid #eef2f0; color: #33475b; }
+.r10-adj-row:first-of-type { border-top: 0; }
+.r10-calib { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 12px; font-weight: 800; }
+.r10-seed { display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgba(13,148,136,.12); color: #0F766E; font-size: 12px; font-weight: 800; }
+/* Punto 3 — la acción de dejar de ser su entrenador, en la fila y
+   en la rejilla de «Mis alumnos», bajo la cabecera de cada alumno. */
+.stu-untrain-row { display: flex; justify-content: flex-end; padding: 2px 2px 8px; }
+.btn-untrain { min-height: 44px; padding: 8px 12px; background: #fff; color: #b91c1c; border: 1.5px solid #fca5a5; border-radius: 11px; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.btn-untrain:active { opacity: .65; }
+.cgrid-cellwrap { display: flex; flex-direction: column; }
+.cgrid-cellwrap .stu-untrain-row { justify-content: center; padding-bottom: 2px; }
+/* Punto 10 — «Tomar medidas» y «Subir informe corporal» en una
+   fila, con el mismo estilo; la hoja de informes con su vista
+   previa, su estado de subida y su lista de anteriores. */
+.stu-meas-row { display: flex; gap: 10px; margin: 10px 0 2px; }
+.stu-meas-row .btn-tmeas, .stu-meas-row .btn-breport { flex: 1; margin: 0; }
+.btn-breport { display: block; width: 100%; padding: 13px 10px; min-height: 48px; background: #fff; color: #0d7a78; border: 2px solid #0d7a78; border-radius: 14px; font-size: 15.5px; font-weight: 800; cursor: pointer; font-family: inherit; }
+.br-pickrow { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+.br-pickrow .btn-ghost, .br-pickrow .btn-primary { flex: 1 1 150px; min-height: 50px; }
+.br-prev { margin: 10px 0; border: 1px solid var(--line, #d8e2de); border-radius: 12px; padding: 10px; background: #fbfdfc; }
+.br-prev img { display: block; max-width: 100%; max-height: 220px; border-radius: 9px; margin: 0 auto; }
+.br-prev .br-prev-name { font-size: 14px; font-weight: 700; text-align: center; margin-top: 6px; word-break: break-all; }
+.br-date { display: block; margin: 10px 0; font-size: 14.5px; font-weight: 700; }
+.br-date input { display: block; width: 100%; box-sizing: border-box; margin-top: 5px; min-height: 48px; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 11px; font: inherit; font-size: 16px; }
+.br-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line, #e2e8f0); border-radius: 12px; padding: 9px 11px; margin-top: 8px; background: #fff; }
+.br-row img { width: 44px; height: 44px; border-radius: 9px; object-fit: cover; flex: none; }
+.br-row .br-row-main { flex: 1; min-width: 0; }
+.br-row .br-row-main b { display: block; font-size: 14.5px; }
+.br-row .br-row-main span { display: block; font-size: 12.5px; color: var(--muted, #5b6b66); }
+.br-row .br-row-acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.br-err { color: #b91c1c; font-weight: 700; font-size: 14px; margin-top: 8px; }
+/* AUTH-586 (punto 10): el icono de PDF en la lista de informes y
+   la celda de la rejilla a ancho completo dentro de su envoltorio. */
+.br-row-ic { font-size: 26px; width: 44px; text-align: center; flex: none; }
+.cgrid-cellwrap .cgrid-cell { width: 100%; }

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RONBO FIT</title>
+<!-- AUTH-586 (punto 2) · LA RUTA CORTA DE LOS RETOS.
+     El alojamiento estático (GitHub Pages) sirve ESTA página para
+     cualquier ruta que no es un archivo — entre ellas los enlaces
+     cortos https://fit.ronbo.store/r/<código>. Su único trabajo:
+     llevar el código a la app (/?r=<código>), que lo resuelve con
+     su mecanismo de enlaces de siempre. Abrir el enlace no inscribe,
+     no asigna entrenador ni cambia ningún plan: eso sigue siendo el
+     flujo explícito de inscripción dentro de la app.
+     Las metas de vista previa (Open Graph) son las de la marca: el
+     nombre del reto destacado, su imagen y la marca RONBO FIT —
+     las mismas que lleva la portada de la app. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RONBO FIT">
+<meta property="og:title" content="RONBO FIT · Plan 21 días para principiantes">
+<meta property="og:description" content="Come bien. Entrena fuerte. Vive el presente. El reto de 21 días para empezar: entrenamiento y alimentación, paso a paso.">
+<meta property="og:image" content="https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/musculos.webp">
+<meta property="og:url" content="https://fit.ronbo.store/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#00ACA1">
+<style>
+  body { margin: 0; min-height: 100dvh; display: flex; align-items: center; justify-content: center; background: #0b3b39; color: #e6fffb; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .box { text-align: center; padding: 24px; }
+  .logo { font-weight: 800; letter-spacing: .12em; font-size: 22px; }
+  .sub { opacity: .85; margin-top: 8px; font-size: 15px; }
+</style>
+<script>
+  (function () {
+    try {
+      var m = String(location.pathname || '').match(/^\/r\/([A-Za-z0-9-]{1,60})\/?$/);
+      if (m) { location.replace('/?r=' + encodeURIComponent(m[1])); return; }
+    } catch (e) {}
+    location.replace('/');
+  })();
+</script>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">RONBO.FIT</div>
+    <div class="sub">Come bien. Entrena fuerte. Vive el presente.</div>
+  </div>
+</body>
+</html>

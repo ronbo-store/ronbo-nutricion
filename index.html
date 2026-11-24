@@ -14,6 +14,18 @@
      apple-mobile-web-app. El registro del SW vive en app.js,
      protegido por feature-detect. -->
 <meta name="theme-color" content="#00ACA1">
+<!-- AUTH-586: vista previa al compartir (Open Graph) de la marca:
+     el nombre, la imagen y la marca RONBO FIT que ven las apps de
+     mensajería cuando alguien comparte la dirección de la app o un
+     enlace corto /r/ de un reto (la página 404.html, que resuelve
+     esas rutas en el alojamiento estático, lleva las mismas). -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RONBO FIT">
+<meta property="og:title" content="RONBO FIT · Plan 21 días para principiantes">
+<meta property="og:description" content="Come bien. Entrena fuerte. Vive el presente. El reto de 21 días para empezar: entrenamiento y alimentación, paso a paso.">
+<meta property="og:image" content="https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/musculos.webp">
+<meta property="og:url" content="https://fit.ronbo.store/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
@@ -21,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-mi-plan">
+<link rel="stylesheet" href="styles.css?v=20261123-retos-diez">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -823,6 +835,32 @@
     <div class="p4-foot" id="tmeas-foot" style="display:none"></div>
   </div>
 
+  <!-- AUTH-586 (punto 10): los informes de composición corporal del
+       alumno — foto, imagen o PDF guardados como archivo en su
+       historial, junto a «Tomar medidas». El contenido lo pinta
+       breportPaint (app.js); la ✕ y el ‹ Volver cierran sin tocar
+       nada. -->
+  <div class="pend-float pend-consult" id="breport-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="breport-title"></span></h2>
+      <button type="button" class="pend-close" id="breport-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="breport-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="breport-body"></div>
+    <div class="p4-foot" id="breport-foot" style="display:none"></div>
+  </div>
+
+  <!-- AUTH-586 (punto 3): la confirmación de «Dejar de ser su
+       entrenador» desde «Mis alumnos». El contenido lo pinta
+       untrainPaint (app.js); cerrar no ejecuta nada. -->
+  <div class="pend-float pend-consult" id="untrain-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="untrain-title"></span></h2>
+      <button type="button" class="pend-close" id="untrain-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <div id="untrain-body"></div>
+  </div>
+
   <!-- LA VISTA DE ENTRENAMIENTO, PLEGADA (AUTH-2026-11-23-566,
        programa «Plegar todo» nº 3): la hoja propia de cada apartado
        de la vista (plan, reto y días por alinear) — el bloque VIAJA
@@ -906,8 +944,9 @@
        unirme / esperando aprobación / no aprobada / en marcha /
        cumplido). El contenido lo pinta chalSheetPaint (app.js);
        la ✕ cierra sin tocar nada. -->
-  <div class="pend-float pend-consult" id="chal-ficha-float" style="display:none" role="dialog">
+  <div class="pend-float pend-consult r10-screen" id="chal-ficha-float" style="display:none" role="dialog">
     <div class="pend-head">
+      <button type="button" class="pend-back" id="chal-ficha-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
       <h2><span data-i18n="chal.title">🏆 Challenges</span></h2>
       <button type="button" class="pend-close" id="chal-ficha-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
@@ -2620,15 +2659,17 @@ cuando no hay declaración legible (decisión 5). -->
      desde su catálogo (D6). La pinta plan21SheetPaint (app.js);
      con entrenador asignado la hoja envía la propuesta por el
      canal de la bandeja, sin escribir planes. -->
-<div class="pend-float pend-consult" id="reto21-float" style="display:none" role="dialog">
+<div class="pend-float pend-consult r10-screen" id="reto21-float" style="display:none" role="dialog">
   <div class="pend-head">
+    <button type="button" class="pend-back" id="reto21-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
     <h2><span data-i18n="plan21.title">Reto 21 días para principiantes</span></h2>
     <button type="button" class="pend-close" id="reto21-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
   </div>
   <div id="reto21-body"></div>
 </div>
-<div class="pend-float pend-consult" id="plan21-float" style="display:none" role="dialog">
+<div class="pend-float pend-consult r10-screen" id="plan21-float" style="display:none" role="dialog">
   <div class="pend-head">
+    <button type="button" class="pend-back" id="plan21-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
     <h2><span data-i18n="plan21.sheetTitle">Tu Plan 21 días</span></h2>
     <button type="button" class="pend-close" id="plan21-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
   </div>
@@ -2891,6 +2932,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-mi-plan"></script>
+<script type="module" src="app.js?v=20261123-retos-diez"></script>
 </body>
 </html>
