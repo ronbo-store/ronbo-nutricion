@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-pliegues-coach">
+<link rel="stylesheet" href="styles.css?v=20261124-pliegues-admin">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -815,6 +815,215 @@
     </div>
     <button type="button" class="back-row" id="prof595-pwa-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="prof595-pwa-body"></div>
+  </div>
+
+  <!-- AUTH-597 (pliegues nº 15): las pantallas propias de
+       Administración (Accesos, Entrenadores, bandejas de Mis
+       clientes, Coaches de alimentación) y de Comunicaciones.
+       Cada bloque vive en su almacén oculto dentro de su pestaña
+       y VIAJA al cuerpo de su hoja al abrir (adm597Open/
+       adm597Close en app.js; comms597Open/comms597Close en
+       view-comms.js); al cerrar vuelve a su almacén. z-index 44
+       (.adm597-sheet), como las hojas de la 595. -->
+  <div class="pend-float adm597-sheet" id="adm597-float-access-pending" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-access-pending-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-access-pending-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-access-pending-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-access-pending-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-access-users" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-access-users-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-access-users-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-access-users-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-access-users-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-access-limits" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-access-limits-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-access-limits-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-access-limits-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-access-limits-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-trainers-requests" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-trainers-requests-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-trainers-requests-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-trainers-requests-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-trainers-requests-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-trainers-approvals" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-trainers-approvals-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-trainers-approvals-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-trainers-approvals-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-trainers-approvals-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-trainers-memberships" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-trainers-memberships-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-trainers-memberships-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-trainers-memberships-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-trainers-memberships-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-trainers-trial" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-trainers-trial-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-trainers-trial-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-trainers-trial-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-trainers-trial-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-trainers-meals" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-trainers-meals-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-trainers-meals-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-trainers-meals-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-trainers-meals-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-trainers-modality" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-trainers-modality-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-trainers-modality-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-trainers-modality-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-trainers-modality-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-trainers-directory" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-trainers-directory-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-trainers-directory-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-trainers-directory-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-trainers-directory-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-clients-membership" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-clients-membership-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-clients-membership-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-clients-membership-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-clients-membership-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-clients-meal" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-clients-meal-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-clients-meal-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-clients-meal-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-clients-meal-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-clients-modality" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-clients-modality-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-clients-modality-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-clients-modality-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-clients-modality-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-clients-waiting" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-clients-waiting-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-clients-waiting-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-clients-waiting-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-clients-waiting-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-clients-approvals" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-clients-approvals-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-clients-approvals-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-clients-approvals-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-clients-approvals-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-coaches-requests" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-coaches-requests-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-coaches-requests-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-coaches-requests-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-coaches-requests-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-coaches-memberships" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-coaches-memberships-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-coaches-memberships-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-coaches-memberships-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-coaches-memberships-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-coaches-followups" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-coaches-followups-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-coaches-followups-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-coaches-followups-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-coaches-followups-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-coaches-changes" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-coaches-changes-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-coaches-changes-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-coaches-changes-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-coaches-changes-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-coaches-waiting" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-coaches-waiting-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-coaches-waiting-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-coaches-waiting-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-coaches-waiting-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-coaches-recipes" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-coaches-recipes-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-coaches-recipes-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-coaches-recipes-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-coaches-recipes-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-coaches-pool" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-coaches-pool-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-coaches-pool-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-coaches-pool-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-coaches-pool-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-comms-sweep" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-comms-sweep-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-comms-sweep-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-comms-sweep-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-comms-sweep-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-comms-tpl" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-comms-tpl-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-comms-tpl-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-comms-tpl-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-comms-tpl-body"></div>
+  </div>
+  <div class="pend-float adm597-sheet" id="adm597-float-comms-send" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="adm597-comms-send-title"></span></h2>
+      <button type="button" class="pend-close" id="adm597-comms-send-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="adm597-comms-send-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="adm597-comms-send-body"></div>
   </div>
 
   <!-- BOTÓN «← ATRÁS» A PENDIENTES (corrección 2026-11-01): pastilla
@@ -2320,16 +2529,34 @@ cuando no hay declaración legible (decisión 5). -->
   <div class="tab-pane" id="tab-access" style="display:none">
   <div class="admin-section" id="admin-section" style="display:none">
     <h2><span data-i18n="access.title">🔐 Access management</span> <span class="h2-sub" data-i18n="access.sub">· owner only</span></h2>
-    <p class="progress-hint" data-i18n="access.hint">New accounts are active from the moment they sign up — no approval needed. Each user sees only their own data, and you can revoke access from here at any time.</p>
-    <h3 class="history-title"><span data-i18n="access.pending">Pending approval (</span><span id="pending-count">0</span>)</h3>
-    <div id="mail-notice" class="mail-notice" style="display:none"></div>
-    <div id="pending-list"><div class="wempty" data-i18n="admin.noPending">No pending requests.</div></div>
-    <h3 class="history-title" data-i18n="access.users">Users with access</h3>
-    <div id="users-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
-    <h3 class="history-title" data-i18n="limits.title">🤖 Analysis limits</h3>
-    <p class="progress-hint" data-i18n="limits.hint">Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer's, otherwise the global one. No limit set means unlimited.</p>
-    <p class="progress-hint" data-i18n="limits.countNote">The counter measures requests to the service; a full analysis normally uses two.</p>
-    <div id="limits-box"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+    <!-- AUTH-597 (pliegues nº 15): la explicación nace recogida
+         tras «Qué es esta vista» (patrón 589/592) y cada apartado
+         es una PUERTA que abre su pantalla propia: su bloque vive
+         en un almacén oculto y VIAJA a su hoja (adm597Open). -->
+    <button type="button" class="prog569-line" id="adm597-access-hint-btn" aria-expanded="false"><span class="p569-tx" data-i18n="adm597.whatIs">What is this view?</span><span class="p569-chev" aria-hidden="true">▾</span></button>
+    <p class="progress-hint" id="adm597-access-hint" data-i18n="access.hint" style="display:none">New accounts are active from the moment they sign up — no approval needed. Each user sees only their own data, and you can revoke access from here at any time.</p>
+    <div class="adm597-doors" id="adm597-access-doors"></div>
+    <div id="adm597-store-access-pending" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-access-pending">
+        <h3 class="history-title"><span data-i18n="access.pending">Pending approval (</span><span id="pending-count">0</span>)</h3>
+        <div id="mail-notice" class="mail-notice" style="display:none"></div>
+        <div id="pending-list"><div class="wempty" data-i18n="admin.noPending">No pending requests.</div></div>
+      </div>
+    </div>
+    <div id="adm597-store-access-users" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-access-users">
+        <h3 class="history-title" data-i18n="access.users">Users with access</h3>
+        <div id="users-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+      </div>
+    </div>
+    <div id="adm597-store-access-limits" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-access-limits">
+        <h3 class="history-title" data-i18n="limits.title">🤖 Analysis limits</h3>
+        <p class="progress-hint" data-i18n="limits.hint">Daily photo-analysis limits, set only by you. Each account uses its own limit if it has one, otherwise its trainer's, otherwise the global one. No limit set means unlimited.</p>
+        <p class="progress-hint" data-i18n="limits.countNote">The counter measures requests to the service; a full analysis normally uses two.</p>
+        <div id="limits-box"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
+      </div>
+    </div>
     <!-- Organización de Administración (2026-10-28): el interruptor
          de IA se MUDÓ a la sección «Consumo de IA» de la vista
          «Administración» (vive dentro de #adm-aictl-box, lo pinta
@@ -2363,30 +2590,65 @@ cuando no hay declaración legible (decisión 5). -->
   <div data-admpeople-slot></div>
   <div class="admin-section" id="trainers-section" style="display:none">
     <h2><span data-i18n="trainers.title">👨‍🏫 Trainer administration</span> <span class="h2-sub" data-i18n="access.sub">· owner only</span></h2>
-    <p class="progress-hint" data-i18n="trainers.hint">Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.</p>
-    <h3 class="history-title"><span data-i18n="trainers.requests">Trainer role requests (</span><span id="trainer-req-count">0</span>)</h3>
-    <div id="trainer-requests-list"><div class="wempty" data-i18n="admin.noPending">No pending requests.</div></div>
-    <h3 class="history-title" data-i18n="appr.title">🆕 Trainer account approvals</h3>
-    <p class="progress-hint" data-i18n="appr.hint">Each trainer may approve new accounts up to this limit. Approving an account assigns it to the trainer who approves it. If no limit is set, trainers cannot approve — only you can.</p>
-    <div id="approvals-limit-box"></div>
-    <h3 class="history-title" data-i18n="esc.membershipAdminTitle">🎟️ Trainer memberships</h3>
-    <p class="progress-hint" data-i18n="esc.membershipAdminHint">A membership sets how many active students a trainer may have (Basic 5 · Premium 10 · Elite 30). Trainers request a level; only you approve it. This is separate from the account-approval limit above.</p>
-    <div id="membership-admin-box"></div>
-    <!-- REGISTRO CON PROPÓSITO (AUTH-2026-11-01-147): editor de
-         los parámetros de la membresía de prueba (días y alumnos).
-         Decisión (a) de Ronald (2026-11-01): 14 días y 3 alumnos
-         son solo los valores POR DEFECTO — viven en
-         app_settings/membership_catalog y el propietario los
-         cambia aquí, sin tocar código. Lo pinta
-         renderTrialConfigBox dentro de renderEscAdminBoxes. -->
-    <div id="trial-config-box"></div>
-    <h3 class="history-title" data-i18n="esc.mealAdminTitle">🍽️ Meal access confirmations</h3>
-    <p class="progress-hint" data-i18n="esc.mealAdminHint">Meal logging is off for new students until requested. The trainer approves first; you confirm. Confirming turns meal logging on for that student.</p>
-    <div id="meal-admin-box"></div>
-    <h3 class="history-title" data-i18n="esc.modAdminTitle">🔀 Modality confirmations</h3>
-    <p class="progress-hint" data-i18n="esc.modAdminHint">A modality change applies only when you confirm it, after the trainer approved it. If the student has no trainer, their request reaches you directly and you approve and confirm it yourself.</p>
-    <div id="modality-admin-box"></div>
-    <div id="trainer-dir-box"></div>
+    <!-- AUTH-597 (pliegues nº 15): la explicación nace recogida
+         tras «Qué es esta vista» y cada bloque es una PUERTA con
+         su pantalla propia (el bloque vive en su almacén y VIAJA
+         a su hoja, adm597Open). El botón suelto «Actualizar
+         directorio» se vuelve la línea «Directorio» de la lista. -->
+    <button type="button" class="prog569-line" id="adm597-trainers-hint-btn" aria-expanded="false"><span class="p569-tx" data-i18n="adm597.whatIs">What is this view?</span><span class="p569-chev" aria-hidden="true">▾</span></button>
+    <p class="progress-hint" id="adm597-trainers-hint" data-i18n="trainers.hint" style="display:none">Everything about trainers in one place: role requests, memberships (levels and quotas), the two-step confirmations that start with a trainer, the trainer approval limit and the public directory.</p>
+    <div class="adm597-doors" id="adm597-trainers-doors"></div>
+    <div id="adm597-store-trainers-requests" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-trainers-requests">
+        <h3 class="history-title"><span data-i18n="trainers.requests">Trainer role requests (</span><span id="trainer-req-count">0</span>)</h3>
+        <div id="trainer-requests-list"><div class="wempty" data-i18n="admin.noPending">No pending requests.</div></div>
+      </div>
+    </div>
+    <div id="adm597-store-trainers-approvals" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-trainers-approvals">
+        <h3 class="history-title" data-i18n="appr.title">🆕 Trainer account approvals</h3>
+        <p class="progress-hint" data-i18n="appr.hint">Each trainer may approve new accounts up to this limit. Approving an account assigns it to the trainer who approves it. If no limit is set, trainers cannot approve — only you can.</p>
+        <div id="approvals-limit-box"></div>
+      </div>
+    </div>
+    <div id="adm597-store-trainers-memberships" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-trainers-memberships">
+        <h3 class="history-title" data-i18n="esc.membershipAdminTitle">🎟️ Trainer memberships</h3>
+        <p class="progress-hint" data-i18n="esc.membershipAdminHint">A membership sets how many active students a trainer may have (Basic 5 · Premium 10 · Elite 30). Trainers request a level; only you approve it. This is separate from the account-approval limit above.</p>
+        <div id="membership-admin-box"></div>
+      </div>
+    </div>
+    <div id="adm597-store-trainers-trial" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-trainers-trial">
+        <!-- REGISTRO CON PROPÓSITO (AUTH-2026-11-01-147): editor de
+             los parámetros de la membresía de prueba (días y alumnos).
+             Decisión (a) de Ronald (2026-11-01): 14 días y 3 alumnos
+             son solo los valores POR DEFECTO — viven en
+             app_settings/membership_catalog y el propietario los
+             cambia aquí, sin tocar código. Lo pinta
+             renderTrialConfigBox dentro de renderEscAdminBoxes. -->
+        <div id="trial-config-box"></div>
+      </div>
+    </div>
+    <div id="adm597-store-trainers-meals" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-trainers-meals">
+        <h3 class="history-title" data-i18n="esc.mealAdminTitle">🍽️ Meal access confirmations</h3>
+        <p class="progress-hint" data-i18n="esc.mealAdminHint">Meal logging is off for new students until requested. The trainer approves first; you confirm. Confirming turns meal logging on for that student.</p>
+        <div id="meal-admin-box"></div>
+      </div>
+    </div>
+    <div id="adm597-store-trainers-modality" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-trainers-modality">
+        <h3 class="history-title" data-i18n="esc.modAdminTitle">🔀 Modality confirmations</h3>
+        <p class="progress-hint" data-i18n="esc.modAdminHint">A modality change applies only when you confirm it, after the trainer approved it. If the student has no trainer, their request reaches you directly and you approve and confirm it yourself.</p>
+        <div id="modality-admin-box"></div>
+      </div>
+    </div>
+    <div id="adm597-store-trainers-directory" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-trainers-directory">
+        <div id="trainer-dir-box"></div>
+      </div>
+    </div>
   </div>
   </div><!-- /tab-trainers -->
 
@@ -2439,11 +2701,29 @@ cuando no hay declaración legible (decisión 5). -->
     <p class="progress-hint" data-i18n="clients.hint">Each client must upload their weight every week. Select one to see their full history, edit their weigh-ins, or add new ones. You set their goals under "Access management".</p>
     <div id="clients-viewbar"></div>
     <div id="clients-list"><div class="wempty" data-i18n="access.loading">Loading…</div></div>
-    <div id="membership-box" style="display:none"></div>
-    <div id="meal-trainer-box" style="display:none"></div>
-    <div id="modality-trainer-box" style="display:none"></div>
-    <div id="waiting-box" style="display:none"></div>
-    <div id="approvals-box" style="display:none"></div>
+    <!-- AUTH-597 (pliegues nº 15): las cinco bandejas dejan de
+         apilarse bajo la lista: cada una es una PUERTA bajo la
+         lista y abre su pantalla propia; la caja vive en su
+         unidad-almacén (hija directa de la sección: la vista de
+         solo-comidas de la ficha exime a la unidad de comidas) y
+         VIAJA a su hoja al abrir (adm597Open). Las bandejas
+         vacías quedan como su línea, sin desaparecer. -->
+    <div class="adm597-doors" id="adm597-clients-doors"></div>
+    <div class="adm597-unit" id="adm597-unit-clients-membership" style="display:none">
+      <div id="membership-box" style="display:none"></div>
+    </div>
+    <div class="adm597-unit" id="adm597-unit-clients-meal" style="display:none">
+      <div id="meal-trainer-box" style="display:none"></div>
+    </div>
+    <div class="adm597-unit" id="adm597-unit-clients-modality" style="display:none">
+      <div id="modality-trainer-box" style="display:none"></div>
+    </div>
+    <div class="adm597-unit" id="adm597-unit-clients-waiting" style="display:none">
+      <div id="waiting-box" style="display:none"></div>
+    </div>
+    <div class="adm597-unit" id="adm597-unit-clients-approvals" style="display:none">
+      <div id="approvals-box" style="display:none"></div>
+    </div>
     <div id="client-detail" style="display:none"></div>
   </div>
   </div><!-- /tab-clients -->
@@ -2499,17 +2779,26 @@ cuando no hay declaración legible (decisión 5). -->
         <div id="perms-body" style="display:none">
           <p class="perms-intro" data-i18n="perm.intro">Here you manage your permissions: your health declaration and your privacy &amp; data — what you accept, what you share, and what you can withdraw or delete.</p>
           <div class="perms-section health-panel" id="health-section">
-            <h3 class="perms-section-title" data-i18n="health.sectionTitle">Health declaration</h3>
-            <div id="health-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+            <!-- AUTH-597 (pliegues nº 15): cada apartado de Permisos
+                 nace recogido en su línea; al abrirla se ven dentro
+                 sus consentimientos, alertas y estados de salud. El
+                 cuerpo solo voltea su display (perms597Open): lo
+                 tecleado en un formulario en edición nunca se pierde. -->
+            <button type="button" class="pl-fold perms597-fold" id="perms597-health-btn" data-perms597-fold="health" aria-expanded="false"><span class="pl-fold-label" data-i18n="health.sectionTitle">Health declaration</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+            <div class="perms597-body" id="perms597-health-body" style="display:none">
+              <div id="health-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+            </div>
           </div>
           <!-- F-A1 (Etapa 2, desarrollo): espacio privado del propio
                cliente — la variable de sexo para el cálculo energético
                vive en users/{uid}/energyPrivate y SOLO la ve su dueño.
                El texto completo aprobado se renderiza desde STR (fa.*). -->
           <div class="perms-section" id="energy-section">
-            <h3 class="perms-section-title" data-i18n="fa.zone">🔒 My private space</h3>
-            <p class="progress-hint" data-i18n="fa.zoneSub">Only you can see what you keep here.</p>
-            <div id="energy-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+            <button type="button" class="pl-fold perms597-fold" id="perms597-energy-btn" data-perms597-fold="energy" aria-expanded="false"><span class="pl-fold-label" data-i18n="fa.zone">🔒 My private space</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+            <div class="perms597-body" id="perms597-energy-body" style="display:none">
+              <p class="progress-hint" data-i18n="fa.zoneSub">Only you can see what you keep here.</p>
+              <div id="energy-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+            </div>
           </div>
           <!-- MÓDULO NIVEL 2 (desplegado 2026-10-24): estimación
                visual de tipo corporal. La sección nace oculta y solo
@@ -2519,8 +2808,10 @@ cuando no hay declaración legible (decisión 5). -->
                consentimiento específico propio con el texto final
                aprobado por Ronald el 2026-10-24. -->
           <div class="perms-section" id="bt-section" style="display:none">
-            <h3 class="perms-section-title" data-i18n="bt.title">Visual body type estimate</h3>
-            <div id="bt-panel-body"></div>
+            <button type="button" class="pl-fold perms597-fold" id="perms597-bt-btn" data-perms597-fold="bt" aria-expanded="false"><span class="pl-fold-label" data-i18n="bt.title">Visual body type estimate</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+            <div class="perms597-body" id="perms597-bt-body" style="display:none">
+              <div id="bt-panel-body"></div>
+            </div>
           </div>
           <!-- Corrección reprueba (2026-10-24): el </div> que cierra
                #bt-section FALTABA desde el paquete de somatotipo: el
@@ -2539,18 +2830,23 @@ cuando no hay declaración legible (decisión 5). -->
                pinta renderActSharePanel() desde STR (actshare.*);
                aquí solo vive la cáscara, visible para todos. -->
           <div class="perms-section" id="actshare-section">
-            <h3 class="perms-section-title" data-i18n="actshare.title">Activity data I share</h3>
-            <div id="actshare-panel-body"></div>
+            <button type="button" class="pl-fold perms597-fold" id="perms597-actshare-btn" data-perms597-fold="actshare" aria-expanded="false"><span class="pl-fold-label" data-i18n="actshare.title">Activity data I share</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+            <div class="perms597-body" id="perms597-actshare-body" style="display:none">
+              <div id="actshare-panel-body"></div>
+            </div>
           </div>
           <!-- MÓDULO H (P4-3 Etapa 1, desarrollo): preferencia de
                unidades del propio usuario (users/{uid}/preferences/units).
                El panel lo renderiza renderUnitsPanel() desde STR (units.*). -->
           <div class="perms-section" id="units-section">
-            <h3 class="perms-section-title" data-i18n="units.title">Units</h3>
-            <div id="units-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+            <button type="button" class="pl-fold perms597-fold" id="perms597-units-btn" data-perms597-fold="units" aria-expanded="false"><span class="pl-fold-label" data-i18n="units.title">Units</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+            <div class="perms597-body" id="perms597-units-body" style="display:none">
+              <div id="units-panel-body"><div class="wempty" data-i18n="train.loading">Loading…</div></div>
+            </div>
           </div>
           <div class="perms-section privacy-panel" id="privacy-section">
-            <h3 class="perms-section-title" data-i18n="priv.sectionTitle">Privacy &amp; data</h3>
+            <button type="button" class="pl-fold perms597-fold" id="perms597-privacy-btn" data-perms597-fold="privacy" aria-expanded="false"><span class="pl-fold-label" data-i18n="priv.sectionTitle">Privacy &amp; data</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+            <div class="perms597-body" id="perms597-privacy-body" style="display:none">
             <!-- Nota reubicada (Ronald, 2026-10-22): el aviso «la foto no
                  se almacena» del retirado bloque «Ayuda con comidas» vive
                  aquí, en su contexto de privacidad. Dentro de este panel
@@ -2566,6 +2862,7 @@ cuando no hay declaración legible (decisión 5). -->
             </div>
             <div id="privacy-notice" class="consent-text" style="display:none"></div>
             <button type="button" class="btn-primary btn-sm" id="btn-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
+            </div>
           </div>
           <!-- CLAVES DE ACCESO (passkeys/WebAuthn):
                sección «Seguridad» junto a «Permisos y privacidad», con
@@ -2576,10 +2873,12 @@ cuando no hay declaración legible (decisión 5). -->
                dinámico (lista de claves, botones) lo pinta app.js
                desde STR (pk.*); aquí solo vive la cáscara. -->
           <div class="perms-section" id="pk-section" style="display:none">
-            <h3 class="perms-section-title" data-i18n="pk.section">Security</h3>
-            <h4 class="pk-sub" data-i18n="pk.title">Access keys</h4>
-            <p class="progress-hint" data-i18n="pk.help">Use your face, fingerprint or device PIN instead of typing your password.</p>
-            <div id="pk-panel-body"></div>
+            <button type="button" class="pl-fold perms597-fold" id="perms597-pk-btn" data-perms597-fold="pk" aria-expanded="false"><span class="pl-fold-label" data-i18n="pk.section">Security</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+            <div class="perms597-body" id="perms597-pk-body" style="display:none">
+              <h4 class="pk-sub" data-i18n="pk.title">Access keys</h4>
+              <p class="progress-hint" data-i18n="pk.help">Use your face, fingerprint or device PIN instead of typing your password.</p>
+              <div id="pk-panel-body"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -2615,20 +2914,42 @@ cuando no hay declaración legible (decisión 5). -->
     <h2><span data-i18n="comms.title">✉️ Communications</span> <span class="h2-sub" data-i18n="comms.sub">· owner only</span></h2>
     <p class="progress-hint" data-i18n="comms.hint">Every email leaves from here. The texts live in one place and you edit them here; the server composes each message from them and never accepts text in a request. Nothing goes out without your tap: the sweep only detects, shows you a preview, and waits.</p>
     <p class="progress-hint" id="comms-rev"></p>
-    <div id="comms-sweep"></div>
-    <h3 class="history-title" data-i18n="comms.tplTitle">Templates</h3>
-    <div class="comms-row">
-      <select id="comms-tpl-sel"></select>
-      <button type="button" class="btn-ghost btn-sm" id="comms-tpl-add" data-i18n="comms.addBtn">＋ Add template</button>
+    <!-- AUTH-597 (pliegues nº 15): Barrido, Plantillas y Enviar
+         dejan de apilarse: son tres PUERTAS y cada una abre su
+         pantalla propia; su bloque vive en su almacén y VIAJA a
+         su hoja (comms597Open en view-comms.js). Hay UN solo
+         botón «Enviar»: abre la pantalla de envío, y dentro se
+         elige pool o una persona. -->
+    <div class="adm597-doors" id="adm597-comms-doors">
+      <button type="button" class="pl-fold adm597-door" data-comms597-open="comms-sweep"><span class="pl-fold-label" data-i18n="comms.sweepTitle">Pending notices sweep</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+      <button type="button" class="pl-fold adm597-door" data-comms597-open="comms-tpl"><span class="pl-fold-label" data-i18n="comms.tplTitle">Templates</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+      <button type="button" class="pl-fold adm597-door" data-comms597-open="comms-send"><span class="pl-fold-label" data-i18n="comms.sendTitle">Send to a pool</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
     </div>
-    <div id="comms-tpl-card"></div>
-    <div id="comms-editor" style="display:none"></div>
-    <h3 class="history-title" data-i18n="comms.sendTitle">Send to a pool</h3>
-    <div class="comms-row">
-      <select id="comms-pool-sel"></select>
-      <button type="button" class="btn-primary btn-sm" id="comms-send-btn" data-i18n="comms.sendBtn">✉️ Send</button>
+    <div id="adm597-store-comms-sweep" style="display:none">
+      <div id="comms-sweep"></div>
     </div>
-    <div id="comms-send-box"></div>
+    <div id="adm597-store-comms-tpl" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-comms-tpl">
+        <h3 class="history-title" data-i18n="comms.tplTitle">Templates</h3>
+        <div class="comms-row">
+          <select id="comms-tpl-sel"></select>
+          <button type="button" class="btn-ghost btn-sm" id="comms-tpl-add" data-i18n="comms.addBtn">＋ Add template</button>
+        </div>
+        <div id="comms-tpl-card"></div>
+        <div id="comms-editor" style="display:none"></div>
+      </div>
+    </div>
+    <div id="adm597-store-comms-send" style="display:none">
+      <div class="adm597-unit" id="adm597-unit-comms-send">
+        <h3 class="history-title" data-i18n="comms.sendTitle">Send to a pool</h3>
+        <div class="comms-row">
+          <select id="comms-pool-sel"></select>
+          <button type="button" class="btn-primary btn-sm" id="comms-send-btn" data-i18n="comms.sendBtn">✉️ Send</button>
+        </div>
+        <div id="comms-one-box"></div>
+        <div id="comms-send-box"></div>
+      </div>
+    </div>
   </div>
   </div><!-- /tab-comms -->
 
@@ -3153,6 +3474,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-pliegues-coach"></script>
+<script type="module" src="app.js?v=20261124-pliegues-admin"></script>
 </body>
 </html>
