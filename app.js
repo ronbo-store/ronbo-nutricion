@@ -47613,7 +47613,8 @@ function r21FreshState(source, preLogin) {
     inp: null, days: new Set(), eq: new Set(), selObj: '', built: null,
     activePlan: null, termsOk: false, busy: false, outcome: null, actError: false };
 }
-async function r21Open(source, opts = {}) {
+async function r21Open(source, opts) {
+  opts = opts || {};
   const fl = $('reto21-float'); if (!fl) return;
   if (!auth.currentUser) { retoCoverMaybeShow(); return; }
   const me = auth.currentUser.uid;
