@@ -3058,10 +3058,16 @@ function admuseSkeleton() {
      como pantalla propia con volver). La atiende el listener
      delegado de [data-aierr-open] junto a aierrSheetOpen. */
   const aierrLine = `<div class="admsec"><button type="button" class="admsec-head" data-aierr-open><span>${esc(t('aierr.title'))}</span><span class="admsec-chev" aria-hidden="true">›</span></button></div>`;
+  /* «Métricas» (AUTH-591): la línea hermana de la anterior, con
+     la misma cara y la misma naturaleza de PUERTA — abre su
+     pantalla propia (#met-float) con el retrato de las páginas
+     de medición y de presencia. La atiende el listener delegado
+     de [data-met-open] junto a metSheetOpen. */
+  const metLine = `<div class="admsec"><button type="button" class="admsec-head" data-met-open><span>${esc(t('met.title'))}</span><span class="admsec-chev" aria-hidden="true">›</span></button></div>`;
   return `<div class="panel admuse-zone"><h3 class="history-title">${esc(t('admuse.title'))}</h3><p class="progress-hint">${esc(t('admuse.sub'))}</p>`
     + `<div class="admuse-subspace">${people}</div>`
     + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subTech'))}</h4>${tech}</div>`
-    + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subSystem'))}</h4>${sys}${aierrLine}</div></div>`;
+    + `<div class="admuse-subspace"><h4 class="admuse-subhead">${esc(t('admuse.subSystem'))}</h4>${sys}${aierrLine}${metLine}</div></div>`;
 }
 function admSecToggle(id) {
   const sec = ADMIN_SECTIONS.find(s => s.id === id);
@@ -3244,6 +3250,252 @@ document.addEventListener('click', e => {
 });
 { const x = document.getElementById('aierr-sheet-x'); if (x) x.onclick = () => aierrSheetClose(); }
 { const bk = document.getElementById('aierr-sheet-back'); if (bk) bk.onclick = () => aierrSheetClose(); }
+/* ============ MÉTRICAS (AUTH-591; solo dueño) ============
+   Orden de Ronald (2026-11-24, maqueta aprobada «Constrúyela
+   así»): una sección propia en Administración que reúne los
+   resultados de TODAS las páginas de medición (Google
+   Analytics, Search Console, Bing, Clarity y Cloudflare) y de
+   presencia (Google Business, LinkedIn, Crunchbase, Wikidata,
+   Yandex y Apple Business), con su Análisis, sus Propuestas de
+   mejora y su Resumen. La línea vive en el índice de la zona
+   (subespacio SISTEMA de admuseSkeleton, junto a «Errores de
+   la IA») y abre su pantalla propia (#met-float), como manda
+   la regla de navegación de la casa.
+   La pantalla lee UN retrato que el Worker guarda en KV
+   («metrics:latest») y sirve por GET /admin/metrics, con el
+   MISMO patrón de la 590 (aiEndpoint + getIdToken + Bearer;
+   error 'met-' + status; puerta IS_OWNER + administrador
+   reflejada ANTES de llamar, como limregLoad y aierrLoad). El
+   retrato lo escribe una recogida diaria externa por POST a la
+   misma ruta; la app jamás escribe ahí. El retrato trae los
+   DOS periodos (7 y 28 días): el selector solo re-pinta desde
+   el retrato ya leído — una llamada por apertura, cero en el
+   arranque, cero Firestore.
+   El ANÁLISIS y las PROPUESTAS los genera LA APP desde las
+   cifras y los estados del retrato, con reglas fijas (el
+   principio de la casa: la inteligencia queda en la app, sin
+   llamar a ninguna IA externa): posición media alta en Search
+   Console → la lectura de subir posiciones; consultas ya
+   presentes → la lectura de las búsquedas como puerta; varios
+   servicios recopilando → la lectura honesta del arranque;
+   Google Business sin verificar → la propuesta de cerrar la
+   verificación; Clarity recopilando → revisarlo a los 7 días
+   (y si ya contó clics muertos, corregirlos); Cloudflare
+   activándose → terminar de encenderlo. Sin datos para una
+   lectura, el bloque dice su estado honesto: nunca se inventa
+   una cifra. */
+let MET_SEQ = 0;
+let MET_SNAP = null;
+let MET_PERIODO = '28';
+async function metCall() {
+  const ep = aiEndpoint();
+  if (!ep) throw new Error('ai-off');
+  const idToken = await auth.currentUser.getIdToken();
+  const r = await fetch(ep + '/admin/metrics', { headers: { Authorization: 'Bearer ' + idToken } });
+  if (!r.ok) throw new Error('met-' + r.status);
+  return r.json();
+}
+/* Las fuentes del retrato, en el orden de la maqueta aprobada,
+   con las cifras que cada tarjeta enseña (la clave del retrato
+   y su rótulo) y cómo se lee su lista destacada: la de Search
+   Console en clics, la de Analytics en visitas. */
+const MET_SOURCES = [
+  { id: 'ga', name: 'Google Analytics', sub: 'met.gaSub', topVal: 'num', stats: [['sessions', 'met.statSessions'], ['users', 'met.statUsers'], ['pageviews', 'met.statPageviews']] },
+  { id: 'gsc', name: 'Google Search Console', sub: 'met.gscSub', topVal: 'clicks', stats: [['clicks', 'met.statClicks'], ['impressions', 'met.statImpressions'], ['position', 'met.statPosition']] },
+  { id: 'bing', name: 'Bing Webmaster', sub: 'met.bingSub', topVal: null, stats: [['clicks', 'met.statClicks'], ['impressions', 'met.statImpressions']] },
+  { id: 'clarity', name: 'Microsoft Clarity', sub: 'met.claritySub', topVal: null, stats: [['recorded', 'met.statRecorded'], ['rage', 'met.statRage'], ['dead', 'met.statDead']] },
+  { id: 'cloudflare', name: 'Cloudflare Web Analytics', sub: 'met.cfSub', topVal: null, stats: [['visits', 'met.statVisits'], ['pageviews', 'met.statPageviews']] }
+];
+const MET_CHIP = { activo: ['met.stActivo', 'ok'], recopilando: ['met.stRecopilando', 'wait'], activandose: ['met.stActivandose', 'off'], pendiente: ['met.stPendiente', 'off'] };
+const MET_PRES_LABEL = { gmb: 'met.pGmb', linkedin: 'met.pLinkedin', crunchbase: 'met.pCrunchbase', wikidata: 'met.pWikidata', yandex: 'met.pYandex', apple: 'met.pApple' };
+const MET_PRES_ST = { publica: ['met.psPublica', 'ok'], verificado: ['met.psVerificado', 'ok'], creada: ['met.psCreada', 'mut'], orgcreada: ['met.psOrgCreada', 'mut'], encreacion: ['met.psEnCreacion', 'mut'], pendiente: ['met.psPendiente', 'warn'] };
+function metNum(v) { return (typeof v === 'number' && isFinite(v)) ? v.toLocaleString(LANG === 'es' ? 'es' : 'en') : '—'; }
+function metPos(v) { return (typeof v === 'number' && isFinite(v)) ? v.toLocaleString(LANG === 'es' ? 'es' : 'en', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '—'; }
+function metClicksTxt(v) { return metNum(v) + ' ' + (v === 1 ? t('met.clickWord') : t('met.clicksWord')); }
+/* La nota de una tarjeta la elige la recogida como CLAVE de
+   diccionario (noteKey), nunca como texto libre: así la nota
+   sale en el idioma de la app y una clave desconocida no pinta
+   basura — simplemente no hay nota. */
+function metNoteTxt(key) {
+  if (!key || typeof key !== 'string') return null;
+  const s = (STR[LANG] && STR[LANG][key] !== undefined) ? STR[LANG][key] : (STR.en ? STR.en[key] : undefined);
+  return (typeof s === 'string' && s !== key) ? s : null;
+}
+function metCardHTML(def, src) {
+  const chipDef = MET_CHIP[src && src.status] || MET_CHIP.recopilando;
+  let h = `<div class="met-card"><div class="met-card-head"><div><h3>${esc(def.name)}</h3><div class="met-site">${esc(t(def.sub))}</div></div><span class="met-chip ${chipDef[1]}">${esc(t(chipDef[0]))}</span></div>`;
+  if (!src) return h + `<p class="met-note">${esc(t('met.srcNoData'))}</p></div>`;
+  const per = src.periods ? src.periods[MET_PERIODO] : null;
+  h += '<div class="met-stats">' + def.stats.map(([k, lk]) => {
+    const v = per && per.stats ? per.stats[k] : null;
+    const txt = (v === null || v === undefined) ? '—' : (k === 'position' ? metPos(v) : metNum(v));
+    return `<div class="met-stat"><div class="met-num">${esc(txt)}</div><div class="met-lbl">${esc(t(lk))}</div></div>`;
+  }).join('') + '</div>';
+  if (per && Array.isArray(per.top) && per.top.length) {
+    h += '<div class="met-list">' + per.top.map(it => {
+      const val = def.topVal === 'clicks' ? metClicksTxt(it.value) : metNum(it.value);
+      const lbl = def.topVal === 'clicks' ? '«' + it.label + '»' : String(it.label);
+      return `<div class="met-row"><span>${esc(lbl)}</span><span class="met-v">${esc(val)}</span></div>`;
+    }).join('') + '</div>';
+  }
+  const nota = metNoteTxt(src.noteKey);
+  if (nota) h += `<p class="met-note">${esc(nota)}</p>`;
+  else if (!per) h += `<p class="met-note">${esc(t('met.noPeriod'))}</p>`;
+  if (src.panel && /^https:\/\//.test(src.panel)) h += `<a class="met-linkrow" href="${esc(src.panel)}" target="_blank" rel="noopener">${esc(t('met.openPanel'))} ›</a>`;
+  return h + '</div>';
+}
+function metPresenceHTML(pr) {
+  const chipDef = (pr && pr.status === 'completa') ? ['met.stCompleta', 'ok'] : ['met.stEnCurso', 'off'];
+  let h = `<div class="met-card"><div class="met-card-head"><div><h3>${esc(t('met.presence'))}</h3><div class="met-site">${esc(t('met.presenceSub'))}</div></div><span class="met-chip ${chipDef[1]}">${esc(t(chipDef[0]))}</span></div>`;
+  if (!pr || !Array.isArray(pr.items) || !pr.items.length) return h + `<p class="met-note">${esc(t('met.srcNoData'))}</p></div>`;
+  h += '<div class="met-list">' + pr.items.map(it => {
+    const st = MET_PRES_ST[it.status] || MET_PRES_ST.encreacion;
+    return `<div class="met-row"><span>${esc(t(MET_PRES_LABEL[it.id] || 'met.presence'))}</span><span class="met-v ${st[1]}">${esc(t(st[0]))}</span></div>`;
+  }).join('') + '</div>';
+  const gmb = pr.items.find(i => i.id === 'gmb');
+  if (gmb && gmb.status === 'pendiente') h += `<p class="met-note">${esc(t('met.presenceNoteGmb'))}</p>`;
+  return h + '</div>';
+}
+function metPerDe(snap, id) {
+  const s = snap && snap.sources ? snap.sources[id] : null;
+  return s && s.periods ? s.periods[MET_PERIODO] : null;
+}
+/* Las lecturas del Análisis: reglas fijas sobre el retrato.
+   Cada lectura nace SOLO si sus datos están; el cuerpo lleva
+   las cifras reales del periodo elegido, interpoladas. */
+function metAnalysisItems(snap) {
+  const items = [];
+  const per = metPerDe(snap, 'gsc');
+  const st = per && per.stats ? per.stats : null;
+  if (st && typeof st.position === 'number' && st.position >= 15 && typeof st.impressions === 'number' && st.impressions > 0) {
+    items.push({ t: 'met.anaPosT', b: t('met.anaPosB', { days: MET_PERIODO, imp: metNum(st.impressions), clicks: metNum(st.clicks || 0), pos: metPos(st.position) }) });
+  }
+  if (per && Array.isArray(per.top) && per.top.length) {
+    const qs = per.top.slice(0, 2).map(x => '«' + x.label + '»').join(', ');
+    items.push({ t: 'met.anaQueriesT', b: t('met.anaQueriesB', { queries: qs }) });
+  }
+  const fresh = MET_SOURCES.filter(d => { const s = snap.sources ? snap.sources[d.id] : null; return s && (s.status === 'recopilando' || s.status === 'activandose'); }).length;
+  if (fresh >= 2) items.push({ t: 'met.anaFreshT', b: t('met.anaFreshB') });
+  return items;
+}
+/* Las Propuestas: también reglas fijas, en el orden de la
+   maqueta (empujar lo que ya sale → cerrar lo pendiente →
+   revisar lo recién encendido). */
+function metProposalItems(snap) {
+  const items = [];
+  const perA = metPerDe(snap, 'ga');
+  const perG = metPerDe(snap, 'gsc');
+  const labels = [];
+  if (perA && Array.isArray(perA.top)) perA.top.slice(0, 3).forEach(x => labels.push(String(x.label)));
+  if (!labels.length && perG && Array.isArray(perG.top)) perG.top.slice(0, 3).forEach(x => labels.push('«' + x.label + '»'));
+  if (labels.length) items.push({ t: 'met.propPushT', b: t('met.propPushB', { list: labels.join(', ') }) });
+  const pr = snap.presence;
+  const gmb = pr && Array.isArray(pr.items) ? pr.items.find(i => i.id === 'gmb') : null;
+  if (gmb && gmb.status === 'pendiente') items.push({ t: 'met.propGmbT', b: t('met.propGmbB') });
+  const cl = snap.sources ? snap.sources.clarity : null;
+  const perC = metPerDe(snap, 'clarity');
+  const dead = perC && perC.stats ? perC.stats.dead : null;
+  if (typeof dead === 'number' && dead > 0) items.push({ t: 'met.propDeadT', b: t('met.propDeadB', { n: metNum(dead) }) });
+  else if (cl && cl.status === 'recopilando') items.push({ t: 'met.propClarityT', b: t('met.propClarityB') });
+  const cf = snap.sources ? snap.sources.cloudflare : null;
+  if (cf && cf.status === 'activandose') items.push({ t: 'met.propCfT', b: t('met.propCfB') });
+  return items;
+}
+function metSummaryHTML(snap) {
+  const rows = MET_SOURCES.map(d => {
+    const s = snap.sources ? snap.sources[d.id] : null;
+    let txt, cls;
+    if (!s) { txt = t('met.sumPendiente'); cls = 'mut'; }
+    else if (s.status === 'activo') {
+      txt = t('met.sumActivo'); cls = 'ok';
+      const per = s.periods ? s.periods[MET_PERIODO] : null;
+      if (d.id === 'gsc' && per && per.stats && typeof per.stats.clicks === 'number') txt += ' · ' + metClicksTxt(per.stats.clicks);
+    }
+    else if (s.status === 'recopilando') { txt = t('met.sumRecopilando'); cls = 'warn'; }
+    else if (s.status === 'activandose') { txt = t('met.sumActivandose'); cls = 'mut'; }
+    else { txt = t('met.sumPendiente'); cls = 'warn'; }
+    return `<div class="met-row"><span>${esc(d.name)}</span><span class="met-v ${cls}">${esc(txt)}</span></div>`;
+  });
+  const pr = snap.presence;
+  const n = pr && Array.isArray(pr.items) ? pr.items.length : 0;
+  const pTxt = (pr && pr.status === 'completa') ? t('met.sumCompleta') : t('met.sumEnCurso');
+  rows.push(`<div class="met-row"><span>${esc(t('met.presence'))} (${n} ${esc(t('met.sumProfiles'))})</span><span class="met-v mut">${esc(pTxt)}</span></div>`);
+  return `<h3 class="met-sec">${esc(t('met.sumTitle'))}</h3><div class="met-card met-summary">${rows.join('')}</div>`;
+}
+function metRender() {
+  const body = $('met-sheet-body');
+  if (!body || !MET_SNAP) return;
+  document.querySelectorAll('[data-met-per]').forEach(b => b.classList.toggle('on', b.getAttribute('data-met-per') === MET_PERIODO));
+  const upd = $('met-sheet-updated');
+  if (upd) upd.textContent = MET_SNAP.collectedAt ? t('met.updated', { when: aierrWhenTxt(MET_SNAP.collectedAt) }) : '';
+  let h = MET_SOURCES.map(d => metCardHTML(d, MET_SNAP.sources ? MET_SNAP.sources[d.id] : null)).join('');
+  h += metPresenceHTML(MET_SNAP.presence || null);
+  const ana = metAnalysisItems(MET_SNAP);
+  h += `<h3 class="met-sec">${esc(t('met.anaTitle'))}</h3>` + (ana.length
+    ? ana.map((it, i) => `<div class="met-item"><span class="met-tag">${esc(t('met.anaTag', { n: i + 1 }))}</span><p><b>${esc(t(it.t))}</b> ${esc(it.b)}</p></div>`).join('')
+    : `<div class="met-item"><p>${esc(t('met.anaEmpty'))}</p></div>`);
+  const prop = metProposalItems(MET_SNAP);
+  h += `<h3 class="met-sec">${esc(t('met.propTitle'))}</h3>` + (prop.length
+    ? prop.map((it, i) => `<div class="met-item"><span class="met-tag prop">${esc(t('met.propTag', { n: i + 1 }))}</span><p><b>${esc(t(it.t))}</b> ${esc(it.b)}</p></div>`).join('')
+    : `<div class="met-item"><p>${esc(t('met.propEmpty'))}</p></div>`);
+  h += metSummaryHTML(MET_SNAP);
+  h += `<p class="met-foot">${esc(t('met.foot'))}</p>`;
+  body.innerHTML = h;
+}
+async function metLoad() {
+  const body = $('met-sheet-body');
+  if (!body) return;
+  if (!(IS_OWNER && ROLE === 'administrador')) { body.innerHTML = `<div class="wempty">${esc(t('met.forbidden'))}</div>`; return; }
+  const seq = ++MET_SEQ;
+  body.innerHTML = `<div class="wempty">${esc(t('met.loading'))}</div>`;
+  try {
+    const data = await metCall();
+    if (seq !== MET_SEQ) return;
+    if (!data || data.empty || !data.sources) {
+      MET_SNAP = null;
+      body.innerHTML = `<div class="wempty">${esc(t('met.none'))}</div><p class="progress-hint">${esc(t('met.noneHint'))}</p>`;
+      return;
+    }
+    MET_SNAP = data;
+    metRender();
+  } catch (e) {
+    if (seq !== MET_SEQ) return;
+    const msg = String((e && e.message) || '');
+    const key = msg === 'met-401' ? 'met.unauth' : msg === 'met-403' ? 'met.forbidden' : 'met.error';
+    body.innerHTML = `<div class="wempty">${esc(t(key))}</div>`;
+  }
+}
+function metSheetOpen() {
+  const f = $('met-float'), body = $('met-sheet-body');
+  if (!f || !body) return;
+  const title = $('met-sheet-title');
+  if (title) title.textContent = t('met.title');
+  const sub = $('met-sheet-sub');
+  if (sub) sub.textContent = t('met.sub');
+  document.querySelectorAll('[data-met-per]').forEach(b => {
+    b.textContent = t(b.getAttribute('data-met-per') === '7' ? 'met.p7' : 'met.p28');
+    b.classList.toggle('on', b.getAttribute('data-met-per') === MET_PERIODO);
+  });
+  f.style.display = '';
+  try { coverSync(); } catch {}
+  metLoad();
+}
+function metSheetClose() {
+  const f = $('met-float');
+  if (!f) return;
+  if (f.style.display !== 'none') { f.style.display = 'none'; try { coverSync(); } catch {} }
+}
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-met-open]') : null;
+  if (b) { metSheetOpen(); return; }
+  const p = e.target && e.target.closest ? e.target.closest('[data-met-per]') : null;
+  if (p) {
+    const v = p.getAttribute('data-met-per');
+    if ((v === '7' || v === '28') && v !== MET_PERIODO) { MET_PERIODO = v; if (MET_SNAP) metRender(); }
+  }
+});
+{ const x = document.getElementById('met-sheet-x'); if (x) x.onclick = () => metSheetClose(); }
+{ const bk = document.getElementById('met-sheet-back'); if (bk) bk.onclick = () => metSheetClose(); }
 /* ════════════════════════════════════════════════════════════════════
    INFORME DE ATENCIÓN DE ENTRENADORES (punto 93 de la cola) — AUTH-193.
    Decisiones de Ronald (propuesta del 2026-11-02, decisiones cerradas

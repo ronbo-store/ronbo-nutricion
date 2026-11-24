@@ -2690,6 +2690,45 @@ div.cgrid-cell { cursor: default; }
 .aierr-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .aierr-sub { color: #5b6b68; font-size: 13px; margin-top: 2px; }
 .aierr-msg { margin-top: 6px; font-size: 14px; overflow-wrap: anywhere; }
+/* AUTH-591 · «Métricas»: la pantalla del retrato de medición y
+   presencia dentro de su hoja propia (#met-float), con la
+   estructura de la maqueta aprobada (cabecera con volver,
+   selector 7/28 días, una tarjeta por servicio, Análisis,
+   Propuestas y Resumen) y la cara de las hojas de la casa,
+   como su hermana de la 590. La línea-puerta garantiza el
+   alto táctil mínimo de 44 px, igual que la de la 590. */
+.admsec-head[data-met-open] { min-height: 44px; }
+.met-sub { color: #5b6b68; font-size: 14px; margin: 2px 0 4px; }
+.met-period { display: flex; gap: 10px; margin: 10px 0 4px; }
+.met-period button { flex: 1; min-height: 48px; border-radius: 14px; border: 1px solid #d7e3de; background: #f6faf9; color: #5b6b68; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; }
+.met-period button.on { background: #0d9488; border-color: #0d9488; color: #fff; }
+.met-updated { color: #5b6b68; font-size: 13px; margin: 6px 0 2px; }
+.met-card { border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; padding: 14px; margin: 12px 0; }
+.met-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.met-card-head h3 { font-size: 17px; font-weight: 800; color: #14201f; margin: 0; }
+.met-site { color: #5b6b68; font-size: 13px; margin-top: 2px; }
+.met-chip { flex: none; font-size: 11px; font-weight: 800; padding: 5px 9px; border-radius: 999px; border: 1px solid #0d9488; color: #0d9488; background: #e6f4f1; }
+.met-chip.wait { border-color: #d97706; color: #b45309; background: #fdf3e0; }
+.met-chip.off { border-color: #d7e3de; color: #5b6b68; background: #f6faf9; }
+.met-stats { display: flex; gap: 8px; margin-top: 12px; }
+.met-stat { flex: 1; min-width: 0; background: #f6faf9; border-radius: 12px; padding: 10px 6px; text-align: center; }
+.met-num { font-size: 22px; font-weight: 800; color: #14201f; }
+.met-lbl { color: #5b6b68; font-size: 12px; margin-top: 2px; }
+.met-note { color: #5b6b68; font-size: 14px; line-height: 1.45; margin-top: 12px; }
+.met-list { margin-top: 10px; }
+.met-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid #eef2f0; font-size: 14px; }
+.met-list .met-row:first-child, .met-summary .met-row:first-child { border-top: 0; }
+.met-v { font-weight: 800; color: #0d9488; white-space: nowrap; }
+.met-v.warn { color: #b45309; }
+.met-v.mut { color: #5b6b68; }
+.met-linkrow { margin-top: 12px; min-height: 44px; border-radius: 12px; border: 1px solid #d7e3de; background: #f6faf9; color: #0d9488; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-sizing: border-box; }
+.met-sec { font-size: 19px; font-weight: 800; color: #14201f; margin: 20px 0 4px; }
+.met-item { border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; padding: 12px 14px; margin: 10px 0; font-size: 14px; line-height: 1.5; }
+.met-item p { margin: 0; }
+.met-item b { color: #0d9488; }
+.met-tag { display: inline-block; font-size: 11px; font-weight: 800; color: #fff; background: #0d9488; border-radius: 6px; padding: 2px 7px; margin-bottom: 6px; letter-spacing: .4px; }
+.met-tag.prop { background: #d97706; }
+.met-foot { color: #5b6b68; font-size: 13px; line-height: 1.55; margin-top: 16px; border-top: 1px solid #eef2f0; padding-top: 12px; }
 .admuse-fetched { font-size: 12.5px; color: #6b7280; margin: 6px 0; }
 .admuse-stale { background: #fdf3e3; border: 1px dashed #d97706; border-radius: 10px; color: #7c4a03; font-size: 13px; line-height: 1.45; margin: 8px 0; padding: 8px 10px; }
 /* ============ DÍA ACCIONABLE + ASIGNAR (2026-10-30) ============ */
