@@ -7725,6 +7725,12 @@ textarea.gest-in { resize: none; }
 .hist-week > .hist-imgs { margin-top: 8px; }
 button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; background: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 .eval-more-btn { display: inline-flex; align-items: center; min-height: 44px; background: none; border: 0; padding: 6px 0; font: inherit; font-size: 14px; font-weight: 700; color: #0F766E; cursor: pointer; }
+/* AUTH-589 (pliegues nº 9 · Mis alumnos): la línea «Qué es esta
+   vista» respira como la cabecera que sustituye y la nota de la
+   vista de filtros nace recortada a su primera línea. */
+.stu589-hintline { margin-top: 2px; }
+#stu589-hint-body { margin-top: 10px; }
+.stu589-fnote.clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* AUTH-572 · El link para compartir cada reto: el cuadrito de
    compartir en la vista del reto y la página pública del link

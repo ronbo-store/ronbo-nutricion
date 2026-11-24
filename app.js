@@ -8130,6 +8130,8 @@ async function loadClients() {
 let STUDENTS_VIEW = 'list';            // A-A6: nace en LISTA; 'grid' es la alternativa
 let STUDENTS_SEL = 'asignados';        // 'asignados' | 'pendientes' | <clave de CLIENT_CATS>
 let STUDENTS_FILTERS = false;          // panel «Más filtros» abierto
+let STU589_HINT_OPEN = false;          // AUTH-589 (pliegues nº 9): texto «Qué es esta vista» desplegado
+let STU589_FNOTE_OPEN = false;         // AUTH-589 (pliegues nº 9): nota de la vista de filtros desplegada entera
 let STUDENTS_QUERY = '';               // buscador (A-A2)
 let STUDENTS_DETAIL = null;            // uid con el detalle de pendientes abierto (A-A3)
 let STUDENTS_DETAIL_FROM = 'pendientes';
@@ -9763,7 +9765,13 @@ function studentsListSectionHTML() {
       const n = L.clients.filter(u => clientCategories(u, L).includes(c.key)).length;
       return `<button type="button" class="cat-row${n ? '' : ' off'}" data-stu-cat="${c.key}"><span class="cat-dot" style="background:${c.color}"></span><span class="cat-label">${esc(clientCatLabel(c.key))}</span><span class="cat-n">${n}</span><span class="srow-chev">›</span></button>`;
     }).join('');
-    return `<p class="mf-note">${esc(t('students.filtersNote'))}</p><div class="cat-list">${rows}</div>`;
+    /* AUTH-589 (pliegues nº 9): la nota nace recortada a su
+       primera línea y se despliega entera tras su «Ver más»
+       (patrón de la casa, AUTH-569); el estado vive en
+       STU589_FNOTE_OPEN y el botón se cablea en renderStudentsBody. */
+    return `<p class="mf-note stu589-fnote${STU589_FNOTE_OPEN ? '' : ' clamp'}" id="stu589-fnote">${esc(t('students.filtersNote'))}</p>`
+      + `<button type="button" class="eval-more-btn" id="stu589-fnote-btn" aria-expanded="${STU589_FNOTE_OPEN ? 'true' : 'false'}">${esc(t(STU589_FNOTE_OPEN ? 'stu589.seeLess' : 'stu589.seeMore'))} <span aria-hidden="true">${STU589_FNOTE_OPEN ? '▴' : '▾'}</span></button>`
+      + `<div class="cat-list">${rows}</div>`;
   }
   const list = studentsFiltered();
   if (!list.length) {
@@ -11683,6 +11691,11 @@ function renderStudentsBody() {
     STUDENTS_SEL = b.dataset.stuCat; STUDENTS_FILTERS = false; STUDENTS_DETAIL = null;
     renderStudentsViewbar(); renderStudentsBody();
   });
+  /* AUTH-589 (pliegues nº 9): el «Ver más» de la nota de filtros
+     conmuta su estado y repinta el cuerpo — la nota queda como
+     el entrenador la dejó al navegar entre pastillas. */
+  const fnb = $('stu589-fnote-btn');
+  if (fnb) fnb.onclick = () => { STU589_FNOTE_OPEN = !STU589_FNOTE_OPEN; renderStudentsBody(); };
   const back = $('stu-back');
   if (back) back.onclick = studentsCloseDetail;
   /* AUTH-2026-11-02-186 (punto 109 de la cola; correo de Ronald
@@ -11786,6 +11799,22 @@ function renderStudentsViewbar() {
     else { STUDENTS_SEL = p; STUDENTS_FILTERS = false; }
     renderStudentsViewbar(); renderStudentsBody();
   });
+  /* AUTH-589 (pliegues nº 9): la línea «Qué es esta vista» de la
+     cabecera (botón estático de index.html) despliega el texto
+     explicativo de siempre, que nace oculto. Se cablea una sola
+     vez; el botón y el texto viven en el DOM estático. */
+  const hb = $('stu589-hint-btn');
+  if (hb && !hb.dataset.wired589) {
+    hb.dataset.wired589 = '1';
+    hb.onclick = () => {
+      STU589_HINT_OPEN = !STU589_HINT_OPEN;
+      const hbBody = $('stu589-hint-body');
+      if (hbBody) hbBody.style.display = STU589_HINT_OPEN ? '' : 'none';
+      hb.setAttribute('aria-expanded', STU589_HINT_OPEN ? 'true' : 'false');
+      const ch = hb.querySelector('.p569-chev');
+      if (ch) ch.textContent = STU589_HINT_OPEN ? '▴' : '▾';
+    };
+  }
 }
 
 /* ---------- navegación interna y salto a la ficha ---------- */
