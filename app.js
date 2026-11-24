@@ -30142,15 +30142,34 @@ function trainSessionReorder(plan, di, from, to, iso) {
   const eff = trainEffectiveList(plan, di, viewIso);
   const n = eff.length;
   if (!Number.isInteger(from) || !Number.isInteger(to) || from === to || from < 0 || to < 0 || from >= n || to >= n) return false;
-  let addN = 0;
-  const oldKeys = eff.map(it => it.kind === 'add' ? 'a' + (addN++) : 's' + it.slot);
-  const keys = oldKeys.slice();
-  const [mv] = keys.splice(from, 1); keys.splice(to, 0, mv);
   const ed = trainEditsRead(plan.id, viewIso) || { swaps: {}, added: [], removed: [] };
   const remSet = new Set(Array.isArray(ed.removed) ? ed.removed : []);
   const dayExs = (plan.days || [])[di] && Array.isArray(plan.days[di].exercises) ? plan.days[di].exercises : [];
   const natural = dayExs.map((_, slot) => slot).filter(s => !remSet.has(s)).map(s => 's' + s)
     .concat((Array.isArray(ed.added) ? ed.added : []).map((_, i) => 'a' + i));
+  /* FIX-LISTA (2026-11-24): las claves que se permutan son las
+     de IDENTIDAD de cada ejercicio (su slot del plan; su
+     posición en el `added` de la edición) EN EL ORDEN EFECTIVO
+     ACTUAL — la misma secuencia que trainEffectiveList
+     construye desde la edición (su orden guardado, filtrado a
+     lo que existe, con lo que falte al final). Antes los
+     agregados se numeraban POR SU POSICIÓN en la lista ya
+     ordenada y esas etiquetas de posición se guardaban en
+     ed.order como si fueran la identidad que
+     trainEffectiveList lee: el primer movimiento salía bien y
+     desde el segundo la lista se desordenaba sola — bajar un
+     ejercicio mandaba otro al último puesto, subirlo lo
+     mandaba al primero, y las marcas de hoy acababan bajo
+     ejercicios ajenos (la variante recién agregada nacía
+     «Hecho» con las series de otro). */
+  const natSet = new Set(natural);
+  const seenK = new Set();
+  const oldKeys = [];
+  (Array.isArray(ed.order) ? ed.order : []).forEach(k => { if (natSet.has(k) && !seenK.has(k)) { seenK.add(k); oldKeys.push(k); } });
+  natural.forEach(k => { if (!seenK.has(k)) { seenK.add(k); oldKeys.push(k); } });
+  if (oldKeys.length !== n) return false;
+  const keys = oldKeys.slice();
+  const [mv] = keys.splice(from, 1); keys.splice(to, 0, mv);
   if (JSON.stringify(keys) === JSON.stringify(natural)) delete ed.order; else ed.order = keys;
   trainEditsWrite(plan.id, ed, viewIso);
   if (viewIso === todayISO()) {
@@ -30203,26 +30222,31 @@ function trainAddPlaceFront(plan, di, iso, count) {
   if (!n) return;
   const from0 = n - count;   /* lo recién agregado ocupa las últimas `count` posiciones de la lista efectiva */
   if (from0 < 0) return;
-  let target = 0;   /* otra fecha: el agregado abre el día */
+  /* FIX-LISTA (2026-11-24, orden expresa de Ronald que
+     SUSTITUYE la colocación de AUTH-490): el agregado NACE
+     ÚLTIMO — queda donde la escritura lo dejó, al final de la
+     lista, en cualquier estado del día (con ejercicio en
+     curso, sin empezar o en otra fecha) y por las cuatro vías
+     que llaman a esta puerta. Ya no se mueve al frente de los
+     pendientes: la persona lo busca al final y ahí está. El
+     aterrizaje en la lista se conserva, apuntando a su puesto
+     — el primero del bloque recién agregado, que ya es el
+     final — para que la vista lo enseñe al cerrar el
+     selector, como mandaba la segunda orden de AUTH-490. */
   if (viewIso === todayISO()) {
-    target = -1;
-    for (let i = 0; i < n; i++) {
-      const fs = TRAIN_FLOW[di + ':' + i];
-      if (fs && (fs.st === 'open' || fs.st === 'paused' || fs.st === 'closing')) { target = i + 1; break; }
-    }
-    if (target < 0) for (let i = 0; i < n; i++) {
-      const c = TRAIN_CHECKS[di + ':' + i];
-      if (!c || c.done !== true) { target = i; break; }
-    }
-    if (target < 0) target = from0;   /* todo hecho menos lo nuevo: ya está donde debe */
+    /* FIX-LISTA · D4 (2026-11-24, decisión de Ronald, opción
+       A): al agregar, la vista QUEDA en la lista del día —
+       no vuelve a la vista guiada del ejercicio en curso
+       cuando el aterrizaje se consume. Se entra al modo
+       lista por la puerta de siempre (trainGuideApplyMode
+       fija la preferencia y recoge el desplegable como
+       cuando la persona misma lo elige con «☰ Ver todos los
+       ejercicios»); su puerta «▶ Modo guiado» sigue ahí para
+       volver cuando quiera. Solo hoy: agregar a otra fecha
+       no toca la vista de hoy. */
+    trainGuideApplyMode('list');
+    TRAIN_ADD_LAND = { planId: plan.id, di, ei: from0, scrolled: false };
   }
-  if (target > from0) target = from0;   /* el en curso es el último antes del bloque: ya nace detrás de él */
-  for (let j = 0; j < count; j++) {
-    if (target + j >= from0 + j) break;
-    trainSessionReorder(plan, di, from0 + j, target + j, viewIso);
-  }
-  if (viewIso === todayISO())
-    TRAIN_ADD_LAND = { planId: plan.id, di, ei: target, scrolled: false };
 }
 /* ¿La tarjeta de hoy de este plan+día debe pintarse como
    LISTA por un aterrizaje vivo? Lo consulta dressedTodayCard:
@@ -31269,6 +31293,32 @@ function swapFormKey(id, vi) { return id ? id + '|' + (Number.isInteger(vi) ? vi
 function swapEffFormsOf(plan, di, iso) {
   return new Set(trainEffectiveList(plan, di, iso).map(it => (it && it.ex) ? swapFormKey(it.ex.exerciseId, it.ex.variantIndex) : null).filter(Boolean));
 }
+/* FIX-LISTA (2026-11-24) · DECISIÓN D1 DE RONALD (11:18,
+   acepta la recomendación): «repetido» en un día se cuenta
+   POR FICHA — la forma estándar y todas sus variantes son
+   el mismo ejercicio para el candado antiduplicados. Si
+   cualquier forma de una ficha ya está en el día, ninguna
+   otra forma de esa ficha entra en OTRO puesto. Matiz
+   suyo: el cambio de forma DENTRO del mismo puesto (pasar
+   de la estándar a una variante en ese mismo ejercicio)
+   sigue permitido — no es un duplicado, es el mismo
+   puesto. Esto SUSTITUYE al candado por forma exacta de
+   CAND-527 (que dejó convivir «Extensión de piernas en
+   máquina» y su variante «a una pierna» en el día de
+   Ronald, captura 2026-11-24 11:00). El candado vive en:
+   los dos pintores de tarjetas (por SWAP_EFF_IDS, el
+   conjunto por ficha que swapSheetResultsHTML ya calcula),
+   las guardas de escritura de agregar y de cambiar de los
+   tres caminos de la hoja, y el dictado. La vía de la foto
+   de máquina ya contaba por ficha (AUTH-370). */
+function swapEffHasId(plan, di, id, iso) {
+  if (!id) return false;
+  return trainEffectiveList(plan, di, iso).some(it => it && it.ex && it.ex.exerciseId === id);
+}
+function swapEffHasIdOther(plan, di, id, idx, iso) {
+  if (!id) return false;
+  return trainEffectiveList(plan, di, iso).some((it, xi) => xi !== idx && it && it.ex && it.ex.exerciseId === id);
+}
 /* AUTH-2026-11-12-424: vista de FORMAS dentro del selector en modo
    «agregar» — el id de la ficha cuyas formas (base + variantes) se
    están eligiendo, o null en la lista normal. Tocar la tarjeta de
@@ -31333,7 +31383,16 @@ function swapNameSearchDetailed(q) {
     }
     out.push({ ex, vi, rank: byName ? (libNorm(libNameOf(ex)).startsWith(first) ? 0 : 1) : 2 });
   }
-  return out.sort((a, b) => a.rank - b.rank || libNameOf(a.ex).localeCompare(libNameOf(b.ex))).slice(0, 12);
+  /* FIX-LISTA (2026-11-24, auditoría de biblioteca E4): el
+     corte silencioso a 12 hacía desaparecer ejercicios que
+     SÍ están en la biblioteca — «curl» casa 19 fichas y 25
+     variantes en la biblioteca real y todo lo que quedaba
+     fuera del corte no existía para quien buscaba (el
+     «ejercicio de bíceps no aparece» de Ronald). El corte
+     sube a 60: con 205 fichas, cualquier búsqueda real
+     enseña todos sus aciertos y el límite solo acota lo
+     patológico. */
+  return out.sort((a, b) => a.rank - b.rank || libNameOf(a.ex).localeCompare(libNameOf(b.ex))).slice(0, 60);
 }
 function swapNameSearch(q) { return swapNameSearchDetailed(q).map(h => h.ex); }
 function swapSectionsFor(entry) {
@@ -31363,11 +31422,11 @@ function swapCardHTML(ex, opts) {
      día) nace marcada «✓ Añadido» con su etiqueta y DESACTIVADA —
      el espejo del editor de rutinas (AUTH-325): sin duplicados
      posibles desde la propia tarjeta. En «cambiar» nada cambia.
-     CAND-527: la tarjeta principal representa la FORMA BASE de
-     la ficha — nace marcada solo si ESA forma está en el día
-     (SWAP_EFF_FORMS); si la que está es una variante, la base
-     se puede agregar, y al revés. */
-  const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_FORMS && SWAP_EFF_FORMS.has(swapFormKey(ex.id, -1)));
+     FIX-LISTA · D1 (2026-11-24): el candado cuenta POR
+     FICHA (SWAP_EFF_IDS) — si cualquier forma de la ficha
+     está en el día, su tarjeta nace marcada y desactivada;
+     sustituye al candado por forma exacta de CAND-527. */
+  const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_IDS && SWAP_EFF_IDS.has(ex.id));
   /* AUTH-424: en «agregar», la tarjeta de un ejercicio CON variantes
      dice «Elegir» y no «Agregar»: tocarla abre la vista de formas
      (base o variante) antes de confirmar el agregado. */
@@ -31423,11 +31482,12 @@ function swapVariantPickCardHTML(entry, v, vi) {
     : [libField(entry, 'equipo'), libField(entry, 'nivel')].filter(Boolean).join(' · ');
   const photo = (v && v.foto_url) || entry.foto_url || '';
   const th = !photo ? ytThumbOf((v && v.video_youtube_url) || entry.video_youtube_url) : '';
-  /* CAND-527: el candado de la tarjeta de forma es por la
-     FORMA EXACTA de la tarjeta (su variantIndex; la base,
-     -1) — no por la familia: una variante de una ficha ya
-     presente nace ACTIVA y se puede agregar. */
-  const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_FORMS && SWAP_EFF_FORMS.has(swapFormKey(entry.id, vi)));
+  /* FIX-LISTA · D1 (2026-11-24): el candado de la tarjeta
+     de forma cuenta POR FICHA — si cualquier forma de la
+     ficha ya está en el día, TODAS sus tarjetas de forma
+     nacen desactivadas «✓ Añadido»; sustituye al candado
+     por forma exacta de CAND-527. */
+  const inSession = !!(TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_EFF_IDS && SWAP_EFF_IDS.has(entry.id));
   const btn = inSession ? t('train.n09.mybAddedBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'warm' ? t('train.warm.pickBtn') : (TRAIN_PICK && TRAIN_PICK.kind === 'add' ? t('train.swap.addBtn') : t('train.custom.swap')));
   const tag = v ? `<span class="swap-card-tag">${esc(t('train.swap.variantTag'))}</span>` : `<span class="swap-card-tag">${esc(t('plan.variantStd'))}</span>`;
   return `<button type="button" class="swap-card swap-card-variant${inSession ? ' is-added' : ''}" data-swap-variant-pick="${esc(entry.id)}" data-swap-variant-vi="${vi}"${inSession ? ' disabled aria-disabled="true"' : ''}>
@@ -31518,6 +31578,35 @@ function swapSheetResultsHTML(plan, di, iso) {
     return items.length ? `<div class="swap-sec-title">${esc(sec.label)}</div>` + items.map(ex => swapCardHTML(ex)).join('') : '';
   }).join('');
 }
+/* FIX-LISTA (2026-11-24, auditoría de biblioteca/edición/
+   panel — su síntoma S5): al SUSTITUIR el ejercicio de un
+   puesto (cambiar, cambiar por una forma, cambiar sobre un
+   añadido), la marca de ese puesto nace LIMPIA. Hasta hoy
+   los caminos de cambio escribían la edición y no tocaban
+   TRAIN_CHECKS[di:ei] ni su flujo: el ejercicio entrante
+   heredaba el «✓ Hecho», las series y las cargas del
+   saliente — la variante recién puesta en un puesto ya
+   hecho nacía «Hecho» sin haberse ejecutado nunca — y el
+   cierre del día guardaba como realizado un ejercicio que
+   no ocurrió. Solo se limpia cuando la forma entrante es
+   OTRA que la que ocupaba el puesto (elegir la misma forma
+   no borra el trabajo hecho) y solo sobre las marcas de
+   HOY, que son las únicas que viven en TRAIN_CHECKS (la
+   puerta de contexto de siempre). */
+function trainSwapClearMark(plan, di, idx, oldEx, newFormKey, iso) {
+  if (!plan || !Number.isInteger(idx)) return;
+  const oldKey = oldEx ? swapFormKey(oldEx.exerciseId, oldEx.variantIndex) : null;
+  if (oldKey && oldKey === newFormKey) return;
+  try {
+    if ((iso || todayISO()) !== todayISO()) return;   /* las marcas viven solo en hoy: cambiar otra fecha no las toca */
+    if (TRAIN_CHECKS_CTX !== plan.id + '|' + todayISO()) return;
+    const k = di + ':' + idx;
+    let touched = false;
+    if (TRAIN_CHECKS[k]) { delete TRAIN_CHECKS[k]; touched = true; }
+    if (typeof TRAIN_FLOW !== 'undefined' && TRAIN_FLOW[k]) delete TRAIN_FLOW[k];
+    if (touched) trainChecksPersist(plan.id);
+  } catch {}
+}
 function swapSheetApply(plan, di, entry, iso) {
   SWAP_ADD_FORMS_ID = null;
   /* La MISMA escritura del selector anterior: edición de sesión
@@ -31562,10 +31651,11 @@ function swapSheetApply(plan, di, entry, iso) {
     const effR = trainEffectiveList(plan, di, iso);
     const itR = effR[TRAIN_PICK.idx];
     if (!itR || itR.kind !== 'add') { TRAIN_PICK = null; SWAP_QUERY = ''; trainDayRepaint(); return; }
-    /* CAND-527: el duplicado es la FORMA exacta elegida (aquí,
-       la base) en otro puesto — otra forma de la misma ficha
-       no bloquea el cambio. */
-    const dupR = effR.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && swapFormKey(x.ex.exerciseId, x.ex.variantIndex) === swapFormKey(entry.id, -1));
+    /* FIX-LISTA · D1 (2026-11-24): el duplicado es la FICHA
+       elegida en otro puesto — cualquier forma suya bloquea;
+       la misma ficha en el propio puesto es el cambio de
+       forma permitido y no se cuenta (xi !== idx). */
+    const dupR = effR.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && x.ex.exerciseId === entry.id);
     if (dupR) { toast(t('train.pick.inSession')); return; }
     const addPos = effR.slice(0, TRAIN_PICK.idx).filter(x => x.kind === 'add').length;
     const old = (Array.isArray(ed.added) ? ed.added : [])[addPos];
@@ -31574,6 +31664,7 @@ function swapSheetApply(plan, di, entry, iso) {
     if (typeof old.load === 'number' && old.load > 0) { rec.load = old.load; rec.loadUnit = old.loadUnit === 'lb' ? 'lb' : 'kg'; }
     ed.added[addPos] = rec;
     trainEditsWrite(plan.id, ed, iso);
+    trainSwapClearMark(plan, di, TRAIN_PICK.idx, itR.ex, swapFormKey(entry.id, -1), iso);   /* FIX-LISTA S5: el puesto sustituido nace limpio */
     TRAIN_PICK = null;
     SWAP_QUERY = '';
     trainDayRepaint();
@@ -31582,7 +31673,12 @@ function swapSheetApply(plan, di, entry, iso) {
   if (TRAIN_PICK.kind === 'swap') {
     SWAP_PRESET_GROUP = null;
     const it2 = trainEffectiveList(plan, di, iso)[TRAIN_PICK.idx];
-    if (it2 && it2.slot >= 0) ed.swaps[String(it2.slot)] = { exerciseId: entry.id, name: libNameOf(entry) };
+    /* FIX-LISTA · D1 (2026-11-24): cambiar un puesto por una
+       ficha que ya vive en OTRO puesto del día es un
+       duplicado — se avisa y no se escribe; cambiar a otra
+       forma de la ficha del propio puesto sí vale. */
+    if (it2 && swapEffHasIdOther(plan, di, entry.id, TRAIN_PICK.idx, iso)) { toast(t('train.pick.inSession')); return; }
+    if (it2 && it2.slot >= 0) { ed.swaps[String(it2.slot)] = { exerciseId: entry.id, name: libNameOf(entry) }; trainSwapClearMark(plan, di, TRAIN_PICK.idx, it2.ex, swapFormKey(entry.id, -1), iso); }   /* FIX-LISTA S5: el puesto sustituido nace limpio */
     trainEditsWrite(plan.id, ed, iso);
     TRAIN_PICK = null;
     SWAP_QUERY = '';
@@ -31600,10 +31696,11 @@ function swapSheetApply(plan, di, entry, iso) {
      La sesión de detrás se repinta al cerrar, como en el editor:
      todas las vías de cierre (✕, «Listo», gesto del dock) pasan
      por loadMyTraining. */
-  /* CAND-527: el segundo candado también es por forma — este
-     camino agrega la FORMA BASE: solo la bloquea la misma
-     forma base ya presente, no una variante de la ficha. */
-  const addedNew = !swapEffFormsOf(plan, di, iso).has(swapFormKey(entry.id, -1));
+  /* FIX-LISTA · D1 (2026-11-24): el segundo candado cuenta
+     POR FICHA — cualquier forma de la ficha ya presente en
+     el día bloquea el agregado de la base; sustituye al
+     candado por forma exacta de CAND-527. */
+  const addedNew = !swapEffHasId(plan, di, entry.id, iso);
   if (addedNew) ed.added.push({ exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' });
   const okAdd = trainEditsWrite(plan.id, ed, iso);
   if (addedNew) {
@@ -31631,11 +31728,17 @@ function swapSheetApplyVariant(plan, di, entry, vi, iso) {
   const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
   const it2 = trainEffectiveList(plan, di, iso)[TRAIN_PICK.idx];
   if (!it2 || it2.slot < 0) return;
+  /* FIX-LISTA · D1 (2026-11-24): esta vía elige formas de la
+     ficha del propio puesto (el cambio de forma permitido);
+     si la ficha elegida fuera otra y ya viviera en otro
+     puesto, sería un duplicado y no se escribe. */
+  if (swapEffHasIdOther(plan, di, entry.id, TRAIN_PICK.idx, iso)) { toast(t('train.pick.inSession')); return; }
   const v = Array.isArray(entry.variantes) ? entry.variantes[vi] : null;
   const rec = { exerciseId: entry.id, name: libNameOf(entry) };
   if (v && !v.es_estandar && Number.isInteger(vi)) rec.variantIndex = vi;
   ed.swaps[String(it2.slot)] = rec;
   trainEditsWrite(plan.id, ed, iso);
+  trainSwapClearMark(plan, di, TRAIN_PICK.idx, it2.ex, swapFormKey(entry.id, rec.variantIndex != null ? rec.variantIndex : -1), iso);   /* FIX-LISTA S5: el puesto sustituido nace limpio */
   TRAIN_PICK = null;
   SWAP_QUERY = '';
   trainDayRepaint();
@@ -31659,10 +31762,11 @@ function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
   const withVar = !!(v && !v.es_estandar && libField(v, 'nombre'));
   if (TRAIN_PICK.kind === 'add') {
     const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
-    /* CAND-527: el candado mira la forma elegida (con su
-       variantIndex; la estándar y la base son la misma forma,
-       -1) contra las formas presentes — no la familia. */
-    const addedNewV = !swapEffFormsOf(plan, di, iso).has(swapFormKey(entry.id, withVar ? vi : -1));
+    /* FIX-LISTA · D1 (2026-11-24): el candado cuenta POR
+       FICHA — cualquier forma de la ficha ya presente en el
+       día bloquea el agregado de esta forma; sustituye al
+       candado por forma exacta de CAND-527. */
+    const addedNewV = !swapEffHasId(plan, di, entry.id, iso);
     if (addedNewV) {
       const rec = { exerciseId: entry.id, name: libNameOf(entry), sets: '', reps: '' };
       if (withVar) rec.variantIndex = vi;
@@ -31682,10 +31786,15 @@ function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
     const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
     const it2 = trainEffectiveList(plan, di, iso)[TRAIN_PICK.idx];
     if (!it2 || it2.slot < 0) return;
+    /* FIX-LISTA · D1 (2026-11-24): la ficha elegida no puede
+       vivir ya en otro puesto del día; otra forma de la
+       ficha del propio puesto es el cambio de forma. */
+    if (swapEffHasIdOther(plan, di, entry.id, TRAIN_PICK.idx, iso)) { toast(t('train.pick.inSession')); return; }
     const rec = { exerciseId: entry.id, name: libNameOf(entry) };
     if (withVar) rec.variantIndex = vi;
     ed.swaps[String(it2.slot)] = rec;
     trainEditsWrite(plan.id, ed, iso);
+    trainSwapClearMark(plan, di, TRAIN_PICK.idx, it2.ex, swapFormKey(entry.id, withVar ? vi : -1), iso);   /* FIX-LISTA S5: el puesto sustituido nace limpio */
     TRAIN_PICK = null;
     SWAP_QUERY = '';
     trainDayRepaint();
@@ -31695,9 +31804,11 @@ function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
     const effR = trainEffectiveList(plan, di, iso);
     const itR = effR[TRAIN_PICK.idx];
     if (!itR || itR.kind !== 'add') { TRAIN_PICK = null; SWAP_QUERY = ''; trainDayRepaint(); return; }
-    /* CAND-527: el duplicado es la FORMA exacta elegida en
-       otro puesto — otra forma de la misma ficha no bloquea. */
-    const dupR = effR.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && swapFormKey(x.ex.exerciseId, x.ex.variantIndex) === swapFormKey(entry.id, withVar ? vi : -1));
+    /* FIX-LISTA · D1 (2026-11-24): el duplicado es la FICHA
+       elegida en otro puesto — cualquier forma suya bloquea;
+       la misma ficha en el propio puesto es el cambio de
+       forma permitido y no se cuenta (xi !== idx). */
+    const dupR = effR.some((x, xi) => xi !== TRAIN_PICK.idx && x && x.ex && x.ex.exerciseId === entry.id);
     if (dupR) { toast(t('train.pick.inSession')); return; }
     const ed = trainEditsRead(plan.id, iso) || { swaps: {}, added: [] };
     const addPos = effR.slice(0, TRAIN_PICK.idx).filter(x => x.kind === 'add').length;
@@ -31708,6 +31819,7 @@ function swapSheetApplyVariantPick(plan, di, entry, vi, iso) {
     if (withVar) rec.variantIndex = vi;
     ed.added[addPos] = rec;
     trainEditsWrite(plan.id, ed, iso);
+    trainSwapClearMark(plan, di, TRAIN_PICK.idx, itR.ex, swapFormKey(entry.id, withVar ? vi : -1), iso);   /* FIX-LISTA S5: el puesto sustituido nace limpio */
     TRAIN_PICK = null;
     SWAP_QUERY = '';
     trainDayRepaint();
@@ -32300,8 +32412,20 @@ function dictSheetSync() {
 function dictSheetApply() {
   const D = TRAIN_DICT;
   if (!D || !D.plan) return;
-  const okRows = D.rows.filter(r => r.status === 'ok' && r.entry);
-  if (!okRows.length) return;
+  /* FIX-LISTA · D1 (2026-11-24): el dictado no tenía candado
+     — ahora cuenta POR FICHA como las demás vías: una fila
+     cuya ficha ya está en el día (en cualquier forma) o ya
+     entró en este mismo dictado no se agrega dos veces. Si
+     no queda ninguna fila nueva, se avisa y la hoja sigue
+     abierta, como en las guardas del selector. */
+  const idsEnDia = new Set(trainEffectiveList(D.plan, D.di, D.iso).map(it => (it && it.ex) ? it.ex.exerciseId : null).filter(Boolean));
+  const okRows = [];
+  for (const r of D.rows) {
+    if (r.status !== 'ok' || !r.entry || idsEnDia.has(r.entry.id)) continue;
+    idsEnDia.add(r.entry.id);
+    okRows.push(r);
+  }
+  if (!okRows.length) { if (D.rows.some(r => r.status === 'ok' && r.entry)) toast(t('train.pick.inSession')); return; }
   const ed = trainEditsRead(D.plan.id, D.iso) || { swaps: {}, added: [] };
   if (!ed.swaps || typeof ed.swaps !== 'object') ed.swaps = {};
   if (!Array.isArray(ed.added)) ed.added = [];
@@ -36940,6 +37064,23 @@ function sessWorkPlan() {
   if (mp) return mp;
   try {
     if (typeof TRAIN_CHECKS_CTX !== 'undefined' && TRAIN_CHECKS_CTX === 'suelta|' + todayISO())
+      return { id: 'suelta', title: '', notes: '', days: [], __loose: true };
+    /* FIX-LISTA (2026-11-24): la sesión suelta QUE ESTÁ
+       CORRIENDO también acredita su plan sintético. El
+       cronómetro guardado (sessRunning, en localStorage) es
+       la prueba durable de que la sesión de hoy es la suelta;
+       el contexto en memoria, en cambio, muere con cada
+       recarga de la página y renace solo cuando la carga de
+       Entrenamiento completa sus lecturas — en esa ventana
+       (recarga en el gimnasio, carga que falla o tarda) el
+       panel quedaba ciego: reloj y mensaje, sin calentamiento
+       ni ejercicio, aunque la vista del día sí enseñaba los
+       ejercicios. Es el fallo recurrente que Ronald entrenó
+       el 2026-11-22 (AUTH-557 cerró una puerta) y otra vez el
+       2026-11-24. Sin sesión en curso, manda el contexto de
+       siempre, byte a byte. */
+    const runW = sessRunning();
+    if (runW && runW.planId === 'suelta')
       return { id: 'suelta', title: '', notes: '', days: [], __loose: true };
   } catch {}
   return null;
@@ -43576,6 +43717,27 @@ function trainHistBlockHTML(sum) {
    vista y la vista base identifica las sesiones de variante
    por su nombre. El escritor del cierre, el sellado, el modelo
    de datos y el emparejamiento por exerciseId no se tocan. ═══ */
+/* ═══ FIX-LISTA · D2 (2026-11-24, decisión de Ronald, opción
+   B): el historial pasa a ser ESTRICTO POR FORMA y SUSTITUYE
+   a la regla familiar de AUTH-509. Cada forma (la estándar o
+   una variante) muestra SOLO su propio «última vez»: una
+   sesión cuenta para la vista si su clave de forma ES la de
+   la vista — la estándar es la sesión sin variantIndex (o
+   anotada con la entrada es_estandar de su ficha) y una
+   variante solo casa con su mismo variantIndex. Una forma
+   nunca ejecutada no muestra historial («Sin registros
+   todavía» / «primera vez», como ya pintan las superficies
+   sin filas). La clave se calcula en un solo sitio
+   (trainHistFormKey) y la usan los tres escaneos que
+   AUTH-509 había reunido: trainHistLoadsRows,
+   progSessionsOf y trainLastTimeSession. Sin variantes en
+   la ficha no hay filtro, idéntico a siempre. ═══ */
+function trainHistFormKey(varsH, vi) {
+  if (!varsH) return -1;
+  if (!Number.isInteger(vi)) return -1;
+  if (varsH[vi] && varsH[vi].es_estandar) return -1;
+  return vi;
+}
 function trainHistLoadsRows(ex, allLogs) {
   const id = ex && ex.exerciseId ? String(ex.exerciseId) : null;
   const name = ex && !id ? String(ex.name || '') : null;
@@ -43594,7 +43756,7 @@ function trainHistLoadsRows(ex, allLogs) {
   const varsH = entryH && Array.isArray(entryH.variantes) && entryH.variantes.length ? entryH.variantes : null;
   const stdIdx = varsH ? varsH.findIndex(v => v && v.es_estandar) : -1;
   const viEx = ex && Number.isInteger(ex.variantIndex) ? ex.variantIndex : null;
-  const viActive = !!(varsH && viEx != null && varsH[viEx] && !varsH[viEx].es_estandar);
+  const viewKeyH = trainHistFormKey(varsH, viEx);   /* D2: la forma de la vista */
   const out = [];
   const logs = Array.isArray(allLogs) ? allLogs : [];
   for (const log of logs) {
@@ -43613,8 +43775,10 @@ function trainHistLoadsRows(ex, allLogs) {
         : (e.exerciseId == null && e.name != null && String(e.name) === name);
       if (!match) continue;
       const ev = varsH ? (Number.isInteger(e.variantIndex) ? e.variantIndex : null) : null;
-      if (viActive && ev !== null && ev !== viEx) continue;
-      const varName = (varsH && ev !== null && !(viActive && ev === viEx)) ? (libField(varsH[ev], 'nombre') || null) : null;
+      /* D2 (sustituye a AUTH-509): la sesión solo cuenta si es
+         de ESTA forma — su clave de forma es la de la vista. */
+      if (trainHistFormKey(varsH, ev) !== viewKeyH) continue;
+      const varName = null;   /* D2: la fila siempre es de esta forma; ya no hay procedencia que etiquetar */
       const sets = Array.isArray(e.sets) ? e.sets : null;
       if (!sets) { out.push({ date: log.date, legacy: true, varName }); continue; }
       /* AUTH-417: una serie por tiempo con su tiempo hecho
@@ -43768,7 +43932,7 @@ function progSessionsOf(ex, allLogs, excludeIso) {
   const entryH = id ? (LIB_BY_ID[id] || null) : null;
   const varsH = entryH && Array.isArray(entryH.variantes) && entryH.variantes.length ? entryH.variantes : null;
   const viEx = ex && Number.isInteger(ex.variantIndex) ? ex.variantIndex : null;
-  const viActive = !!(varsH && viEx != null && varsH[viEx] && !varsH[viEx].es_estandar);
+  const viewKeyH = trainHistFormKey(varsH, viEx);   /* D2: la forma de la vista */
   const logs = (Array.isArray(allLogs) ? [...allLogs] : []).sort((a, b) => String((b && b.date) || '').localeCompare(String((a && a.date) || '')));
   const out = [];
   for (const log of logs) {
@@ -43782,7 +43946,11 @@ function progSessionsOf(ex, allLogs, excludeIso) {
         : (e.exerciseId == null && e.name != null && String(e.name) === name);
       if (!match) continue;
       const ev = varsH ? (Number.isInteger(e.variantIndex) ? e.variantIndex : null) : null;
-      if (viActive && ev !== null && ev !== viEx) continue;
+      /* D2 (sustituye a AUTH-509): la progresión de una forma
+         se lee solo de SUS sesiones — su clave de forma es la
+         de la vista; una variante ya no hereda la progresión
+         de la base ni al revés. */
+      if (trainHistFormKey(varsH, ev) !== viewKeyH) continue;
       out.push({ date: log.date, entry: e });
       break;
     }
@@ -44150,7 +44318,7 @@ function trainLastTimeSession(ex, allLogs, excludeIso) {
   const varsH = entryH && Array.isArray(entryH.variantes) && entryH.variantes.length ? entryH.variantes : null;
   const stdIdx = varsH ? varsH.findIndex(v => v && v.es_estandar) : -1;
   const viEx = ex && Number.isInteger(ex.variantIndex) ? ex.variantIndex : null;
-  const viActive = !!(varsH && viEx != null && varsH[viEx] && !varsH[viEx].es_estandar);
+  const viewKeyH = trainHistFormKey(varsH, viEx);   /* D2: la forma de la vista */
   /* F-37: la búsqueda ordena ELLA MISMA por fecha descendente;
      no depende del orden de carga de MY_LOGS_ALL. */
   const logs = (Array.isArray(allLogs) ? [...allLogs] : []).sort((a, b) => String((b && b.date) || '').localeCompare(String((a && a.date) || '')));
@@ -44165,13 +44333,13 @@ function trainLastTimeSession(ex, allLogs, excludeIso) {
       const match = id ? (e.exerciseId != null && String(e.exerciseId) === id)
         : (e.exerciseId == null && e.name != null && String(e.name) === name);
       if (!match) continue;
-      /* AUTH-509: la misma regla reunida del escaneo — la
-         separación es solo entre dos variantes distintas y
-         ambas anotadas; sin anotar, la sesión es de la forma
-         estándar y cuenta para cualquier vista. */
+      /* D2 (sustituye a la regla reunida de AUTH-509): la
+         sesión solo cuenta si es de ESTA forma — su clave de
+         forma es la de la vista (exerciseId + variantIndex,
+         con la estándar en -1). */
       const ev = varsH ? (Number.isInteger(e.variantIndex) ? e.variantIndex : null) : null;
-      if (viActive && ev !== null && ev !== viEx) continue;
-      const varName = (varsH && ev !== null && !(viActive && ev === viEx)) ? (libField(varsH[ev], 'nombre') || null) : null;
+      if (trainHistFormKey(varsH, ev) !== viewKeyH) continue;
+      const varName = null;   /* D2: la sesión siempre es de esta forma; ya no hay procedencia que etiquetar */
       const sets = Array.isArray(e.sets) ? e.sets : null;
       /* F-37: una aparición v1 sin series NO tapa la búsqueda:
          se recuerda como respaldo y se sigue hacia atrás hasta
