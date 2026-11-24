@@ -55,18 +55,19 @@
  * app.js). La caché de imágenes NO se borra entre versiones: guarda
  * contenido ya visto, con su tope.
  */
-const SW_VERSION = '20261123-retos-diez';
+const SW_VERSION = '20261123-repintado-p6';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const IMG_CACHE_NAME = 'ronbofit-img-v1';
 const IMG_CACHE_MAX = 300;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261123-retos-diez',
-  './app.js?v=20261123-retos-diez',
-  './i18n-en.js?v=20261123-retos-diez',
-  './i18n-es.js?v=20261123-retos-diez',
-  './view-comms.js?v=20261123-retos-diez',
+  './styles.css?v=20261123-repintado-p6',
+  './app.js?v=20261123-repintado-p6',
+  './i18n-en.js?v=20261123-repintado-p6',
+  './i18n-es.js?v=20261123-repintado-p6',
+  './view-comms.js?v=20261123-repintado-p6',
+  './view-library.js?v=20261123-repintado-p6',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

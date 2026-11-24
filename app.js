@@ -3102,6 +3102,10 @@ async function renderAdminZone() {
      toca ni lo vacía. */
   if (ROLE !== 'administrador') { box.innerHTML = ''; box.style.display = 'none'; try { permsBirthSync(); } catch {} return; }
   box.style.display = '';
+  /* P6: los nombres de las secciones de la zona salen de
+     ADMIN_USERS, que ya no carga el arranque: se calienta aquí,
+     al abrirse la zona, una vez por sesión. */
+  try { adminUsersWarm(); } catch {}
   box.innerHTML = admuseSkeleton();
   /* AUTH-2026-11-08-311 (orden de Ronald): para el administrador,
      el panel personal «Permisos y privacidad» deja de ser un
@@ -6437,6 +6441,18 @@ async function renderAiControlBox() {
   };
   paint();
 }
+/* Calentamiento de usuarios para la zona de Administración (P6):
+   desde que loadAdmin salió del arranque, ADMIN_USERS nace vacío;
+   las secciones de la zona que leen nombres de ahí (el panel de
+   uso) lo calientan UNA vez por sesión al abrirse la zona, con la
+   carga de siempre. La propia loadAdmin marca el calentamiento
+   hecho, así que si Accesos ya cargó, esto no hace nada. */
+let ADMIN_USERS_WARMED = false;
+function adminUsersWarm() {
+  if (!IS_OWNER || ADMIN_USERS_WARMED) return;
+  ADMIN_USERS_WARMED = true;
+  loadAdmin().catch(() => { ADMIN_USERS_WARMED = false; });
+}
 async function loadAdmin() {
   const sec = $('admin-section');
   const tsec = $('trainers-section');
@@ -6449,6 +6465,7 @@ async function loadAdmin() {
     snap.forEach(d => users.push({ id: d.id, ...d.data() }));
   } catch { users = []; }
   ADMIN_USERS = users;
+  ADMIN_USERS_WARMED = true;
   /* Vista dedicada de Entrenadores (corrección reprueba, 2026-10-24):
      las solicitudes con roleRequest de entrenador se pintan EN SU
      vista y las demás en Accesos — misma fila (pendRow), mismo
@@ -18376,8 +18393,22 @@ async function loadAll() {
   const healthP = ucWith('otros', loadMyHealth()).catch(() => {});
   const energyP = ucWith('otros', loadMyEnergy()).catch(() => {});
   const unitsP = ucWith('otros', loadMyUnits()).catch(() => {});
-  const adminP = ucWith('otros', loadAdmin()).catch(() => {});
-  const clientsP = ucWith('otros', loadClients()).catch(() => {});
+  /* P6 «ARRANQUE POR VISTAS» (auditoría de repintado, clases C2/C6):
+     loadAdmin() y loadClients() SALEN del arranque. Son las dos
+     cargas de personas: leen la colección users (dos veces entre
+     ambas), TODOS los pesajes, meal_help, meal_requests,
+     trainer_requests y challenge_parts, y por cliente su checklist,
+     sus alertas y sus pendientes — para pintar Accesos, Entrenadores
+     y Clientes, superficies que la primera vista no enseña. Cada una
+     conserva su puerta de siempre y se carga AL ABRIRSE: Accesos y
+     Entrenadores llaman loadAdmin() en switchTab (y la ventana de
+     aprobaciones, en apprFloatOpen); Clientes llama loadClients()
+     en switchTab; y la zona de Administración calienta los usuarios
+     una vez por sesión (adminUsersWarm en renderAdminZone) para los
+     nombres que sus secciones leen de ADMIN_USERS. Los consumidores
+     de ADMIN_USERS/CLIENTS_LAST fuera de esas vistas ya toleran el
+     estado «aún no cargado» (guardan o degradan, como hoy toleran
+     la carrera de este mismo arranque en paralelo). */
   ucWith('otros', loadPropClient());
   await Promise.all([mealsP, weightsP]);
   buildDateSelector();
@@ -18393,7 +18424,7 @@ async function loadAll() {
      reales (corrección 2026-10-26, mismo reporte de Ronald). */
   try { renderPendings(); } catch {}
   try { await goalsEngineRun('load'); } catch {}
-  await Promise.all([mealHelpP, activityP, unitsP, adminP, clientsP]);
+  await Promise.all([mealHelpP, activityP, unitsP]);
   /* AUTORREPARACIÓN DE LA LLAMITA (AUTH-2026-11-09-353): con la
      actividad y las sesiones ya cargadas, se repone el volcado de
      cualquier sesión cerrada cuya entrada falte en su día — el
@@ -19954,6 +19985,31 @@ const VIEW_HOST_GETTERS = {
   IS_OWNER: () => IS_OWNER, db: () => db, auth: () => auth,
   ESC_MODALITIES: () => ESC_MODALITIES,
   TRAIN_WD_EN: () => TRAIN_WD_EN, TRAIN_WD_ES: () => TRAIN_WD_ES,
+  /* L-2 fase 2 (P6): lo que la vista Biblioteca lee del núcleo.
+     Varios nombres nacen mucho después en este mismo archivo
+     (el estado LIB y sus ayudantes viven junto al editor de
+     planes): el acceso los lee vivos al llamarse, nunca antes —
+     el módulo solo se importa al abrirse la vista. La vista no
+     escribe en ninguno: su estado (LIBADM_F, el tramo) es suyo. */
+  failToast: () => failToast,
+  ROLE: () => ROLE, LANG: () => LANG,
+  LIB: () => LIB, LIB_BY_ID: () => LIB_BY_ID,
+  LIB_OWN: () => LIB_OWN, LIB_PENDING: () => LIB_PENDING,
+  LIB_STATE: () => LIB_STATE, LIBADM_WRITE_ENABLED: () => LIBADM_WRITE_ENABLED,
+  LIB_CAT_ORDER: () => LIB_CAT_ORDER, LIB_LEVEL_ORDER: () => LIB_LEVEL_ORDER,
+  libEnsure: () => libEnsure, libField: () => libField, libNameOf: () => libNameOf,
+  libByLineHTML: () => libByLineHTML, libStateBadge: () => libStateBadge,
+  gripPendMarkHTML: () => gripPendMarkHTML,
+  libGroupKey: () => libGroupKey, libFacetKey: () => libFacetKey,
+  libSections: () => libSections, libGroupCounts: () => libGroupCounts,
+  libChipsHTML: () => libChipsHTML, libWireChips: () => libWireChips,
+  libFacetSheetOpen: () => libFacetSheetOpen, libFacetCounted: () => libFacetCounted,
+  libFacetBtnFace: () => libFacetBtnFace, libFacetBtnWire: () => libFacetBtnWire,
+  libFacetValueLabel: () => libFacetValueLabel,
+  libThumbSrc: () => libThumbSrc, ytThumbOf: () => ytThumbOf,
+  libCardOpen: () => libCardOpen, libOpenEditor: () => libOpenEditor,
+  libMemPut: () => libMemPut, libMemDrop: () => libMemDrop,
+  deleteDoc: () => deleteDoc,
 };
 for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
   if (!Object.prototype.hasOwnProperty.call(globalThis, _vk)) {
@@ -19967,7 +20023,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-detalle-alumno-estable' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-detalle-alumno-estable', library: './view-library.js?v=20261123-repintado-p6' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -49283,7 +49339,7 @@ async function libRevalidate() {
     LIB_LOADED_AT = Date.now();
     if (libCatalogSignature() !== before) {
       const sec = $('library-section');
-      if (sec && sec.style.display !== 'none') { try { libRenderTray(); libAdminRenderList(); libRenderMine(); } catch {} }
+      if (sec && sec.style.display !== 'none') { try { libViewRepaint(); } catch {} }
       try { libRefreshOpenRows(); } catch {}
     }
   } catch {}
@@ -49852,22 +49908,7 @@ function libFacetValueLabel(base, order, allLabel, current) {
   const o = libFacetOptions(base, order).find(x => x.key === current);
   return o ? o.label : allLabel;
 }
-/* Las dos puertas de la hoja: el contexto de conteo es el de
-   cada superficie sin la propia faceta (libAdminFaceted /
-   vizFiltered con ignore), como contaban los chips. */
-function libAdminFacetOpen(facet) {
-  const isCat = facet === 'cat';
-  const base = isCat ? 'categoria' : 'nivel';
-  const order = isCat ? LIB_CAT_ORDER : LIB_LEVEL_ORDER;
-  const c = libFacetCounted(libAdminFaceted(facet), base, order);
-  libFacetSheetOpen({
-    title: t(isCat ? 'libcat.category' : 'libcat.level'),
-    allLabel: t(isCat ? 'libcat.allCategories' : 'libcat.allLevels'),
-    total: c.total, options: c.options,
-    current: isCat ? LIBADM_F.cat : LIBADM_F.level,
-    onPick: key => { if (isCat) LIBADM_F.cat = key; else LIBADM_F.level = key; libAdminRenderList(); }
-  });
-}
+/* La puerta de facetas de la Biblioteca (libAdminFacetOpen) vive en la vista partida (view-library.js); aquí queda la del visualizador. */
 function vizFacetOpen(facet) {
   const isCat = facet === 'cat';
   const base = isCat ? 'categoria' : 'nivel';
@@ -49910,34 +49951,23 @@ function libRowThumb(row, url) {
   else { th.removeAttribute('src'); th.style.display = 'none'; }
 }
 
-/* ================= BIBLIOTECA (vista propia) =================
-   Nació en la corrección de la reprueba (2026-10-24) como la mesa de
-   trabajo del administrador sobre el catálogo de fábrica, y la
-   decisión de Ronald de esa misma noche (20:57) la hizo COMUNITARIA:
-   la píldora y la vista las tienen el administrador Y el entrenador.
-   - El catálogo compartido (fábrica + aportes aprobados) se busca y
-     se consulta aquí; el administrador edita cualquier ficha y da de
-     alta ejercicios que nacen aprobados con su firma; el entrenador
-     lo consulta en lectura.
-   - «Mis aportes»: los ejercicios del propio usuario con su estado;
-     el autor edita y borra lo suyo en pendiente/rechazado, y al
-     guardar un rechazado lo REENVÍA a revisión.
-   - «Crear ejercicio» (entrenador): el mismo formulario completo del
-     administrador; el aporte nace 'pendiente' con su autoría y solo
-     lo ven él y el administrador hasta la aprobación.
-   - La BANDEJA del administrador: los pendientes con su conteo;
-     aprobar firma la decisión (approvedBy/approvedAt) y el ejercicio
-     entra en el catálogo de todos (esta lista, el navegador del
-     editor de planes y el catálogo del cliente, que leen de LIB);
-     rechazar lo devuelve al autor con su nota suave.
-   Todo ejercicio comunitario aprobado lleva en su tarjeta la marca
-   «Creado por {nombre} · {fecha}»; la fábrica, sin marca. NO es el
-   explorador visual del editor de planes (ese queda intacto): esto
-   escribe en exercise_library, y la memoria de la sesión
-   (LIB/LIB_BY_ID/LIB_OWN/LIB_PENDING) se actualiza en el acto. El
-   guardado usa merge: los campos que el formulario no trae quedan
-   como estaban. Las reglas del paquete son la barrera real; la
-   interfaz solo ofrece lo que cada rol puede hacer. */
+/* ================= BIBLIOTECA — VISTA PARTIDA (L-2 fase 2, P6) =================
+   La vista propia de la Biblioteca (la mesa de trabajo del
+   administrador y del entrenador sobre el catálogo: la lista por
+   tramos, la bandeja, «Mis aportes» y las facetas de la vista)
+   vive desde P6 en view-library.js, trasladada byte a byte como
+   se hizo con Comunicaciones en la fase 1: el núcleo la importa
+   con viewLoad('library') al abrirse la vista y aquí quedan sus
+   dos puertas (renderLibrary y libViewRepaint, más abajo, tras
+   LIBADM_WRITE_ENABLED). Lo que se queda en este núcleo es la
+   maquinaria compartida: el estado y la carga del catálogo
+   (LIB y libEnsure, arriba), los ayudantes de búsqueda y facetas
+   que leen el selector, el editor de planes, el dictado y el
+   visualizador, la miniatura de tarjeta (libThumbSrc/libThumbErr,
+   que también pintan las tarjetas del Reto), el editor de la
+   ficha (LIB_EDIT y su maquinaria, aquí debajo) y «Asignar desde
+   la Biblioteca». La vista lee todo eso por el puente de accesos
+   vivos del anfitrión de vistas (VIEW_HOST_GETTERS). */
 let LIB_EDIT = null; // { id: string|null, ctx: 'admin'|'mine' } | null
 /* FUNCIÓN DE VARIANTES (2026-10-30): estado de trabajo de la
    sección «Variantes» del editor de la ficha. LIB_EDIT_VARS_LOCKED
@@ -49951,7 +49981,6 @@ let LIB_EDIT_VARS_LOCKED = 0;
    PENDIENTE (enmienda de Ronald, 2026-11-13 10:11 CST: el tipo
    se presenta siempre y se pide, pero NO bloquea el guardado). */
 let LIB_EDIT_GRIP = '';
-const LIBADM_F = { group: '', cat: '', level: '' }; // facetas de la vista (paquete de categorías): grupo (chip) + categoría + nivel
 /* PUERTA DE COMPOSICIÓN (despliegue reprueba, 2026-10-24): las reglas
    VIVAS (ruleset 3c3790d8) dicen de exercise_library «allow write:
    if false» — la escritura del administrador es el delta N-09, que
@@ -49970,43 +49999,20 @@ const LIBADM_F = { group: '', cat: '', level: '' }; // facetas de la vista (paqu
    escrituras del entrenador (crear/editar/reenviar/borrar lo suyo)
    las gobiernan además el rol y las reglas del paquete. */
 const LIBADM_WRITE_ENABLED = true;
-async function renderLibrary() {
-  const sec = $('library-section'); if (!sec) return;
-  if (ROLE !== 'administrador' && ROLE !== 'entrenador') { sec.style.display = 'none'; return; }
-  sec.style.display = '';
-  const sub = $('lib-role-sub');
-  if (sub) sub.textContent = t(ROLE === 'administrador' ? 'libcom.subAdmin' : 'libcom.subTrainer');
-  const hint = $('lib-hint');
-  if (hint) hint.textContent = t(ROLE === 'administrador' ? 'libadm.hint' : 'libcom.hintTrainer');
-  const nb = $('lib-admin-new');
-  if (nb) nb.textContent = t(ROLE === 'administrador' ? 'libadm.new' : 'libcom.createBtn');
-  if (nb && !nb.dataset.wired) {
-    nb.dataset.wired = '1';
-    nb.onclick = () => libOpenEditor(null, ROLE === 'administrador' ? 'admin' : 'mine');
-  }
-  const q = $('lib-admin-q');
-  if (q && !q.dataset.wired) { q.dataset.wired = '1'; q.addEventListener('input', () => libAdminRenderList()); }
-  await libEnsure();
-  libRenderTray();
-  libAdminRenderList();
-  libRenderMine();
+/* Puertas de la vista partida de la Biblioteca (L-2 fase 2):
+   switchTab sigue llamando renderLibrary() sin saber que detrás
+   hay una carga (el mismo contrato que renderComms), y
+   libViewRepaint() es el repintado bandeja+lista+aportes que
+   invocan libRevalidate (con la sección visible) y libSaveEditor
+   (tras guardar una ficha): si el módulo aún no se ha cargado no
+   hay nada de la vista pintado que repintar y la puerta no hace
+   nada — ninguna de las dos rutas fuerza la carga fuera de la
+   apertura de la vista. */
+async function renderLibrary() { const m = await viewLoad('library'); return m.renderLibrary(); }
+function libViewRepaint() {
+  if (!_viewMods.library) return;
+  viewLoad('library').then(m => { try { m.libViewRepaint(); } catch {} }).catch(() => {});
 }
-/* BANDEJA DEL ADMINISTRADOR: los aportes en 'pendiente', con su
-   conteo. Aprobar firma la decisión y el ejercicio entra en el
-   catálogo de todos; rechazar se lo devuelve a su autor. */
-/* TARJETA DE BIBLIOTECA CON FOTO GRANDE (2026-10-30, orden directa
-   de Ronald con captura): la miniatura redonda pequeña da paso a un
-   CUADRADO grande (84×84) alineado a la IZQUIERDA de la tarjeta, con
-   el texto — y el botón donde la vista lo tenga — en la columna de
-   su derecha. Sin foto, el cuadrado lleva la MINIATURA TEMPORAL
-   del video de la ficha (puntos 94/95: la sirve el propio YouTube
-   y solo aparece sin foto propia; si no carga, ytThumbErr la
-   devuelve a este bloque); sin video utilizable, el bloque suave
-   de la ficha (AUTH-087): mismo tamaño y posición, con la marca de
-   video si la ficha lo tiene; la marca es SOLO visual (un span): el
-   toque de la tarjeta sigue haciendo lo que hacía en cada vista
-   (abrir la ficha en el catálogo; nada en bandeja y aportes, cuyos
-   botones viven dentro de la columna). */
 /* AUTH-471 (L-4 velocidad) · Miniatura de tarjeta para las fotos
    PROPIAS de la biblioteca: junto a cada foto del repo de assets vive
    su gemela ligera «<nombre>.thumb.webp» (WebP 480, generada sin tocar
@@ -50030,145 +50036,6 @@ window.libThumbErr = function (el) {
   const g = document.createElement('span'); g.className = 'lib-thumb-glyph'; g.textContent = '🏋️';
   d.appendChild(g); el.replaceWith(d);
 };
-function libCardMediaHTML(ex) {
-  if (ex.foto_url) {
-    const th = libThumbSrc(ex.foto_url);
-    if (th !== ex.foto_url) return `<img class="lib-thumb" src="${esc(th)}" alt="" loading="lazy" decoding="async" data-full="${esc(ex.foto_url)}" onerror="libThumbErr(this)">`;
-    return `<img class="lib-thumb" src="${esc(ex.foto_url)}" alt="" loading="lazy" decoding="async">`;
-  }
-  const th = ytThumbOf(ex.video_youtube_url);
-  if (th) return `<img class="lib-thumb" src="${esc(th)}" alt="" loading="lazy" data-yt-fb="lib" onerror="ytThumbErr(this)">`;
-  return `<div class="lib-thumb lib-thumb-soft" aria-hidden="true">${ex.video_youtube_url ? `<span class="lib-thumb-play">▶</span><span class="lib-thumb-lab">${esc(t('train.lib.video'))}</span>` : `<span class="lib-thumb-glyph">🏋️</span>`}</div>`;
-}
-function libRenderTray() {
-  const box = $('lib-pending-box'); if (!box) return;
-  if (ROLE !== 'administrador' || !LIB_PENDING || !LIB_PENDING.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
-  box.style.display = '';
-  const rows = [...LIB_PENDING].sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  box.innerHTML = `<h3 class="history-title">${esc(t('libcom.trayTitle', { n: rows.length }))}</h3>` + rows.map(ex => `
-    <div class="user-row lib-ex-row">
-      ${libCardMediaHTML(ex)}
-      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${gripPendMarkHTML(ex)}<br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
-      <div class="user-actions"><button type="button" class="btn-primary btn-sm" data-lib-approve="${esc(ex.id)}">${esc(t('libcom.approve'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-reject="${esc(ex.id)}">${esc(t('libcom.reject'))}</button></div></div>
-    </div>`).join('');
-  box.querySelectorAll('[data-lib-approve]').forEach(b => b.onclick = () => libDecide(b.dataset.libApprove, true));
-  box.querySelectorAll('[data-lib-reject]').forEach(b => b.onclick = () => libDecide(b.dataset.libReject, false));
-}
-async function libDecide(id, approve) {
-  if (ROLE !== 'administrador') return;
-  const ex = LIB_BY_ID[id]; if (!ex) return;
-  const uid = auth.currentUser.uid;
-  const patch = approve
-    ? { estado: 'aprobado', approvedAt: serverTimestamp(), approvedBy: uid, updatedAt: serverTimestamp(), updatedBy: uid }
-    : { estado: 'rechazado', updatedAt: serverTimestamp(), updatedBy: uid };
-  try {
-    await setDoc(doc(db, 'exercise_library', id), patch, { merge: true });
-    const merged = { ...ex, estado: approve ? 'aprobado' : 'rechazado', updatedBy: uid };
-    if (approve) { merged.approvedBy = uid; merged.approvedAt = new Date(); }
-    libMemPut(merged);
-    toast(t(approve ? 'libcom.approvedToast' : 'libcom.rejectedToast'));
-    libRenderTray(); libAdminRenderList(); libRenderMine();
-  } catch (e) { failToast(e); }
-}
-/* «MIS APORTES»: lo del propio usuario con su estado. El autor
-   edita/borra lo suyo en pendiente o rechazado (las reglas ponen el
-   mismo límite); lo aprobado ya es de la comunidad y aquí solo se
-   muestra, con su insignia. */
-function libRenderMine() {
-  const box = $('lib-mine-box'); if (!box) return;
-  const rows = [...(LIB_OWN || [])].sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  box.innerHTML = `<h3 class="history-title">${esc(t('libcom.mineTitle'))}</h3>
-    <p class="progress-hint">${esc(t('libcom.mineHint'))}</p>` + (rows.length ? rows.map(ex => {
-    const editable = ex.estado === 'pendiente' || ex.estado === 'rechazado';
-    const note = ex.estado === 'rechazado' ? `<br><span class="muted">${esc(t('libcom.rejectedNote'))}</span>`
-      : ex.estado === 'pendiente' ? `<br><span class="muted">${esc(t('libcom.pendingNote'))}</span>` : '';
-    return `
-    <div class="user-row lib-ex-row">
-      ${libCardMediaHTML(ex)}
-      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${libStateBadge(ex)}${gripPendMarkHTML(ex)}<br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}${note}</div>
-      ${(editable && LIBADM_WRITE_ENABLED) || ex.estado === 'aprobado' ? `<div class="user-actions">${ex.estado === 'aprobado' ? `<button type="button" class="btn-ghost btn-sm" data-lib-assign="${esc(ex.id)}">${esc(t('lib.assign.btn'))}</button>` : ''}${editable && LIBADM_WRITE_ENABLED ? `<button type="button" class="btn-ghost btn-sm" data-lib-mine-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button><button type="button" class="btn-ghost btn-sm" data-lib-mine-del="${esc(ex.id)}">${esc(t('libcom.del'))}</button>` : ''}</div>` : ''}</div>
-    </div>`;
-  }).join('') : `<div class="wempty">${esc(t('libcom.mineEmpty'))}</div>`);
-  box.querySelectorAll('[data-lib-mine-edit]').forEach(b => b.onclick = () => libOpenEditor(b.dataset.libMineEdit, 'mine'));
-  box.querySelectorAll('[data-lib-mine-del]').forEach(b => b.onclick = () => libDeleteOwn(b.dataset.libMineDel));
-}
-async function libDeleteOwn(id) {
-  const ex = LIB_BY_ID[id]; if (!ex) return;
-  if (ex.createdBy !== auth.currentUser.uid) return;
-  if (!window.confirm(t('libcom.delConfirm'))) return;
-  try {
-    await deleteDoc(doc(db, 'exercise_library', id));
-    libMemDrop(id);
-    toast(t('libcom.deletedToast'));
-    libRenderMine(); libAdminRenderList(); libRenderTray();
-  } catch (e) { failToast(e); }
-}
-function libAdminFiltered() {
-  if (LIB_STATE !== 'ok' || !LIB) return [];
-  const q = libNorm(($('lib-admin-q') || {}).value || '').trim();
-  const all = [...LIB].sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  if (!q) return all;
-  const terms = q.split(/\s+/);
-  return all.filter(ex => terms.every(tm => libNorm([ex.nombre_es, ex.nombre_en, ex.grupo_muscular_es, ex.grupo_muscular_en, ex.equipo_es, ex.equipo_en, ex.id].join(' ')).includes(tm)));
-}
-/* La búsqueda primero (libAdminFiltered); encima, las facetas. Con
-   ignore se obtiene el contexto de conteo de una faceta (los chips
-   cuentan sin el grupo; cada selector no se filtra a sí mismo). */
-function libAdminFaceted(ignore) {
-  let rows = libAdminFiltered();
-  if (ignore !== 'cat' && LIBADM_F.cat) rows = rows.filter(ex => libFacetKey(ex, 'categoria') === LIBADM_F.cat);
-  if (ignore !== 'level' && LIBADM_F.level) rows = rows.filter(ex => libFacetKey(ex, 'nivel') === LIBADM_F.level);
-  if (ignore !== 'group' && LIBADM_F.group) rows = rows.filter(ex => libGroupKey(ex) === LIBADM_F.group);
-  return rows;
-}
-function libAdminRowHTML(ex) {
-  return `
-    <div class="user-row lib-ex-row lib-card-row" data-lib-card="${esc(ex.id)}">
-      ${libCardMediaHTML(ex)}
-      <div class="lib-card-main"><div><b>${esc(libNameOf(ex))}</b>${gripPendMarkHTML(ex)} <span class="muted">${esc(ex.id)}</span><br><span class="muted">${esc(libField(ex, 'grupo_muscular'))}${(ex.equipo_es || ex.equipo_en) ? ' · ' + esc(libField(ex, 'equipo')) : ''}</span>${libByLineHTML(ex)}</div>
-      <div class="user-actions"><button type="button" class="btn-ghost btn-sm" data-lib-assign="${esc(ex.id)}">${esc(t('lib.assign.btn'))}</button>${ROLE === 'administrador' && LIBADM_WRITE_ENABLED ? `<button type="button" class="btn-ghost btn-sm" data-lib-edit="${esc(ex.id)}">${esc(t('libadm.edit'))}</button>` : ''}</div></div>
-    </div>`;
-}
-/* Las caras de los dos botones del catálogo: se repintan con
-   cada pintado de la lista — el mismo latido con el que antes
-   se rellenaban los selectores — y su toque abre la hoja. */
-function libAdminFacetBtns() {
-  const catBtn = $('lib-admin-cat-btn'), lvlBtn = $('lib-admin-level-btn');
-  libFacetBtnWire(catBtn, () => libAdminFacetOpen('cat'));
-  libFacetBtnWire(lvlBtn, () => libAdminFacetOpen('level'));
-  libFacetBtnFace(catBtn, 'libcat.category', libFacetValueLabel('categoria', LIB_CAT_ORDER, t('libcat.allCategories'), LIBADM_F.cat), !!LIBADM_F.cat);
-  libFacetBtnFace(lvlBtn, 'libcat.level', libFacetValueLabel('nivel', LIB_LEVEL_ORDER, t('libcat.allLevels'), LIBADM_F.level), !!LIBADM_F.level);
-}
-function libAdminRenderList() {
-  const box = $('lib-admin-list'); if (!box) return;
-  const cnt = $('lib-admin-count');
-  const chipsBox = $('lib-admin-chips');
-  if (LIB_STATE !== 'ok') { box.innerHTML = `<div class="wempty">${esc(t('train.lib.unavailable'))}</div>`; if (cnt) cnt.textContent = ''; if (chipsBox) chipsBox.innerHTML = ''; return; }
-  if (chipsBox) {
-    const ctx = libAdminFaceted('group');
-    chipsBox.innerHTML = libChipsHTML(libGroupCounts(ctx), ctx.length, LIBADM_F.group);
-    libWireChips(chipsBox, k => { LIBADM_F.group = k; libAdminRenderList(); });
-  }
-  libAdminFacetBtns();
-  const rows = libAdminFaceted();
-  if (cnt) cnt.textContent = t('libadm.count', { n: rows.length });
-  const gateNote = LIBADM_WRITE_ENABLED ? '' : `<div class="wempty">${esc(t('libadm.readonlyNote'))}</div>`;
-  box.innerHTML = gateNote + (rows.length ? libSections(rows).map(sec => `<div class="libcat-sec">${esc(sec.label)} <span class="libcat-sec-n">${sec.items.length}</span></div>` + sec.items.map(libAdminRowHTML).join('')).join('') : `<div class="wempty">${esc(t('libadm.empty'))}</div>`);
-  box.querySelectorAll('[data-lib-edit]').forEach(b => b.onclick = () => libOpenEditor(b.dataset.libEdit, 'admin'));
-  /* LA FICHA DESDE LA BIBLIOTECA (D6, 2026-10-30): tocar el cuerpo
-     de una fila del catálogo (fuera de sus botones) abre la ficha
-     del ejercicio en solo lectura. Delegación ÚNICA sobre el
-     contenedor: sobrevive a los re-pintados de la lista (filtros,
-     «mostrar más») sin duplicar escuchas. */
-  if (!box.dataset.cardWired) {
-    box.dataset.cardWired = '1';
-    box.addEventListener('click', e => {
-      if (e.target.closest('button, a, input, select, textarea, label')) return;
-      const row = e.target.closest('[data-lib-card]');
-      if (row) libCardOpen(row.dataset.libCard);
-    });
-  }
-}
 /* ================= ASIGNAR DESDE LA BIBLIOTECA (2026-10-30) =================
    Orden de Ronald (chat RONBO.NUTRI, 2026-10-30 07:31 CDT): la
    tarjeta de la Biblioteca tiene no solo «Editar» sino también
@@ -50770,7 +50637,7 @@ async function libSaveEditor() {
       closeEditor();
       toast(t(wasRejected ? 'libcom.resubToast' : 'libadm.saved'));
     }
-    libRenderTray(); libAdminRenderList(); libRenderMine();
+    libViewRepaint();
   } catch (e) { failToast(e); }
 }
 /* FLOTANTE MULTIMEDIA (rediseño de la fila, 2026-10-24): al tocar la
@@ -56642,6 +56509,23 @@ function findProgressPhoto(id) {
   }
   return null;
 }
+/* El interior de un set del historial de Progreso (P6): su HTML
+   y su cableado viven aquí porque ya no nacen con el pintado del
+   historial — se construyen al desplegar el set por primera vez
+   (o al pintar si el set ya está abierto). El HTML es el de
+   siempre, byte a byte. */
+function progHistImgsHTML(d) {
+  const s = PROG[d] || {};
+  return PROGRESS_SLOTS.map(sl => s[sl]
+    ? `<div class="hist-item"><img src="${esc(s[sl].photo)}" alt="${t('progress.' + sl)}" loading="lazy" data-hist-zoom="${esc(s[sl].id)}"><button type="button" class="hist-del" data-hist-del="${esc(s[sl].id)}" title="${t('progress.delete')}">✕</button></div>`
+    : `<span class="wempty">${t('progress.' + sl)}: ${t('progress.noPhoto')}</span>`).join('');
+}
+function progHistWireImgs(imgs) {
+  imgs.querySelectorAll('[data-hist-zoom]').forEach(im => im.addEventListener('click', () => {
+    const rec = findProgressPhoto(im.getAttribute('data-hist-zoom')); if (rec) showLightbox(rec.photo);
+  }));
+  imgs.querySelectorAll('[data-hist-del]').forEach(b => b.addEventListener('click', () => deleteProgressPhoto(b.getAttribute('data-hist-del'))));
+}
 function renderProgress() {
   const label = $('progress-week-label'); if (!label) return;
   const target = progressTargetDate(); PROG_TARGET = target;
@@ -56697,25 +56581,29 @@ function renderProgress() {
   const next = $('progress-next');
   if (next) next.textContent = dates.length ? t('progress.next', { date: dateName(addDaysISO(dates[dates.length - 1], 15)) }) : '';
   const hist = dates.filter(d => d !== target).reverse();
+  /* P6 (clase C7 de la auditoría de repintado): el set PLEGADO
+     nace solo con su cabecera y su hueco vacío — su interior (las
+     tres fotos íntegras) se construye la primera vez que se
+     despliega, con progHistImgsHTML, y no al pintar el historial
+     entero. El set que ya está abierto al pintar nace con su
+     interior, como siempre. */
   $('progress-history').innerHTML = hist.length ? hist.map(d => {
-    const s = PROG[d];
     const hOpen = PROG_HIST_OPEN.has(d);
     return `<div class="hist-week"><button type="button" class="hist-label hist-fold-head" data-hist-fold="${d}" aria-expanded="${hOpen ? 'true' : 'false'}"><span>${esc(dateName(d))}</span><span class="p569-chev" aria-hidden="true">${hOpen ? '▴' : '▾'}</span></button>
-      <div class="hist-imgs"${hOpen ? '' : ' style="display:none"'}>
-        ${PROGRESS_SLOTS.map(sl => s[sl]
-          ? `<div class="hist-item"><img src="${esc(s[sl].photo)}" alt="${t('progress.' + sl)}" loading="lazy" data-hist-zoom="${esc(s[sl].id)}"><button type="button" class="hist-del" data-hist-del="${esc(s[sl].id)}" title="${t('progress.delete')}">✕</button></div>`
-          : `<span class="wempty">${t('progress.' + sl)}: ${t('progress.noPhoto')}</span>`).join('')}
-      </div></div>`;
+      ${hOpen ? `<div class="hist-imgs">${progHistImgsHTML(d)}</div>` : `<div class="hist-imgs" style="display:none" data-hist-lazy="${d}"></div>`}
+      </div>`;
   }).join('') : `<div class="wempty wempty-mascot"><img class="mascot-empty-img" src="${MASCOT_EXPECT_URL}" alt="" onerror="this.remove()"><div>${t('progress.emptyHistory')}</div></div>`;
-  $('progress-history').querySelectorAll('[data-hist-zoom]').forEach(im => im.addEventListener('click', () => {
-    const rec = findProgressPhoto(im.getAttribute('data-hist-zoom')); if (rec) showLightbox(rec.photo);
-  }));
-  $('progress-history').querySelectorAll('[data-hist-del]').forEach(b => b.addEventListener('click', () => deleteProgressPhoto(b.getAttribute('data-hist-del'))));
+  $('progress-history').querySelectorAll('.hist-imgs:not([data-hist-lazy])').forEach(progHistWireImgs);
   $('progress-history').querySelectorAll('[data-hist-fold]').forEach(b => b.addEventListener('click', () => {
     const d = b.getAttribute('data-hist-fold');
     const open = !PROG_HIST_OPEN.has(d);
     if (open) PROG_HIST_OPEN.add(d); else PROG_HIST_OPEN.delete(d);
     const week = b.closest('.hist-week'); const imgs = week ? week.querySelector('.hist-imgs') : null;
+    if (imgs && open && imgs.hasAttribute('data-hist-lazy')) {
+      imgs.innerHTML = progHistImgsHTML(d);
+      imgs.removeAttribute('data-hist-lazy');
+      progHistWireImgs(imgs);
+    }
     if (imgs) imgs.style.display = open ? '' : 'none';
     b.setAttribute('aria-expanded', open ? 'true' : 'false');
     const cv = b.querySelector('.p569-chev'); if (cv) cv.textContent = open ? '▴' : '▾';
