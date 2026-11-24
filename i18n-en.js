@@ -2331,6 +2331,8 @@ export default {
   'libm.lats': 'Lats', 'libm.lower_back': 'Lower back', 'libm.middle_back': 'Middle back',
   'libm.neck': 'Neck', 'libm.quadriceps': 'Quadriceps', 'libm.shoulders': 'Shoulders',
   'libm.traps': 'Trapezius', 'libm.triceps': 'Triceps',
+  'musmap.main': 'Main', 'musmap.secondary': 'Secondary',
+  'musmap.front': 'Front', 'musmap.back': 'Back',
   'train.tabVariants': 'Variants', 'train.variantLabel': 'Variant', 'plan.variantStd': 'Standard form',
   'train.today.weekSummary': 'This week: {x} of {y} sessions completed',
   'train.today.rotationNote': 'This plan follows a day order, not fixed weekdays — so no session is pinned to this date. The next sessions in the plan\'s order are:',

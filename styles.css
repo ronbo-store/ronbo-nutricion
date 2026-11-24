@@ -2066,6 +2066,22 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .excard-pane { min-height: 40px; }
 .excard-sec { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #0f766e; margin: 10px 0 6px; }
 .excard-sec:first-child { margin-top: 0; }
+/* AUTH-588 · Mapa de músculos de la ficha: dos siluetas SVG
+   propias (frente/espaldas); principales en el verde fuerte de
+   la marca y secundarios en el mismo verde atenuado. */
+.musmap { display: flex; gap: 10px; justify-content: center; margin: 4px 0 2px; }
+.musmap-fig { margin: 0; text-align: center; }
+.musmap-svg { width: 118px; max-width: 38vw; height: auto; display: block; }
+.musmap-fig figcaption { font-size: 12px; font-weight: 600; color: #47605c; margin-top: 2px; }
+.musmap .mm-body { fill: #edf1f0; stroke: #c3cdc9; stroke-width: 1; }
+.musmap .mm-z { fill: #d8dfe0; }
+.musmap .mm-p { fill: #0d9488; }
+.musmap .mm-s { fill: #0d9488; opacity: .35; }
+.musmap-legend { display: flex; gap: 16px; justify-content: center; margin: 6px 0 4px; font-size: 12.5px; font-weight: 600; color: #47605c; }
+.musmap-leg { display: inline-flex; align-items: center; gap: 6px; }
+.musmap-sw { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+.musmap-sw.p { background: #0d9488; }
+.musmap-sw.s { background: rgba(13,148,136,.35); }
 .excard-steps { margin: 0; padding-left: 20px; }
 .excard-steps li { margin: 5px 0; line-height: 1.45; color: #1f2a44; font-size: 14px; }
 .excard-steps li::marker { color: #0d9488; font-weight: 700; }

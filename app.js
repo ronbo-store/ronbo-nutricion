@@ -43512,11 +43512,15 @@ function trainCardRender({ ex, mode, sessionHTML, allLogs }) {
   const secList = entry ? libField(entry, 'musculos_secundarios').split(/[;,]/).map(s => s.trim()).filter(s => s && !/^(ninguno|none)$/i.test(s)) : [];
   const insPaneHTML = vBlock ? (vBlock + ((how || avoid) ? insHTML : '')) : insHTML;
   const varList = entry && Array.isArray(entry.variantes) ? entry.variantes.filter(v => v && libField(v, 'nombre')) : [];
+  /* AUTH-588: el mapa de músculos abre la pestaña cuando la
+     ficha trae el dato estructurado; sin él, la pestaña queda
+     exactamente como siempre (texto libre) o con su aviso. */
+  const mapHTML = muscleMapHTML(entry);
   const musHTML = !entry
     ? `<p class="excard-empty">${t('train.card.noSheet')}</p>`
-    : (!group && !secList.length)
+    : (!group && !secList.length && !mapHTML)
       ? `<p class="excard-empty">${t('train.card.noMuscles')}</p>`
-      : `${group ? `<div class="excard-sec">${t('train.card.mainMuscle')}</div><div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${secList.length ? `<div class="excard-sec">${t('train.card.secondaryMuscles')}</div><div class="excard-chips">${secList.map(s => `<span class="excard-chip excard-chip-sec">${esc(s)}</span>`).join('')}</div>` : ''}`;
+      : `${mapHTML}${group ? `<div class="excard-sec">${t('train.card.mainMuscle')}</div><div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${secList.length ? `<div class="excard-sec">${t('train.card.secondaryMuscles')}</div><div class="excard-chips">${secList.map(s => `<span class="excard-chip excard-chip-sec">${esc(s)}</span>`).join('')}</div>` : ''}`;
   body.innerHTML = `${media}
     <div class="excard-head">${group ? `<div class="excard-chips"><span class="excard-chip excard-chip-main">${esc(group)}</span></div>` : ''}${metaLine}</div>
     ${trainPainCautionHTML(ex)}
@@ -49564,6 +49568,65 @@ function musclesLineHTML(entry) {
   if (!prim.length) return '';
   const sec = muscleListOf(entry, 'musculos_secundarios').filter(c => prim.indexOf(c) < 0);
   return `<div class="grip-line"><span class="grip-pill">${esc(t('libm.works'))}: ${esc(prim.map(muscleName).join(', '))}</span>${sec.length ? `<span class="grip-rec">${esc(t('libm.also'))} ${esc(sec.map(muscleName).join(', '))}</span>` : ''}</div>`;
+}
+/* ═══════════ MAPA DE MÚSCULOS (AUTH-588, orden de Ronald
+   2026-11-23, opción A) ═══════════
+   En la pestaña «Músculos» de la ficha: dos siluetas propias en
+   SVG (frente y espaldas) con la zona de cada código de la lista
+   cerrada de 17 pintada según el dato ESTRUCTURADO de la ficha
+   abierta — principales en el verde fuerte de la marca y
+   secundarios en el mismo verde atenuado. Se alimenta SOLO de
+   musculos_principales / musculos_secundarios de ESA ficha (la
+   regla de AUTH-479: jamás un músculo heredado del grupo o
+   inventado): sin principales válidos no hay mapa y la pestaña
+   queda como siempre. Dibujo estático y ligero, sin imágenes
+   externas ni librerías: la animación 3D quedó descartada por
+   Ronald. Cada zona lleva data-mm="<código>" para su cotejo. */
+const MUSMAP_BODY = '<g class="mm-body"><ellipse cx="50" cy="12" rx="8.5" ry="10"/><rect x="45" y="20" width="10" height="9" rx="2"/><path d="M33 31 Q50 25 67 31 L65 76 Q64 94 61 103 L39 103 Q36 94 35 76 Z"/><rect x="37" y="100" width="26" height="15" rx="6"/><rect x="19" y="33" width="10" height="40" rx="5"/><rect x="17.5" y="73" width="9" height="35" rx="4.5"/><rect x="71" y="33" width="10" height="40" rx="5"/><rect x="73.5" y="73" width="9" height="35" rx="4.5"/><rect x="36.5" y="112" width="12" height="42" rx="6"/><rect x="37.5" y="156" width="10" height="38" rx="5"/><rect x="37" y="194" width="11" height="6" rx="3"/><rect x="51.5" y="112" width="12" height="42" rx="6"/><rect x="52.5" y="156" width="10" height="38" rx="5"/><rect x="52" y="194" width="11" height="6" rx="3"/></g>';
+const MUSMAP_ZONES = {
+  front: {
+    'neck': '<rect x="45.5" y="21" width="9" height="7" rx="2"/>',
+    'traps': '<path d="M46 27 L34 32 L45 37 Z"/><path d="M54 27 L66 32 L55 37 Z"/>',
+    'shoulders': '<ellipse cx="24" cy="37" rx="6.5" ry="7.5"/><ellipse cx="76" cy="37" rx="6.5" ry="7.5"/>',
+    'chest': '<path d="M36 40 Q50 36 64 40 L63.5 57 Q50 63 36.5 57 Z"/>',
+    'biceps': '<rect x="20.5" y="42" width="7.5" height="24" rx="3.75"/><rect x="72" y="42" width="7.5" height="24" rx="3.75"/>',
+    'forearms': '<rect x="18.5" y="75" width="7.5" height="29" rx="3.75"/><rect x="74" y="75" width="7.5" height="29" rx="3.75"/>',
+    'abdominals': '<rect x="43" y="64" width="14" height="34" rx="3"/>',
+    'quadriceps': '<rect x="37.5" y="114" width="10.5" height="36" rx="5"/><rect x="52" y="114" width="10.5" height="36" rx="5"/>',
+    'adductors': '<rect x="46" y="116" width="3.6" height="28" rx="1.8"/><rect x="50.4" y="116" width="3.6" height="28" rx="1.8"/>'
+  },
+  back: {
+    'neck': '<rect x="45.5" y="21" width="9" height="7" rx="2"/>',
+    'traps': '<path d="M50 28 L63 40 L50 60 L37 40 Z"/>',
+    'middle back': '<path d="M41 60 L59 60 L57.5 76 L42.5 76 Z"/>',
+    'lats': '<path d="M36 54 Q34.5 74 37 94 L44.5 90 Q41 72 42 56 Z"/><path d="M64 54 Q65.5 74 63 94 L55.5 90 Q59 72 58 56 Z"/>',
+    'lower back': '<rect x="42.5" y="79" width="15" height="19" rx="3"/>',
+    'shoulders': '<ellipse cx="24" cy="37" rx="6.5" ry="7.5"/><ellipse cx="76" cy="37" rx="6.5" ry="7.5"/>',
+    'triceps': '<rect x="20.5" y="42" width="7.5" height="24" rx="3.75"/><rect x="72" y="42" width="7.5" height="24" rx="3.75"/>',
+    'forearms': '<rect x="18.5" y="75" width="7.5" height="29" rx="3.75"/><rect x="74" y="75" width="7.5" height="29" rx="3.75"/>',
+    'glutes': '<ellipse cx="43.5" cy="108" rx="7" ry="6.5"/><ellipse cx="56.5" cy="108" rx="7" ry="6.5"/>',
+    'abductors': '<ellipse cx="35.5" cy="104" rx="3.6" ry="7.5"/><ellipse cx="64.5" cy="104" rx="3.6" ry="7.5"/>',
+    'hamstrings': '<rect x="37.5" y="118" width="10.5" height="33" rx="5"/><rect x="52" y="118" width="10.5" height="33" rx="5"/>',
+    'calves': '<rect x="38" y="157" width="9.5" height="33" rx="4.75"/><rect x="52.5" y="157" width="9.5" height="33" rx="4.75"/>'
+  }
+};
+function muscleMapSVG(view, prim, sec) {
+  const zones = MUSMAP_ZONES[view] || {};
+  let z = '';
+  for (const code of MUSCLE_KEYS) {
+    if (!zones[code]) continue;
+    const cls = prim.indexOf(code) >= 0 ? 'mm-z mm-p' : (sec.indexOf(code) >= 0 ? 'mm-z mm-s' : 'mm-z');
+    z += `<g class="${cls}" data-mm="${esc(code)}">${zones[code]}</g>`;
+  }
+  return `<svg class="musmap-svg" viewBox="0 0 100 212" aria-hidden="true">${MUSMAP_BODY}${z}</svg>`;
+}
+function muscleMapHTML(entry) {
+  if (!entry) return '';
+  const prim = muscleListOf(entry, 'musculos_principales');
+  if (!prim.length) return '';
+  const sec = muscleListOf(entry, 'musculos_secundarios').filter(c => prim.indexOf(c) < 0);
+  const fig = (view, capKey) => `<figure class="musmap-fig">${muscleMapSVG(view, prim, sec)}<figcaption>${esc(t(capKey))}</figcaption></figure>`;
+  return `<div class="musmap" role="img" aria-label="${esc(t('libm.works'))}: ${esc(prim.map(muscleName).join(', '))}">${fig('front', 'musmap.front')}${fig('back', 'musmap.back')}</div><div class="musmap-legend"><span class="musmap-leg"><span class="musmap-sw p"></span>${esc(t('musmap.main'))}</span><span class="musmap-leg"><span class="musmap-sw s"></span>${esc(t('musmap.secondary'))}</span></div>`;
 }
 /* Pastillas del editor (controles de la casa, ≥44 px): un botón
    por tipo de la lista cerrada, el elegido con la clase sel. */
