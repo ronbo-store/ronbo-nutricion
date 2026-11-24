@@ -2488,6 +2488,14 @@ div.swap-card { cursor: default; }
 .swap-card-sub { font-size: 12px; color: #5b6b7a; }
 .swap-card-tag { align-self: flex-start; margin-top: 3px; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: #0f766e; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 999px; padding: 1px 8px; }
 .swap-card-btn { flex: none; font-size: 13px; font-weight: 700; color: #fff; background: #0d9488; border-radius: 999px; padding: 7px 14px; }
+/* ELEGIR-AGREGAR (2026-11-24): el panel de formas del selector —
+   pantalla propia dentro de la hoja: «‹ Volver» visible, el nombre
+   del ejercicio por título, su pregunta y un botón grande (≥48 px)
+   por forma, como en la maqueta aprobada. */
+.swap-forms-back { border: none; background: none; color: #0f766e; font-size: 15px; font-weight: 700; cursor: pointer; padding: 8px 4px; margin-bottom: 2px; }
+.swap-forms-title { font-size: 20px; font-weight: 800; color: #14201f; line-height: 1.25; margin: 2px 0 4px; }
+.swap-forms-q { font-size: 14.5px; color: #3f5468; margin: 0 0 12px; }
+.swap-forms .swap-card-btn { display: inline-flex; align-items: center; min-height: 48px; padding: 10px 20px; font-size: 14.5px; }
 
 /* DICTADO DE EJERCICIOS SIN IA (2026-11-06): la hoja vive sobre el
    armazón .swap-sheet; controles grandes y claros porque la app se
