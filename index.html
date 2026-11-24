@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-pliegues-retos">
+<link rel="stylesheet" href="styles.css?v=20261124-pliegues-planes">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1009,6 +1009,24 @@
   <div class="act-float act-sheet" id="chalact-float" style="display:none" role="dialog" aria-modal="true" aria-label="Challenge actions">
     <div class="act-sheet-head"><h2 class="act-sheet-title" id="chalact-title"></h2><button type="button" class="act-sheet-x" id="chalact-close" aria-label="Close" data-i18n-aria="client.close">✕</button></div>
     <div id="chalact-body"></div>
+  </div>
+
+  <!-- Hoja del PROGRAMA AUTOMÁTICO del editor de planes (AUTH-594,
+       pliegues nº 12): la línea «✨ Programa de entrenamiento
+       automático ›» del editor abre esta pantalla propia, con su
+       volver y su ✕, SOBRE el modal del plan (z sobre 50, como el
+       #pendact-float que también nace dentro del editor). Aquí vive
+       ahora el bloque #pl-auto con sus ids de siempre (#pl-auto-note
+       y #pl-auto-body): autoRenderPanel y autoGenerate pintan y leen
+       por id, sin saber que el bloque cambió de casa. Cerrar la hoja
+       no toca el panel: su estado queda como estaba. -->
+  <div id="plauto-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet pl594-auto-sheet" id="plauto-float" style="display:none" role="dialog" aria-modal="true" aria-label="Automatic training program" data-i18n-aria="train.auto.title">
+    <div class="act-sheet-head"><button type="button" class="pl594-back" id="plauto-back">‹ <span data-i18n="nav.back">Back</span></button><h2 class="act-sheet-title" data-i18n="train.auto.title">✨ Automatic training program</h2><button type="button" class="act-sheet-x" id="plauto-close" aria-label="Close" data-i18n-aria="client.close">✕</button></div>
+    <div id="pl-auto" class="pl-auto">
+      <div id="pl-auto-note" class="pl-lib-note"></div>
+      <div id="pl-auto-body"></div>
+    </div>
   </div>
 
   <!-- ASIGNACIONES (pedido de Ronald, chat RONBO.NUTRI, 2026-11-03
@@ -2817,11 +2835,11 @@ cuando no hay declaración legible (decisión 5). -->
             <button type="button" class="btn-primary btn-sm" id="pl-tpl-align-apply" data-i18n="train.tpl.alignApply">Apply alignment</button>
           </div>
         </div>
-        <div id="pl-auto" class="pl-auto">
-          <div class="pl-tpl-head" data-i18n="train.auto.title">✨ Automatic training program</div>
-          <div id="pl-auto-note" class="pl-lib-note"></div>
-          <div id="pl-auto-body"></div>
-        </div>
+        <!-- AUTH-594 · PLIEGUES Nº12: el «Programa automático» ya no
+             se pinta entero dentro de «Comienzo»: nace como UNA línea
+             que abre su propia pantalla (la hoja #plauto-float, donde
+             vive ahora el bloque #pl-auto con sus mismos ids). -->
+        <button type="button" class="pl-fold" id="pl-auto-open"><span data-i18n="train.auto.title">✨ Automatic training program</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
       </div>
         <button type="button" class="btn-ghost" id="pl-start-blank" data-i18n="train.start.blank">✏️ Start blank</button>
       </div>
@@ -2835,7 +2853,13 @@ cuando no hay declaración legible (decisión 5). -->
       <div id="pl-repeat-note" class="pl-lib-note" style="display:none"></div>
       <div id="pl-repeat-ref" class="pl-lib-note" style="display:none"></div>
       <div id="pl-current" class="pl-current" style="display:none"></div>
+      <!-- AUTH-594 · PLIEGUES Nº12: el bloque de fechas nace recogido
+           en su línea «Fechas · <periodo> ›»; el cuerpo conserva los
+           mismos campos con los mismos ids y el pliegue solo voltea
+           su display (lo tecleado nunca se pierde). -->
       <div id="pl-dates" class="pl-dates">
+        <button type="button" class="pl-fold" id="pl-dates-fold" aria-expanded="false"><span data-i18n="plan594.dates">📅 Dates</span> <span class="pl-fold-n" id="pl-dates-sum"></span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+        <div id="pl-dates-body" style="display:none">
         <div class="frow">
           <label><span data-i18n="train.dates.start">Start date</span> <input type="date" id="pl-start"></label>
           <label><span data-i18n="train.dates.duration">Duration</span>
@@ -2850,6 +2874,7 @@ cuando no hay declaración legible (decisión 5). -->
           <label><span data-i18n="train.dates.end">End date (expiry)</span> <input type="date" id="pl-end"></label>
         </div>
         <div class="pl-dates-hint" data-i18n="train.dates.hint">The end date is calculated from the start date and the duration; you can also adjust it by hand.</div>
+        </div>
       </div>
       <div id="pl-lib-note" class="pl-lib-note"></div>
       <div id="pl-viz" class="pl-viz">
@@ -2875,7 +2900,12 @@ cuando no hay declaración legible (decisión 5). -->
       <!-- GUARDAR SIN CERRAR (2026-10-26): confirmación visible del
            guardado DENTRO del editor, que permanece abierto. -->
       <div id="pl-saved-note" class="pl-saved-note" style="display:none" role="status"></div>
-      <div class="frow" style="margin-top:14px">
+      <!-- AUTH-594 · PLIEGUES Nº12: Guardar/Cancelar dejan de vivir
+           solo al final de la hoja larga: el par va en una barra
+           FIJA al pie del editor (patrón .p4-foot de la casa),
+           visible durante todo el desplazamiento. Son los mismos
+           botones con los mismos ids. -->
+      <div class="pl594-foot">
         <button type="button" class="btn-ghost" id="plan-cancel" data-i18n="form.cancel">Cancel</button>
         <button type="submit" class="btn-primary" id="pl-save" data-i18n="train.save">Save plan</button>
       </div>
@@ -3022,6 +3052,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-pliegues-retos"></script>
+<script type="module" src="app.js?v=20261124-pliegues-planes"></script>
 </body>
 </html>

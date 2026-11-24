@@ -3259,6 +3259,7 @@ export default {
   'train.print.btn': '🖨 Print card', 'train.print.title': 'Training plan', 'train.print.session': 'Session',
   'train.f.warmupPh': 'Warm-up sets', 'train.f.restPh': 'Rest',
   'train.tpl.title': '📋 Routine templates',
+  'plan594.dates': '📅 Dates',
   'train.dates.currentTitle': 'Current active plan',
   'train.dates.change': 'Change plan',
   'train.dates.start': 'Start date',

@@ -3256,6 +3256,7 @@ export default {
   'train.print.btn': '🖨 Tarjeta imprimible', 'train.print.title': 'Plan de entrenamiento', 'train.print.session': 'Sesión',
   'train.f.warmupPh': 'Series de aproximación', 'train.f.restPh': 'Descanso',
   'train.tpl.title': '📋 Plantillas de rutina',
+  'plan594.dates': '📅 Fechas',
   'train.dates.currentTitle': 'Plan activo actual',
   'train.dates.change': 'Cambiar plan',
   'train.dates.start': 'Fecha de inicio',
