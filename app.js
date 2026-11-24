@@ -47376,13 +47376,17 @@ function r21ProgramSummaryHTML(b) {
     ${b.generic ? `<p style="margin-top:6px">${esc(t('r10.programGenericNote'))}</p>` : ''}
     ${b.mine ? `<p style="margin-top:6px">${esc(t('r10.programMineNote'))}</p>` : ''}</div>`;
 }
-function r21ProgDayHTML(day, wkIx) {
-  const title = r21DayTitle(day.date);
+function r21ProgDayHTML(day, gIx) {
+  /* Los días del constructor y del plan guardado no llevan
+     fecha propia: la fecha es POSICIONAL (startsAt + índice),
+     como la trata toda la app. */
+  const iso = R21V.built && R21V.built.startsAt ? planISOAddDays(R21V.built.startsAt, gIx) : '';
+  const title = r21DayTitle(iso);
   if (day.freeDay) {
     return `<div class="r10-day rest"><div class="r10-day-head" style="cursor:default">
       <div class="r10-day-t"><b>${esc(title)}</b><span>${esc(t('plan21.restDay'))}</span></div></div></div>`;
   }
-  const key = 'w' + wkIx + 'd' + day.dayIndex;
+  const key = 'd' + gIx;
   const open = R21V.open.has(key);
   const groups = r21DayGroups(day);
   const n = (day.exercises || []).length;
@@ -47421,7 +47425,7 @@ function r21ProgWeekHTML(days, wkIx) {
   const rests = days.filter(d => d.freeDay).length;
   return `<div class="r10-week">
     <button type="button" class="r10-week-head" data-r10-fold="${key}"><b>${esc(t('chal.p21WeekOf', { w: wkIx + 1 }))}</b><span class="muted">${esc(t('r10.sumSessions', { n: sess, r: rests }))}</span><span class="r10-fold-a">${open ? '▾' : '▸'}</span></button>
-    ${open ? `<div class="r10-week-body">${days.map(d => r21ProgDayHTML(d, wkIx)).join('')}</div>` : ''}
+    ${open ? `<div class="r10-week-body">${days.map((d, j) => r21ProgDayHTML(d, wkIx * 7 + j)).join('')}</div>` : ''}
   </div>`;
 }
 function r21ViewPaint() {
