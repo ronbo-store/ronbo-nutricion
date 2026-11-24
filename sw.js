@@ -55,18 +55,18 @@
  * app.js). La caché de imágenes NO se borra entre versiones: guarda
  * contenido ya visto, con su tope.
  */
-const SW_VERSION = '20261123-selector-recetas-parciales';
+const SW_VERSION = '20261123-reto21-hallazgos';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const IMG_CACHE_NAME = 'ronbofit-img-v1';
 const IMG_CACHE_MAX = 300;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261123-selector-recetas-parciales',
-  './app.js?v=20261123-selector-recetas-parciales',
-  './i18n-en.js?v=20261123-selector-recetas-parciales',
-  './i18n-es.js?v=20261123-selector-recetas-parciales',
-  './view-comms.js?v=20261123-selector-recetas-parciales',
+  './styles.css?v=20261123-reto21-hallazgos',
+  './app.js?v=20261123-reto21-hallazgos',
+  './i18n-en.js?v=20261123-reto21-hallazgos',
+  './i18n-es.js?v=20261123-reto21-hallazgos',
+  './view-comms.js?v=20261123-reto21-hallazgos',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
