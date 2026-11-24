@@ -5594,6 +5594,42 @@ function regTypeApply() {
 }; }
 { const rt = $('reg-type'); if (rt) rt.addEventListener('change', regTypeApply);
   const rm = $('reg-modality'); if (rm) rm.addEventListener('change', regRenderTrainerOptions); }
+/* PLIEGUES Nº16 (598): el registro va por pantallas propias con
+   volver — paso 1 «tus datos», paso 2 «nacimiento y aviso». Los
+   pasos solo voltean el display de su contenedor: ningún campo
+   sale del DOM y lo tecleado nunca se pierde al ir y volver. La
+   casilla del consentimiento vive en el paso 2 SIEMPRE visible;
+   lo que se pliega es solo el texto del aviso, tras su línea. */
+function regStepShow(n) {
+  const s1 = $('reg-step-1'), s2 = $('reg-step-2');
+  if (s1) s1.style.display = n === 1 ? '' : 'none';
+  if (s2) s2.style.display = n === 2 ? '' : 'none';
+  const f = $('form-register'); if (f) f.scrollIntoView({ block: 'start' });
+}
+function regStep1Valid() {
+  for (const id of ['reg-name', 'reg-email', 'reg-password', 'reg-password2', 'reg-phone', 'reg-gender']) {
+    const el = $(id);
+    if (el && !el.checkValidity()) { el.reportValidity(); return false; }
+  }
+  if ($('reg-password').value !== $('reg-password2').value) { toast(t('err.pwmatch'), true); return false; }
+  return true;
+}
+function regTermsToggle() {
+  const tx = $('reg-terms-text'), tb = $('reg-terms-btn');
+  if (!tx || !tb) return;
+  const open = tx.style.display !== 'none';
+  tx.style.display = open ? 'none' : '';
+  tb.setAttribute('aria-expanded', open ? 'false' : 'true');
+}
+{ const nb = $('reg-next-btn'); if (nb) nb.onclick = () => { if (regStep1Valid()) regStepShow(2); };
+  const bb = $('reg-back-btn'); if (bb) bb.onclick = () => regStepShow(1);
+  const tb = $('reg-terms-btn'); if (tb) tb.onclick = regTermsToggle;
+  /* Enter dentro del paso 1 avanza de pantalla en vez de enviar
+     el formulario: el envío nativo validaría también los campos
+     requeridos del paso 2, aún ocultos, y bloquearía el avance. */
+  const s1 = $('reg-step-1'); if (s1) s1.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') { e.preventDefault(); if (nb) nb.click(); }
+  }); }
 function showRegError(msg) {
   const el = $('reg-error');
   el.textContent = msg || '';
@@ -6498,6 +6534,10 @@ $('form-register').addEventListener('submit', async e => {
   const name = $('reg-name').value.trim(), email = $('reg-email').value.trim(),
         pw = $('reg-password').value, pw2 = $('reg-password2').value;
   const phone = $('reg-phone').value.trim(), gender = $('reg-gender').value, social = $('reg-social').value.trim();
+  /* 598: si el dato que falla vive en la pantalla de datos, se
+     vuelve a ella — el error se lee junto al campo que lo causa
+     (#reg-error vive entre los dos pasos y se ve en ambos). */
+  if (!name || !email || !pw || pw !== pw2 || !phone || !gender) regStepShow(1);
   if (!name) { showRegError(t('err.name')); return; }
   if (!phone) { showRegError(t('err.phone')); return; }
   if (!gender) { showRegError(t('err.gender')); return; }

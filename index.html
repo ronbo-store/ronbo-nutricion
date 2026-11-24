@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-pliegues-admin">
+<link rel="stylesheet" href="styles.css?v=20261124-pliegues-cuenta">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -86,6 +86,15 @@
       <button type="button" class="btn-primary btn-sm" id="btn-gate-renew-accept" style="display:none" data-i18n="priv.renewAccept">I accept the privacy notice</button>
     </div>
     <form id="form-register" style="display:none">
+      <!-- PLIEGUES Nº16 (598): el registro va por pantallas propias
+           con volver — paso 1 «tus datos» y paso 2 «nacimiento y
+           aviso». Los pasos solo voltean el display: lo tecleado
+           nunca se pierde al ir y volver. El tipo de cuenta, la
+           modalidad y el entrenador ya NO viven aquí: desde
+           AUTH-147 los elige la ventana de propósito, su propia
+           pantalla obligatoria tras validar el formulario (los
+           controles legados de abajo quedan ocultos por app.js). -->
+      <div id="reg-step-1">
       <label><span data-i18n="form.fullname">Full name</span>
         <input type="text" id="reg-name" autocomplete="name" required data-i18n-ph="form.fullnamePh" placeholder="E.g. Maria Garcia">
       </label>
@@ -143,11 +152,22 @@
            del entrenador seleccionado antes de decidir. -->
       <div class="eval-actions" id="reg-dossier-wrap"><button type="button" class="btn-ghost btn-sm" id="btn-reg-dossier" data-i18n="esc.dos.viewBtn">👤 View profile</button></div>
       <div id="reg-dossier-links"></div>
+      <button type="button" class="btn-primary" id="reg-next-btn" data-i18n="acct598.continue">Continue</button>
+      </div>
+      <div id="reg-error" class="auth-error"></div>
+      <div id="reg-step-2" style="display:none">
+      <button type="button" class="btn-ghost" id="reg-back-btn">‹ <span data-i18n="nav.back">Back</span></button>
       <label><span data-i18n="form.dob">Date of birth</span> <span class="opt" data-i18n="form.dobHint">(to verify you are 18+; it is not stored)</span>
         <input type="date" id="reg-dob" required>
       </label>
       <div class="consent-box">
-        <div class="consent-text" data-i18n="terms.body">
+        <!-- PLIEGUES Nº16 (598): el aviso de privacidad (9 apartados)
+             nace PLEGADO tras su línea-puerta; la casilla de
+             aceptación queda SIEMPRE visible bajo la línea — es un
+             consentimiento y nunca se pliega. El texto completo
+             sigue accesible entero al desplegar. -->
+        <button type="button" class="acct598-fold-line" id="reg-terms-btn" aria-expanded="false"><span data-i18n="acct598.privacyNotice">Privacy notice</span><span class="acct598-chev">›</span></button>
+        <div class="consent-text" id="reg-terms-text" style="display:none" data-i18n="terms.body">
           <b>PRIVACY NOTICE AND CONSENT FOR THE PROCESSING OF PERSONAL DATA</b><br><br>
           When you create your account at <b>ronbo.nutri</b>, you agree to the following:<br><br>
           <b>1. Controller.</b> ronbo.nutri is responsible for your data.<br><br>
@@ -163,8 +183,8 @@
         </div>
         <label class="consent-check"><input type="checkbox" id="reg-consent" required> <span data-i18n="terms.accept">I have read and accept the privacy notice.</span></label>
       </div>
-      <div id="reg-error" class="auth-error"></div>
       <button type="submit" class="btn-primary" data-i18n="auth.create">Create my account</button>
+      </div>
     </form>
     <div class="auth-brand">
       <p class="auth-hint">@ronaldborges590<br>ISSA Certified Personal Trainer</p>
@@ -3474,6 +3494,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-pliegues-admin"></script>
+<script type="module" src="app.js?v=20261124-pliegues-cuenta"></script>
 </body>
 </html>
