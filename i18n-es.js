@@ -2328,6 +2328,8 @@ export default {
   'libm.lats': 'Dorsales', 'libm.lower_back': 'Espalda baja', 'libm.middle_back': 'Espalda media',
   'libm.neck': 'Cuello', 'libm.quadriceps': 'Cuádriceps', 'libm.shoulders': 'Hombros',
   'libm.traps': 'Trapecio', 'libm.triceps': 'Tríceps',
+  'musmap.main': 'Principales', 'musmap.secondary': 'Secundarios',
+  'musmap.front': 'Frente', 'musmap.back': 'Espalda',
   'train.tabVariants': 'Variantes', 'train.variantLabel': 'Variante', 'plan.variantStd': 'Forma estándar',
   'train.today.weekSummary': 'Esta semana: {x} de {y} sesiones completadas',
   'train.today.rotationNote': 'Este plan sigue un orden de días, no días de semana fijos — por eso no hay una sesión fijada a esta fecha. Las próximas sesiones en el orden del plan son:',
