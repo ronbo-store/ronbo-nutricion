@@ -12090,10 +12090,28 @@ function breportPaint() {
   body.querySelectorAll('[data-br-rep]').forEach(b => b.onclick = () => { BREPORT.replaceId = b.dataset.brRep; BREPORT.err = ''; const i = $('br-file'); if (i) i.click(); });
   body.querySelectorAll('[data-br-del]').forEach(b => b.onclick = () => breportDelete(b.dataset.brDel));
 }
+/* FIX-INFORME (2026-11-24): el catch genérico culpaba a la
+   conexión de fallos que no eran de red — la causa raíz del
+   reporte de Ronald fue que el proyecto NO tenía bucket de
+   Storage (toda subida moría en el servidor con 404 y el SDK lo
+   entrega como storage/unknown). Ahora cada causa conocida se
+   dice en lenguaje simple y el mensaje de conexión queda solo
+   para los códigos que sí son de red. El límite de 20 MB es el
+   mismo que fijan las reglas de Storage. */
+const BREPORT_MAX_BYTES = 20 * 1024 * 1024;
+function breportErrText(e) {
+  const code = (e && e.code) || '';
+  const status = (e && e.status) || 0;
+  if (code === 'storage/unauthorized') return t('bodyfix.errPerm');
+  if (code === 'storage/quota-exceeded') return t('bodyfix.errQuota');
+  if (code === 'storage/object-not-found' || status === 404) return t('bodyfix.errServer');
+  return t('r10.brErr');
+}
 async function breportSave() {
   const B = BREPORT;
   if (!B || B.busy) return;
   if (!B.file) { B.err = t('r10.brNoFile'); breportPaint(); return; }
+  if (B.file.size > BREPORT_MAX_BYTES) { B.err = t('bodyfix.errBig'); breportPaint(); return; }
   B.busy = true; B.err = ''; breportPaint();
   try {
     const isPdf = B.file.type === 'application/pdf';
@@ -12124,7 +12142,7 @@ async function breportSave() {
     breportPaint();
     toast(t('r10.brSaved'));
   } catch (e) {
-    if (BREPORT) { BREPORT.busy = false; BREPORT.err = t('r10.brErr'); breportPaint(); }
+    if (BREPORT) { BREPORT.busy = false; BREPORT.err = breportErrText(e); breportPaint(); }
   }
 }
 async function breportDelete(id) {
@@ -12136,7 +12154,7 @@ async function breportDelete(id) {
     await deleteDoc(doc(db, 'nutrition_progress', id));
     if (r.path) { try { await deleteObject(sRef(storage, r.path)); } catch {} }
     await breportLoadList();
-  } catch { if (BREPORT) BREPORT.err = t('r10.brErr'); }
+  } catch (e) { if (BREPORT) BREPORT.err = breportErrText(e); }
   if (BREPORT) { BREPORT.busy = false; breportPaint(); }
 }
 async function tmeasOpen(uid) {
