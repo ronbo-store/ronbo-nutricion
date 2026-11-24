@@ -68515,7 +68515,8 @@ function chalP21CardDecorate(h, shareHTML) {
   if (!h) return h;
   const st = CHAL.p21 || { state: 'none' };
   const cover = `<button type="button" class="chal-cover" data-chal-act="p21info" aria-label="${esc(t('r10.viewProgram'))}"><img src="${esc(CHAL_FACE_MUSCLE)}" alt="" loading="lazy"></button>`;
-  h = h.replace(/(<div class="chal-hero[^"]*">)/, '$1' + cover);
+  const openIx = h.indexOf('>');
+  if (openIx > 0) h = h.slice(0, openIx + 1) + cover + h.slice(openIx + 1);
   if (h.includes('<h3 class="chal-hero-name">')) h = h.replace('<h3 class="chal-hero-name">', '<button type="button" class="chal-hero-name chal-name-btn" data-chal-act="p21info">').replace('</h3>', '</button>');
   const enrolled = ['active', 'hold', 'sent', 'food'].includes(st.state);
   let actions = `<button type="button" class="btn-ghost" data-chal-act="p21info">${esc(t('r10.viewProgram'))}</button>`;
@@ -68525,8 +68526,9 @@ function chalP21CardDecorate(h, shareHTML) {
     actions += `<button type="button" class="btn-leave" data-chal-act="p21leave">${esc(t(kind === 'leave' ? 'r10.leaveReto' : 'r10.cancelEnroll'))}</button>`;
   }
   const tail = `<div class="chal-card-actions">${actions}</div>${shareHTML ? `<div class="chal-share-in">${shareHTML}</div>` : ''}`;
-  h = h.replace(/<\/div>\s*$/, tail + '</div>');
-  if (enrolled) h = h.replace(/(<span class="chal-tag">)/, '<span class="chal-state-line">' + esc(t('r10.stateEnrolled')) + '</span> $1');
+  const lastIx = h.lastIndexOf('</div>');
+  if (lastIx > 0) h = h.slice(0, lastIx) + tail + h.slice(lastIx);
+  if (enrolled && h.includes('<span class="chal-tag">')) h = h.replace('<span class="chal-tag">', '<span class="chal-state-line">' + esc(t('r10.stateEnrolled')) + '</span> <span class="chal-tag">');
   return h;
 }
 
