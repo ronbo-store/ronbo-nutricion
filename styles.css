@@ -8033,3 +8033,33 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .lib592-varsline { margin: 0 0 6px; }
 .lib592-varfold { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; box-sizing: border-box; background: none; border: none; font: inherit; color: inherit; cursor: pointer; padding: 4px 2px; text-align: left; }
 .lib592-varfold .lib592-varname { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ============ AUTH-595 · PLIEGUES Nº13 — «Mi perfil» y «Mi entrenador» ============
+   Las pantallas propias del perfil van en z-index 44 (como las
+   hojas de la ficha y del alumno): las hojas que sus cajas abren
+   (#rol-float y #nutri-float, z-45; la rejilla de horas, z-60)
+   quedan por encima. Las puertas son la línea .pl-fold de la
+   casa (52px); ningún toque baja de 44px — el espacio se gana
+   recogiendo, nunca achicando (regla de crecimiento). */
+.prof595-sheet { z-index: 44; }
+#profile-doors { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+#profile-doors:empty { display: none; margin: 0; }
+.prof595-pwa-door { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; box-sizing: border-box; background: none; border: none; font: inherit; color: inherit; cursor: pointer; padding: 2px 0; text-align: left; }
+.prof595-pwa-door .pwa-row-label { font-weight: 600; }
+.prof595-pwa-door .pl-fold-chev { margin-left: auto; }
+#pwa595-block .pwa-guide { display: block; margin: 8px 0; }
+#pwa595-block .pwa-installed { display: block; margin: 8px 0; }
+/* — la línea recogida de los paneles de avisos de la tarjeta:
+   la fila del interruptor (la de siempre, .ds-row) + el botón
+   de pliegue a su derecha; el cuerpo nace oculto — */
+.prof595-line { display: flex; align-items: center; gap: 4px; }
+.prof595-line .ds-row { flex: 1 1 auto; min-width: 0; width: auto; }
+.prof595-foldbtn { flex: none; width: 44px; min-height: 44px; box-sizing: border-box; background: none; border: none; color: #0d9488; font-size: 20px; font-weight: 800; cursor: pointer; transition: transform .15s ease; }
+.prof595-foldbtn[aria-expanded="true"] { transform: rotate(90deg); }
+/* — la explicación del idioma de correo, recortada a una línea
+   tras «Ver más» (patrón de la 589/593) — */
+.prof595-clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.prof595-clamp.open { display: block; overflow: visible; }
+.prof595-mlh .eval-more-btn { margin-top: 2px; }
+/* — la línea de la membresía dentro de «Mi consulta» — */
+.prof595-membfold { margin: 10px 0 4px; }

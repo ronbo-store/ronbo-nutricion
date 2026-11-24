@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-pliegues-planes">
+<link rel="stylesheet" href="styles.css?v=20261124-pliegues-perfil">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -756,6 +756,65 @@
     </div>
     <p class="met-updated" id="met-sheet-updated"></p>
     <div id="met-sheet-body"></div>
+  </div>
+
+  <!-- AUTH-595 · PLIEGUES Nº13: las pantallas propias de «Mi
+       perfil». Cada una es una .pend-float de la casa con su
+       cabecera (título + ✕) y su «‹ Volver» siempre visible
+       (regla de navegación de la casa); el bloque de siempre
+       VIAJA a su cuerpo al abrir (prof595Open/prof595Close en
+       app.js, patrón del bloque viajero de AUTH-570) y vuelve a
+       su almacén de #tab-profile al cerrar. Van en z-index 44
+       (clase .prof595-sheet): las hojas que estas cajas abren
+       (#rol-float y #nutri-float, z-45; la de horas, z-60)
+       quedan por encima. -->
+  <div class="pend-float prof595-sheet" id="prof595-card-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="prof595-card-title"></span></h2>
+      <button type="button" class="pend-close" id="prof595-card-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="prof595-card-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="prof595-card-body"></div>
+  </div>
+  <div class="pend-float prof595-sheet" id="prof595-purpose-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="prof595-purpose-title"></span></h2>
+      <button type="button" class="pend-close" id="prof595-purpose-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="prof595-purpose-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="prof595-purpose-body"></div>
+  </div>
+  <div class="pend-float prof595-sheet" id="prof595-nutri-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="prof595-nutri-title"></span></h2>
+      <button type="button" class="pend-close" id="prof595-nutri-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="prof595-nutri-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="prof595-nutri-body"></div>
+  </div>
+  <div class="pend-float prof595-sheet" id="prof595-nutriedit-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="prof595-nutriedit-title"></span></h2>
+      <button type="button" class="pend-close" id="prof595-nutriedit-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="prof595-nutriedit-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="prof595-nutriedit-body"></div>
+  </div>
+  <div class="pend-float prof595-sheet" id="prof595-dossier-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="prof595-dossier-title"></span></h2>
+      <button type="button" class="pend-close" id="prof595-dossier-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="prof595-dossier-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="prof595-dossier-body"></div>
+  </div>
+  <div class="pend-float prof595-sheet" id="prof595-pwa-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="prof595-pwa-title"></span></h2>
+      <button type="button" class="pend-close" id="prof595-pwa-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="prof595-pwa-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="prof595-pwa-body"></div>
   </div>
 
   <!-- BOTÓN «← ATRÁS» A PENDIENTES (corrección 2026-11-01): pastilla
@@ -2105,7 +2164,22 @@ cuando no hay declaración legible (decisión 5). -->
          vista). La pinta mishorCardSync (app.js) solo desde los
          datos del propio usuario; es la primera tarjeta de la vista. -->
     <div id="mishor-box"></div>
-    <div id="profile-card-box"></div>
+    <!-- AUTH-595 · PLIEGUES Nº13 (auditoría de pliegues, ficha
+         Nº13): las cajas de esta vista ya no se suceden desplegadas
+         en una página larga — en superficie quedan SOLO las
+         puertas (#profile-doors: una línea por caja, título +
+         dato + ›, las pinta prof595DoorsSync en app.js) y cada
+         bloque VIAJA a su pantalla propia (.prof595-sheet, tras
+         #met-float) al tocar su puerta, al patrón del bloque
+         viajero de AUTH-570. Los almacenes (#prof595-store-*)
+         guardan cada bloque mientras su pantalla está cerrada;
+         los pintores de siempre pintan por id, esté el bloque
+         donde esté: una sola instancia en el DOM, MOVIDA, no
+         duplicada. «Mis horarios» (aquí encima) y «Tu ruta» y
+         «Novedades» (aquí debajo) NO se tocan: ya nacen recogidos
+         o son orden expresa de Ronald. -->
+    <div id="profile-doors"></div>
+    <div id="prof595-store-card" style="display:none"><div id="profile-card-box"></div></div>
     <!-- LA RUTA COMPLETADA (órdenes de Ronald, 2026-11-08): al
          completar la ruta base, la tarjeta «Tu ruta» sale de
          Pendientes y vive aquí, plegada en su línea resumen,
@@ -2116,8 +2190,10 @@ cuando no hay declaración legible (decisión 5). -->
          propósito» — solo se pinta para quien eligió «Entreno
          por mi cuenta»; su uso (comidas / entrenamiento / ambos)
          se cambia libremente desde aquí (decisión (d) de Ronald,
-         2026-11-01). Lo pinta renderPurposeProfileBox. -->
-    <div id="purpose-profile-box"></div>
+         2026-11-01). Lo pinta renderPurposeProfileBox; desde
+         AUTH-595 su bloque vive en el almacén y viaja a su
+         pantalla propia tras su puerta. -->
+    <div id="prof595-store-purpose" style="display:none"><div id="purpose-profile-box"></div></div>
     <!-- MÓDULO COACH DE ALIMENTACIÓN: la faceta de profesional
          («Mi consulta», #nutri-pro-box, solo si la cuenta tiene
          perfil de coach) SIGUE aquí, en «Mi perfil», intacta, y la
@@ -2126,21 +2202,30 @@ cuando no hay declaración legible (decisión 5). -->
          su pastilla propia #tab-coach, junto a «Administración»
          (decisión de Ronald, correo Memphis 2026-11-03 22:16 CST):
          MOVIDA, no duplicada — la caja existe una sola vez en el
-         DOM, dentro de su panel nuevo. -->
-    <div id="nutri-pro-box"></div>
+         DOM, dentro de su panel nuevo. Desde AUTH-595 la caja del
+         profesional vive en el almacén y viaja a su pantalla
+         propia tras su puerta; su formulario «Editar perfil»
+         (#nutri-editprof-zone) tiene almacén y pantalla propios. -->
+    <div id="prof595-store-nutri" style="display:none"><div id="nutri-pro-box"></div></div>
+    <div id="prof595-store-nutriedit" style="display:none"><div id="nutri-editprof-zone"></div></div>
     <!-- INSTALABLE PWA (2026-10-25): fila de instalación/estado en
          «Mi perfil» (aditiva; la pinta pwaPaintInstall en app.js):
          botón propio con beforeinstallprompt, guía corta en iOS y
-         marca de «instalada» en modo standalone. -->
+         marca de «instalada» en modo standalone. Desde AUTH-595 la
+         fila ES la puerta («App RONBO FIT ›»): los controles de
+         siempre (mismos ids) viven en #pwa595-block, que viaja a
+         su pantalla propia; pwaPaintInstall gobierna la fila y
+         cada control por id, como siempre. -->
     <div id="pwa-profile-row" class="pwa-row" style="display:none">
-      <span class="pwa-row-ico" aria-hidden="true">📲</span>
-      <span class="pwa-row-label" data-i18n="pwa.rowLabel">RONBO FIT app</span>
+      <button type="button" class="prof595-pwa-door" data-prof595-open="pwa"><span class="pwa-row-ico" aria-hidden="true">📲</span><span class="pwa-row-label" data-i18n="pwa.rowLabel">RONBO FIT app</span><span class="pl-fold-chev" aria-hidden="true">›</span></button>
+    </div>
+    <div id="pwa595-store" style="display:none"><div id="pwa595-block">
       <button type="button" id="pwa-profile-btn" class="btn-ghost btn-sm" style="display:none" data-i18n="pwa.installBtn">📲 Install RONBO FIT</button>
       <span id="pwa-profile-ios" class="pwa-guide" style="display:none" data-i18n="pwa.iosText">To install the app: tap the Share button and then “Add to Home Screen”.</span>
       <button type="button" id="pwa-profile-copy" class="btn-ghost btn-sm" style="display:none" data-i18n="pwa.copyLink">📋 Copy link</button>
       <span id="pwa-profile-installed" class="pwa-installed" style="display:none" data-i18n="pwa.installed">✓ App installed</span>
-    </div>
-    <div id="dossier-editor-box" style="display:none"></div>
+    </div></div>
+    <div id="prof595-store-dossier" style="display:none"><div id="dossier-editor-box" style="display:none"></div></div>
     <!-- NOVEDADES · MUY PRONTO (2026-10-31): panel recogido de
          «Mi perfil» al patrón de la casa (#perms-panel): cabecera
          tocable con chevron y cuerpo oculto al nacer. Lo muestra
@@ -2171,7 +2256,12 @@ cuando no hay declaración legible (decisión 5). -->
        entrenador (#coach-pane-trainer, renderCoachPaneTrainer),
        MUDADO desde la pastilla del coach (donde AUTH-220 lo había
        puesto): pertenece a la pastilla del entrenador. La pastilla
-       del coach conserva solo la caja del coach (#nutri-my-box). -->
+       del coach conserva solo la caja del coach (#nutri-my-box).
+       AUTH-595 · PLIEGUES Nº13: la elección duplicada SALE — la
+       única puerta de elección es la caja «Mi entrenador»
+       (#my-trainer-box, que ya trae selector, «Cambiar» y los
+       enlaces al pool); #coach-pane-trainer queda como anfitrión
+       vacío que renderCoachPaneTrainer solo limpia. -->
   <div class="tab-pane" id="tab-trainer" style="display:none">
     <div id="my-trainer-box" style="display:none"></div>
     <div id="coach-pane-trainer"></div>
@@ -3052,6 +3142,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-pliegues-planes"></script>
+<script type="module" src="app.js?v=20261124-pliegues-perfil"></script>
 </body>
 </html>

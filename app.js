@@ -2578,6 +2578,93 @@ function dosCollectPlaces() {
    renderDossierEditor sigue siendo el único camino de escritura y
    #dossier-editor-box existe UNA sola vez en el DOM. El cambio de
    foto conserva su camino de siempre (#avatar-file). */
+/* ============ AUTH-595 · PLIEGUES Nº13 — «Mi perfil» y «Mi entrenador» ============
+   La ficha Nº13 de la auditoría de pliegues (2026-11-23) contra
+   esta vista: las cajas se sucedían desplegadas en una página
+   larga. Ahora cada caja es UNA puerta en superficie (una línea:
+   título + dato + ›, en #profile-doors) y su bloque VIAJA a su
+   pantalla propia (.prof595-sheet en index.html, cabecera con
+   título y ✕ y «‹ Volver» siempre visible — regla de navegación
+   de la casa) al patrón del bloque viajero de AUTH-570: los
+   pintores de siempre pintan por id, esté el bloque donde esté,
+   y plegar/desplegar jamás repinta — nada tecleado se pierde.
+   Dentro de la tarjeta personal, el resumen diario y el aviso de
+   día exigente nacen como dos líneas recogidas (título +
+   interruptor + ›) y la explicación del idioma de correo va
+   tras «Ver más». En «Mi consulta», la membresía nace como
+   línea recogida (nivel actual + ›) y «Editar perfil» es su
+   propia pantalla. La fila de la app instalable ES la puerta
+   «App RONBO FIT ›» con su guía dentro. Y en «Mi entrenador»
+   sale la elección duplicada (#coach-pane-trainer): la única
+   puerta de elección es la caja «Mi entrenador» de siempre.
+   NO se tocan: «Mis horarios» (orden expresa de Ronald,
+   2026-11-15: arriba, grande, horas a la vista), «Tu ruta» y
+   «Novedades» (ya nacen recogidos) ni ninguna alerta. */
+const PROF595 = {
+  card:      { float: 'prof595-card-float',      title: 'prof595-card-title',      body: 'prof595-card-body',      block: 'profile-card-box',    store: 'prof595-store-card',      titleFn: () => t('myprof.title') },
+  purpose:   { float: 'prof595-purpose-float',   title: 'prof595-purpose-title',   body: 'prof595-purpose-body',   block: 'purpose-profile-box', store: 'prof595-store-purpose',   titleFn: () => t('rol.title') },
+  nutri:     { float: 'prof595-nutri-float',     title: 'prof595-nutri-title',     body: 'prof595-nutri-body',     block: 'nutri-pro-box',       store: 'prof595-store-nutri',     titleFn: () => '🩺 ' + t('nutri.proTitle') },
+  nutriedit: { float: 'prof595-nutriedit-float', title: 'prof595-nutriedit-title', body: 'prof595-nutriedit-body', block: 'nutri-editprof-zone', store: 'prof595-store-nutriedit', titleFn: () => t('nutri.pro.editProfile') },
+  dossier:   { float: 'prof595-dossier-float',   title: 'prof595-dossier-title',   body: 'prof595-dossier-body',   block: 'dossier-editor-box',  store: 'prof595-store-dossier',   titleFn: () => t('prof595.dossier') },
+  pwa:       { float: 'prof595-pwa-float',       title: 'prof595-pwa-title',       body: 'prof595-pwa-body',       block: 'pwa595-block',        store: 'pwa595-store',            titleFn: () => t('pwa.rowLabel') }
+};
+function prof595Open(which) {
+  const c = PROF595[which]; if (!c) return;
+  const f = $(c.float), body = $(c.body), block = $(c.block);
+  if (!f || !body || !block) return;
+  const ttl = $(c.title); if (ttl) ttl.textContent = c.titleFn();
+  if (block.parentElement !== body) body.appendChild(block);
+  f.style.display = '';
+  try { coverSync(); } catch {}
+}
+function prof595Close(which) {
+  const c = PROF595[which]; if (!c) return;
+  const f = $(c.float), store = $(c.store), block = $(c.block);
+  if (block && store && block.parentElement !== store) store.appendChild(block);
+  if (f && f.style.display !== 'none') { f.style.display = 'none'; try { coverSync(); } catch {} }
+}
+function prof595CloseAll() { Object.keys(PROF595).forEach(w => { try { prof595Close(w); } catch {} }); }
+/* El cableado de ✕/Volver va con document.getElementById, no
+   con $: este bloque corre al evaluar el módulo y el atajo $
+   se declara más abajo en el archivo (zona muerta hasta
+   entonces) — el patrón del cableado de la hoja de AUTH-570. */
+Object.keys(PROF595).forEach(w => {
+  const x = document.getElementById('prof595-' + w + '-x'); if (x) x.onclick = () => prof595Close(w);
+  const bk = document.getElementById('prof595-' + w + '-back'); if (bk) bk.onclick = () => prof595Close(w);
+});
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-prof595-open]') : null;
+  if (b) prof595Open(b.dataset.prof595Open);
+});
+/* Las puertas de la vista: una por caja con contenido, con el
+   dato que la ficha pide en su línea (el nombre en la tarjeta,
+   el camino actual en «Mi propósito», el estado de la membresía
+   en «Mi consulta»). Se repintan al final de renderProfileView
+   y tras cada repintado de las cajas que alimentan el dato. */
+function prof595DoorsSync() {
+  const host = $('profile-doors'); if (!host) return;
+  const u = UDATA || {};
+  const door = (which, title, sub) => `<button type="button" class="pl-fold prof595-door" data-prof595-open="${which}"><span>${esc(title)}</span>${sub ? `<span class="pl-fold-n">${esc(sub)}</span>` : ''}<span class="pl-fold-chev" aria-hidden="true">›</span></button>`;
+  let h = door('card', t('myprof.title'), u.name || '');
+  const pb = $('purpose-profile-box');
+  if (pb && pb.innerHTML.trim()) {
+    const kind = rolPathKind(u);
+    h += door('purpose', t('rol.title'), kind === 'own' ? t('myprof.selfTrainer') : kind === 'trainer' ? t('rol.pathWithTrainer') : t('rol.pathWaiting'));
+  }
+  const nb = $('nutri-pro-box');
+  if (nb && nb.innerHTML.trim()) {
+    const m = (typeof NUTRI !== 'undefined' && NUTRI.myMembership) || {};
+    let sub = '';
+    if (m.status === 'activa') sub = `${t('nutri.memb.active')}: ${escLevelLabel(m.level)}`;
+    else if (m.status === 'pendiente') sub = t('nutri.memb.pending');
+    else sub = t('nutri.memb.none');
+    h += door('nutri', '🩺 ' + t('nutri.proTitle'), sub);
+  }
+  const db = $('dossier-editor-box');
+  if (db && db.style.display !== 'none' && db.innerHTML.trim()) h += door('dossier', t('prof595.dossier'), '');
+  host.innerHTML = h;
+}
+
 async function renderProfileView() {
   const box = $('profile-card-box'); if (!box) return;
   try { mishorCardSync(); } catch {}
@@ -2640,26 +2727,36 @@ async function renderProfileView() {
     </div>
     ${rows}
     <p class="myprof-row"><span class="myprof-k">${esc(t('myprof.mailLang'))}</span><span class="myprof-v"><select id="myprof-maillang" aria-label="${esc(t('myprof.mailLang'))}"><option value="en">English</option><option value="es">Español</option></select></span></p>
-    <p class="progress-hint">${esc(t('myprof.mailLangHint'))}</p>
+    <p class="progress-hint prof595-mlh"><span class="prof595-clamp" id="myprof-mlh">${esc(t('myprof.mailLangHint'))}</span><button type="button" class="eval-more-btn" id="myprof-mlh-btn" aria-expanded="false">${esc(t('prof595.more'))} <span aria-hidden="true">▾</span></button></p>
     <div class="ds-panel${dsEffOn ? ' is-on' : ' is-off'}" id="myprof-ds-panel">
+      <div class="prof595-line">
       <button type="button" class="ds-row" id="myprof-ds-toggle" aria-pressed="${dsEffOn ? 'true' : 'false'}">
         <span class="ds-row-label">${esc(t('myprof.dsTitle'))}</span>
         <span class="ds-row-side"><span class="ds-switch" aria-hidden="true"><span class="ds-knob">${dsEffOn ? '✓' : '✕'}</span></span><span class="ds-state" id="myprof-ds-state">${esc(t(dsEffOn ? 'myprof.dsStateOn' : 'myprof.dsStateOff'))}</span></span>
       </button>
+      <button type="button" class="prof595-foldbtn" id="myprof-ds-fold" aria-expanded="false" aria-label="${esc(t('prof595.more'))}"><span aria-hidden="true">›</span></button>
+      </div>
+      <div id="myprof-ds-body" style="display:none">
       ${dsEffOn ? `<div class="ds-time-row">
         <span class="ds-time-label">${esc(t('myprof.dsTime'))}</span>
         <button type="button" class="ds-time-btn" id="myprof-ds-timebtn"><span class="ds-clock" aria-hidden="true">🕐</span><span class="ds-time-val" id="myprof-ds-timeval">${esc(dsEffTime)}</span><span class="ds-chev" aria-hidden="true">▼</span></button>
       </div>` : ''}
+      <p class="progress-hint">${esc(t('myprof.dsTz', { tz: dsTz || '—' }))}</p>
+      <p class="progress-hint">${esc(t('myprof.dsHint'))}</p>
+      <p class="progress-hint">${esc(t('myprof.dsSeparate'))}</p>
+      </div>
     </div>
-    <p class="progress-hint">${esc(t('myprof.dsTz', { tz: dsTz || '—' }))}</p>
-    <p class="progress-hint">${esc(t('myprof.dsHint'))}</p>
-    <p class="progress-hint">${esc(t('myprof.dsSeparate'))}</p>
     <div class="ds-panel${eveEffOn ? ' is-on' : ' is-off'}" id="myprof-eve-panel">
+      <div class="prof595-line">
       <button type="button" class="ds-row" id="myprof-eve-toggle" aria-pressed="${eveEffOn ? 'true' : 'false'}">
         <span class="ds-row-label">${esc(t('eve.title'))}</span>
         <span class="ds-row-side"><span class="ds-switch" aria-hidden="true"><span class="ds-knob">${eveEffOn ? '✓' : '✕'}</span></span><span class="ds-state" id="myprof-eve-state">${esc(t(eveEffOn ? 'myprof.dsStateOn' : 'myprof.dsStateOff'))}</span></span>
       </button>
+      <button type="button" class="prof595-foldbtn" id="myprof-eve-fold" aria-expanded="false" aria-label="${esc(t('prof595.more'))}"><span aria-hidden="true">›</span></button>
+      </div>
+      <div id="myprof-eve-body" style="display:none">
       <p class="progress-hint">${esc(t('eve.help'))}</p>
+      </div>
     </div>
     <button type="button" class="readg-fold" id="myprof-readg-open"><span class="readg-fold-t">📚 ${esc(t('readg.title'))}</span><span class="readg-fold-sub">${esc(t('readg.doorSub'))}</span><span class="readg-fold-chev" aria-hidden="true">›</span></button>
   </div>`;
@@ -2744,7 +2841,10 @@ async function renderProfileView() {
       const kb = dTgl.querySelector('.ds-knob'); if (kb) kb.textContent = dsOn ? '✓' : '✕';
       const st = $('myprof-ds-state'); if (st) st.textContent = t(dsOn ? 'myprof.dsStateOn' : 'myprof.dsStateOff');
       const tRow = dPanel.querySelector('.ds-time-row');
-      if (dsOn && !tRow) { dPanel.insertAdjacentHTML('beforeend', dsTimeRowHTML()); dsWireTimeBtn(); }
+      /* AUTH-595: la fila de la hora nace dentro del cuerpo
+         recogido del panel (#myprof-ds-body), no suelta al final
+         del panel — el pliegue la cubre también a ella. */
+      if (dsOn && !tRow) { const dBody = $('myprof-ds-body'); if (dBody) dBody.insertAdjacentHTML('afterbegin', dsTimeRowHTML()); else dPanel.insertAdjacentHTML('beforeend', dsTimeRowHTML()); dsWireTimeBtn(); }
       else if (!dsOn && tRow) { tRow.remove(); dTimeBtn = null; }
       const tv = $('myprof-ds-timeval'); if (tv) tv.textContent = dsTime;
       if (dTimeBtn) dTimeBtn.disabled = !dsOn;
@@ -2841,6 +2941,31 @@ async function renderProfileView() {
       } catch (e) { eveRevert(); failToast(e); }
     });
   }
+  /* AUTH-595 · PLIEGUES Nº13: los pliegues de la tarjeta — la
+     explicación del idioma tras «Ver más» y los cuerpos del
+     resumen diario y del aviso de día exigente tras su línea
+     (título + interruptor + ›). Solo voltean display o una
+     clase: ningún repintado, ningún guardado tocado, nada
+     tecleado se pierde al plegar y desplegar. */
+  const mlhBtn = $('myprof-mlh-btn');
+  if (mlhBtn) mlhBtn.addEventListener('click', () => {
+    const s = $('myprof-mlh'); if (!s) return;
+    const open = s.classList.toggle('open');
+    mlhBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    mlhBtn.innerHTML = `${esc(t(open ? 'prof595.less' : 'prof595.more'))} <span aria-hidden="true">${open ? '▴' : '▾'}</span>`;
+  });
+  const prof595FoldWire = (btnId, bodyId) => {
+    const b = $(btnId); if (!b) return;
+    b.addEventListener('click', () => {
+      const bd = $(bodyId); if (!bd) return;
+      const open = bd.style.display === 'none';
+      bd.style.display = open ? '' : 'none';
+      b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      b.setAttribute('aria-label', t(open ? 'prof595.less' : 'prof595.more'));
+    });
+  };
+  prof595FoldWire('myprof-ds-fold', 'myprof-ds-body');
+  prof595FoldWire('myprof-eve-fold', 'myprof-eve-body');
   /* Nombre del entrenador del alumno (pieza B del paquete «App
      instalada visible», 2026-10-26): se resuelve SIEMPRE con la
      cadena ÚNICA del proyecto — la misma de la tarjeta «Mi
@@ -2878,6 +3003,10 @@ async function renderProfileView() {
      vista (ROLE/UDATA ya resueltos aquí); para el alumno el
      panel ni se muestra ni pinta contenido. */
   fdBizRender();
+  /* AUTH-595: las puertas de la vista se sincronizan con lo
+     pintado (cada caja con contenido tiene su línea en
+     superficie; las demás, ninguna). */
+  try { prof595DoorsSync(); } catch {}
   /* La zona «Administración» YA NO vive en «Mi perfil»
      (AUTH-2026-10-28-069): se mudó a su vista propia del panel
      principal y se pinta al abrirla (gancho en switchTab). El
@@ -5785,6 +5914,9 @@ function renderPurposeProfileBox() {
       renderPurposeProfileBox();
     } catch { toast(t('err.createFail'), true); }
   });
+  /* AUTH-595: la puerta de «Mi propósito» refleja el camino
+     vigente tras cada repintado de su caja. */
+  try { prof595DoorsSync(); } catch {}
 }
 /* Las tarjetas «Cómo entrenas» ENRUTAN: «con entrenador» anota la
    declaración si cambió y lleva a la caja «Mi entrenador» (donde
@@ -5794,7 +5926,11 @@ function renderPurposeProfileBox() {
    ciego). */
 async function rolPathGo(kind) {
   const u = UDATA; if (!u || !auth.currentUser) return;
-  if (kind === 'coach') { switchTab('coach'); try { $('nutri-my-box').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} return; }
+  /* AUTH-595: las tarjetas que enrutan a otra pastilla cierran
+     antes la pantalla de «Mi propósito» (su bloque vuelve a su
+     almacén); la de «por mi cuenta» abre la hoja de rol, que ya
+     cierra las pantallas del perfil al abrir (rolSheetOpen). */
+  if (kind === 'coach') { try { prof595CloseAll(); } catch {} switchTab('coach'); try { $('nutri-my-box').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} return; }
   if (kind === 'own') { if (rolPathKind(u) !== 'own') rolSheetOpen('own'); return; }
   if (kind === 'trainer') {
     if (rolPathKind(u) !== 'trainer' && u.purpose !== 'con_entrenador') {
@@ -5806,12 +5942,17 @@ async function rolPathGo(kind) {
         renderPurposeProfileBox();
       } catch { toast(t('err.createFail'), true); return; }
     }
+    try { prof595CloseAll(); } catch {}
     switchTab('trainer'); try { $('my-trainer-box').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
   }
 }
 /* ---------- Hojas del bloque (solicitudes y vuelta a su cuenta) ---------- */
 function rolFloatEl() { return $('rol-float'); }
 function rolSheetOpen(kind) {
+  /* AUTH-595: la hoja de rol (z-45) se abre sobre la vista, no
+     sobre la pantalla de «Mi propósito» (z-44): esta se cierra
+     antes para que la gestión de tapas vea una sola abierta. */
+  try { prof595CloseAll(); } catch {}
   ROL.kind = kind; ROL.level = ''; ROL.busy = false;
   ROL.use = (UDATA && UDATA.purposeUse) || 'both';
   if (kind === 'coach') ROL.formation = '';
@@ -54237,6 +54378,10 @@ function switchTab(name) {
   try { weightCardSync(name); } catch {}
   const __navY = NAV_PILL_SCROLL[name];
   if (typeof __navY === 'number' && __navY > 0) { try { window.scrollTo(0, __navY); } catch {} }
+  /* AUTH-595: al salir de «Mi perfil», sus pantallas propias se
+     cierran y cada bloque vuelve a su almacén — ninguna hoja del
+     perfil queda flotando sobre otra vista. */
+  if (name !== 'profile') { try { prof595CloseAll(); } catch {} }
   try { navRender(); } catch {}
 }
 document.querySelectorAll('.main-tab').forEach(b => b.addEventListener('click', () => {
@@ -61189,12 +61334,14 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
              dossier, que ahora vive en «Mi perfil» (perfil-visible,
              2026-10-24 — antes en la pestaña de clientes). */
           switchTab('profile');
-          const r = $('dossier-editor-box'); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+          /* AUTH-595: el editor del dossier es su propia
+             pantalla — la ruta la abre, no desplaza la vista. */
+          try { prof595Open('dossier'); } catch {}
         } else if (type === 'role') {
           /* Mapa por rol: cada tarjeta lleva a SU superficie. */
           const route = b.dataset.route;
           const scroll = id2 => { const r = $(id2); if (r) { try { r.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } };
-          if (route === 'dossier-editor') { switchTab('profile'); scroll('dossier-editor-box'); }
+          if (route === 'dossier-editor') { switchTab('profile'); try { prof595Open('dossier'); } catch {} }
           else if (route === 'membership') { switchTab('clients'); scroll('membership-box'); }
           else if (route === 'mytrainer') { switchTab('trainer'); scroll('my-trainer-box'); }
           else if (route === 'eval') { navOpenPage('progress'); progSetSub('fotos'); scroll('eval-root'); }
@@ -66729,27 +66876,24 @@ function nutriAdhChip(state) {
    escChangeTrainer — el flujo propio del alumno que las reglas
    vivas ya admiten también sin entrenador —, sin escrituras ni
    caminos nuevos. Con entrenador, sin sesión o con otro rol, el
-   bloque queda vacío (su sitio sigue siendo «Mi entrenador»). */
+   bloque queda vacío (su sitio sigue siendo «Mi entrenador»).
+   AUTH-595: la caja duplicada se retiró por la ficha Nº13 de la
+   auditoría de pliegues — ver la nota dentro de la función. */
 async function renderCoachPaneTrainer() {
   const box = $('coach-pane-trainer'); if (!box) return;
-  if (!auth.currentUser || ROLE !== 'usuario' || (typeof MY_REL !== 'undefined' && MY_REL && MY_REL.trainerUid)) { box.innerHTML = ''; return; }
-  const pool = await escPoolTrainersFromProfiles((MY_REL && MY_REL.modality) || null);
-  let h = `<div class="panel"><h3 class="history-title">${esc(t('esc.myTrainerTitle'))}</h3><p class="progress-hint">${esc(t((typeof MY_REL !== 'undefined' && MY_REL && MY_REL.selfTrained) ? 'esc.selfNoTrainer' : 'esc.noTrainerYet'))}</p>`;
-  if (pool.length) {
-    h += `<label class="muted">${esc(t('roles.chooseTrainer'))}<select id="coach-pane-trainer-sel"><option value="">${esc(t('esc.waitOption'))}</option>${pool.map(p => `<option value="${esc(p.uid)}"${p.full ? ' disabled' : ''}>${esc(p.name)}${p.full ? esc(t('esc.poolFull')) : ''}</option>`).join('')}</select></label><div class="eval-actions"><button type="button" class="btn-primary btn-sm" id="btn-coach-pane-trainer">${esc(t('route.chooseTrainer'))}</button></div><div class="dos-pool-links">${pool.map(p => `<button type="button" class="slot-link" data-dossier-open="${esc(p.uid)}">👤 ${esc(p.name)}</button>`).join(' ')}</div>`;
-  }
-  h += `</div>`;
-  box.innerHTML = h;
-  const btn = $('btn-coach-pane-trainer');
-  if (btn) btn.onclick = async () => {
-    const sel = $('coach-pane-trainer-sel');
-    const uid = sel ? (sel.value || '') : '';
-    if (!uid) { toast(t('roles.chooseTrainer')); return; }
-    try { await escChangeTrainer(uid); } catch {}
-    try { renderCoachPaneTrainer(); } catch {}
-  };
+  /* AUTH-595 · PLIEGUES Nº13 (auditoría de pliegues, sección
+     «Mi entrenador»): sin entrenador se veían DOS cajas de
+     elección duplicadas en la misma pastilla — esta, bajo la
+     caja «Mi entrenador». La elección vive SOLO en la caja de
+     siempre (#my-trainer-box, renderMyTrainerBox), que ya trae
+     el selector, el «Cambiar / quitar entrenador» y los enlaces
+     al pool con el mismo escChangeTrainer y las mismas reglas;
+     esta función queda como limpieza del anfitrión heredado
+     para que ningún resto anterior reaparezca. Sin escrituras
+     ni caminos nuevos: el flujo de elección no cambia. */
+  box.innerHTML = '';
 }
-function renderNutriBoxes() { renderNutriMyBox(); renderNutriProBox(); try { renderWaterCard(); } catch {} }
+function renderNutriBoxes() { renderNutriMyBox(); renderNutriProBox(); try { renderWaterCard(); } catch {} try { prof595DoorsSync(); } catch {} }
 function nutriGoalsChips(g) {
   if (!g) return '';
   const chip = (k, v, u) => `<span class="nutri-goal-chip"><b>${esc(k)}</b> ${v} ${u}</span>`;
@@ -67012,14 +67156,29 @@ async function renderNutriProBox() {
   let h = `<div class="panel nutri-panel"><h3 class="history-title">🩺 ${esc(t('nutri.proTitle'))}</h3>
   <p class="myprof-row"><span class="myprof-k">${esc(t('roles.roleLabel'))}</span><span class="myprof-v">${esc(statusTxt)}</span></p>
   <p class="myprof-row"><span class="myprof-k">${esc(t('nutri.pro.clients'))}</span><span class="myprof-v">${Number(p.activeClients) || 0}${m.level && m.status === 'activa' ? ' / ' + membershipQuotaOf(m.level) : ''}</span></p>`;
-  if (m.status === 'activa') h += `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.memb.active'))}</span><span class="myprof-v">${esc(escLevelLabel(m.level))}</span></p>`;
-  else if (m.status === 'pendiente') h += `<p class="progress-hint">⏳ ${esc(t('nutri.memb.pending'))}</p>`;
-  else h += `<p class="progress-hint">${esc(t('nutri.memb.none'))}</p><div class="eval-actions">${['basico', 'premium', 'elite'].map(l => `<button type="button" class="btn-ghost btn-sm" data-nutri-memb="${l}">${esc(t('nutri.memb.request'))} ${esc(escLevelLabel(l))} (${membershipQuotaOf(l)})</button>`).join('')}</div>`;
+  /* AUTH-595 · PLIEGUES Nº13: la membresía nace como LÍNEA
+     recogida (su estado en la línea: el nivel si está activa, el
+     estado si no) y su cuerpo — la fila de siempre, el aviso o
+     los tres botones de pedir nivel — vive tras el pliegue, con
+     su cableado intacto. Plegar y desplegar solo voltea el
+     display: ningún repintado intermedio. */
+  const membSub = m.status === 'activa' ? escLevelLabel(m.level) : m.status === 'pendiente' ? t('nutri.memb.pending') : t('nutri.memb.none');
+  let membBody = '';
+  if (m.status === 'activa') membBody = `<p class="myprof-row"><span class="myprof-k">${esc(t('nutri.memb.active'))}</span><span class="myprof-v">${esc(escLevelLabel(m.level))}</span></p>`;
+  else if (m.status === 'pendiente') membBody = `<p class="progress-hint">⏳ ${esc(t('nutri.memb.pending'))}</p>`;
+  else membBody = `<p class="progress-hint">${esc(t('nutri.memb.none'))}</p><div class="eval-actions">${['basico', 'premium', 'elite'].map(l => `<button type="button" class="btn-ghost btn-sm" data-nutri-memb="${l}">${esc(t('nutri.memb.request'))} ${esc(escLevelLabel(l))} (${membershipQuotaOf(l)})</button>`).join('')}</div>`;
+  h += `<button type="button" class="pl-fold prof595-membfold" id="nutri595-memb-fold" aria-expanded="false"><span>${esc(t('nutri.memb.active'))}</span><span class="pl-fold-n">${esc(membSub)}</span><span class="pl-fold-chev" aria-hidden="true">›</span></button><div id="nutri595-memb-body" style="display:none">${membBody}</div>`;
   h += `<div class="eval-actions">
   ${p.status === 'aprobado' ? `<button type="button" class="btn-primary btn-sm" id="nutri-btn-console">${esc(t('nutri.pro.openConsole'))}</button>` : ''}
-  <button type="button" class="btn-ghost btn-sm" id="nutri-btn-editprof">${esc(t('nutri.pro.editProfile'))}</button></div>
-  <div id="nutri-editprof-zone"></div></div>`;
+  <button type="button" class="btn-ghost btn-sm" id="nutri-btn-editprof">${esc(t('nutri.pro.editProfile'))}</button></div></div>`;
   box.innerHTML = h;
+  const mf595 = $('nutri595-memb-fold');
+  if (mf595) mf595.onclick = () => {
+    const b = $('nutri595-memb-body'); if (!b) return;
+    const open = b.style.display === 'none';
+    b.style.display = open ? '' : 'none';
+    mf595.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
   box.querySelectorAll('[data-nutri-memb]').forEach(b => b.onclick = async () => {
     try {
       await setDoc(doc(db, 'nutritionist_memberships', auth.currentUser.uid), {
@@ -67035,6 +67194,14 @@ async function renderNutriProBox() {
 }
 function nutriEditProfilePaint() {
   const z = $('nutri-editprof-zone'); if (!z) return;
+  /* AUTH-595: si el formulario ya está pintado (la persona lo
+     dejó a medias, cerró su pantalla sin guardar y vuelve), se
+     REABRE tal cual — repintarlo borraría lo tecleado (regla de
+     la casa: plegar nunca pierde lo tecleado). El repintado de
+     siempre ocurre la primera vez y tras cada guardado, porque
+     np-save vacía la zona al cerrar y la próxima apertura pinta
+     el perfil vigente. */
+  if (z.querySelector('#np-name')) { try { prof595Open('nutriedit'); } catch {} return; }
   const p = NUTRI.myProfile || {};
   z.innerHTML = `<div class="nutri-form">
   <label>${esc(t('purpose.nutriTitle'))}<input type="text" id="np-name" maxlength="80" value="${esc(p.displayName || '')}"></label>
@@ -67063,8 +67230,20 @@ function nutriEditProfilePaint() {
       nutriAudit('nutritionist.profile', auth.currentUser.uid, 'nutricionista', '');
       toast(t('nutri.saved'));
       renderNutriProBox();
+      /* AUTH-595: al guardar, la pantalla de edición se cierra
+         (como antes el repintado de la caja la retiraba) y la
+         zona se vacía: la próxima apertura pinta el perfil
+         vigente, no el formulario ya guardado. */
+      z.innerHTML = '';
+      try { prof595Close('nutriedit'); } catch {}
     } catch { toast(t('err.createFail'), true); }
   };
+  /* AUTH-595 · PLIEGUES Nº13: el formulario de «Editar perfil»
+     ya no vive incrustado en la tarjeta — es su propia pantalla:
+     la zona pintada viaja a ella al abrir (prof595Open). Si la
+     persona cierra sin guardar, lo tecleado queda en la zona,
+     en su almacén, sin perderse. */
+  try { prof595Open('nutriedit'); } catch {}
 }
 async function nutriBootRefresh() {
   NUTRI.booted = false;
