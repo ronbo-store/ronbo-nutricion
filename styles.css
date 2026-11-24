@@ -7991,7 +7991,20 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 #lib-hint { margin-top: 10px; }
 .lib592-foldline { margin: 12px 0 6px; }
 .lib592-actbtn { min-height: 44px; }
-#libed-backdrop, #libact-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
+#libed-backdrop, #libact-backdrop, #chalact-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
+/* AUTH-593 (pliegues nº 11 · Retos): la línea de pliegue dentro de
+   las hojas de retos y el botón único «Acciones» de cada tarjeta
+   (≥44 px, como manda la regla de crecimiento); los textos de la
+   ficha recortados con «Ver más» (el patrón de la 589: -webkit-box
+   con line-clamp sobre el párrafo) y la caja de términos del
+   carrusel recortada a unas líneas hasta desplegarla. */
+.chal593-line { margin: 12px 0 6px; }
+.chal593-actbtn { min-height: 44px; }
+.chal593-clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.chal593-clamp2 { -webkit-line-clamp: 2; }
+.r21-terms.chal593-tclamp { max-height: 84px; overflow: hidden; }
+.r21-day-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 48px; box-sizing: border-box; background: none; border: 0; padding: 4px 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.r21-day-line .r21-day-chev { flex: none; font-weight: 800; color: #0F766E; }
 .lib592-varsline { margin: 0 0 6px; }
 .lib592-varfold { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; box-sizing: border-box; background: none; border: none; font: inherit; color: inherit; cursor: pointer; padding: 4px 2px; text-align: left; }
 .lib592-varfold .lib592-varname { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

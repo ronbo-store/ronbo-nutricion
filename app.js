@@ -47407,7 +47407,7 @@ async function plan21OpenSheet() {
   const inp = await plan21FetchInputs(me);
   const days = new Set(plan21AvailDays(inp));
   const fams = new Set((inp.udata && inp.udata.equipFamilies) || []);
-  PLAN21_SHEET = { inp, days, fams, showDays: days.size < 4, showEq: !fams.size };
+  PLAN21_SHEET = { inp, days, fams, showDays: days.size < 4, showEq: !fams.size, more593: false };
   plan21SheetPaint();
 }
 function plan21SheetPaint() {
@@ -47419,10 +47419,17 @@ function plan21SheetPaint() {
   const startISO = plan21StartISO(probe);
   const dayChips = WIZ_DAY_ORDER.map(wd => `<button type="button" class="wiz-chip${S.days.has(wd) ? ' sel' : ''}" data-p21-day="${wd}" aria-pressed="${S.days.has(wd)}">${esc(plan21DayName(wd))}</button>`).join('');
   const eqChips = WIZ_EQ_FAMS.map(f => `<button type="button" class="wiz-chip${S.fams.has(f) ? ' sel' : ''}" data-p21-eq="${f}" aria-pressed="${S.fams.has(f)}">${esc(t('train.auto.eq.' + f))}</button>`).join('');
+  /* AUTH-593 (pliegues nº 11): de los tres párrafos de
+     explicación solo el primero (la forma) queda visible; el
+     paso y las fechas van tras un «Ver más». El aviso en rojo
+     del mínimo de días es una alerta: NUNCA se recoge. */
   body.innerHTML = `
     <p class="wiz-body">${esc(t(form === 5 ? 'plan21.sheetForm5' : 'plan21.sheetForm4'))}</p>
+    <button type="button" class="eval-more-btn" id="p21-more-btn" aria-expanded="${S.more593 ? 'true' : 'false'}">${esc(t(S.more593 ? 'chal593.seeLess' : 'chal593.seeMore'))} <span aria-hidden="true">${S.more593 ? '▴' : '▾'}</span></button>
+    <div id="p21-more"${S.more593 ? '' : ' style="display:none"'}>
     <p class="wiz-body">${esc(t(step === 'base' ? 'plan21.sheetStepBase' : step === 'estandar' ? 'plan21.sheetStepStd' : 'plan21.sheetStepSuave'))}</p>
     <p class="wiz-body">${esc(t('plan21.sheetStart', { date: plan21DateLabel(startISO), date2: plan21DateLabel(planISOAddDays(startISO, 20)) }))}</p>
+    </div>
     ${S.showDays ? `<h3 class="wiz-h">${esc(t('wiz.daysTitle'))}</h3><div class="wiz-chips">${dayChips}</div>` : ''}
     ${S.showEq ? `<h3 class="wiz-h">${esc(t('wiz.eqTitle'))}</h3><div class="wiz-chips">${eqChips}</div>` : ''}
     ${S.days.size < 4 ? `<p class="wiz-body" style="color:#b91c1c">${esc(t('plan21.sheetDaysMin'))}</p>` : ''}
@@ -47432,6 +47439,7 @@ function plan21SheetPaint() {
     </div>`;
   body.querySelectorAll('[data-p21-day]').forEach(b => b.onclick = () => { const wd = Number(b.dataset.p21Day); if (S.days.has(wd)) S.days.delete(wd); else S.days.add(wd); plan21SheetPaint(); });
   body.querySelectorAll('[data-p21-eq]').forEach(b => b.onclick = () => { const f = b.dataset.p21Eq; if (S.fams.has(f)) S.fams.delete(f); else S.fams.add(f); plan21SheetPaint(); });
+  const moreBtn = $('p21-more-btn'); if (moreBtn) moreBtn.onclick = () => { S.more593 = !S.more593; plan21SheetPaint(); };
   const cancel = $('p21-cancel'); if (cancel) cancel.onclick = () => plan21CloseSheet();
   const go = $('p21-go'); if (go) go.onclick = () => plan21Start();
 }
@@ -48413,7 +48421,7 @@ async function r21Activate() {
     if (R21.source === 'link' && R21.mode === 'food') {
       await r21LinkFoodActivate(inp);
     } else {
-      PLAN21_SHEET = { inp, days: new Set(plan21AvailDays(inp)), fams: new Set(((inp.udata || {}).equipFamilies || [])), showDays: false, showEq: false };
+      PLAN21_SHEET = { inp, days: new Set(plan21AvailDays(inp)), fams: new Set(((inp.udata || {}).equipFamilies || [])), showDays: false, showEq: false, more593: false };
       if (R21.source === 'link' && R21.mode === 'train') PLAN21_LINK_SKIP_FOOD = true;
       try { await plan21Start(); } finally { PLAN21_LINK_SKIP_FOOD = false; }
       const st = await chalPlan21State(me);
@@ -48539,11 +48547,17 @@ function r21Paint() {
     h += `<h3 class="wiz-h">${esc(t('r21.exTitle'))}</h3><div class="wiz-body">`;
     if (b && R21.mode !== 'food') {
       h += `<p class="wiz-expl">${esc(b.form === 5 ? t('plan21.sheetForm5') : t('plan21.sheetForm4'))} · ${esc(t('plan21.sheetStart', { date: plan21DateLabel(b.startsAt), date2: plan21DateLabel(b.endsAt) }))}</p>`;
+      /* AUTH-593 (pliegues nº 11): cada día de entrenamiento
+         nace recogido en una línea «fecha · etiqueta ›» y solo
+         un día va abierto (por defecto, el primero con
+         ejercicios); los días de descanso ya son una línea. */
+      if (typeof R21.exOpen593 !== 'number') R21.exOpen593 = b.days.slice(0, 7).findIndex(d => !d.freeDay);
       h += b.days.slice(0, 7).map((d, ix) => {
         const iso = planISOAddDays(b.startsAt, ix);
         if (d.freeDay) return `<div class="r21-day r21-rest"><b>${esc(plan21DateLabel(iso))}</b><span>${esc(t('plan21.restDay'))}</span></div>`;
         const exs = (d.exercises || []).map(ex => `<div class="r21-ex"><img src="${esc(libThumbSrc({ foto_url: ex.photoUrl || '' }))}" alt="" loading="lazy" onerror="libThumbErr(this)"><span class="r21-ex-n">${esc(ex.name || '')}</span><span class="r21-ex-s">${esc(String(ex.sets))} × ${esc(String(ex.reps))}</span></div>`).join('');
-        return `<div class="r21-day"><div class="r21-day-h"><b>${esc(plan21DateLabel(iso))}</b><span>${esc(d.label || '')}</span></div>${exs}</div>`;
+        const open = ix === R21.exOpen593;
+        return `<div class="r21-day"><button type="button" class="r21-day-line" data-r21-exday="${ix}" aria-expanded="${open ? 'true' : 'false'}"><span><b>${esc(plan21DateLabel(iso))}</b> · ${esc(d.label || '')}</span><span class="r21-day-chev" aria-hidden="true">${open ? '▾' : '›'}</span></button>${open ? exs : ''}</div>`;
       }).join('');
       if (b.notes) h += `<p class="wiz-note">${esc(b.notes)}</p>`;
       h += r21AdjustHTML();
@@ -48555,7 +48569,12 @@ function r21Paint() {
     h += `<h3 class="wiz-h">${esc(t('r21.termsTitle'))}</h3><div class="wiz-body">
       ${ap ? `<div class="r21-warn"><b>⚠️ ${esc(t('r21.warnPlanT'))}</b><p>${esc(t('r21.warnPlanB', { title: ap.title || ap.name || t('plan21.title') }))}</p></div>` : ''}
       <p class="wiz-expl">${esc(t('r21.termsIntro', { v: TERMS_VERSION }))}</p>
-      <div class="r21-terms">${t('terms.body')}</div>
+      <!-- AUTH-593 (pliegues nº 11): el cuerpo legal nace
+           recortado a unas líneas tras su «Ver más»; la
+           introducción, el aviso de plan activo y la casilla
+           de aceptación quedan siempre visibles. -->
+      <div class="r21-terms${R21.termsMore593 ? '' : ' chal593-tclamp'}">${t('terms.body')}</div>
+      <button type="button" class="eval-more-btn" id="r21-terms-more" aria-expanded="${R21.termsMore593 ? 'true' : 'false'}">${esc(t(R21.termsMore593 ? 'chal593.seeLess' : 'chal593.seeMore'))} <span aria-hidden="true">${R21.termsMore593 ? '▴' : '▾'}</span></button>
       <button type="button" class="r21-check${R21.termsOk ? ' on' : ''}" id="r21-terms-check" aria-pressed="${R21.termsOk ? 'true' : 'false'}"><span class="r21-box">${R21.termsOk ? '✓' : ''}</span><span>${esc(t('r21.termsCheck'))}</span></button>
       ${R21.actError ? `<p class="wiz-note" style="color:#d33;font-weight:700">${esc(t('train.saveError'))}</p>` : ''}</div>
       <div class="wiz-nav"><button type="button" class="btn-ghost" id="r21-back">${esc(t('wiz.back'))}</button><button type="button" class="btn-primary" id="r21-activate"${(!R21.termsOk || R21.busy) ? ' disabled' : ''}>${esc(R21.busy ? t('r21.activating') : t('r21.activateBtn'))}</button></div>`;
@@ -48594,6 +48613,14 @@ function r21Wire(body) {
   /* AUTH-586 (punto 1): «Ver programa completo» desde la propia
      página del reto — consultar no inscribe a nadie. */
   go('r21-prog-open', () => { try { r21ProgramOpen({ de: (R21 && R21.de) || '' }); } catch {} });
+  /* AUTH-593 (pliegues nº 11): los días del paso «ejemplo» se
+     abren de uno en uno y el «Ver más» de los términos. */
+  body.querySelectorAll('[data-r21-exday]').forEach(b2 => b2.onclick = () => {
+    const ix = Number(b2.dataset.r21Exday);
+    R21.exOpen593 = (R21.exOpen593 === ix) ? -1 : ix;
+    r21Paint();
+  });
+  go('r21-terms-more', () => { R21.termsMore593 = !R21.termsMore593; r21Paint(); });
   go('r21-back', () => r21Back());
   go('r21-skip', () => r21DataSkip());
   go('r21-go', () => r21DataNext());
@@ -68348,6 +68375,44 @@ const CHAL_FACE_MUSCLE = 'https://ronbo-store.github.io/ronbo-nutri-assets/avata
    unirme, esperando aprobación, no aprobada, en marcha o
    cumplido. */
 let CHAL_SHEET = null;   // { catId } | { chalId } | { box: 'mine'|'medals'|'repo'|'assign' } (AUTH-518)
+/* AUTH-593 (pliegues nº 11 · Retos): el estado de los recogidos
+   de la vista — vive en memoria de sesión, como los de la
+   589/592: qué secciones de la hoja del repositorio están
+   desplegadas, si la semana del héroe del Plan 21 se ve, y si
+   «Qué es» / «Por qué funciona» de la ficha van desplegados.
+   Todo nace recogido; las alertas y las acciones nunca se
+   recogen. */
+let CHAL593_REPO_OPEN = {};
+let CHAL593_WEEK_OPEN = false;
+let CHAL593_WHAT_OPEN = false;
+let CHAL593_WHY_OPEN = false;
+/* La línea de pliegue de las hojas de retos (la cara prog569-line
+   de la casa, como en la 589/592): título, dato opcional y
+   chevrones ▾/▴ según el estado. */
+function chal593FoldLineHTML(key, title, open, datum) {
+  return `<button type="button" class="prog569-line chal593-line" data-chal593-fold="${key}" aria-expanded="${open ? 'true' : 'false'}"><span class="p569-tx">${esc(title)}${datum ? ` · ${esc(datum)}` : ''}</span><span class="p569-chev" aria-hidden="true">${open ? '▴' : '▾'}</span></button>`;
+}
+/* El cuerpo que acompaña a la línea: nace oculto si la sección
+   no está desplegada. Plegar/desplegar solo voltea el display
+   (patrón del editor de la 592): nada se re-pinta, así lo
+   tecleado en el formulario de diseñar nunca se pierde. */
+function chal593FoldBodyHTML(key, open, inner) {
+  return `<div data-chal593-body="${key}"${open ? '' : ' style="display:none"'}>${inner}</div>`;
+}
+function chal593WireRepoFolds(scope) {
+  if (!scope) return;
+  scope.querySelectorAll('[data-chal593-fold]').forEach(b => {
+    b.onclick = () => {
+      const key = b.dataset.chal593Fold;
+      const open = !CHAL593_REPO_OPEN[key];
+      CHAL593_REPO_OPEN[key] = open;
+      b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      const chev = b.querySelector('.p569-chev'); if (chev) chev.textContent = open ? '▴' : '▾';
+      const body = scope.querySelector(`[data-chal593-body="${key}"]`);
+      if (body) body.style.display = open ? '' : 'none';
+    };
+  });
+}
 function chalSheetResolve() {
   const S = CHAL_SHEET; if (!S) return null;
   if (S.catId) {
@@ -68404,7 +68469,7 @@ function chalSheetPaint() {
     else if (CHAL_SHEET.box === 'repo') inner = chalBoxRepoHTML();
     body.innerHTML = `<div class="chal-sheet-head"><div class="chal-sheet-tt"><b>${esc(t(titles[CHAL_SHEET.box] || 'chal.title'))}</b></div></div>` + inner;
     fl.style.display = '';
-    if (CHAL_SHEET.box === 'repo') chalWireForms();
+    if (CHAL_SHEET.box === 'repo') { chalWireForms(); chal593WireRepoFolds(body); }
     try { retoShareWire(body); } catch {}
     try { coverSync(); } catch {}
     return;
@@ -68427,7 +68492,10 @@ function chalSheetPaint() {
      rechazo) el icono queda como único icono de la cabecera. */
   const sheetIco = face ? '' : `<span class="chal-sheet-ico" aria-hidden="true">${CHAL_METRIC_ICON[chal.metric] || '🏆'}</span>`;
   let h = `<div class="chal-sheet-head">${sheetIco}<div class="chal-sheet-tt"><b>${esc(chalNameOf(chal))}</b><div class="chal-sheet-tags">${chalTagHTML(chal)}<span class="chal-tag">${esc(t('chal.periodDaysTxt', { n: chal.periodDays }))}</span></div></div>${face}</div>`;
-  h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaWhat'))}</h4><p>${esc(t('chal.what.' + chal.metric, { y: chal.target, n: chal.periodDays }))}</p></div>`;
+  /* AUTH-593 (pliegues nº 11): «Qué es» nace recortado a dos
+     líneas con su «Ver más» (patrón de la 589); la meta y la
+     acción quedan siempre visibles. */
+  h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaWhat'))}</h4><p${CHAL593_WHAT_OPEN ? '' : ' class="chal593-clamp chal593-clamp2"'}>${esc(t('chal.what.' + chal.metric, { y: chal.target, n: chal.periodDays }))}</p><button type="button" class="eval-more-btn" data-chal593-more="what" aria-expanded="${CHAL593_WHAT_OPEN ? 'true' : 'false'}">${esc(t(CHAL593_WHAT_OPEN ? 'chal593.seeLess' : 'chal593.seeMore'))} <span aria-hidden="true">${CHAL593_WHAT_OPEN ? '▴' : '▾'}</span></button></div>`;
   h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaGoal'))}</h4><p class="chal-goal-big">${esc(t('chal.goalLine', { y: chal.target, metric: t('chal.metric.' + chal.metric), n: chal.periodDays }))}</p>`;
   if (state === 'none' || state === 'pending') {
     if (chal.kind === 'group') h += `<p class="progress-hint">${esc(t('chal.groupWindow', { d1: dateName(chal.startDate), d2: dateName(chal.endDate) }))}</p>`;
@@ -68437,7 +68505,9 @@ function chalSheetPaint() {
   }
   h += `</div>`;
   h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaHow'))}</h4><p>${esc(t('chal.how.' + chal.metric))}</p>${chalStripHTML(chal, part)}</div>`;
-  h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaWhy'))}</h4><p>${esc(t('chal.why.' + chal.metric))}</p></div>`;
+  /* AUTH-593 (pliegues nº 11): «Por qué funciona», el texto
+     largo de la ficha, nace recortado con su «Ver más». */
+  h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaWhy'))}</h4><p${CHAL593_WHY_OPEN ? '' : ' class="chal593-clamp"'}>${esc(t('chal.why.' + chal.metric))}</p><button type="button" class="eval-more-btn" data-chal593-more="why" aria-expanded="${CHAL593_WHY_OPEN ? 'true' : 'false'}">${esc(t(CHAL593_WHY_OPEN ? 'chal593.seeLess' : 'chal593.seeMore'))} <span aria-hidden="true">${CHAL593_WHY_OPEN ? '▴' : '▾'}</span></button></div>`;
   h += `<div class="chal-sheet-sec"><h4>${esc(t('chal.fichaPrize'))}</h4><p>${esc(t('chal.fichaPrizeLine'))}</p>${chal.rewardText ? `<p class="chal-reward">🎁 ${esc(t('chal.rewardLbl'))}: <b>${esc(chal.rewardText)}</b></p>` : ''}</div>`;
   /* AUTH-572: cada reto creado tiene SU link: el cuadrito de
      compartir vive en su ficha para gestión o para su creador. */
@@ -68466,10 +68536,16 @@ function chalSheetPaint() {
     if (btn.dataset.chalSheet === 'request') { if (cat && (state === 'none' || state === 'approved')) chalRequestCatalog(cat.id); else chalRequestGroup(chal.id); }
     else if (btn.dataset.chalSheet === 'again') chalRequestAgain(chal);
   };
+  /* AUTH-593: los «Ver más» de «Qué es» y «Por qué funciona». */
+  body.querySelectorAll('[data-chal593-more]').forEach(b => b.onclick = () => {
+    if (b.dataset.chal593More === 'what') CHAL593_WHAT_OPEN = !CHAL593_WHAT_OPEN;
+    else CHAL593_WHY_OPEN = !CHAL593_WHY_OPEN;
+    chalSheetPaint();
+  });
   try { coverSync(); } catch {}
 }
-function chalSheetOpenCat(catId) { CHAL_SHEET = { catId }; chalSheetPaint(); }
-function chalSheetOpenId(chalId) { CHAL_SHEET = { chalId }; chalSheetPaint(); }
+function chalSheetOpenCat(catId) { CHAL593_WHAT_OPEN = false; CHAL593_WHY_OPEN = false; CHAL_SHEET = { catId }; chalSheetPaint(); }
+function chalSheetOpenId(chalId) { CHAL593_WHAT_OPEN = false; CHAL593_WHY_OPEN = false; CHAL_SHEET = { chalId }; chalSheetPaint(); }
 function chalSheetClose() {
   const fl = $('chal-ficha-float'); if (fl) fl.style.display = 'none';
   CHAL_SHEET = null;
@@ -68544,21 +68620,26 @@ function chalCatalogCardHTML(c, opts = {}) {
    (D-R1). */
 function chalBoxRepoHTML() {
   const today = todayISO();
-  let h = `<h3 class="history-title">${esc(t('chal.repoPrograms'))}</h3>`;
-  h += chalPlan21CardHTML();
-  /* AUTH-572: el cuadrito de compartir del programa, para
-     gestión, junto a su tarjeta. */
-  if (chalCanManage()) h += retoShareCardHTML('plan-21');
-  h += `<h3 class="history-title">${esc(t('chal.repoChallenges'))}</h3>`;
-  h += CHAL_CATALOG.map(c => chalCatalogCardHTML(c, { assignable: chalCanManage() })).join('');
-  h += `<h3 class="history-title">${esc(t('chal.repoOpenGroups'))}</h3>`;
   /* Descubrimiento: SOLO retos activos (aclaración de Ronald,
      2026-11-04 18:42 CST: el alumno ve solo retos activos). Un
      reto de grupo ya vencido no se ofrece para unirse; quien
      participa en él lo sigue viendo en «Mis retos» y en sus
      medallas, que salen de CHAL.mine, no de esta lista. */
   const groupsActive = CHAL.groups.filter(g => g.endDate >= today);
-  h += groupsActive.length ? groupsActive.map(g => chalItemHTML(g, null, { joinable: true })).join('') : `<div class="wempty">${esc(t('chal.groupEmpty'))}</div>`;
+  /* AUTH-593 (pliegues nº 11): la hoja deja de ser una sola
+     lista larga — cada asunto nace recogido en su línea
+     (título + conteo + ›) y la gestión va separada del
+     catálogo, bajo su propio título «Crear y gestionar». */
+  let prog = chalPlan21CardHTML();
+  /* AUTH-572: el cuadrito de compartir del programa, para
+     gestión, junto a su tarjeta. */
+  if (chalCanManage()) prog += retoShareCardHTML('plan-21');
+  let h = chal593FoldLineHTML('programs', t('chal.repoPrograms'), !!CHAL593_REPO_OPEN.programs)
+    + chal593FoldBodyHTML('programs', !!CHAL593_REPO_OPEN.programs, prog);
+  h += chal593FoldLineHTML('count', t('chal.repoChallenges'), !!CHAL593_REPO_OPEN.count, String(CHAL_CATALOG.length))
+    + chal593FoldBodyHTML('count', !!CHAL593_REPO_OPEN.count, CHAL_CATALOG.map(c => chalCatalogCardHTML(c, { assignable: chalCanManage() })).join(''));
+  h += chal593FoldLineHTML('groups', t('chal.repoOpenGroups'), !!CHAL593_REPO_OPEN.groups, String(groupsActive.length))
+    + chal593FoldBodyHTML('groups', !!CHAL593_REPO_OPEN.groups, groupsActive.length ? groupsActive.map(g => chalItemHTML(g, null, { joinable: true })).join('') : `<div class="wempty">${esc(t('chal.groupEmpty'))}</div>`);
   if (chalCanManage()) h += chalManageHTML();
   return h;
 }
@@ -68781,20 +68862,63 @@ function chalItemHTML(chal, part, opts = {}) {
       : isMine ? chalBarHTML(part, chal) + `<div class="chal-dates">${chalDatesHTML(chal, part)}</div>` : `<div class="chal-dates">${chalDatesHTML(chal, null)}</div>`}
     ${just ? `<p class="chal-celebrate">🎉 ${esc(t('chal.celebrate', { name: chalNameOf(chal) }))}</p>` : ''}
     <div class="chal-actions">`;
-  if (opts.joinable) h += `<button type="button" class="btn-primary" data-chal-act="open" data-chal-id="${chal.id}">${esc(t('chal.viewBtn'))}</button>`;
-  if (isMine) h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="open" data-chal-id="${chal.id}">${esc(t('chal.viewBtn'))}</button>`;
-  /* La tabla solo se ofrece a quien ya participa (o al
-     creador, en su sección de gestión): las reglas solo dejan
-     leer participaciones a los del propio reto
+  /* AUTH-593 (pliegues nº 11): la tarjeta queda SOLO tocable
+     — el botón «Ver» sobraba, porque la tarjeta entera ya abre
+     la ficha — y sus acciones (Tabla · Salir · Abandonar,
+     según el estado) se agrupan tras UN solo botón «Acciones»
+     que abre su hoja propia (chalItemActionsOpen, más abajo).
+     La tabla solo se ofrece a quien ya participa: las reglas
+     solo dejan leer participaciones a los del propio reto
      (AUTH-2026-11-04-236). */
-  if (chal.kind === 'group' && isMine) h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="table" data-chal-id="${chal.id}">${esc(t('chal.tableTitle'))}</button>`;
-  if (isMine && chal.kind === 'group' && !part.completedAt) h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="leave" data-chal-id="${chal.id}">${esc(t('chal.leave'))}</button>`;
-  if (isMine && chal.kind === 'individual') h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="abandon" data-chal-id="${chal.id}">${esc(t('chal.abandon'))}</button>`;
-  if (opts.manage) h += `<button type="button" class="btn-ghost btn-sm" data-chal-act="delcreated" data-chal-id="${chal.id}">${esc(t('chal.delete'))}</button>`;
+  const actOpts = [];
+  if (chal.kind === 'group' && isMine) actOpts.push('table');
+  if (isMine && chal.kind === 'group' && !part.completedAt) actOpts.push('leave');
+  if (isMine && chal.kind === 'individual') actOpts.push('abandon');
+  if (opts.manage) actOpts.push('delcreated');
+  if (actOpts.length) h += `<button type="button" class="btn-ghost btn-sm chal593-actbtn" data-chal-act="actions" data-chal-id="${chal.id}">${esc(t('chal593.actions'))}</button>`;
   h += `</div>`;
   if (chal.kind === 'group' && CHAL.openTables[chal.id]) h += `<div class="chal-table">${chalTableHTML(chal)}</div>`;
   h += `</div>`;
   return h;
+}
+/* AUTH-593 (pliegues nº 11): la hoja de acciones de una tarjeta
+   (la cara act-sheet de la casa, como la de acciones de la
+   592): una opción por acción posible de ESA tarjeta; tocarla
+   cierra la hoja y despacha la acción de siempre por el
+   despachador común. Abrirla no escribe nada. */
+let CHAL593_ACT_WIRED = false;
+function chalItemActionsOpen(chalId) {
+  const entry = (CHAL.mine || []).find(x => x.chal && x.chal.id === chalId);
+  if (!entry) return;
+  const chal = entry.chal, part = entry.part;
+  const opts = [];
+  if (chal.kind === 'group') opts.push({ act: 'table', label: t('chal.tableTitle') });
+  if (chal.kind === 'group' && !part.completedAt) opts.push({ act: 'leave', label: t('chal.leave') });
+  if (chal.kind === 'individual') opts.push({ act: 'abandon', label: t('chal.abandon') });
+  if (!opts.length) return;
+  $('chalact-title').textContent = chalNameOf(chal);
+  $('chalact-body').innerHTML = opts.map(o => `<button type="button" class="libf-opt" data-chal593-opt="${o.act}"><span class="libf-opt-name">${esc(o.label)}</span></button>`).join('');
+  $('chalact-body').querySelectorAll('[data-chal593-opt]').forEach(b => b.onclick = () => {
+    const act = b.dataset.chal593Opt;
+    chalItemActionsClose();
+    chalActDispatch({ dataset: { chalAct: act, chalId } });
+  });
+  if (!CHAL593_ACT_WIRED) {
+    CHAL593_ACT_WIRED = true;
+    const bd = $('chalact-backdrop'); if (bd) bd.onclick = () => chalItemActionsClose();
+    const x = $('chalact-close'); if (x) x.onclick = () => chalItemActionsClose();
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && $('chalact-float') && $('chalact-float').style.display !== 'none') chalItemActionsClose();
+    });
+  }
+  $('chalact-backdrop').style.display = '';
+  $('chalact-float').style.display = '';
+  coverSync();
+}
+function chalItemActionsClose() {
+  const fl = $('chalact-float'); if (fl) fl.style.display = 'none';
+  const bd = $('chalact-backdrop'); if (bd) bd.style.display = 'none';
+  coverSync();
 }
 function chalMedalsHTML() {
   const done = CHAL.mine.filter(x => x.part.completedAt);
@@ -68999,7 +69123,10 @@ function chalP21WeekHTML(plan, dayIx) {
     const done = iso < today && (d.freeDay || trainDates.has(iso));
     rows += `<div class="chal-wkrow${d.freeDay ? ' rest' : ''}${isToday ? ' today' : ''}"><span class="chal-wd">${esc(plan21DayName(plan21Weekday(iso)))}</span><span class="chal-ws">${esc(d.label || '')}${isToday ? ` · ${esc(t('chal.p21Today'))}` : ''}</span><span class="chal-wst">${done ? '✔️' : (isToday ? '📍' : '')}</span></div>`;
   }
-  return `<div class="chal-secttl">${esc(t('chal.p21WeekTtl', { n: wk + 1 }))}</div>` + rows;
+  /* AUTH-593 (pliegues nº 11): la semana nace recogida en una
+     línea «Semana N ▾»; el día, la barra y el botón del héroe
+     quedan fuera, siempre visibles. */
+  return `<button type="button" class="prog569-line chal593-line" data-chal-act="p21week" aria-expanded="${CHAL593_WEEK_OPEN ? 'true' : 'false'}"><span class="p569-tx">${esc(t('chal.p21WeekTtl', { n: wk + 1 }))}</span><span class="p569-chev" aria-hidden="true">${CHAL593_WEEK_OPEN ? '▴' : '▾'}</span></button><div data-chal593-weekbody${CHAL593_WEEK_OPEN ? '' : ' style="display:none"'}>${rows}</div>`;
 }
 
 function chalP21HeroHTML() {
@@ -69122,13 +69249,17 @@ function chalRenderPaint() {
 function chalManageHTML() {
   const me = chalMe();
   const scopeTxt = (typeof IS_OWNER !== 'undefined' && IS_OWNER) || ROLE === 'administrador' ? t('chal.forAll') : t('chal.forMine');
+  /* AUTH-593 (pliegues nº 11): la zona «Crear y gestionar» va
+     separada del catálogo con su título, y cada asunto nace
+     recogido en su línea, como el resto de la hoja. */
   let h = `<h3 class="history-title">${esc(t('chal.manageTitle'))}</h3>`;
   /* AUTH-518: asignar (a una persona o a un grupo) abre la hoja
      de asignar; el formulario de un solo alumno de hoy se retira
      porque la hoja lo cubre entero. */
-  h += `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.assignSheetTitle'))}</b></div>
+  h += chal593FoldLineHTML('assign', t('chal.assignSheetTitle'), !!CHAL593_REPO_OPEN.assign)
+    + chal593FoldBodyHTML('assign', !!CHAL593_REPO_OPEN.assign, `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.assignSheetTitle'))}</b></div>
     <div class="chal-actions"><button type="button" class="btn-primary" id="chal-asg-open">${esc(t('chal.assignBtn'))}</button></div>
-  </div>`;
+  </div>`);
   /* AUTH-518: el reto destacado de la página — ajuste SOLO del
      administrador/dueño (D-R5): el Plan 21, un reto de conteo o
      un reto de grupo vigente. */
@@ -69136,17 +69267,19 @@ function chalManageHTML() {
     const f = CHAL.featured || { source: 'plan21', refId: '' };
     const cur = f.source === 'catalog' ? 'catalog:' + f.refId : (f.source === 'challenge' ? 'challenge:' + f.refId : 'plan21');
     const groupOpts = [...CHAL.created.filter(c => c.kind === 'group'), ...CHAL.groups];
-    h += `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.featuredLbl'))}</b></div>
+    h += chal593FoldLineHTML('featured', t('chal.featuredLbl'), !!CHAL593_REPO_OPEN.featured)
+    + chal593FoldBodyHTML('featured', !!CHAL593_REPO_OPEN.featured, `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.featuredLbl'))}</b></div>
     <label class="muted">${esc(t('chal.featuredLbl'))}<select id="chal-feat-sel" class="chal-input">
       <option value="plan21"${cur === 'plan21' ? ' selected' : ''}>${esc(t('plan21.title'))}</option>
       ${CHAL_CATALOG.map(c => `<option value="catalog:${c.id}"${cur === 'catalog:' + c.id ? ' selected' : ''}>${esc(t('chal.cat.' + c.id + '.title'))}</option>`).join('')}
       ${groupOpts.map(g => `<option value="challenge:${g.id}"${cur === 'challenge:' + g.id ? ' selected' : ''}>${esc(chalNameOf(g))}</option>`).join('')}
     </select></label>
     <div class="chal-actions"><button type="button" class="btn-primary" id="chal-feat-btn">${esc(t('chal.featuredSaveBtn'))}</button></div>
-  </div>`;
+  </div>`);
   }
   /* Diseñar grupo */
-  h += `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.designTitle'))}</b></div>
+  h += chal593FoldLineHTML('design', t('chal.designTitle'), !!CHAL593_REPO_OPEN.design)
+    + chal593FoldBodyHTML('design', !!CHAL593_REPO_OPEN.design, `<div class="chal-item"><div class="chal-item-head"><b>${esc(t('chal.designTitle'))}</b></div>
     <label class="muted">${esc(t('chal.fName'))}<input type="text" id="chal-d-name" class="chal-input" maxlength="80" placeholder="${esc(t('chal.fNamePh'))}"></label>
     <p class="muted chal-flabel">${esc(t('chal.fMetric'))}</p>
     <div class="chal-chips">${CHAL_METRICS.map(m => `<button type="button" class="chal-chip${CHAL.designMetric === m ? ' chal-chip-on' : ''}" data-chal-metric="${m}">${esc(t('chal.metric.' + m))}</button>`).join('')}</div>
@@ -69158,11 +69291,11 @@ function chalManageHTML() {
     <p class="progress-hint">🎁 ${esc(t('chal.fRewardHint'))}</p>
     <p class="muted chal-flabel">${esc(t('chal.fFor'))}: <b>${esc(scopeTxt)}</b></p>
     <div class="chal-actions"><button type="button" class="btn-primary" id="chal-d-btn">${esc(t('chal.createBtn'))}</button></div>
-  </div>`;
+  </div>`);
   /* Creados por mí */
-  h += `<h3 class="history-title">${esc(t('chal.myCreatedTitle'))}</h3>`;
-  if (!CHAL.created.length) h += `<div class="wempty">${esc(t('chal.createdEmpty'))}</div>`;
-  else h += CHAL.created.map(c => {
+  let created;
+  if (!CHAL.created.length) created = `<div class="wempty">${esc(t('chal.createdEmpty'))}</div>`;
+  else created = CHAL.created.map(c => {
     let extra = '';
     if (c.kind === 'assigned') {
       const rows = CHAL.partsByChal[c.id];
@@ -69183,6 +69316,8 @@ function chalManageHTML() {
       ${CHAL.openTables[c.id] ? `<div class="chal-table">${chalTableHTML(c)}</div>` : ''}
     </div>`;
   }).join('');
+  h += chal593FoldLineHTML('created', t('chal.myCreatedTitle'), !!CHAL593_REPO_OPEN.created, String(CHAL.created.length))
+    + chal593FoldBodyHTML('created', !!CHAL593_REPO_OPEN.created, created);
   return h;
 }
 /* AUTH-518: los formularios de gestión viven ahora en la hoja
@@ -69227,6 +69362,11 @@ function chalActDispatch(el) {
   else if (act === 'leave') chalLeave(id);
   else if (act === 'abandon') chalAbandon(id);
   else if (act === 'delcreated') chalDeleteCreated(id);
+  /* AUTH-593 (pliegues nº 11): el botón único «Acciones» de la
+     tarjeta abre su hoja propia; la semana del héroe del Plan
+     21 se pliega y despliega sin tocar el resto del héroe. */
+  else if (act === 'actions') chalItemActionsOpen(id);
+  else if (act === 'p21week') { CHAL593_WEEK_OPEN = !CHAL593_WEEK_OPEN; chalRenderPaint(); }
   else if (act === 'table') {
     CHAL.openTables[id] = !CHAL.openTables[id];
     if (CHAL.openTables[id] && !CHAL.partsByChal[id]) {

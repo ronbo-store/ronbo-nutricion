@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-pliegues-biblioteca">
+<link rel="stylesheet" href="styles.css?v=20261124-pliegues-retos">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -996,6 +996,19 @@
       <button type="button" class="pend-close" id="chal-ficha-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="chal-ficha-sheet-body"></div>
+  </div>
+
+  <!-- Hoja de ACCIONES de una tarjeta de reto (AUTH-593, pliegues
+       nº 11): cada tarjeta de «Mis retos» y de los grupos lleva UN
+       solo botón «Acciones» que abre esta hoja con lo que la
+       tarjeta puede hacer (Tabla · Salir · Abandonar, según su
+       estado) — las mismas acciones de siempre, ya sin botones
+       sueltos en la tarjeta. La pinta chalItemActionsOpen (app.js);
+       abrirla no escribe nada. -->
+  <div id="chalact-backdrop" style="display:none"></div>
+  <div class="act-float act-sheet" id="chalact-float" style="display:none" role="dialog" aria-modal="true" aria-label="Challenge actions">
+    <div class="act-sheet-head"><h2 class="act-sheet-title" id="chalact-title"></h2><button type="button" class="act-sheet-x" id="chalact-close" aria-label="Close" data-i18n-aria="client.close">✕</button></div>
+    <div id="chalact-body"></div>
   </div>
 
   <!-- ASIGNACIONES (pedido de Ronald, chat RONBO.NUTRI, 2026-11-03
@@ -3009,6 +3022,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-pliegues-biblioteca"></script>
+<script type="module" src="app.js?v=20261124-pliegues-retos"></script>
 </body>
 </html>
