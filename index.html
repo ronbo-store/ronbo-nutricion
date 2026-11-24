@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-detalle-alumno-estable">
+<link rel="stylesheet" href="styles.css?v=20261123-barra-pie-fijo">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -684,6 +684,7 @@
     </div>
     <button type="button" class="back-row" id="pendcfg-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="pendcfg-sheet-body"></div>
+    <div class="p4-foot" id="pendcfg-foot" style="display:none"></div>
   </div>
 
   <!-- AUTH-570 · Programa «Plegar todo» nº 8: hoja propia de
@@ -737,6 +738,7 @@
       <button type="button" class="pend-close" id="nudge-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="nudge-body"></div>
+    <div class="p4-foot" id="nudge-foot" style="display:none"></div>
   </div>
 
   <!-- MENSAJE COMBINADO DE PENDIENTES (este paquete): hoja flotante
@@ -818,6 +820,7 @@
     </div>
     <button type="button" class="back-row" id="tmeas-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="tmeas-body"></div>
+    <div class="p4-foot" id="tmeas-foot" style="display:none"></div>
   </div>
 
   <!-- LA VISTA DE ENTRENAMIENTO, PLEGADA (AUTH-2026-11-23-566,
@@ -864,6 +867,7 @@
       <button type="button" class="pend-close" id="treq-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="treq-body"></div>
+    <div class="p4-foot" id="treq-foot" style="display:none"></div>
   </div>
   <!-- LAS PETICIONES DEL ALUMNO, PLEGADAS (AUTH-2026-11-23-566):
        la hoja que abre la línea «Peticiones · n abiertas ›» de la
@@ -893,6 +897,7 @@
       <button type="button" class="pend-close" id="treq-reply-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="treq-reply-body"></div>
+    <div class="p4-foot" id="treq-reply-foot" style="display:none"></div>
   </div>
 
   <!-- FICHA DE CADA RETO (AUTH-2026-11-08-RETOS): la hoja flotante
@@ -933,6 +938,7 @@
       <button type="button" class="pend-close" id="base-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="base-body"></div>
+    <div class="p4-foot" id="base-foot" style="display:none"></div>
   </div>
   <!-- ============ ASISTENTE DE ARRANQUE VISUAL (AUTH-2026-11-10-379) ============
        La puerta amable de la Ruta: sale sola UNA vez al primer
@@ -1177,6 +1183,7 @@
       <button type="button" class="pend-close" id="btn-act-entry-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="act-entry-body"></div>
+    <div class="p4-foot" id="act-entry-foot" style="display:none"></div>
   </div>
   <div class="act-float act-sheet" id="act-config" style="display:none" role="dialog" aria-label="Set up my hobbies" data-i18n-aria="act.configTitle">
     <div class="pend-head">
@@ -1184,6 +1191,7 @@
       <button type="button" class="pend-close" id="btn-act-config-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="act-config-body"></div>
+    <div class="p4-foot" id="act-config-foot" style="display:none"></div>
   </div>
   <div class="act-float act-sheet" id="act-day" style="display:none" role="dialog" aria-label="Estimate for this day" data-i18n-aria="act.dayTitle">
     <div class="pend-head">
@@ -1428,6 +1436,7 @@
     <div id="recipes-list"></div>
     <div class="ai-actions"><button type="button" class="btn-secondary" id="btn-recipe-new" style="display:none"></button></div>
     <div id="recipes-form" style="display:none"></div>
+    <div class="p4-foot" id="food-recipes-foot" style="display:none"></div>
   </div>
   <!-- AUTH-568: la hoja de filtros del recetario. Vive ANTES de
        #libf-float en el DOM para que la hoja compartida de facetas
@@ -1465,6 +1474,7 @@
     </div>
     <p class="progress-hint aiusage-line aiusage-meal-line" style="display:none"></p>
     <div id="ai-panel" class="ai-panel" style="display:none"></div>
+    <div class="p4-foot" id="food-ai-foot" style="display:none"></div>
   </div>
   <!-- HOJA DEL PLANIFICADOR SEMANAL (variante C aprobada por
        Ronald, 2026-11-09 00:15 CST): la semana construida como
@@ -1496,6 +1506,7 @@
       <button type="button" class="pend-close" id="btn-plancook-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="plancook-body"></div>
+    <div class="p4-foot" id="plancook-foot" style="display:none"></div>
   </div>
 
   <!-- AUTH-479 · Gestión de platos de SU semana automática:
@@ -1597,6 +1608,7 @@
       <button type="button" class="pend-close" id="btn-sched-close" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
     <div id="sched-sheet-body"></div>
+    <div class="p4-foot" id="sched-foot" style="display:none"></div>
   </div>
   <!-- Filtros de la Biblioteca con controles de la casa
        (2026-11-13): la hoja de opciones de Categoría y Nivel —
@@ -1637,6 +1649,7 @@
   <div class="act-float act-sheet" id="mp-quick" style="display:none" role="dialog" aria-label="Quick log">
   <div class="pend-head"><h2 data-i18n="mp.quick">Quick log</h2><button type="button" class="pend-close" data-mp-act="close" data-sheet="mp-quick" aria-label="Close">✕</button></div>
   <div id="mp-quick-body"></div>
+  <div class="p4-foot" id="mp-quick-foot" style="display:none"></div>
 </div>
 <div class="act-float act-sheet" id="mp-hist" style="display:none" role="dialog" aria-label="History">
   <div class="pend-head"><h2 id="mp-hist-title"></h2><button type="button" class="pend-close" data-mp-act="close" data-sheet="mp-hist" aria-label="Close">✕</button></div>
@@ -1738,6 +1751,7 @@ cuando no hay declaración legible (decisión 5). -->
 <div class="act-float act-sheet" id="mp-air" style="display:none" role="dialog" aria-label="Add results from a photo">
   <div class="pend-head"><h2 id="mp-air-title">📷 Add results from a photo</h2><button type="button" class="pend-close" data-mp-act="close" data-sheet="mp-air" aria-label="Close">✕</button></div>
   <div id="mp-air-body" class="act-body"></div>
+  <div class="p4-foot" id="mp-air-foot" style="display:none"></div>
   <input type="file" id="air-file" accept="image/*" style="display:none">
 </div>
 <div class="act-float act-sheet" id="share-float" style="display:none" role="dialog" aria-label="Share your progress" data-i18n-aria="share.title">
@@ -2864,6 +2878,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-detalle-alumno-estable"></script>
+<script type="module" src="app.js?v=20261123-barra-pie-fijo"></script>
 </body>
 </html>
