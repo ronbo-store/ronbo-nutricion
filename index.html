@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-leer-informe">
+<link rel="stylesheet" href="styles.css?v=20261124-piloto-plan-pantalla">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1957,13 +1957,21 @@
     <div id="planfix-body"></div>
   </div>
 
-  <!-- «Progreso en este plan» y «Revisar propuestas» del detalle
-       de «Mis alumnos» (AUTH-412): hojas hermanas de
-       #plan-float en la familia .act-float/.act-sheet. Sus cuerpos
-       los pinta app.js (stuPlanProgressOpen / stuTrayOpen) SOLO
-       con datos del alumno; abrirlas no escribe nada. -->
-  <div class="act-float act-sheet" id="stu-prog-float" style="display:none" role="dialog" aria-label="Progress in this plan">
-    <div class="act-sheet-head"><h2 class="act-sheet-title" id="stu-prog-title"></h2><button type="button" class="act-sheet-x" id="btn-stu-prog-close" aria-label="Close">✕</button></div>
+  <!-- «Progreso en este plan» del detalle de «Mis alumnos»
+       (AUTH-412; PILOTO «pantalla propia» de Ronald, 2026-11-24):
+       ya NO es una hoja flotante con X — es una PANTALLA de
+       página completa de la familia .act-float con cabecera
+       FIJA (.stu-prog-head: botón «← Volver» de ≥44 px siempre
+       visible, que no se desplaza) y el cuerpo (#stu-prog-body)
+       desplazándose debajo. Su cuerpo lo pinta app.js
+       (stuPlanProgressOpen) SOLO con datos del alumno; abrirla
+       no escribe nada. «Revisar propuestas» (#stu-tray-float)
+       sigue siendo la hoja de siempre, sin tocar. -->
+  <div class="act-float stu-prog-screen" id="stu-prog-float" style="display:none" role="dialog" aria-label="Progress in this plan">
+    <div class="stu-prog-head">
+      <button type="button" class="back-row stu-prog-back" id="btn-stu-prog-back">‹ <span data-i18n="pendact.back">Back</span></button>
+      <h2 class="act-sheet-title" id="stu-prog-title"></h2>
+    </div>
     <div id="stu-prog-body"></div>
   </div>
   <div class="act-float act-sheet" id="stu-qprog-float" style="display:none" role="dialog" aria-label="Student progress summary">
@@ -3494,6 +3502,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-leer-informe"></script>
+<script type="module" src="app.js?v=20261124-piloto-plan-pantalla"></script>
 </body>
 </html>

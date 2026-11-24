@@ -10726,23 +10726,38 @@ function stuPlanProgressModel(plan, logs) {
   const feelAvg = feels.length ? feels.reduce((a, f) => a + f.sat, 0) / feels.length : null;
   return { from: s, to: e, planned, done, strip, marks, feels, feelAvg };
 }
-/* «📈 Progreso en este plan» — la hoja hermana #stu-prog-float.
-   Los datos vienen de las cachés del propio detalle cuando están
-   (STU_PLANS / STU_TRAIN) o de las lecturas de siempre
-   (fetchPlans / fetchLogs / recoFetchStored). Estados vacíos
-   honestos en cada bloque; plan sin fechas → una sola nota. */
+/* «📈 Progreso en este plan» — la PANTALLA #stu-prog-float.
+   PILOTO «pantalla propia» (orden de Ronald, 2026-11-24 12:36
+   CST): esta vista era una hoja flotante cuya X quedaba
+   escondida al desplazar el contenido y Ronald quedó atrapado
+   sin poder salir; ahora es una pantalla de página completa
+   con cabecera FIJA y botón «← Volver» siempre visible — la
+   única salida — y el cuerpo se desplaza debajo de la
+   cabecera. La ficha del alumno no se repinta al abrir ni al
+   volver: la pantalla es una tapa (role="dialog", la vigila el
+   sistema de tapas de la casa) y al cerrarla la ficha queda
+   exactamente donde estaba, con su foco restaurado. Los datos
+   y el contenido NO cambian: vienen de las cachés del propio
+   detalle cuando están (STU_PLANS / STU_TRAIN) o de las
+   lecturas de siempre (fetchPlans / fetchLogs /
+   recoFetchStored). Estados vacíos honestos en cada bloque;
+   plan sin fechas → una sola nota. */
+function stuPlanProgressClose() {
+  const fl = $('stu-prog-float'); if (fl) fl.style.display = 'none';
+}
 async function stuPlanProgressOpen(uid) {
   const fl = $('stu-prog-float'); if (!fl) return;
   const plans = (STU_PLANS.uid === uid && STU_PLANS.plans) ? STU_PLANS.plans : await fetchPlans(uid);
   const plan = (plans || []).find(p => p && p.active === true) || null;
   const ttl = $('stu-prog-title'); if (ttl) ttl.textContent = t('students.progTitle');
-  const x = $('btn-stu-prog-close'); if (x) x.onclick = () => { fl.style.display = 'none'; };
+  const bk = $('btn-stu-prog-back'); if (bk) bk.onclick = () => stuPlanProgressClose();
   const body = $('stu-prog-body'); if (!body) return;
-  if (!plan) { body.innerHTML = `<div class="stu-prog-empty">${esc(t('train.noPlan'))}</div>`; fl.style.display = ''; return; }
+  const show = () => { fl.style.display = ''; try { body.scrollTop = 0; } catch {} };
+  if (!plan) { body.innerHTML = `<div class="stu-prog-empty">${esc(t('train.noPlan'))}</div>`; show(); return; }
   const head = `<p class="stu-prog-sub"><b>${esc(stuTrayStudentName(uid))}</b> · ${esc(plan.title || '')}</p>`;
   const s = String(plan.startsAt || '').slice(0, 10), e = String(plan.endsAt || '').slice(0, 10);
   const okWin = /^\d{4}-\d{2}-\d{2}$/.test(s) && /^\d{4}-\d{2}-\d{2}$/.test(e) && e >= s;
-  if (!okWin) { body.innerHTML = head + `<div class="stu-prog-empty">${esc(t('students.progNoWindow'))}</div>`; fl.style.display = ''; return; }
+  if (!okWin) { body.innerHTML = head + `<div class="stu-prog-empty">${esc(t('students.progNoWindow'))}</div>`; show(); return; }
   const logs = (STU_TRAIN.uid === uid && STU_TRAIN.logs) ? STU_TRAIN.logs : await fetchLogs(uid);
   const m = stuPlanProgressModel(plan, logs);
   const tp = stuPlanTimeProgress(plan);
@@ -10776,7 +10791,7 @@ async function stuPlanProgressOpen(uid) {
     + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progMarksTitle'))}</div>${marksH}<p class="stu-prog-note">${esc(t('students.progMarksNote'))}</p></div>`
     + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progFeelTitle'))}</div>${feelsH}</div>`
     + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progMsTitle'))}</div>${msH}<p class="stu-prog-note">${esc(t('students.progMsNote'))}</p></div>`;
-  fl.style.display = '';
+  show();
 }
 /* ════════════════════════════════════════════════════════════════
    AUTH-577 — ACCESO RÁPIDO DEL ENTRENADOR (órdenes de Ronald

@@ -2897,6 +2897,23 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 .plan-card-hint { text-align: center; font-size: 13px; font-weight: 700; color: #0f766e; margin: 4px 0 10px; }
 .plan-review-btn { width: 100%; min-height: 52px; margin-top: 10px; border: 2px solid #0d9488; background: #fff; color: #0f766e; font-weight: 800; font-size: 15.5px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 9px; cursor: pointer; font-family: inherit; }
 .plan-review-count { background: #b3261e; color: #fff; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 2px 9px; }
+/* PILOTO «pantalla propia» (orden de Ronald, 2026-11-24):
+   «Progreso en este plan» (#stu-prog-float) deja de ser hoja
+   flotante — su X quedaba escondida al desplazar el contenido
+   y no se podía salir — y pasa a ser pantalla de página
+   completa: columna flexible con la cabecera FIJA fuera del
+   scroll (el patrón de .act-float.acts-sheet) y el cuerpo
+   desplazándose debajo. La cabecera lleva el botón «← Volver»
+   (≥44 px, la única salida) y el título; sin X. El relleno
+   inferior de la familia .act-float (120 px + área segura)
+   vive ahora dentro del cuerpo que desplaza, como en
+   .acts-body, para que el final del contenido nunca quede
+   bajo el dock. Solo esta pantalla: ninguna otra hoja cambia. */
+.act-float.stu-prog-screen { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+.stu-prog-head { flex: none; display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #eef2f5; }
+.stu-prog-back { margin-bottom: 0; min-height: 44px; padding: 0 10px 0 2px; flex: none; }
+.stu-prog-head .act-sheet-title { min-width: 0; }
+#stu-prog-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px calc(120px + env(safe-area-inset-bottom, 0px)); }
 .stu-prog-sub { font-size: 13px; color: #5b6b66; margin: 0 0 4px; }
 .stu-prog-block { background: #fff; border: 1px solid #dde7e3; border-radius: 14px; padding: 12px 13px; margin-top: 12px; }
 .stu-prog-block-t { font-size: 15.5px; font-weight: 800; color: #173f38; margin-bottom: 7px; }
