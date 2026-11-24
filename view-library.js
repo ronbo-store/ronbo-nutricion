@@ -251,8 +251,11 @@ function libAdminRowHTML(ex) {
    filtro activo. Su toque abre la hoja de filtros en su modo
    puerta (una por faceta), y cada puerta abre la hoja de
    opciones de siempre de esa faceta. La fila de chips de
-   grupos NO se toca: va con el rediseño del selector. */
-function libAdminFiltersBtn() {
+   grupos NO se toca: va con el rediseño del selector.
+   El nombre histórico libAdminFacetBtns SE QUEDA a propósito:
+   los extractores de los arneses de regresión (la lista fija
+   del parche-587) lo buscan por nombre en esta vista. */
+function libAdminFacetBtns() {
   const btn = $('lib-admin-filters-btn'); if (!btn) return;
   libFacetBtnWire(btn, () => libAdminFiltersOpen());
   const cat = LIBADM_F.cat ? libFacetValueLabel('categoria', LIB_CAT_ORDER, t('libcat.allCategories'), LIBADM_F.cat) : '';
@@ -326,7 +329,7 @@ function libAdminRenderList() {
     chipsBox.innerHTML = libChipsHTML(libGroupCounts(ctx), ctx.length, LIBADM_F.group);
     libWireChips(chipsBox, k => { LIBADM_F.group = k; libAdminListReset(); });
   }
-  libAdminFiltersBtn();
+  libAdminFacetBtns();
   const rows = libAdminFaceted();
   if (cnt) cnt.textContent = t('libadm.count', { n: rows.length });
   const gateNote = LIBADM_WRITE_ENABLED ? '' : `<div class="wempty">${esc(t('libadm.readonlyNote'))}</div>`;
