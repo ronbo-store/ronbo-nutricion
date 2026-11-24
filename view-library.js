@@ -25,7 +25,8 @@
  * global — funciones de la casa ($, t, esc, toast, failToast,
  * libEnsure, libField, libNameOf, libByLineHTML, libStateBadge,
  * gripPendMarkHTML, libNorm, libGroupKey, libFacetKey, libSections,
- * libGroupCounts, libChipsHTML, libWireChips, libFacetSheetOpen,
+ * libGroupCounts, libChipsHTML, libWireChips, libGroupSelMatch,
+ * libSubChipsHTML, libFacetSheetOpen,
  * libFacetCounted, libFacetBtnFace, libFacetBtnWire,
  * libFacetValueLabel, libThumbSrc, ytThumbOf, libCardOpen,
  * libOpenEditor, libMemPut, libMemDrop, libAssignOpen, coverSync), enlaces del SDK (auth, db,
@@ -233,7 +234,7 @@ function libAdminFaceted(ignore) {
   let rows = libAdminFiltered();
   if (ignore !== 'cat' && LIBADM_F.cat) rows = rows.filter(ex => libFacetKey(ex, 'categoria') === LIBADM_F.cat);
   if (ignore !== 'level' && LIBADM_F.level) rows = rows.filter(ex => libFacetKey(ex, 'nivel') === LIBADM_F.level);
-  if (ignore !== 'group' && LIBADM_F.group) rows = rows.filter(ex => libGroupKey(ex) === LIBADM_F.group);
+  if (ignore !== 'group' && LIBADM_F.group) rows = rows.filter(ex => libGroupSelMatch(libGroupKey(ex), LIBADM_F.group));
   return rows;
 }
 function libAdminRowHTML(ex) {
@@ -251,7 +252,10 @@ function libAdminRowHTML(ex) {
    filtro activo. Su toque abre la hoja de filtros en su modo
    puerta (una por faceta), y cada puerta abre la hoja de
    opciones de siempre de esa faceta. La fila de chips de
-   grupos NO se toca: va con el rediseño del selector.
+   grupos NO se tocó en aquel paquete: su rediseño llegó con
+   el del selector (2026-11-24) — libChipsHTML enseña los 8
+   grupos de primer nivel con «Piernas» agregado y, con
+   Piernas o uno de sus puntos elegido, la fila de sus puntos.
    El nombre histórico libAdminFacetBtns SE QUEDA a propósito:
    los extractores de los arneses de regresión (la lista fija
    del parche-587) lo buscan por nombre en esta vista. */
@@ -323,11 +327,20 @@ function libAdminRenderList() {
   const box = $('lib-admin-list'); if (!box) return;
   const cnt = $('lib-admin-count');
   const chipsBox = $('lib-admin-chips');
-  if (LIB_STATE !== 'ok') { box.innerHTML = `<div class="wempty">${esc(t('train.lib.unavailable'))}</div>`; if (cnt) cnt.textContent = ''; if (chipsBox) chipsBox.innerHTML = ''; return; }
+  if (LIB_STATE !== 'ok') { box.innerHTML = `<div class="wempty">${esc(t('train.lib.unavailable'))}</div>`; if (cnt) cnt.textContent = ''; if (chipsBox) chipsBox.innerHTML = ''; const subBox0 = $('lib-admin-subchips'); if (subBox0) subBox0.innerHTML = ''; return; }
   if (chipsBox) {
     const ctx = libAdminFaceted('group');
-    chipsBox.innerHTML = libChipsHTML(libGroupCounts(ctx), ctx.length, LIBADM_F.group);
+    const counts = libGroupCounts(ctx);
+    chipsBox.innerHTML = libChipsHTML(counts, ctx.length, LIBADM_F.group);
     libWireChips(chipsBox, k => { LIBADM_F.group = k; libAdminListReset(); });
+    /* REDISEÑO DEL SELECTOR (2026-11-24): la fila de puntos
+       del supergrupo elegido («Piernas»), en su contenedor
+       hermano — afinar al punto sin perder el grupo grande. */
+    const subBox = $('lib-admin-subchips');
+    if (subBox) {
+      subBox.innerHTML = libSubChipsHTML(counts, LIBADM_F.group);
+      libWireChips(subBox, k => { LIBADM_F.group = k; libAdminListReset(); });
+    }
   }
   libAdminFacetBtns();
   const rows = libAdminFaceted();

@@ -484,6 +484,12 @@ table.whist { min-width: 640px; }
 .libcat-chip.on { background: #0d9488; border-color: #0d9488; color: #fff; }
 .libcat-chip.on .libcat-n { opacity: .85; }
 .libcat-chip:disabled { opacity: .4; cursor: default; }
+/* REDISEÑO DEL SELECTOR (2026-11-24): la fila de puntos del
+   supergrupo elegido («Piernas») en la Biblioteca y en el
+   navegador visual — su propia cinta bajo la de grupos; vacía
+   (sin supergrupo elegido) no ocupa nada. */
+.libcat-subchips { padding-top: 0; margin-top: -4px; }
+.libcat-subchips:empty { display: none; }
 .libcat-filters { display: flex; flex-wrap: wrap; gap: 10px; margin: 2px 0 8px; }
 .libcat-flabel { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: #5b6470; }
 .libcat-sec { display: flex; align-items: center; gap: 8px; margin: 16px 0 4px; padding-bottom: 4px; border-bottom: 2px solid #e0ecec; font-size: 15px; font-weight: 800; color: #134e4a; }
@@ -2473,10 +2479,35 @@ body.swap-sheet-open .share-fab, body.swap-sheet-open .help-fab, body.swap-sheet
    sección. */
 .swap-groups-label { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #0f766e; margin: 12px 0 8px; }
 .swap-groups-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.swap-group-btn { min-height: 48px; padding: 4px 6px; border-radius: 999px; border: 1.5px solid #0d9488; background: #fff; color: #0f766e; font-size: 14px; font-weight: 800; line-height: 1.15; cursor: pointer; font-family: inherit; text-align: center; }
+/* REDISEÑO DEL SELECTOR (2026-11-24; maqueta v2 aprobada el
+   2026-11-22): los botones de grupo son COMPACTOS (~44 px — la
+   excepción del selector que Ronald aprobó con la maqueta; la
+   clase es compartida con las parrillas de AUTH-543 del
+   dictado, la foto y el constructor, que heredan la misma
+   compacidad visual sin cambiar su comportamiento). El
+   supergrupo («Piernas») nace relleno, como en la maqueta: es
+   el grupo grande que reúne a sus puntos. */
+.swap-group-btn { min-height: 44px; padding: 4px 6px; border-radius: 999px; border: 1.5px solid #0d9488; background: #fff; color: #0f766e; font-size: 14px; font-weight: 800; line-height: 1.15; cursor: pointer; font-family: inherit; text-align: center; }
 .swap-group-btn .swap-group-n { font-weight: 700; opacity: .6; }
 .swap-group-btn.is-active { background: #0d9488; border-color: #0d9488; color: #fff; }
 .swap-group-btn.is-active .swap-group-n { opacity: .85; }
+.swap-group-btn.is-super { background: #0d9488; border-color: #0d9488; color: #fff; }
+.swap-group-btn.is-super .swap-group-n { opacity: .85; }
+/* La fila de vuelta del grupo abierto (la maqueta, pantallas 2
+   y 3): píldora de volver con borde y chip lleno del grupo
+   elegido con su conteo — sustituye a la parrilla mientras el
+   grupo está abierto, con el volver siempre visible. */
+.swap-nav-row { display: flex; gap: 8px; align-items: center; margin: 12px 0 4px; }
+.swap-nav-back { min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid #0d9488; background: #fff; color: #0f766e; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.swap-nav-chip { min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 999px; background: #0d9488; color: #fff; font-size: 15.5px; font-weight: 800; white-space: nowrap; }
+.swap-nav-chip .swap-group-n { font-weight: 700; opacity: .85; margin-left: 3px; }
+/* La lista de puntos de «Piernas» (la maqueta, pantalla 2):
+   filas anchas con el nombre a la izquierda y su conteo vivo
+   a la derecha. */
+.swap-points { display: flex; flex-direction: column; gap: 10px; }
+.swap-point-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; min-height: 52px; padding: 10px 18px; border: 1.5px solid #0d9488; border-radius: 14px; background: #fff; color: #0f766e; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; text-align: left; }
+.swap-point-row:active { background: #f0fdfa; }
+.swap-point-n { color: #7fa8a1; font-weight: 600; font-size: 15px; white-space: nowrap; }
 .swap-sec-title { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #0f766e; margin: 16px 0 8px; }
 .swap-card { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; text-align: left; padding: 9px 10px; margin-bottom: 8px; border: 1px solid #d7e3e1; border-radius: 14px; background: #fff; font: inherit; cursor: pointer; }
 .swap-card:active { background: #f0fdfa; }

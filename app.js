@@ -21055,6 +21055,7 @@ const VIEW_HOST_GETTERS = {
   libGroupKey: () => libGroupKey, libFacetKey: () => libFacetKey,
   libSections: () => libSections, libGroupCounts: () => libGroupCounts,
   libChipsHTML: () => libChipsHTML, libWireChips: () => libWireChips,
+  libGroupSelMatch: () => libGroupSelMatch, libSubChipsHTML: () => libSubChipsHTML,
   libFacetSheetOpen: () => libFacetSheetOpen, libFacetCounted: () => libFacetCounted,
   libFacetBtnFace: () => libFacetBtnFace, libFacetBtnWire: () => libFacetBtnWire,
   libFacetValueLabel: () => libFacetValueLabel,
@@ -24174,6 +24175,9 @@ function p5SwapKey(el) {
   if (typeof d.swapGroupClear === 'string') return 'groupclear';
   if (typeof d.swapPresetClear === 'string') return 'presetclear';
   if (typeof d.swapVariantsBack === 'string') return 'formsback';
+  if (d.swapPoint) return 'point:' + d.swapPoint;
+  if (typeof d.swapNavBack === 'string') return 'navback';
+  if (typeof d.swapNavBackPoint === 'string') return 'navbackpoint';
   const cl = el.classList;
   if (cl) {
     if (cl.contains('swap-sec-title')) return 'sec:' + (el.textContent || '').trim();
@@ -24181,6 +24185,8 @@ function p5SwapKey(el) {
     if (cl.contains('swap-groups-grid')) return 'groupsgrid';
     if (cl.contains('swap-groups-label')) return 'groupslabel';
     if (cl.contains('swap-presets-all')) return 'presetsall';
+    if (cl.contains('swap-nav-row')) return 'navrow';
+    if (cl.contains('swap-points')) return 'points';
   }
   return null;
 }
@@ -31581,6 +31587,22 @@ let SWAP_QUERY = '';
    limpian. Si la biblioteca no tiene ejercicios de ese grupo, la
    hoja lo dice con honestidad (train.swap.presetEmpty). */
 let SWAP_PRESET_GROUP = null;
+/* REDISEÑO DEL SELECTOR (2026-11-24; maqueta v2 aprobada el
+   2026-11-22): la NAVEGACIÓN por grupos de la hoja — el grupo
+   de primer nivel abierto (SWAP_NAV_GROUP) y, dentro de
+   «Piernas», el punto abierto (SWAP_NAV_POINT). Con un grupo
+   abierto, la parrilla se SUSTITUYE por su fila de vuelta
+   («← Grupos musculares» o «← Piernas») con el chip del grupo
+   elegido, como manda la regla de pantallas de Ronald: cada
+   botón abre solo su parte, con el volver visible. El estado
+   vive lo que vive la hoja (nace limpio al abrir y se limpia
+   al cerrar, con SWAP_PRESET_GROUP) y SOBREVIVE a los
+   agregados: agregar desde un grupo no te saca de él. Es
+   estado aparte del de los atajos: tocar un grupo de la
+   parrilla limpia el atajo fijado, y tocar un atajo limpia la
+   navegación. Solo modo «agregar», como la parrilla. */
+let SWAP_NAV_GROUP = null;
+let SWAP_NAV_POINT = null;
 /* AUTH-340: ids de los ejercicios YA presentes en la lista
    efectiva de la sesión vista (plan + cambios + agregados). Lo
    calcula swapSheetResultsHTML en modo «agregar» y lo lee
@@ -31925,8 +31947,19 @@ function swapSheetResultsHTML(plan, di, iso) {
     return h || `<p class="progress-hint">${esc(t('train.swap.noResults'))}</p>`;
   }
   /* Sin ficha (texto libre) o modo «agregar»: la biblioteca por grupos. */
-  if (TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_PRESET_GROUP) {
-    const secs = libSections(LIB).filter(sec => sec.key === SWAP_PRESET_GROUP);
+  /* REDISEÑO DEL SELECTOR (2026-11-24): dentro de «Piernas»
+     sin punto elegido, los resultados SON su lista de puntos
+     (la pantalla 2 de la maqueta); con un punto o un grupo
+     abierto — o con el atajo fijado de siempre —, la sección
+     de ese grupo fino, con las tarjetas de siempre (la base y
+     sus formas bajo ella, AUTH-510: navegar por grupos enseña
+     también las variantes). */
+  if (TRAIN_PICK && TRAIN_PICK.kind === 'add' && SWAP_NAV_GROUP && libIsSuperGroup(SWAP_NAV_GROUP) && !SWAP_NAV_POINT) {
+    return swapPointsHTML(SWAP_NAV_GROUP);
+  }
+  if (TRAIN_PICK && TRAIN_PICK.kind === 'add' && (SWAP_NAV_POINT || SWAP_NAV_GROUP || SWAP_PRESET_GROUP)) {
+    const gKey = SWAP_NAV_POINT || SWAP_NAV_GROUP || SWAP_PRESET_GROUP;
+    const secs = libSections(LIB).filter(sec => sec.key === gKey);
     if (!secs.length) return `<p class="progress-hint">${esc(t('train.swap.presetEmpty'))}</p>`;
     return secs.map(sec => `<div class="swap-sec-title">${esc(sec.label)}</div>` + sec.items.map(ex => swapCardHTML(ex)).join('')).join('');
   }
@@ -31934,6 +31967,23 @@ function swapSheetResultsHTML(plan, di, iso) {
     const items = sec.items.filter(ex => !tEntry || ex.id !== tEntry.id);
     return items.length ? `<div class="swap-sec-title">${esc(sec.label)}</div>` + items.map(ex => swapCardHTML(ex)).join('') : '';
   }).join('');
+}
+/* REDISEÑO DEL SELECTOR (2026-11-24): la lista de PUNTOS de
+   un supergrupo (la pantalla 2 de la maqueta v2) — cada punto
+   con su conteo VIVO de fichas («20 ejercicios ›»); el punto
+   canónico sin fichas (hoy Aductores, 0) enseña su cero y su
+   toque cae en el aviso honesto de grupo vacío de la vista
+   del punto, como los atajos sin grupo. Tocar un punto fija
+   SWAP_NAV_POINT y los resultados pasan a ser su sección. */
+function swapPointsHTML(superKey) {
+  const subs = LIB_SUPER_GROUPS[superKey] || [];
+  const counts = libGroupCounts(LIB);
+  const rows = subs.map(s => {
+    const n = counts.get(s) || 0;
+    const cnt = n === 1 ? t('train.swap.pointExercise1') : t('train.swap.pointExercises', { n });
+    return `<button type="button" class="swap-point-row" data-swap-point="${esc(s)}"><span class="swap-point-name">${esc(libGroupLabel(s))}</span><span class="swap-point-n">${esc(cnt)} ›</span></button>`;
+  }).join('');
+  return `<div class="swap-sec-title">${esc(t('train.swap.pointsOf', { group: libGroupLabel(superKey) }))}</div><div class="swap-points">${rows}</div>`;
 }
 /* FIX-LISTA (2026-11-24, auditoría de biblioteca/edición/
    panel — su síntoma S5): al SUSTITUIR el ejercicio de un
@@ -32224,12 +32274,16 @@ function swapPresetRowHTML() {
    toda la biblioteca», como a todo lo demás. Con un grupo
    activo, la línea «← Ver toda la biblioteca» va bajo la
    parrilla (la de la maqueta) y el botón activo se llena y
-   lleva ✓. La parrilla es UNA pieza compartida: la pinta el
-   selector de la sesión, el del editor de planes y los pasos
-   «elegir de la biblioteca» del dictado y de la foto — cada
-   superficie le pasa SU atributo de botón y de limpieza y
-   guarda SU estado; el filtrado, en cada una, es el de
-   siempre (la sección de ese grupo). */
+   lleva ✓. La parrilla es UNA pieza compartida: la pintan
+   el selector del editor de planes y los pasos «elegir de la
+   biblioteca» del dictado y de la foto — cada superficie le
+   pasa SU atributo de botón y de limpieza y guarda SU estado;
+   el filtrado, en cada una, es el de siempre (la sección de
+   ese grupo). El selector de la SESIÓN la usó hasta el
+   rediseño del 2026-11-24 (maqueta v2): el suyo NAVEGA por
+   pantallas con los grupos de primer nivel (swapGroupsHTML)
+   en vez de filtrar en el sitio; esta pieza queda para las
+   demás superficies, intacta. */
 function libGroupGridHTML(activeKey, btnAttr, clearAttr) {
   if (!LIB || !LIB.length) return '';
   const secs = libSections(LIB).filter(sec => sec.key);
@@ -32241,15 +32295,44 @@ function libGroupGridHTML(activeKey, btnAttr, clearAttr) {
   const all = activeKey ? `<div class="swap-presets-all"><button type="button" class="swap-preset-all" ${clearAttr}="1">← ${esc(t('train.swap.allGroups'))}</button></div>` : '';
   return `<div class="swap-groups-label">${esc(t('train.swap.groupsTitle'))}</div><div class="swap-groups-grid">${btns}</div>${all}`;
 }
-/* La parrilla del selector de la sesión comparte el estado de
-   los atajos (SWAP_PRESET_GROUP): tocar un grupo filtra por el
-   camino de siempre (la sección de ese grupo en
-   swapSheetResultsHTML); tocar el grupo activo lo apaga y se
-   vuelve a toda la biblioteca. Solo modo «agregar», como los
-   atajos y como la maqueta. */
+/* REDISEÑO DEL SELECTOR (2026-11-24; maqueta v2 aprobada el
+   2026-11-22): la parrilla de la sesión ya no filtra en el
+   sitio — NAVEGA. Sin grupo abierto enseña los 8 botones
+   compactos de primer nivel (libTopFacets, con «Piernas»
+   agregado y relleno por ser el grupo grande de la maqueta);
+   con un grupo abierto, la parrilla se SUSTITUYE por la fila
+   de vuelta de la maqueta: «← Grupos musculares» (o «←
+   Piernas» desde un punto) y el chip lleno del grupo abierto
+   con su conteo vivo. El botón del atajo fijado (Core) sigue
+   marcándose en la parrilla y su toque lo apaga, como antes;
+   la línea «← Ver toda la biblioteca» sigue bajo la parrilla
+   con un atajo activo. Solo modo «agregar», como la maqueta.
+   Las demás superficies de libGroupGridHTML (dictado, foto y
+   constructor) conservan la parrilla de AUTH-543 intacta. */
+function swapNavCount(key) {
+  const counts = libGroupCounts(LIB);
+  if (libIsSuperGroup(key)) return LIB_SUPER_GROUPS[key].reduce((a, s) => a + (counts.get(s) || 0), 0);
+  return counts.get(key) || 0;
+}
 function swapGroupsHTML() {
   if (!TRAIN_PICK || TRAIN_PICK.kind !== 'add') return '';
-  return libGroupGridHTML(SWAP_PRESET_GROUP, 'data-swap-group', 'data-swap-group-clear');
+  if (SWAP_NAV_GROUP) {
+    const inPoint = !!SWAP_NAV_POINT;
+    const back = inPoint
+      ? `<button type="button" class="swap-nav-back" data-swap-nav-back-point="1">← ${esc(libGroupLabel(SWAP_NAV_GROUP))}</button>`
+      : `<button type="button" class="swap-nav-back" data-swap-nav-back="1">← ${esc(t('train.swap.groupsTitle'))}</button>`;
+    const chipKey = inPoint ? SWAP_NAV_POINT : SWAP_NAV_GROUP;
+    return `<div class="swap-nav-row">${back}<span class="swap-nav-chip">${esc(libGroupLabel(chipKey))} <span class="swap-group-n">${swapNavCount(chipKey)}</span></span></div>`;
+  }
+  if (!LIB || !LIB.length) return '';
+  const tops = libTopFacets(libGroupCounts(LIB));
+  if (!tops.length) return '';
+  const btns = tops.map(g => {
+    const on = !!SWAP_PRESET_GROUP && g.key === SWAP_PRESET_GROUP;
+    return `<button type="button" class="swap-group-btn${on ? ' is-active' : ''}${g.subs ? ' is-super' : ''}" data-swap-group="${esc(g.key)}" aria-pressed="${on ? 'true' : 'false'}">${esc(g.label)} <span class="swap-group-n">${g.n}</span>${on ? ' ✓' : ''}</button>`;
+  }).join('');
+  const all = SWAP_PRESET_GROUP ? `<div class="swap-presets-all"><button type="button" class="swap-preset-all" data-swap-group-clear="1">← ${esc(t('train.swap.allGroups'))}</button></div>` : '';
+  return `<div class="swap-groups-label">${esc(t('train.swap.groupsTitle'))}</div><div class="swap-groups-grid">${btns}</div>${all}`;
 }
 /* AUTH-340: la cuenta del pie del selector en modo «agregar» —
    los ejercicios agregados a la sesión de ESA fecha (la capa de
@@ -32305,6 +32388,8 @@ function swapSheetWireResults(plan, di, iso) {
   });
   sheet.querySelectorAll('[data-swap-preset]').forEach(b => b.onclick = () => {
     SWAP_PRESET_GROUP = b.dataset.swapPreset || null;
+    SWAP_NAV_GROUP = null;
+    SWAP_NAV_POINT = null;
     SWAP_ADD_FORMS_ID = null;
     SWAP_QUERY = '';
     const sI = sheet.querySelector('#swap-search'); if (sI) sI.value = '';
@@ -32312,18 +32397,24 @@ function swapSheetWireResults(plan, di, iso) {
   });
   sheet.querySelectorAll('[data-swap-preset-clear]').forEach(b => b.onclick = () => {
     SWAP_PRESET_GROUP = null;
+    SWAP_NAV_GROUP = null;
+    SWAP_NAV_POINT = null;
     SWAP_ADD_FORMS_ID = null;
     swapSheetRepaintResults(plan, di, iso);
   });
-  /* AUTH-543: los botones de la parrilla fijan el grupo (el
-     mismo estado de los atajos) limpiando la búsqueda, como
-     hacen los atajos; tocar el grupo activo lo apaga. La línea
-     bajo la parrilla limpia el filtro, igual que la antigua de
-     los atajos (data-swap-preset-clear sigue cableada por si
-     alguna vista la pinta). */
+  /* REDISEÑO DEL SELECTOR (2026-11-24): los botones de la
+     parrilla ABREN su grupo (la parrilla se sustituye por la
+     vista del grupo, swapGroupsHTML) limpiando la búsqueda y
+     el atajo fijado; el único botón que no navega es el del
+     atajo ya fijado (Core): su toque lo apaga, como hacía la
+     parrilla de AUTH-543. La línea bajo la parrilla limpia el
+     atajo, igual que la antigua (data-swap-preset-clear sigue
+     cableada por si alguna vista la pinta). Las vueltas y los
+     puntos de «Piernas» mueven solo su nivel de navegación. */
   sheet.querySelectorAll('[data-swap-group]').forEach(b => b.onclick = () => {
     const k = b.dataset.swapGroup || null;
-    SWAP_PRESET_GROUP = (k && k !== SWAP_PRESET_GROUP) ? k : null;
+    if (k && SWAP_PRESET_GROUP === k) SWAP_PRESET_GROUP = null;
+    else if (k) { SWAP_NAV_GROUP = k; SWAP_NAV_POINT = null; SWAP_PRESET_GROUP = null; }
     SWAP_ADD_FORMS_ID = null;
     SWAP_QUERY = '';
     const sI = sheet.querySelector('#swap-search'); if (sI) sI.value = '';
@@ -32331,6 +32422,24 @@ function swapSheetWireResults(plan, di, iso) {
   });
   sheet.querySelectorAll('[data-swap-group-clear]').forEach(b => b.onclick = () => {
     SWAP_PRESET_GROUP = null;
+    SWAP_NAV_GROUP = null;
+    SWAP_NAV_POINT = null;
+    SWAP_ADD_FORMS_ID = null;
+    swapSheetRepaintResults(plan, di, iso);
+  });
+  sheet.querySelectorAll('[data-swap-nav-back]').forEach(b => b.onclick = () => {
+    SWAP_NAV_GROUP = null;
+    SWAP_NAV_POINT = null;
+    SWAP_ADD_FORMS_ID = null;
+    swapSheetRepaintResults(plan, di, iso);
+  });
+  sheet.querySelectorAll('[data-swap-nav-back-point]').forEach(b => b.onclick = () => {
+    SWAP_NAV_POINT = null;
+    SWAP_ADD_FORMS_ID = null;
+    swapSheetRepaintResults(plan, di, iso);
+  });
+  sheet.querySelectorAll('[data-swap-point]').forEach(b => b.onclick = () => {
+    SWAP_NAV_POINT = b.dataset.swapPoint || null;
     SWAP_ADD_FORMS_ID = null;
     swapSheetRepaintResults(plan, di, iso);
   });
@@ -32361,6 +32470,8 @@ function swapSheetSync(plan, di, iso) {
   const old = document.getElementById('swap-sheet');
   if (!plan || !TRAIN_PICK) {
     SWAP_PRESET_GROUP = null;
+    SWAP_NAV_GROUP = null;
+    SWAP_NAV_POINT = null;
     SWAP_ADD_FORMS_ID = null;
     if (old) old.remove();
     document.body.classList.remove('swap-sheet-open');
@@ -32420,7 +32531,7 @@ function swapSheetSync(plan, di, iso) {
      queda abierto. */
   sheet.querySelectorAll('[data-swap-scan]').forEach(b => b.onclick = () => {
     if (typeof LIB === 'undefined' || !LIB || !LIB.length) { toast(t('train.lib.unavailable'), true); return; }
-    TRAIN_PICK = null; SWAP_QUERY = ''; SWAP_PRESET_GROUP = null;
+    TRAIN_PICK = null; SWAP_QUERY = ''; SWAP_PRESET_GROUP = null; SWAP_NAV_GROUP = null; SWAP_NAV_POINT = null;
     swapSheetSync(null);
     mphSheetOpen(plan, di, iso);
   });
@@ -46747,6 +46858,8 @@ function trainTodayWire(box, W) {
     TRAIN_CUSTOM_OPEN_STASH = null;   /* AUTH-370: abrirlo a propósito manda sobre la guarda del guiado */
     TRAIN_PICK = { kind: 'add' };
     SWAP_PRESET_GROUP = null;
+    SWAP_NAV_GROUP = null;
+    SWAP_NAV_POINT = null;
     trainDayRepaint();
     setTimeout(() => { const tc = $('train-custom-tools'); if (tc) tc.scrollIntoView({ block: 'start' }); }, 80);
   });
@@ -51225,6 +51338,65 @@ function libSearchDetailed(q) {
    (búsqueda + categoría + nivel) ignorando el propio grupo, así cada
    chip dice cuántos ejercicios verías al tocarlo. */
 const LIB_GROUP_ORDER = ['Pecho', 'Espalda', 'Hombros', 'Bíceps', 'Tríceps', 'Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas', 'Core', 'Cuerpo completo'];
+/* REDISEÑO DEL SELECTOR (2026-11-24; maqueta v2 aprobada por
+   Ronald el 2026-11-22): «Piernas» es un grupo de PRIMER NIVEL
+   que reúne sus cinco puntos — el primer nivel pasa de 11
+   grupos a 8. Es un modelo de PRESENTACIÓN (navegación del
+   selector y faceta de los chips de la Biblioteca), no de
+   datos: la ficha sigue guardando su grupo fino y ni
+   libGroupKey ni libSections cambian; lo que cambia es cómo se
+   ofrecen los grupos. «Aductores» es punto canónico de la
+   maqueta aunque hoy ninguna ficha lo trae (0 en el censo): su
+   fila enseña el conteo vivo y su vista cae en el aviso
+   honesto de grupo vacío, como los atajos Cardio/Estirar. */
+const LIB_SUPER_GROUPS = { 'Piernas': ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Pantorrillas', 'Aductores'] };
+const LIB_TOP_GROUP_ORDER = ['Pecho', 'Espalda', 'Hombros', 'Bíceps', 'Tríceps', 'Piernas', 'Core', 'Cuerpo completo'];
+function libIsSuperGroup(key) { return Object.prototype.hasOwnProperty.call(LIB_SUPER_GROUPS, key); }
+function libSuperOf(key) { for (const sup of Object.keys(LIB_SUPER_GROUPS)) if (LIB_SUPER_GROUPS[sup].includes(key)) return sup; return null; }
+/* ¿La ficha de grupo fino exKey entra en la selección selKey?
+   La selección puede ser un grupo fino o el supergrupo entero. */
+function libGroupSelMatch(exKey, selKey) {
+  if (!selKey) return true;
+  if (exKey === selKey) return true;
+  const subs = LIB_SUPER_GROUPS[selKey];
+  return subs ? subs.includes(exKey) : false;
+}
+/* Etiqueta visible de un grupo (fino o supergrupo) en el idioma
+   activo: la del dato para los finos con fichas; la del
+   diccionario para el supergrupo y para el punto canónico sin
+   fichas (Aductores), que no tiene dato del que colgarla. */
+function libGroupLabel(key) {
+  if (libIsSuperGroup(key)) return t('train.swap.legsGroup');
+  const ex = (LIB || []).find(e => libGroupKey(e) === key);
+  if (ex) return libField(ex, 'grupo_muscular') || key;
+  if (key === 'Aductores') return t('train.swap.adductors');
+  return key;
+}
+/* Facetas de PRIMER NIVEL con el conteo agregado por
+   supergrupo: [{ key, label, n, subs? }] en el orden de la
+   maqueta. La presencia sale de la biblioteca cargada (como
+   libGroupFacets) y el conteo, del mapa que pasa cada
+   superficie (el suyo de faceta). Un grupo fino fuera del
+   orden canónico y de todo supergrupo conserva su botón al
+   final: nada se vuelve inalcanzable. */
+function libTopFacets(counts) {
+  const present = new Set();
+  for (const ex of (LIB || [])) { const k = libGroupKey(ex); if (k) present.add(k); }
+  const nOf = k => counts.get(k) || 0;
+  const out = [];
+  for (const key of LIB_TOP_GROUP_ORDER) {
+    if (libIsSuperGroup(key)) {
+      const subs = LIB_SUPER_GROUPS[key];
+      if (!subs.some(s => present.has(s))) continue;
+      out.push({ key, label: libGroupLabel(key), n: subs.reduce((a, s) => a + nOf(s), 0), subs });
+    } else if (present.has(key)) out.push({ key, label: libGroupLabel(key), n: nOf(key) });
+  }
+  const covered = new Set(LIB_TOP_GROUP_ORDER);
+  for (const subs of Object.values(LIB_SUPER_GROUPS)) for (const s of subs) covered.add(s);
+  const extra = [...present].filter(k => !covered.has(k)).sort((a, b) => libGroupLabel(a).localeCompare(libGroupLabel(b)));
+  for (const k of extra) out.push({ key: k, label: libGroupLabel(k), n: nOf(k) });
+  return out;
+}
 const LIB_CAT_ORDER = ['Con máquinas', 'Asistido', 'Sin máquinas y sin asistencia'];
 const LIB_LEVEL_ORDER = ['Principiante', 'Intermedio', 'Avanzado'];
 function libGroupKey(ex) { return ex ? (ex.grupo_muscular_es || ex.grupo_muscular_en || '') : ''; }
@@ -51252,7 +51424,31 @@ function libGroupFacets() {
 function libGroupCounts(list) { const m = new Map(); for (const ex of list) { const k = libGroupKey(ex); if (k) m.set(k, (m.get(k) || 0) + 1); } return m; }
 function libChipsHTML(counts, total, selected) {
   const chip = (key, label, n) => `<button type="button" class="libcat-chip${key === selected ? ' on' : ''}" data-libcat-group="${esc(key)}"${n === 0 && key !== selected ? ' disabled' : ''}>${esc(label)} <span class="libcat-n">${n}</span></button>`;
-  return chip('', t('libcat.all'), total) + libGroupFacets().map(g => chip(g.key, g.label, counts.get(g.key) || 0)).join('');
+  /* REDISEÑO DEL SELECTOR (2026-11-24): la fila enseña los
+     grupos de PRIMER NIVEL (libTopFacets: 8, con «Piernas»
+     agregado) — el mismo modelo de la maqueta, en forma de
+     faceta. La selección puede valer el supergrupo
+     ('Piernas': entran todas sus fichas, vía libGroupSelMatch
+     en los filtros) o un punto fino, como siempre. */
+  return chip('', t('libcat.all'), total) + libTopFacets(counts).map(g => chip(g.key, g.label, g.n)).join('');
+}
+/* REDISEÑO DEL SELECTOR (2026-11-24): la fila de PUNTOS que
+   acompaña a la de chips cuando la selección es el supergrupo
+   o uno de sus puntos — el supergrupo (todas sus fichas) y
+   cada punto con su conteo de faceta, para afinar sin perder
+   el grupo grande. Vive en su propio contenedor hermano
+   (#lib-admin-subchips / #pl-viz-subchips) porque la fila de
+   chips es una cinta de desplazamiento horizontal: la de
+   puntos nace debajo, como la pantalla 2 de la maqueta pone
+   los puntos bajo el grupo elegido. Sin selección de
+   supergrupo, cadena vacía. */
+function libSubChipsHTML(counts, selected) {
+  const selSuper = selected ? (libIsSuperGroup(selected) ? selected : libSuperOf(selected)) : null;
+  if (!selSuper) return '';
+  const chip = (key, label, n) => `<button type="button" class="libcat-chip${key === selected ? ' on' : ''}" data-libcat-group="${esc(key)}"${n === 0 && key !== selected ? ' disabled' : ''}>${esc(label)} <span class="libcat-n">${n}</span></button>`;
+  const subs = LIB_SUPER_GROUPS[selSuper];
+  return chip(selSuper, libGroupLabel(selSuper), subs.reduce((a, s) => a + (counts.get(s) || 0), 0))
+    + subs.map(s => chip(s, libGroupLabel(s), counts.get(s) || 0)).join('');
 }
 function libWireChips(box, onPick) { if (box) box.querySelectorAll('[data-libcat-group]').forEach(b => { b.onclick = () => onPick(b.dataset.libcatGroup); }); }
 /* Valores presentes de una faceta (categoría/nivel) con su orden de
@@ -53499,7 +53695,7 @@ function vizFiltered(ignore) {
   let pool = LIB;
   if (ignore !== 'cat' && VIZ_F.cat) pool = pool.filter(ex => libFacetKey(ex, 'categoria') === VIZ_F.cat);
   if (ignore !== 'level' && VIZ_F.level) pool = pool.filter(ex => libFacetKey(ex, 'nivel') === VIZ_F.level);
-  if (ignore !== 'group' && VIZ_F.group) pool = pool.filter(ex => libGroupKey(ex) === VIZ_F.group);
+  if (ignore !== 'group' && VIZ_F.group) pool = pool.filter(ex => libGroupSelMatch(libGroupKey(ex), VIZ_F.group));
   const qRaw = (($('pl-viz-q') || {}).value || '');
   const q = libNorm(qRaw).trim();
   if (q.length < 2) return [...pool].sort((a, b) => libNameOf(a).localeCompare(libNameOf(b)));
@@ -53516,10 +53712,18 @@ function vizFiltered(ignore) {
 function vizFilter() { return vizFiltered(); }
 function vizRenderChips() {
   const box = $('pl-viz-chips'); if (!box) return;
-  if (LIB_STATE !== 'ok') { box.innerHTML = ''; return; }
+  const subBox = $('pl-viz-subchips');
+  if (LIB_STATE !== 'ok') { box.innerHTML = ''; if (subBox) subBox.innerHTML = ''; return; }
   const ctx = vizFiltered('group');
-  box.innerHTML = libChipsHTML(libGroupCounts(ctx), ctx.length, VIZ_F.group);
+  const counts = libGroupCounts(ctx);
+  box.innerHTML = libChipsHTML(counts, ctx.length, VIZ_F.group);
   libWireChips(box, k => { VIZ_F.group = k; vizRenderChips(); vizRenderGrid(); });
+  /* REDISEÑO DEL SELECTOR (2026-11-24): la fila de puntos del
+     supergrupo elegido, en su contenedor hermano. */
+  if (subBox) {
+    subBox.innerHTML = libSubChipsHTML(counts, VIZ_F.group);
+    libWireChips(subBox, k => { VIZ_F.group = k; vizRenderChips(); vizRenderGrid(); });
+  }
 }
 function vizRenderFacets() {
   const catBtn = $('pl-viz-cat-btn'), lvlBtn = $('pl-viz-level-btn');
