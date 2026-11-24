@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-piloto-plan-pantalla">
+<link rel="stylesheet" href="styles.css?v=20261124-reorg-ficha">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1957,6 +1957,21 @@
     <div id="planfix-body"></div>
   </div>
 
+  <!-- «Plan de entrenamiento» del detalle de «Mis alumnos»
+       (REORG-FICHA, 2026-11-24): pantalla propia con «Volver»
+       fijo (patrón .acts-sheet). Su cuerpo lo pinta app.js
+       (stuPlanHubOpen): la tarjeta del plan activo, las puertas
+       «Ver plan actual» y «Asignar plan» y, debajo, los bloques
+       de siempre (plan y retos), que VIAJAN desde #stu-store
+       como en la hoja del detalle. Abrirla no escribe nada. -->
+  <div class="act-float acts-sheet" id="stu-planhub-float" style="display:none" role="dialog" aria-label="Training plan">
+    <div class="reorg-head">
+      <button type="button" class="back-row" id="stu-planhub-back">‹ <span data-i18n="pendact.back">Back</span></button>
+      <h2 class="reorg-title" id="stu-planhub-title"></h2>
+    </div>
+    <div class="acts-body" id="stu-planhub-body"><div id="stu-planhub-top"></div><div id="stu-planhub-blocks"></div></div>
+  </div>
+
   <!-- «Progreso en este plan» del detalle de «Mis alumnos»
        (AUTH-412; PILOTO «pantalla propia» de Ronald, 2026-11-24):
        ya NO es una hoja flotante con X — es una PANTALLA de
@@ -3502,6 +3517,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-piloto-plan-pantalla"></script>
+<script type="module" src="app.js?v=20261124-reorg-ficha"></script>
 </body>
 </html>
