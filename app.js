@@ -28835,21 +28835,68 @@ function restrLastLineHTML(row) {
   if (h.maxKg != null) return `<div class="restr-last">${esc(t('restr.lastLine', { ...vars, load: fmtMass(h.maxKg) }))}</div>`;
   return `<div class="restr-last">${esc(t('restr.lastLineNoLoad', vars))}</div>`;
 }
-function restrPreviewHTML(S) {
+/* ═══ PLIEGUES Nº14 (596): las notas del motor de una propuesta
+   del Coach, plegadas tras la línea «Por qué así ›». Cada nota
+   nace con su marca: las de DOLOR (salud) quedan SIEMPRE
+   visibles fuera del pliegue — una alerta de salud nunca se
+   recoge — y el resto vive tras la línea. El pliegue solo
+   voltea la visibilidad: jamás repinta, así que lo tecleado
+   en los campos de carga de la propuesta nunca se pierde. ═══ */
+function coach596NotesHTML(notes) {
+  const pain = notes.filter(n => n.pain).map(n => n.h).join('');
+  const why = notes.filter(n => !n.pain).map(n => n.h).join('');
+  if (!why) return pain;
+  return pain
+    + '<button type="button" class="coach596-why" data-coach596-why aria-expanded="false"><span>' + esc(t('coach596.why')) + '</span><span class="coach596-why-chev" aria-hidden="true">›</span></button>'
+    + '<div class="coach596-why-body" style="display:none">' + why + '</div>';
+}
+/* La pantalla propia de la propuesta: mientras una propuesta
+   (organizar o la vista previa de reestructurar) está abierta,
+   el cuerpo de la hoja lleva la clase que oculta el resto de
+   la conversación. Se recalcula en cada sincronización de los
+   dos anfitriones, así cerrar cualquiera la apaga solo si no
+   queda otra pantalla abierta. */
+function coach596ScreenSync() {
+  const body = document.getElementById('asst-body');
+  if (!body) return;
+  const on = (typeof ORGA !== 'undefined' && ORGA && ORGA.phase === 'proposal')
+    || (typeof RESTR !== 'undefined' && RESTR && RESTR.host === 'chat' && RESTR.phase === 'preview');
+  body.classList.toggle('asst-has-screen', !!on);
+}
+function coach596WhyWire(root) {
+  if (!root || !root.querySelectorAll) return;
+  root.querySelectorAll('[data-coach596-why]').forEach(btn => {
+    if (btn.__coach596w) return;
+    btn.__coach596w = true;
+    btn.addEventListener('click', () => {
+      const body = btn.parentElement ? btn.parentElement.querySelector('.coach596-why-body') : null;
+      if (!body) return;
+      const open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : '';
+      btn.setAttribute('aria-expanded', String(!open));
+      btn.classList.toggle('is-open', !open);
+    });
+  });
+}
+function restrPreviewHTML(S, inChat) {
   const B = S.built;
   const d = B.decl;
+  /* PLIEGUES Nº14 (596): cada nota nace con su marca de dolor;
+     en la hoja (#restr-sheet) se pintan como siempre, en su
+     orden, y en la conversación (inChat) las del motor se
+     pliegan tras «Por qué así ›» y las de dolor quedan fuera. */
   const notes = [];
-  if (!S.ctx.levelInf) notes.push(`<div class="restr-note">${esc(t('restr.noLevel'))}</div>`);
-  if (!S.ctx.eff || !S.ctx.eff.objective) notes.push(`<div class="restr-note">${esc(t('restr.noObjective'))}</div>`);
-  d.levelUp.forEach(x => notes.push(`<div class="restr-note">${esc(t('restr.levelUp', { group: restrGroupLbl(x.group), lvl: t('train.auto.lvl.' + x.lvl) }))}</div>`));
-  d.eqRelaxed.forEach(g => notes.push(`<div class="restr-note">${esc(t('restr.eqRelaxed', { group: restrGroupLbl(g) }))}</div>`));
+  if (!S.ctx.levelInf) notes.push({ pain: false, h: `<div class="restr-note">${esc(t('restr.noLevel'))}</div>` });
+  if (!S.ctx.eff || !S.ctx.eff.objective) notes.push({ pain: false, h: `<div class="restr-note">${esc(t('restr.noObjective'))}</div>` });
+  d.levelUp.forEach(x => notes.push({ pain: false, h: `<div class="restr-note">${esc(t('restr.levelUp', { group: restrGroupLbl(x.group), lvl: t('train.auto.lvl.' + x.lvl) }))}</div>` }));
+  d.eqRelaxed.forEach(g => notes.push({ pain: false, h: `<div class="restr-note">${esc(t('restr.eqRelaxed', { group: restrGroupLbl(g) }))}</div>` }));
   if (S.painKnown && d.painOut > 0) {
-    if (S.surface === 'stu') notes.push(`<div class="restr-note restr-note-pain">⚠ ${esc(t('restr.stuPainOut', { n: d.painOut }))}</div>`);
-    else if (d.painZones.length === 1) notes.push(`<div class="restr-note restr-note-pain">⚠ ${esc(t('restr.painOut', { n: d.painOut, zone: mpPainZoneLbl(d.painZones[0]) }))}</div>`);
-    else notes.push(`<div class="restr-note restr-note-pain">⚠ ${esc(t('restr.painOutMulti', { n: d.painOut }))}</div>`);
+    if (S.surface === 'stu') notes.push({ pain: true, h: `<div class="restr-note restr-note-pain">⚠ ${esc(t('restr.stuPainOut', { n: d.painOut }))}</div>` });
+    else if (d.painZones.length === 1) notes.push({ pain: true, h: `<div class="restr-note restr-note-pain">⚠ ${esc(t('restr.painOut', { n: d.painOut, zone: mpPainZoneLbl(d.painZones[0]) }))}</div>` });
+    else notes.push({ pain: true, h: `<div class="restr-note restr-note-pain">⚠ ${esc(t('restr.painOutMulti', { n: d.painOut }))}</div>` });
   }
-  if (!S.painKnown && S.surface === 'own') notes.push(`<div class="restr-note">⚠ ${esc(t('restr.painUnknown'))}</div>`);
-  d.short.forEach(x => notes.push(`<div class="restr-note">${esc(t(x.n === 0 ? 'restr.noneGroup' : 'restr.shortGroup', { group: restrGroupLbl(x.group), n: x.n }))}</div>`));
+  if (!S.painKnown && S.surface === 'own') notes.push({ pain: true, h: `<div class="restr-note">⚠ ${esc(t('restr.painUnknown'))}</div>` });
+  d.short.forEach(x => notes.push({ pain: false, h: `<div class="restr-note">${esc(t(x.n === 0 ? 'restr.noneGroup' : 'restr.shortGroup', { group: restrGroupLbl(x.group), n: x.n }))}</div>` }));
   const rows = B.rows.map((r, i) => {
     const photo = r.entry.foto_url ? `<img class="restr-row-img" src="${esc(r.entry.foto_url)}" alt="" loading="lazy" onerror="this.remove()">` : `<span class="restr-row-img restr-row-img-none">🏋️</span>`;
     const loadWhy = r.loadWhy ? `<div class="restr-load-why">${esc(t(r.loadWhy === 'up' ? 'restr.loadUp' : r.loadWhy === 'repeatHard' ? 'restr.loadRepeatHard' : 'restr.loadRepeat'))}</div>` : '';
@@ -28873,11 +28920,12 @@ function restrPreviewHTML(S) {
   }
   const empty = !B.rows.length ? `<div class="pl-auto-block">${esc(t('restr.empty'))}</div>` : '';
   return `<div class="swap-sheet-head"><span class="swap-sheet-title">${esc(t('restr.previewTitle'))}</span><button type="button" class="swap-sheet-x" data-restr-close="1" aria-label="✕">✕</button></div>
-  ${notes.join('')}${empty}<div class="restr-rows">${rows}</div>${scope}
+  ${inChat ? coach596NotesHTML(notes) : notes.map(n => n.h).join('')}${empty}<div class="restr-rows">${rows}</div>${scope}
   <div class="restr-foot"><button type="button" class="btn-ghost restr-back-btn" data-restr-back="1">${esc(t('restr.back'))}</button>
   <button type="button" class="btn-primary restr-apply-btn" data-restr-apply="1" ${B.rows.length ? '' : 'disabled'}>${esc(t('restr.apply'))}</button></div>`;
 }
 function restrPreviewWire(sheet, S) {
+  coach596WhyWire(sheet);
   sheet.querySelectorAll('[data-restr-scope]').forEach(b => b.onclick = () => { S.scope = b.dataset.restrScope; restrSheetSync(); });
   const back = sheet.querySelector('[data-restr-back]');
   if (back) back.onclick = () => { S.phase = 'pick'; restrSheetSync(); };
@@ -29191,7 +29239,7 @@ async function asstRestrToday() {
 function restrChatSync() {
   const S = RESTR;
   let host = document.getElementById('asst-restr-host');
-  if (!S) { if (host) host.remove(); return; }
+  if (!S) { if (host) host.remove(); coach596ScreenSync(); return; }
   const log = $('asst-log');
   if (!log) return;
   if (!host) {
@@ -29209,12 +29257,18 @@ function restrChatSync() {
     host.innerHTML = restrPickHTML(S) + `<p class="dict-mic-cost asst-restr-miccost">${esc(t('asst.restrMicCost'))}</p>`;
     restrPickWire(host, S);
   } else if (S.phase === 'preview') {
-    host.innerHTML = restrPreviewHTML(S);
+    host.innerHTML = restrPreviewHTML(S, true);
     restrPreviewWire(host, S);
   }
+  /* PLIEGUES Nº14 (596): la vista previa es una pantalla propia
+     dentro de la hoja; las demás fases viven en la conversación.
+     Al estrenar la pantalla, la hoja sube a su cabecera. */
+  const wasScreenR = host.classList.contains('asst-prop-screen');
+  host.classList.toggle('asst-prop-screen', S.phase === 'preview');
+  coach596ScreenSync();
   const cx = host.querySelector('[data-restr-close]');
   if (cx) cx.onclick = () => { RESTR = null; restrSheetSync(); };
-  const body = $('asst-body'); if (body) body.scrollTop = body.scrollHeight;
+  const body = $('asst-body'); if (body) body.scrollTop = (S.phase === 'preview' && !wasScreenR) ? 0 : body.scrollHeight;
 }
 /* Abre el flujo dentro de la conversación; con grupos
    preseleccionados (encaje limpio o lectura de la IA) corre el
@@ -29466,7 +29520,7 @@ function orgaHostSync() {
   const log = document.getElementById('asst-log');
   if (!log) return;
   let host = document.getElementById('asst-orga-host');
-  if (!ORGA) { if (host) host.remove(); return; }
+  if (!ORGA) { if (host) host.remove(); coach596ScreenSync(); return; }
   if (!host) { host = document.createElement('div'); host.id = 'asst-orga-host'; host.className = 'asst-restr-host'; log.appendChild(host); }
   if (ORGA.phase === 'loading') host.innerHTML = '<p class="progress-hint">' + esc(t('restr.loading')) + '</p>';
   else if (ORGA.phase === 'blocked') host.innerHTML = '<div class="pl-auto-block">' + esc(t('restr.healthBlocked')) + '</div><button type="button" class="btn-ghost asst-restr-close" data-orga-x aria-label="✕">✕</button>';
@@ -29475,7 +29529,13 @@ function orgaHostSync() {
   if (ORGA.phase === 'blocked') { const cx = host.querySelector('[data-orga-x]'); if (cx) cx.addEventListener('click', () => { ORGA = null; orgaHostSync(); }); }
   if (ORGA.phase === 'pick') orgaPickWire(host);
   if (ORGA.phase === 'proposal') orgaProposalWire(host);
-  const body = document.getElementById('asst-body'); if (body) body.scrollTop = body.scrollHeight;
+  /* PLIEGUES Nº14 (596): la propuesta es una pantalla propia
+     dentro de la hoja; las demás fases viven en la conversación.
+     Al estrenar la pantalla, la hoja sube a su cabecera. */
+  const wasScreenO = host.classList.contains('asst-prop-screen');
+  host.classList.toggle('asst-prop-screen', ORGA.phase === 'proposal');
+  coach596ScreenSync();
+  const body = document.getElementById('asst-body'); if (body) body.scrollTop = (ORGA.phase === 'proposal' && !wasScreenO) ? 0 : body.scrollHeight;
 }
 function orgaGroupLbl(g) { return g === 'Piernas' ? t('orga.legs') : restrGroupLbl(g); }
 function orgaPickHTML() {
@@ -29510,18 +29570,21 @@ function orgaProposalHTML() {
   /* Las notas del motor, con las MISMAS claves y formas de la
      vista previa de reestructurar (restrPreviewHTML): la mascota
      explica la propuesta igual que explica un día rearmado. */
-  notes.push('<div class="restr-note">' + esc(ORGA.hasPlan ? t('orga.looseNote') : t('orga.noPlanNote')) + '</div>');
-  if (ORGA.focusCodes && ORGA.focusCodes.length) notes.push('<div class="restr-note">' + esc(t('orga.focusLine', { muscle: muscleName(ORGA.focusCodes[0]) })) + '</div>');
-  if (!ORGA.ctx.levelInf) notes.push('<div class="restr-note">' + esc(t('restr.noLevel')) + '</div>');
-  if (!ORGA.ctx.eff || !ORGA.ctx.eff.objective) notes.push('<div class="restr-note">' + esc(t('restr.noObjective')) + '</div>');
-  d.levelUp.forEach(x => notes.push('<div class="restr-note">' + esc(t('restr.levelUp', { group: orgaGroupLbl(x.group), lvl: t('train.auto.lvl.' + x.lvl) })) + '</div>'));
-  d.eqRelaxed.forEach(g => notes.push('<div class="restr-note">' + esc(t('restr.eqRelaxed', { group: orgaGroupLbl(g) })) + '</div>'));
+  /* PLIEGUES Nº14 (596): cada nota nace con su marca de dolor;
+     al pintar, las del motor se pliegan tras «Por qué así ›» y
+     las de dolor quedan fuera, siempre visibles. */
+  notes.push({ pain: false, h: '<div class="restr-note">' + esc(ORGA.hasPlan ? t('orga.looseNote') : t('orga.noPlanNote')) + '</div>' });
+  if (ORGA.focusCodes && ORGA.focusCodes.length) notes.push({ pain: false, h: '<div class="restr-note">' + esc(t('orga.focusLine', { muscle: muscleName(ORGA.focusCodes[0]) })) + '</div>' });
+  if (!ORGA.ctx.levelInf) notes.push({ pain: false, h: '<div class="restr-note">' + esc(t('restr.noLevel')) + '</div>' });
+  if (!ORGA.ctx.eff || !ORGA.ctx.eff.objective) notes.push({ pain: false, h: '<div class="restr-note">' + esc(t('restr.noObjective')) + '</div>' });
+  d.levelUp.forEach(x => notes.push({ pain: false, h: '<div class="restr-note">' + esc(t('restr.levelUp', { group: orgaGroupLbl(x.group), lvl: t('train.auto.lvl.' + x.lvl) })) + '</div>' }));
+  d.eqRelaxed.forEach(g => notes.push({ pain: false, h: '<div class="restr-note">' + esc(t('restr.eqRelaxed', { group: orgaGroupLbl(g) })) + '</div>' }));
   if (ORGA.painKnown && d.painOut > 0) {
-    if (d.painZones.length === 1) notes.push('<div class="restr-note restr-note-pain">⚠ ' + esc(t('restr.painOut', { n: d.painOut, zone: mpPainZoneLbl(d.painZones[0]) })) + '</div>');
-    else notes.push('<div class="restr-note restr-note-pain">⚠ ' + esc(t('restr.painOutMulti', { n: d.painOut })) + '</div>');
+    if (d.painZones.length === 1) notes.push({ pain: true, h: '<div class="restr-note restr-note-pain">⚠ ' + esc(t('restr.painOut', { n: d.painOut, zone: mpPainZoneLbl(d.painZones[0]) })) + '</div>' });
+    else notes.push({ pain: true, h: '<div class="restr-note restr-note-pain">⚠ ' + esc(t('restr.painOutMulti', { n: d.painOut })) + '</div>' });
   }
-  if (!ORGA.painKnown) notes.push('<div class="restr-note">⚠ ' + esc(t('restr.painUnknown')) + '</div>');
-  d.short.forEach(x => notes.push('<div class="restr-note">' + esc(t(x.n === 0 ? 'restr.noneGroup' : 'restr.shortGroup', { group: orgaGroupLbl(x.group), n: x.n })) + '</div>'));
+  if (!ORGA.painKnown) notes.push({ pain: true, h: '<div class="restr-note">⚠ ' + esc(t('restr.painUnknown')) + '</div>' });
+  d.short.forEach(x => notes.push({ pain: false, h: '<div class="restr-note">' + esc(t(x.n === 0 ? 'restr.noneGroup' : 'restr.shortGroup', { group: orgaGroupLbl(x.group), n: x.n })) + '</div>' }));
   const rows = (ORGA.rows || []).map((r, i) => {
     const photo = r.entry.foto_url ? '<img class="restr-row-img" src="' + esc(r.entry.foto_url) + '" alt="" loading="lazy" onerror="this.remove()">' : '<span class="restr-row-img restr-row-img-none">🏋️</span>';
     const loadWhy = r.loadWhy ? '<div class="restr-load-why">' + esc(t(r.loadWhy === 'up' ? 'restr.loadUp' : r.loadWhy === 'repeatHard' ? 'restr.loadRepeatHard' : 'restr.loadRepeat')) + '</div>' : '';
@@ -29537,12 +29600,13 @@ function orgaProposalHTML() {
   const empty = !ORGA.rows || !ORGA.rows.length ? '<div class="pl-auto-block">' + esc(t('restr.empty')) + '</div>' : '';
   return '<div class="swap-sheet-head"><span class="swap-sheet-title">' + esc(t('orga.title')) + '</span>'
     + '<button type="button" class="swap-sheet-x" data-orga-x aria-label="✕">✕</button></div>'
-    + notes.join('') + empty + '<div class="restr-rows">' + rows + '</div>'
+    + coach596NotesHTML(notes) + empty + '<div class="restr-rows">' + rows + '</div>'
     + '<div class="restr-note">' + esc(t('orga.changeHint')) + '</div>'
     + '<div class="restr-foot"><button type="button" class="btn-ghost restr-back-btn" data-orga-edit>' + esc(t('orga.edit')) + '</button>'
     + '<button type="button" class="btn-primary restr-apply-btn" data-orga-apply' + (ORGA.rows && ORGA.rows.length ? '' : ' disabled') + '>' + esc(t('orga.apply')) + '</button></div>';
 }
 function orgaProposalWire(host) {
+  coach596WhyWire(host);
   host.querySelector('[data-orga-x]').addEventListener('click', () => { ORGA = null; orgaHostSync(); });
   host.querySelector('[data-orga-apply]').addEventListener('click', () => orgaApply());
   host.querySelector('[data-orga-edit]').addEventListener('click', () => orgaEdit());
