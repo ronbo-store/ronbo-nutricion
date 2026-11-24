@@ -38,7 +38,7 @@ body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-se
    #pend-float (tarjeta blanca, radio 18, sombra suave), centrada,
    con fondo propio para el «tocar fuera» y cierre ✕ / Escape. */
 .ring-detail-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 46; }
-.ring-detail { position: fixed; left: 50%; top: 0; transform: translateX(-50%); z-index: 47; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #fff; border: 1px solid rgba(15, 23, 42, .08); border-radius: 18px; box-shadow: 0 14px 34px rgba(15, 23, 42, .22); padding: 16px 18px; max-height: calc(100dvh - 16px); overflow-y: auto; text-align: center; }
+.ring-detail { position: fixed; left: 50%; top: 0; transform: translateX(-50%); z-index: 49; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #fff; border: 1px solid rgba(15, 23, 42, .08); border-radius: 18px; box-shadow: 0 14px 34px rgba(15, 23, 42, .22); padding: 16px 18px; max-height: calc(100dvh - 16px); overflow-y: auto; text-align: center; }
 @media (prefers-reduced-motion: no-preference) { .ring-detail { animation: ring-detail-in .18s ease-out; } }
 @keyframes ring-detail-in { from { opacity: 0; } to { opacity: 1; } }
 .ring-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
@@ -1365,8 +1365,8 @@ div > .btn-ghost:only-child, div > .btn-main:only-child {
    diario. El dock pasa a CINCO botones por orden expresa: en
    pantallas estrechas se ajustan leyendas y separación para que
    la pastilla quepa sin desborde (los círculos no se tocan). */
-.act-float { position: fixed; left: 50%; transform: translateX(-50%); top: 0; bottom: 0; z-index: 46; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #fff; border: 1px solid rgba(15, 23, 42, .08); border-radius: 18px; box-shadow: 0 14px 34px rgba(15, 23, 42, .22); padding: 14px 16px calc(120px + env(safe-area-inset-bottom, 0px)); max-height: 100dvh; overflow-y: auto; }
-.act-sheet { z-index: 47; }
+.act-float { position: fixed; left: 50%; transform: translateX(-50%); top: 0; bottom: 0; z-index: 49; width: min(430px, calc(100vw - 24px)); box-sizing: border-box; background: #fff; border: 1px solid rgba(15, 23, 42, .08); border-radius: 18px; box-shadow: 0 14px 34px rgba(15, 23, 42, .22); padding: 14px 16px calc(120px + env(safe-area-inset-bottom, 0px)); max-height: 100dvh; overflow-y: auto; }
+.act-sheet { z-index: 49; }
 /* Cabecera estática de hoja (AUTH-2026-11-11-401): la familia
    .act-sheet-head/.act-sheet-title/.act-sheet-x de la hoja de
    pruebas físicas (AUTH-399) nació SIN reglas y su ✕ se pintaba
@@ -2305,7 +2305,7 @@ body.nav-lock.prog-page .sw-mini, body.nav-lock.train-page .sw-mini { visibility
    de la familia del cronómetro (.sw-fab), como toda la pila. */
 .share-fab { position: fixed; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px + 72px + 72px + 72px); z-index: 44; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid rgba(13,148,136,.55); background: rgba(255,255,255,.97); box-shadow: 0 8px 22px rgba(15,23,42,.20); display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: inherit; color: #0f766e; padding: 0; }
 .share-fab-ico { width: 27px; height: 27px; display: block; }
-.faq-panel { position: fixed; left: 0; right: 0; bottom: 0; top: 0; z-index: 47; background: #f6fbfb; border-radius: 0; box-shadow: 0 -12px 34px rgba(15,23,42,.25); padding: 12px 18px calc(120px + env(safe-area-inset-bottom, 0px)); overflow-y: auto; box-sizing: border-box; }
+.faq-panel { position: fixed; left: 0; right: 0; bottom: 0; top: 0; z-index: 49; background: #f6fbfb; border-radius: 0; box-shadow: 0 -12px 34px rgba(15,23,42,.25); padding: 12px 18px calc(120px + env(safe-area-inset-bottom, 0px)); overflow-y: auto; box-sizing: border-box; }
 .faq-grip { width: 44px; height: 5px; border-radius: 3px; background: #c8dcd8; margin: 0 auto 12px; }
 .faq-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .faq-head h2 { font-size: 21px; color: #14312e; }
@@ -7534,7 +7534,7 @@ textarea.gest-in { resize: none; }
    espacio se gana plegando, nunca encogiendo toques. La ruta
    de Pendientes reusa las clases de su pliegue de «Mi perfil»
    (.route-fold-head), sin la marca de completo. */
-#nutribox-float { z-index: 44; }
+#nutribox-float { z-index: 48; }
 .pend570-line { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; box-sizing: border-box; padding: 10px 14px; margin-top: 10px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 3px rgba(15,23,42,.05); font: inherit; color: #1F2A44; text-align: left; cursor: pointer; }
 .pend570-line:active { opacity: .6; }
 .pend570-line .p570-t { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
@@ -7628,8 +7628,8 @@ textarea.gest-in { resize: none; }
    de las tarjetas — clara en las tarjetas claras y con el
    tratamiento de cristal de la tarjeta vestida, como la línea
    de hobbies de AUTH-438. */
-#train-sheet { z-index: 44; }
-#treq-list-float { z-index: 44; }
+#train-sheet { z-index: 48; }
+#treq-list-float { z-index: 48; }
 .train-fold-line { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; background: none; border: none; border-bottom: 1px dashed #eef1f3; padding: 6px 0; font: inherit; color: inherit; text-align: left; cursor: pointer; box-sizing: border-box; }
 .train-fold-line .tf-t { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .train-fold-line .tf-s { color: #666; font-size: 13.5px; margin-left: auto; text-align: right; min-width: 0; overflow-wrap: anywhere; }
@@ -7664,7 +7664,7 @@ textarea.gest-in { resize: none; }
    misma que el panel de la semana ya tenía). Los paneles
    enteros viven en sus almacenes (#week-store / #const-store)
    y VIAJAN a la hoja al tocar su línea. ═══ */
-#home-sheet { z-index: 44; }
+#home-sheet { z-index: 48; }
 .home-fold-line { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; background: none; border: none; border-bottom: 1px dashed #eef1f3; padding: 6px 0; font: inherit; color: inherit; text-align: left; cursor: pointer; box-sizing: border-box; }
 .home-fold-line .tf-t { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .home-fold-line .tf-s { color: #666; font-size: 13.5px; margin-left: auto; text-align: right; min-width: 0; overflow-wrap: anywhere; }
@@ -7760,3 +7760,24 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .qprog-hint { text-align: center; color: #5b7a74; font-size: 13px; margin: 10px 0 4px; }
 .qprog-sub2 { color: #33475b; font-size: 14px; margin: 2px 0 8px; }
 .qprog-edit { width: 100%; min-height: 52px; margin-top: 12px; font-size: 17px; }
+
+/* AUTH-582 · P4 de la auditoría de repintado (2026-11-23): «Defensa
+   contra la barra con pie fijo» — la defensa de AUTH-575 extendida
+   a la familia de hojas suaves con acción principal al final.
+   Capas (en su regla, arriba): .act-float 46→49 y .act-sheet
+   47→49; #train-sheet, #home-sheet, #nutribox-float y
+   #treq-list-float 44→48; .faq-panel y .ring-detail 47→49.
+   El pie: un div por hoja (.p4-foot), hijo de la propia hoja tras
+   su cuerpo, donde vive — mientras la hoja está abierta — el
+   MISMO botón de guardar/enviar/confirmar de siempre, movido por
+   app.js (p4FootSync/p4FootClear) tras un ancla: nunca duplicado.
+   position: sticky; bottom: 0: medido en el arnés de la batería
+   582, dentro de estas hojas (fixed con transform y scroll
+   propio) absolute y fixed quedan anclados al final del
+   contenido, mientras sticky se clava al fondo de la caja de
+   contenido de la hoja — sobre su relleno inferior de 120 px,
+   nunca bajo la barra — y su falda (::after) cubre esa franja de
+   relleno hasta el borde de la hoja, a ras como el pie de 575. */
+.p4-foot { position: sticky; bottom: 0; z-index: 6; margin: 10px -16px 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: #fff; border-top: 1px solid rgba(15,23,42,.10); box-shadow: 0 -6px 16px rgba(15,23,42,.06); }
+.p4-foot::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: calc(120px + env(safe-area-inset-bottom, 0px)); background: #fff; }
+.p4-foot .pend-actions, .p4-foot .eval-actions, .p4-foot .ai-actions, .p4-foot .act-cfg-actions { margin-top: 0; }

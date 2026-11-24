@@ -8610,6 +8610,8 @@ function nudgeOpen(uid, sub, titleText) {
     nudgeBasePrime();
   };
   const sb = $('nudge-send'); if (sb) sb.onclick = () => nudgeSend();
+  /* AUTH-582 (P4): las acciones viven en el pie fijo de la hoja. */
+  p4FootSync('nudge', () => { const bd2 = $('nudge-body'); const r = bd2 ? bd2.querySelector('.pend-actions') : null; return r ? [r] : []; });
   nudgeRenderPreview();
   nudgeBasePrime();
 }
@@ -8723,6 +8725,7 @@ async function metHasMetrics(uid) {
   return null;
 }
 function nudgeClose() {
+  p4FootClear('nudge');
   const fl = $('nudge-float'); if (fl) fl.style.display = 'none';
   NUDGE_CTX = null;
 }
@@ -11014,6 +11017,7 @@ function tmeasToDisplay(kind, v, units) {
   return String(Math.round((kind === 'w' ? v / UNIT_LB_KG : v / UNIT_IN_CM) * 10) / 10);
 }
 function tmeasClose() {
+  p4FootClear('tmeas');
   const fl = $('tmeas-float');
   if (fl) fl.style.display = 'none';
   TMEAS = null;
@@ -11048,6 +11052,8 @@ async function tmeasOpen(uid) {
   TMEAS = { uid, name, date: S, units };
   body.innerHTML = tmeasFormHTML(measures, comp, weight);
   const sv = $('tmeas-save'); if (sv) sv.onclick = () => tmeasSave();
+  /* AUTH-582 (P4): el Guardar vive en el pie fijo de la hoja. */
+  p4FootSync('tmeas', () => { const r = body.querySelector('.eval-actions'); return r ? [r] : []; });
 }
 function tmeasFormHTML(measures, comp, weight) {
   const units = TMEAS ? TMEAS.units : 'metric';
@@ -11709,6 +11715,80 @@ function pendConsultFootRestore() {
   }
   const foot = $('pend-consult-foot');
   if (foot) { foot.innerHTML = ''; foot.style.display = 'none'; }
+}
+/* ═══ AUTH-582 (P4 de la auditoría de repintado del 2026-11-23):
+   «Defensa contra la barra con pie fijo» — el patrón de AUTH-575
+   (y el de AUTH-373) extendido a la familia entera de hojas
+   suaves con acción principal al final: cada una sube sobre la
+   barra de acciones (las subidas de z viven en styles.css) y su
+   botón de guardar/enviar/confirmar vive, mientras la hoja está
+   abierta, en un PIE FIJO de la propia hoja. Es SIEMPRE el mismo
+   botón (mismo id, mismo manejador): el nodo se mueve tras un
+   ancla invisible y vuelve a su sitio al cerrar o al repintarse
+   su cuerpo — nunca hay dos copias: la sincronización restaura
+   primero lo alojado y, si el ancla murió con un repintado, lo
+   alojado se descarta al vaciar el pie antes de alojar lo nuevo.
+   Las hojas defendidas y su buscador viven junto a cada pintor
+   (tmeasOpen, pendCfgSheetSync, baseFlowRender, treqSheetPaint,
+   treqReplyOpen, nudgeOpen, renderActEntry/renderActConfig,
+   aiShow, recipesFormShow, schedPaintSheet, mpOpenQuick,
+   airPaint, planCookPaint); los cierres llaman a p4FootClear. */
+const P4_FEET = {};
+function p4FootClear(key) {
+  const st = P4_FEET[key];
+  if (st && st.held) {
+    for (const h of st.held) {
+      if (h.formPrev == null) { try { h.el.removeAttribute('form'); } catch {} }
+      else { try { h.el.setAttribute('form', h.formPrev); } catch {} }
+      if (h.anchor && h.anchor.isConnected && h.anchor.parentNode) h.anchor.parentNode.insertBefore(h.el, h.anchor);
+      if (h.anchor && h.anchor.remove) h.anchor.remove();
+    }
+    st.held = null;
+  }
+  const foot = $(key + '-foot');
+  if (foot) { foot.innerHTML = ''; foot.style.display = 'none'; }
+}
+function p4FootSync(key, finder) {
+  p4FootClear(key);
+  const foot = $(key + '-foot'); if (!foot) return;
+  let nodes = [];
+  try { nodes = (finder() || []).filter(Boolean); } catch {}
+  if (!nodes.length) return;
+  const held = [];
+  for (const el of nodes) {
+    if (!el.parentNode) continue;
+    const anchor = document.createElement('div');
+    anchor.className = 'p4-anchor'; anchor.style.display = 'none';
+    el.parentNode.insertBefore(anchor, el);
+    foot.appendChild(el);
+    held.push({ el, anchor, formPrev: el.getAttribute ? el.getAttribute('form') : null });
+  }
+  if (!held.length) return;
+  P4_FEET[key] = { held };
+  foot.style.display = '';
+}
+/* La hoja de actividad: su botón de envío es el submit del
+   formulario #actf-form; mientras vive en el pie lleva el
+   atributo estándar form= para seguir enviando EL MISMO
+   formulario (p4FootClear se lo retira al volver, porque su
+   formPrev es nulo). */
+function p4ActEntrySync() {
+  p4FootSync('act-entry', () => { const b = $('actf-add'); return b ? [b] : []; });
+  const b = $('actf-add');
+  if (b && b.closest('#act-entry-foot')) b.setAttribute('form', 'actf-form');
+}
+/* La hoja de horario: su «Guardar mis datos» solo vive en el pie
+   mientras su bloque (el último del cuerpo) está desplegado —
+   el botón vive y muere con su bloque; el pliegue re-sincroniza. */
+function p4SchedSync() {
+  p4FootSync('sched', () => {
+    const box = $('sched-prefs-box');
+    if (!box || !box.open) return [];
+    const b = box.querySelector('[data-sched-act="prefs-save"]');
+    return b ? [b] : [];
+  });
+  const box = $('sched-prefs-box');
+  if (box && !box.dataset.p4Tog) { box.dataset.p4Tog = '1'; box.ontoggle = () => p4SchedSync(); }
 }
 function pendConsultRehost() {
   const C = PEND_CONSULT;
@@ -13293,7 +13373,7 @@ function baseFlowOpen(step) {
   const x = $('base-x'); if (x) x.onclick = () => baseFlowClose();
   baseFlowRender();
 }
-function baseFlowClose() { const fl = $('base-float'); if (fl) fl.style.display = 'none'; BASE_FLOW = null; }
+function baseFlowClose() { p4FootClear('base'); const fl = $('base-float'); if (fl) fl.style.display = 'none'; BASE_FLOW = null; }
 /* D5: el enlace ?base= capturado al arrancar abre el flujo en su
    paso exacto, una sola vez, ya con sesión (baseLinkApply se llama
    tras la carga principal, como el ?dia= de AUTH-172). */
@@ -13528,6 +13608,9 @@ function baseFlowRender() {
   const gt = $('base-goto'); if (gt) gt.onclick = () => { BASE_FLOW.step = gt.dataset.step || 'datos'; baseFlowRender(); };
   const gl = $('base-goals'); if (gl) gl.onclick = () => { baseFlowClose(); switchTab('track'); scroll('rings'); };
   const cl = $('base-close2'); if (cl) cl.onclick = () => baseFlowClose();
+  /* AUTH-582 (P4): la acción del paso vigente vive en el pie
+     fijo de la hoja (la última fila de acciones del cuerpo). */
+  p4FootSync('base', () => { const rows = bd.querySelectorAll('.pend-actions'); const r = rows[rows.length - 1]; return r ? [r] : []; });
 }
 async function baseFlowNext() {
   if (!BASE_FLOW || BASE_FLOW.busy) return;
@@ -18918,6 +19001,7 @@ function treqSheetOpen() {
   const x = $('treq-x'); if (x) x.onclick = () => treqSheetClose();
 }
 function treqSheetClose() {
+  p4FootClear('treq');
   const fl = $('treq-float'); if (fl) fl.style.display = 'none';
   TREQ_SHEET = null;
 }
@@ -18950,6 +19034,8 @@ function treqSheetPaint() {
   if (ta) ta.addEventListener('input', () => { s.msg = ta.value; const c = $('treq-count'); if (c) c.textContent = ta.value.length + ' / 280'; });
   const sb = $('treq-send');
   if (sb) sb.onclick = () => treqSheetSend();
+  /* AUTH-582 (P4): el Enviar vive en el pie fijo de la hoja. */
+  p4FootSync('treq', () => { const b = $('treq-send'); return b ? [b] : []; });
 }
 function treqSheetPaintKeepMsg() {
   const ta = $('treq-msg');
@@ -19392,8 +19478,11 @@ function treqReplyOpen(reqId, uid) {
   if (ta) ta.addEventListener('input', () => { const c = $('treq-reply-count'); if (c) c.textContent = ta.value.length + ' / 280'; });
   const sb = $('treq-resolve');
   if (sb) sb.onclick = () => treqReplyResolve();
+  /* AUTH-582 (P4): el Resolver vive en el pie fijo de la hoja. */
+  p4FootSync('treq-reply', () => { const b = $('treq-resolve'); return b ? [b] : []; });
 }
 function treqReplyClose() {
+  p4FootClear('treq-reply');
   const fl = $('treq-reply-float'); if (fl) fl.style.display = 'none';
   TREQ_REPLY = null;
 }
@@ -19978,7 +20067,11 @@ function aiShapeR2(r2) {
   if (!r2 || typeof r2 !== 'object' || !r2.totals || typeof r2.totals !== 'object') return null;
   return r2;
 }
-function aiShow(html) { const p = $('ai-panel'); if (!p) return; p.style.display = ''; /* La hoja #food-ai lleva SU ✕ de la casa en la cabecera (puntos 19–20): la tarjeta del panel ya NO pinta una segunda ✕ — la de la hoja cierra y espera, sin descartar nada; el descarte vive en los botones «Descartar» de cada paso. */ p.innerHTML = html; /* Borrador restaurado de OTRO día (D1): la revisión dice su fecha de origen cuando no coincide con el día que muestra la ventana — el guardado cae en el día visible, como en todo registro. */ if (aiState && aiState.restored && aiState.draftDate && (aiState.step === 'questions' || aiState.step === 'draft') && (!$('dateSel') || $('dateSel').value !== aiState.draftDate)) { const note = document.createElement('p'); note.className = 'progress-hint'; note.textContent = t('aiDraft.fromDate', { date: dateName(aiState.draftDate) }); p.insertBefore(note, p.firstChild); } /* D1: cada pintado de la revisión re-sincroniza el borrador en texto y la insignia (aiDraftSync no persiste pasos sin resultado). */ try { aiDraftSync(); } catch {} }
+function aiShow(html) { const p = $('ai-panel'); if (!p) return; p.style.display = ''; /* La hoja #food-ai lleva SU ✕ de la casa en la cabecera (puntos 19–20): la tarjeta del panel ya NO pinta una segunda ✕ — la de la hoja cierra y espera, sin descartar nada; el descarte vive en los botones «Descartar» de cada paso. */ p.innerHTML = html; /* Borrador restaurado de OTRO día (D1): la revisión dice su fecha de origen cuando no coincide con el día que muestra la ventana — el guardado cae en el día visible, como en todo registro. */ if (aiState && aiState.restored && aiState.draftDate && (aiState.step === 'questions' || aiState.step === 'draft') && (!$('dateSel') || $('dateSel').value !== aiState.draftDate)) { const note = document.createElement('p'); note.className = 'progress-hint'; note.textContent = t('aiDraft.fromDate', { date: dateName(aiState.draftDate) }); p.insertBefore(note, p.firstChild); } /* D1: cada pintado de la revisión re-sincroniza el borrador en texto y la insignia (aiDraftSync no persiste pasos sin resultado). */ try { aiDraftSync(); } catch {}
+  /* AUTH-582 (P4): las acciones del paso vigente de la revisión
+     (en el borrador, su Guardar) viven en el pie fijo de la hoja. */
+  p4FootSync('food-ai', () => { const rows = p.querySelectorAll('.ai-actions'); const r = rows[rows.length - 1]; return r ? [r] : []; });
+}
 function aiClosePanel() { aiProgHide(); const p = $('ai-panel'); if (p) { p.style.display = 'none'; p.innerHTML = ''; } }
 function aiDiscard() { /* CONSERVAR Y SUBIR DESPUÉS: el descarte es deliberado — si este análisis tenía un pendiente conservado, el pendiente se retira con él (la salida manual también pasa por aquí: desde ese momento el formulario manual es el dueño del dato, y él mismo conserva si su escritura falla). */ const pk = aiState && aiState.pendKey; aiState = null; aiDraftClear(); aiClosePanel(); aiBadgeSync(); if (pk) { try { pendRemove(pk); } catch {} } }
 /* DESCARTE DEL USUARIO (puntos 19–20, P3): el aviso de «sin guardar»
@@ -21883,6 +21976,11 @@ function foodShowOnly(which) {
      otra hermana, el cierre total, Escape — apaga la cámara. */
   if (which !== 'scan') { try { scanStop(); } catch {} }
   try { coverSync(); } catch {} // A-N2
+  /* AUTH-582 (P4): al cambiar de hoja de la familia, la que se
+     va devuelve las acciones alojadas en su pie fijo. */
+  if (which === 'ai') p4FootSync('food-ai', () => { const p = $('ai-panel'); if (!p) return []; const rows = p.querySelectorAll('.ai-actions'); const r = rows[rows.length - 1]; return r ? [r] : []; });
+  else p4FootClear('food-ai');
+  if (which !== 'recipes') p4FootClear('food-recipes');
   /* F-21: abrir una superficie de análisis de comida pinta «te
      quedan X usos hoy» desde /ai/usage (en silencio si falla). */
   if (which === 'float' || which === 'text' || which === 'voice' || which === 'ai') { try { aiUsageRefreshSurfaces(); } catch {} }
@@ -22580,6 +22678,15 @@ async function recipesFormShow() {
   const a0 = $('rcp-add-ing'); if (a0) a0.onclick = () => { REC_FORM.ings.push({ refId: REC_ANCHORS[0] ? (REC_ANCHORS[0].refId || REC_ANCHORS[0].libKey || REC_ANCHORS[0].name) : '', grams: 50 }); recipesFormIngsPaint(); };
   const s0 = $('rcp-save'); if (s0) s0.onclick = recipesFormSave;
   const c0 = $('rcp-cancel'); if (c0) c0.onclick = () => { box.style.display = 'none'; box.innerHTML = ''; REC_FORM = null; };
+  /* AUTH-582 (P4): las acciones del formulario viven en el pie
+     fijo de la hoja mientras el formulario está abierto; cuando
+     el formulario se cierra (cancelar, o guardar con éxito y
+     REC_FORM ya no existe) el pie se retira con ellas. */
+  p4FootSync('food-recipes', () => { const r = box.querySelector('.ai-actions'); return r ? [r] : []; });
+  const cn = $('rcp-cancel');
+  if (cn) { const prevC = cn.onclick; cn.onclick = e => { if (prevC) prevC(e); p4FootClear('food-recipes'); }; }
+  const sv2 = $('rcp-save');
+  if (sv2) { const prevS = sv2.onclick; sv2.onclick = async e => { if (prevS) await prevS(e); if (!REC_FORM) p4FootClear('food-recipes'); }; }
   recipesFormIngsPaint();
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -53089,6 +53196,11 @@ const actIsOpen = id => { const el = $(id); return !!el && el.style.display !== 
 function actShowOnly(which) {
   const map = { float: 'act-float', entry: 'act-entry', config: 'act-config', day: 'act-day' };
   for (const [k, id] of Object.entries(map)) { const el = $(id); if (el) el.style.display = (k === which) ? '' : 'none'; }
+  /* AUTH-582 (P4): la hoja que se va devuelve su botón a su
+     cuerpo; la que llega lo aloja en su pie fijo. */
+  if (which === 'entry') p4ActEntrySync(); else p4FootClear('act-entry');
+  if (which === 'config') p4FootSync('act-config', () => { const bd = $('act-config-body'); const r = bd ? bd.querySelector('.act-cfg-actions') : null; return r ? [r] : []; });
+  else p4FootClear('act-config');
   /* AUTH-438: el estado abierto lo anuncia ahora la línea
      de la tarjeta que abre la hoja (el botón del dock se retiró). */
   const openAct = which === 'float' || which === 'entry' || which === 'config';
@@ -53236,6 +53348,9 @@ function renderActEntry(type) {
     if (btn) btn.disabled = false;
     if (okSave) { if (ACT_ENTRY_CARD) { actCloseAll(); loadMyTraining(); } else actOpenFloat(); }
   };
+  /* AUTH-582 (P4): el botón de guardar vive en el pie fijo de
+     la hoja (actShowOnly lo re-sincroniza al mostrarla). */
+  p4ActEntrySync();
 }
 
 /* «Mis hobbies»: agregar/quitar favoritos del catálogo. El orden
@@ -53260,6 +53375,8 @@ function renderActConfig() {
     if (okSave) { toast(t('act.favSaved')); actOpenFloat(); }
     else { toast(t('act.favLocalNote'), true); renderActConfig(); }
   };
+  /* AUTH-582 (P4): el Guardar vive en el pie fijo de la hoja. */
+  p4FootSync('act-config', () => { const bd = $('act-config-body'); const r = bd ? bd.querySelector('.act-cfg-actions') : null; return r ? [r] : []; });
 }
 
 /* DESGLOSE DEL DÍA (lo que abre la llamita): el contenido del
@@ -58728,6 +58845,7 @@ function pendCfgSheetSync() {
   const cfg = (typeof PEND_CFG !== 'undefined') ? PEND_CFG : null;
   const want = !!(cfg && !cfg.__error && PEND_UI.configOpen);
   if (!want) {
+    p4FootClear('pendcfg');
     if (f.style.display !== 'none') {
       f.style.display = 'none';
       const b = $('pendcfg-sheet-body'); if (b) b.innerHTML = '';
@@ -58741,6 +58859,9 @@ function pendCfgSheetSync() {
   const body = $('pendcfg-sheet-body'); if (!body) return;
   body.innerHTML = first ? pendCfgFormHTML(cfg.meals ? cfg : pendDefaults(), true) : pendCfgFormHTML(cfg, false);
   if (f.style.display === 'none') { f.style.display = ''; try { coverSync(); } catch {} }
+  /* AUTH-582 (P4): las acciones del formulario viven en el pie
+     fijo de la hoja mientras está abierta. */
+  p4FootSync('pendcfg', () => { const r = body.querySelector('.pend-actions'); return r ? [r] : []; });
 }
 function pendCfgSheetClose() {
   if (PEND_UI.configOpen) { PEND_UI.configOpen = false; try { renderPendings(); } catch {} }
@@ -59143,6 +59264,15 @@ setInterval(() => { try { pendDockTick(); } catch {} }, 60000);
   if (cfgSheetBody) {
     cfgSheetBody.addEventListener('change', onPendBodyChange);
     cfgSheetBody.addEventListener('click', onPendBodyClick);
+  }
+  /* AUTH-582 (P4): la misma delegación atiende también el pie
+     fijo de la hoja (#pendcfg-foot), donde viven sus acciones
+     mientras la hoja está abierta — mismo patrón con el que
+     AUTH-570 la extendió al cuerpo de la hoja. */
+  const cfgFoot = document.getElementById('pendcfg-foot');
+  if (cfgFoot) {
+    cfgFoot.addEventListener('change', onPendBodyChange);
+    cfgFoot.addEventListener('click', onPendBodyClick);
   }
 }
 
@@ -70065,6 +70195,7 @@ function planCookOpen(fromChange) {
   try { coverSync(); } catch {}
 }
 function planCookClose() {
+  p4FootClear('plancook');
   const bd = $('plancook-backdrop'), f = $('plancook-float');
   if (bd) bd.style.display = 'none';
   if (f) f.style.display = 'none';
@@ -70103,6 +70234,8 @@ function planCookPaint() {
   body.querySelectorAll('[data-cook]').forEach(b => { b.onclick = () => { const parts = b.getAttribute('data-cook').split(':'); PLANCOOK[parts[0]] = parts[1]; planCookPaint(); }; });
   const sv = $('plan-cook-save');
   if (sv) sv.onclick = planCookSave;
+  /* AUTH-582 (P4): el Guardar vive en el pie fijo de la hoja. */
+  p4FootSync('plancook', () => { const b = $('plan-cook-save'); return b ? [b] : []; });
 }
 async function planCookSave() {
   if (!PLANCOOK.pattern || !PLANCOOK.repeat || !PLANCOOK.cuisine || !PLANCOOK.time || !PLANCOOK.level) { toast(t('planau.cookNeed'), true); return; }
@@ -71705,6 +71838,9 @@ function schedPaintSheet() {
     if (box) { box.open = true; try { box.scrollIntoView({ block: 'start' }); } catch {} }
     SCHED_UI.mode = 'view';
   }
+  /* AUTH-582 (P4): «Guardar mis datos» vive en el pie fijo de
+     la hoja mientras su bloque está desplegado. */
+  p4SchedSync();
 }
 async function schedOpenSheet() {
   const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
@@ -71718,6 +71854,7 @@ async function schedOpenSheet() {
   schedPaintSheet();
 }
 function schedCloseSheet() {
+  p4FootClear('sched');
   const bd = $('sched-backdrop'), f = $('sched-float');
   if (bd) bd.style.display = 'none';
   if (f) f.style.display = 'none';
@@ -72437,7 +72574,7 @@ function mpRenderHome() {
 
 /* ---------- Hojas (sábanas) ---------- */
 function mpSheetOpen(id) { const el = $(id); if (el) el.style.display = ''; try { coverSync(); } catch {} }
-function mpSheetClose(id) { if (id === 'mp-tests') { try { fitRunStop(); } catch {} } const el = $(id); if (el) el.style.display = 'none'; try { coverSync(); } catch {} }
+function mpSheetClose(id) { if (id === 'mp-tests') { try { fitRunStop(); } catch {} } try { p4FootClear(id); } catch {} const el = $(id); if (el) el.style.display = 'none'; try { coverSync(); } catch {} }
 /* Registro en el gestor central de cubiertas (pase a producción):
    las hojas del módulo se cierran por la vía forzada del gesto del
    dock (navClosePagesForce, AUTH-312) y con Escape, como las demás
@@ -72863,6 +73000,8 @@ function mpOpenQuick(date, focus) {
   $('mp-q-save').addEventListener('click', () => mpQuickSave());
   if (focus === 'body') { const h = body.querySelector('[data-mpqfold="meas"]'); if (h) h.click(); }
   if (focus === 'well') { const h = body.querySelector('[data-mpqfold="well"]'); if (h) h.click(); }
+  /* AUTH-582 (P4): el Guardar vive en el pie fijo de la hoja. */
+  p4FootSync('mp-quick', () => { const r = body.querySelector('.modal-foot'); return r ? [r] : []; });
   mpSheetOpen('mp-quick');
 }
 
@@ -74738,6 +74877,9 @@ function airOpen(ctx) {
 function airClose() { mpSheetClose('mp-air'); }
 function airPaint() {
   const body = $('mp-air-body'); if (!body || !AIR) return;
+  /* AUTH-582 (P4): cada repintado devuelve primero lo alojado
+     en el pie; solo el paso de confirmación lo vuelve a alojar. */
+  p4FootClear('mp-air');
   const title = $('mp-air-title');
   if (title) title.textContent = '📷 ' + (AIR.name ? t('air.titleFor', { name: AIR.name }) : t('air.title'));
   if (AIR.stage === 'busy') {
@@ -74754,7 +74896,7 @@ function airPaint() {
     };
     return;
   }
-  if (AIR.stage === 'confirm') { body.innerHTML = airConfirmHTML(); airWireConfirm(); airLiveSync(); return; }
+  if (AIR.stage === 'confirm') { body.innerHTML = airConfirmHTML(); airWireConfirm(); p4FootSync('mp-air', () => { const a = $('air-save'), b = $('air-discard'); return [a, b].filter(Boolean); }); airLiveSync(); return; }
   body.innerHTML = `<p class="air-intro">${esc(t('air.intro'))}</p>
     <p class="air-priv">${esc(t('air.privacy'))}</p>
     <p class="aiusage-meal-line muted" style="display:none"></p>
