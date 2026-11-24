@@ -52091,6 +52091,16 @@ async function tplDelete(id) {
    ownerUid. Nada de aquí permite tocar fábrica ni entrenador: el
    guardado escribe solo documentos propios de clase private. */
 let MYB = null;   // { editId, name, days: [{label, exercises: [{exerciseId, name, series, repeticiones}]}] }
+/* AUTH-594 · PLIEGUES Nº12: el día del constructor que está
+   DESPLEGADO (acordeón de un día abierto, el espejo del editor de
+   planes); -1 = ninguno. Solo presentación: el estado sigue
+   viviendo en MYB y el pliegue voltea clases sin repintar, así
+   que lo tecleado en el día recogido nunca se pierde. */
+let MYB_OPEN_DAY = 0;
+function mybDaySumText(d, di) {
+  const lab = (d.label || '').trim();
+  return (lab || t('train.n09.mybDayTag', { n: di + 1 })) + ' · ' + t('train.exCount', { n: d.exercises.length });
+}
 function mybHarvest() {
   if (!MYB) return;
   const nameIn = $('myb-name'); if (nameIn) MYB.name = nameIn.value;
@@ -52108,7 +52118,7 @@ function renderMyBuilder() {
   if (!MYB) {
     inner += `<button type="button" class="btn-primary btn-sm" id="myb-open">${t('train.n09.createBtn')}</button>`;
     box.innerHTML = inner;
-    $('myb-open').onclick = () => { MYB = { editId: null, name: '', days: [{ label: '', exercises: [] }] }; renderMyBuilder(); };
+    $('myb-open').onclick = () => { MYB = { editId: null, name: '', days: [{ label: '', exercises: [] }] }; MYB_OPEN_DAY = 0; renderMyBuilder(); };
   } else {
     /* Con un borrador vivo, la zona es la puerta de vuelta a la
        hoja del editor (la hoja es la casa del editor desde el
@@ -52186,14 +52196,23 @@ function mybSheetRender() {
     <label class="myb-lab" for="myb-name">${esc(t('train.n09.mybNameLab'))}</label>
     <input class="myb-fld" type="text" id="myb-name" name="myb-routine-name" autocomplete="off" placeholder="${esc(t('train.n09.namePh'))}" value="${esc(MYB.name || '')}"></div>`;
   h += `<div class="myb-step">${stepHead(2, 'train.n09.mybStep2', 'train.n09.mybStep2Sub')}`;
+  if (MYB_OPEN_DAY >= MYB.days.length) MYB_OPEN_DAY = MYB.days.length - 1;
   MYB.days.forEach((d, di) => {
-    h += `<div class="myb-day">
+    /* AUTH-594 · PLIEGUES Nº12: cada día nace como UNA línea
+       («Día N · X ejercicios ›», con su etiqueta si la tiene) y
+       solo el día abierto muestra su cuerpo; el resto de la
+       tarjeta queda intacto dentro de .myb-day-body. */
+    const folded = di !== MYB_OPEN_DAY;
+    h += `<div class="myb-day${folded ? ' is-folded' : ''}">
+      <button type="button" class="myb-day-sum" data-myb-daysum="${di}" aria-expanded="${folded ? 'false' : 'true'}"><span class="myb-day-sum-t">${esc(mybDaySumText(d, di))}</span><span class="myb-day-sum-c" aria-hidden="true">›</span></button>
+      <div class="myb-day-body">
       <div class="myb-day-head"><span class="myb-day-tag">${esc(t('train.n09.mybDayTag', { n: di + 1 }))}</span><button type="button" class="myb-del-day" data-myb-delday="${di}">${esc(t('train.n09.mybDelDay'))}</button></div>
       <label class="myb-lab" for="myb-day-${di}">${esc(t('train.n09.mybDayLab'))}</label>
       <input class="myb-fld" type="text" id="myb-day-${di}" data-myb-daylabel="${di}" autocomplete="off" placeholder="${esc(t('train.n09.dayPh'))}" value="${esc(d.label || '')}">
       ${d.exercises.map((ex, ei) => mybExCardHTML(ex, di, ei)).join('')}
       ${!d.exercises.length ? `<p class="myb-empty-note">${esc(t('train.n09.mybEmptyDay'))}</p>` : ''}
       <button type="button" class="myb-door" data-myb-door="${di}"><b>＋ ${esc(t('train.n09.mybDoor'))}</b><span>${esc(t('train.n09.mybDoorSub'))}</span></button>
+      </div>
     </div>`;
   });
   h += `<button type="button" class="myb-addday" id="myb-addday">${esc(t('train.n09.mybAddDay'))}</button></div>`;
@@ -52202,10 +52221,31 @@ function mybSheetRender() {
     <button type="button" class="myb-cancel" id="myb-cancel">${esc(t('train.prop.cancel'))}</button></div>`;
   sheet.innerHTML = h;
   sheet.querySelectorAll('[data-myb-close]').forEach(b => b.onclick = () => { MYB = null; renderMyBuilder(); });
-  sheet.querySelectorAll('[data-myb-delday]').forEach(b => b.onclick = () => { mybHarvest(); MYB.days.splice(Number(b.dataset.mybDelday), 1); if (!MYB.days.length) MYB.days.push({ label: '', exercises: [] }); mybSheetRender(); });
+  /* AUTH-594: el pliegue de días SOLO voltea clases en el DOM ya
+     pintado (sin repintar ni cosechar): abrir un día recoge los
+     demás, tocar el abierto lo recoge, y lo tecleado en cualquier
+     campo queda donde está. La etiqueta del día sincroniza su
+     línea resumen al teclear, también sin repintar. */
+  sheet.querySelectorAll('[data-myb-daysum]').forEach(b => b.onclick = () => {
+    const dayEl = b.closest('.myb-day'); if (!dayEl) return;
+    const willOpen = dayEl.classList.contains('is-folded');
+    sheet.querySelectorAll('.myb-day').forEach(el => {
+      const open = el === dayEl ? willOpen : false;
+      el.classList.toggle('is-folded', !open);
+      const sum = el.querySelector('[data-myb-daysum]');
+      if (sum) sum.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    MYB_OPEN_DAY = willOpen ? Number(b.dataset.mybDaysum) : -1;
+  });
+  sheet.querySelectorAll('[data-myb-daylabel]').forEach(inp => inp.addEventListener('input', () => {
+    const di = Number(inp.dataset.mybDaylabel);
+    const sumT = sheet.querySelector(`[data-myb-daysum="${di}"] .myb-day-sum-t`);
+    if (sumT && MYB && MYB.days[di]) sumT.textContent = mybDaySumText({ label: inp.value, exercises: MYB.days[di].exercises }, di);
+  }));
+  sheet.querySelectorAll('[data-myb-delday]').forEach(b => b.onclick = () => { mybHarvest(); const di = Number(b.dataset.mybDelday); MYB.days.splice(di, 1); if (!MYB.days.length) MYB.days.push({ label: '', exercises: [] }); MYB_OPEN_DAY = Math.min(di, MYB.days.length - 1); mybSheetRender(); });
   sheet.querySelectorAll('[data-myb-delex]').forEach(b => b.onclick = () => { mybHarvest(); const [di, ei] = b.dataset.mybDelex.split('-').map(Number); MYB.days[di].exercises.splice(ei, 1); mybSheetRender(); });
   sheet.querySelectorAll('[data-myb-door]').forEach(b => b.onclick = () => { mybHarvest(); mybPickOpen(Number(b.dataset.mybDoor)); });
-  $('myb-addday').onclick = () => { mybHarvest(); MYB.days.push({ label: '', exercises: [] }); mybSheetRender(); };
+  $('myb-addday').onclick = () => { mybHarvest(); MYB.days.push({ label: '', exercises: [] }); MYB_OPEN_DAY = MYB.days.length - 1; mybSheetRender(); };
   $('myb-cancel').onclick = () => { MYB = null; renderMyBuilder(); };
   $('myb-save').onclick = () => mybSave();
 }
@@ -52286,7 +52326,7 @@ function mybPickRender() {
     <div id="myb-groups-slot">${libGroupGridHTML(MYB_PICK.grp, 'data-myb-group', 'data-myb-group-clear')}</div>
     <div id="myb-pick-results" class="pick-results">${mybPickResultsHTML()}</div>
     <div class="myb-pick-foot"><span class="myb-pick-count" id="myb-pick-count">${esc(mybPickCountText())}</span><button type="button" class="myb-pick-done" data-mybpick-close="1">${esc(t('train.n09.mybDone'))}</button></div>`;
-  const close = () => { mybPickClose(); mybSheetRender(); };
+  const close = () => { if (MYB_PICK) MYB_OPEN_DAY = MYB_PICK.di; mybPickClose(); mybSheetRender(); };
   sheet.querySelectorAll('[data-mybpick-close]').forEach(b => b.onclick = close);
   /* AUTH-543: la parrilla del editor — tocar un grupo filtra
      la lista a su sección; tocar el activo (o la línea de
@@ -52385,6 +52425,7 @@ function mybOpenEdit(tpl) {
     })),
   };
   if (!MYB.days.length) MYB.days.push({ label: '', exercises: [] });
+  MYB_OPEN_DAY = 0;
   renderMyBuilder();
   mybSheetOpen();
 }
@@ -52931,6 +52972,76 @@ function planDatesSync() {
   if (!st || !pr || !en) return;
   const end = planEndFromPreset(st.value, pr.value);
   if (end) en.value = end;
+  pl594DatesSumSync();
+}
+
+/* ────────────────────────────────────────────────────────────────
+   AUTH-594 · PLIEGUES Nº12 (editor de planes): la pantalla propia
+   del «Programa automático» y la línea de fechas del editor.
+   · La hoja #plauto-float guarda el bloque #pl-auto (sus ids no
+     cambian: autoRenderPanel/autoGenerate siguen pintando y
+     leyendo por id). Abrirla NO repinta el panel ni toca el
+     formulario; cerrarla (volver, ✕, velo o Escape) solo la
+     oculta: el resumen y la confirmación del pecho quedan como
+     estaban. planCloseEditor la cierra también.
+   · La línea de fechas nace recogida en cada apertura y lleva el
+     PERIODO en la propia línea (el mismo texto que ya calcula
+     planPeriodText); su pliegue solo voltea el display del
+     cuerpo, sin repintar: lo tecleado en las fechas se conserva.
+   ──────────────────────────────────────────────────────────────── */
+function pl594AutoOpen() {
+  const fl = $('plauto-float'), bd = $('plauto-backdrop');
+  if (!fl || !bd) return;
+  bd.style.display = '';
+  fl.style.display = '';
+  document.body.style.overflow = 'hidden';
+}
+function pl594AutoClose() {
+  const fl = $('plauto-float'), bd = $('plauto-backdrop');
+  if (fl) fl.style.display = 'none';
+  if (bd) bd.style.display = 'none';
+  /* El modal del plan sigue abierto debajo: el bloqueo de
+     desplazamiento del cuerpo se conserva (lo libera quien cierra
+     el modal). */
+}
+function pl594DatesSumSync() {
+  const sum = $('pl-dates-sum'), st = $('pl-start'), en = $('pl-end');
+  if (!sum || !st || !en) return;
+  sum.textContent = planPeriodText({ startsAt: st.value || null, endsAt: en.value || null });
+}
+function pl594Init() {
+  /* Cableado una sola vez (patrón dataset.wired de la casa). */
+  const open = $('pl-auto-open');
+  if (open && !open.dataset.wired) {
+    open.dataset.wired = '1';
+    open.onclick = () => pl594AutoOpen();
+    const back = $('plauto-back'), x = $('plauto-close'), bd = $('plauto-backdrop');
+    if (back) back.onclick = () => pl594AutoClose();
+    if (x) x.onclick = () => pl594AutoClose();
+    if (bd) bd.onclick = () => pl594AutoClose();
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { const fl = $('plauto-float'); if (fl && fl.style.display !== 'none') pl594AutoClose(); }
+    });
+  }
+  const fold = $('pl-dates-fold'), body = $('pl-dates-body');
+  if (fold && body && !fold.dataset.wired) {
+    fold.dataset.wired = '1';
+    fold.onclick = () => {
+      const open2 = body.style.display === 'none';
+      body.style.display = open2 ? '' : 'none';
+      fold.setAttribute('aria-expanded', open2 ? 'true' : 'false');
+      const chev = fold.querySelector('.pl-fold-chev');
+      if (chev) chev.textContent = open2 ? '▾' : '›';
+    };
+  }
+  /* Cada apertura nace con las fechas recogidas y su periodo al día. */
+  if (fold && body) {
+    body.style.display = 'none';
+    fold.setAttribute('aria-expanded', 'false');
+    const chev = fold.querySelector('.pl-fold-chev');
+    if (chev) chev.textContent = '›';
+  }
+  pl594DatesSumSync();
 }
 if ($('pl-start')) $('pl-start').addEventListener('change', planDatesSync);
 if ($('pl-preset')) $('pl-preset').addEventListener('change', planDatesSync);
@@ -53007,6 +53118,10 @@ function openPlanEditor(clientUid, plan) {
   planTouched = false;
   planBaseline = planSignature();
   const svn0 = $('pl-saved-note'); if (svn0) svn0.style.display = 'none';
+  /* AUTH-594 · PLIEGUES Nº12: cablea la línea del programa
+     automático y la de fechas, y las deja en su estado de
+     nacimiento (hoja cerrada, fechas recogidas con su periodo). */
+  pl594Init();
 }
 /* GUARDAR SIN CERRAR (2026-10-26, instrucción de Ronald): foto del
    estado del editor (campos + días + filas, incluidos los textos de
@@ -53034,6 +53149,7 @@ let planBaseline = null;
    (ver el .then de libEnsure en openPlanEditor) y no hay falso aviso. */
 let planTouched = false;
 function planCloseEditor() {
+  pl594AutoClose();
   $('plan-modal').style.display = 'none';
   planCtx = null; planBaseline = null; planTouched = false;
   const svn = $('pl-saved-note'); if (svn) svn.style.display = 'none';

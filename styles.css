@@ -8003,6 +8003,31 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .chal593-clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .chal593-clamp2 { -webkit-line-clamp: 2; }
 .r21-terms.chal593-tclamp { max-height: 84px; overflow: hidden; }
+/* AUTH-594 (pliegues nº 12 · Editor de planes y constructor):
+   · .pl594-foot — Guardar/Cancelar FIJOS al pie del editor de
+     planes (el patrón .p4-foot de la casa: sticky dentro del modal
+     que desplaza); los botones conservan su alto (44 px, ≥44).
+   · #plauto-backdrop / .pl594-auto-sheet — la pantalla propia del
+     «Programa automático»: velo y hoja SOBRE el modal del plan
+     (z 59/60, el precedente del #pendact-float), cerrando con
+     volver, ✕, velo o Escape.
+   · #pl-dates-fold — la línea «Fechas · <periodo> ›» reutiliza la
+     línea .pl-fold de la casa (52 px); el cuerpo solo voltea su
+     display, así que lo tecleado nunca se pierde.
+   · .myb-day-sum — la línea resumen de cada día del constructor,
+     espejo de la .pl-day-sum del editor (44 px, chev que gira);
+     el día recogido oculta su cuerpo sin repintar. */
+.pl594-foot { position: sticky; bottom: 0; z-index: 6; display: flex; justify-content: center; gap: 10px; margin-top: 14px; background: #fff; border-top: 1px solid #e5e7eb; box-shadow: 0 -6px 16px rgba(15, 23, 42, .06); padding: 10px 0 calc(4px + env(safe-area-inset-bottom)); }
+.pl594-foot .btn-ghost, .pl594-foot .btn-primary { min-height: 44px; }
+#plauto-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 59; }
+.pl594-auto-sheet { z-index: 60; }
+.pl594-auto-sheet .pl-auto { margin-top: 0; border-top: none; padding-top: 0; }
+.pl594-back { min-height: 44px; padding: 6px 10px; background: none; border: none; font: inherit; font-size: 15px; font-weight: 700; color: #0f766e; cursor: pointer; }
+#pl-dates-fold { margin: 0 0 6px; }
+.myb-day-sum { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 6px 2px; background: none; border: none; border-radius: 8px; font: inherit; font-weight: 700; color: #1f2a44; text-align: left; cursor: pointer; }
+.myb-day-sum-c { flex: none; color: #0d9488; font-weight: 700; transition: transform .15s ease; }
+.myb-day:not(.is-folded) .myb-day-sum-c { transform: rotate(90deg); }
+.myb-day.is-folded .myb-day-body { display: none; }
 .r21-day-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 48px; box-sizing: border-box; background: none; border: 0; padding: 4px 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
 .r21-day-line .r21-day-chev { flex: none; font-weight: 800; color: #0F766E; }
 .lib592-varsline { margin: 0 0 6px; }
