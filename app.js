@@ -4304,7 +4304,7 @@ if (LANG === 'en') {
 }
 async function i18nLoad(l) {
   if (STR[l]) return STR[l];
-  const mod = await import('./i18n-' + l + '.js?v=20261123-dia-en-su-sitio');
+  const mod = await import('./i18n-' + l + '.js?v=20261123-detalle-alumno-estable');
   STR[l] = mod.default || null;
   return STR[l];
 }
@@ -10340,6 +10340,79 @@ async function stuTrayOpen(uid) {
   stuTrayPaintReqs(uid);
   stuTrayPaintGoals(uid);
 }
+/* ═══ AUTH-581 · P3 «DETALLE DEL ALUMNO ESTABLE» (auditoría de
+   repintado del 2026-11-23, clases D1 + A2 + B4 + C4) ═══
+   El detalle del alumno es la hoja del video de Ronald: sus tres
+   bloques (plan, retos, entrenamiento) VIAJAN a #stu-sheet al
+   abrir su línea (AUTH-565) y sus cargas aterrizan cuando
+   aterrizan. Hasta este paquete, cada aterrizaje SUSTITUÍA el
+   bloque por outerHTML: el nodo nuevo nacía donde estuviera el
+   viejo, pero el viaje de la hoja seguía apuntando al nodo
+   MUERTO — al cerrar, la hoja devolvía el bloque viejo (sin los
+   datos recién llegados) a su ancla y destruía el nuevo; y si el
+   aterrizaje caía mientras el entrenador bajaba por la hoja, el
+   contenido se intercambiaba bajo sus dedos (las capas fantasma
+   del video). Ahora el bloque se pinta EN SU SITIO
+   (stuBlockPaint): el nodo del bloque SOBREVIVE — solo cambian
+   su clase y su interior, tomados del mismo html de siempre —,
+   el ancla del viaje nunca queda huérfana y el cableado se
+   rehace sobre el contenido nuevo, como tras cada sustitución.
+   Y si la hoja se está DESPLAZANDO cuando el dato aterriza, la
+   pintura se DIFIERE hasta que la hoja se detiene (conservando
+   la posición al aplicarse): nada se intercambia bajo los
+   dedos. Lo diferido aterriza al cerrar la hoja (el bloque ya
+   está de vuelta en su almacén) y se descarta si el detalle se
+   repinta entero (la pasada nueva trae sus propias cargas). ═══ */
+let STU_SHEET_SCROLL_T = 0;          /* último scroll de #stu-sheet (ms) */
+const STU_SHEET_PENDING = {};        /* id de bloque → pintura diferida */
+let STU_SHEET_FLUSH_T = null;
+function stuSheetTrackScroll() {
+  const sh = $('stu-sheet');
+  if (!sh || sh.dataset.p3track) return;
+  sh.dataset.p3track = '1';
+  sh.addEventListener('scroll', () => { STU_SHEET_SCROLL_T = Date.now(); }, { passive: true });
+}
+function stuSheetScrolling() { return Date.now() - STU_SHEET_SCROLL_T < 220; }
+function stuBlockInSheet(blk) {
+  const b = $('stu-sheet-body');
+  return !!(b && blk && b.contains(blk));
+}
+function stuBlockApply(blk, html, wire) {
+  if (!blk || !document.body.contains(blk)) return;
+  const tpl = document.createElement('template');
+  tpl.innerHTML = String(html || '').trim();
+  const fresh = tpl.content ? tpl.content.firstElementChild : null;
+  if (!fresh) { if (wire) wire(); return; }
+  const sheet = $('stu-sheet');
+  const inSheet = stuBlockInSheet(blk);
+  const sTop = inSheet && sheet ? sheet.scrollTop : null;
+  blk.className = fresh.className;
+  blk.innerHTML = fresh.innerHTML;
+  if (inSheet && sheet && sTop != null) { try { sheet.scrollTop = sTop; } catch {} }
+  if (wire) wire();
+}
+function stuBlockPaint(blk, html, wire) {
+  if (!blk) { if (wire) wire(); return; }
+  stuSheetTrackScroll();
+  if (stuBlockInSheet(blk) && stuSheetScrolling()) {
+    STU_SHEET_PENDING[blk.id] = () => stuBlockApply(blk, html, wire);
+    if (!STU_SHEET_FLUSH_T) {
+      STU_SHEET_FLUSH_T = setInterval(() => { if (!stuSheetScrolling()) stuSheetFlushNow(); }, 180);
+    }
+    return;
+  }
+  stuBlockApply(blk, html, wire);
+}
+function stuSheetFlushNow() {
+  if (STU_SHEET_FLUSH_T) { clearInterval(STU_SHEET_FLUSH_T); STU_SHEET_FLUSH_T = null; }
+  const pend = Object.values(STU_SHEET_PENDING);
+  for (const k of Object.keys(STU_SHEET_PENDING)) delete STU_SHEET_PENDING[k];
+  pend.forEach(fn => { try { fn(); } catch {} });
+}
+function stuSheetFlushDrop() {
+  if (STU_SHEET_FLUSH_T) { clearInterval(STU_SHEET_FLUSH_T); STU_SHEET_FLUSH_T = null; }
+  for (const k of Object.keys(STU_SHEET_PENDING)) delete STU_SHEET_PENDING[k];
+}
 async function loadStudentPlans(uid) {
   /* AUTH-493: el detalle del alumno es también punto de
      evaluación de la espera; si algo se activó, la caché de
@@ -10353,7 +10426,8 @@ async function loadStudentPlans(uid) {
   STU_PLANS = { uid, plans, loadingFor: null };
   if (STUDENTS_DETAIL !== uid) return;
   const blk = document.querySelector('#stu-plan-block');
-  if (blk) { blk.outerHTML = stuPlanBlockHTML({ id: uid }); stuPlansWireCurrent(uid); }
+  /* AUTH-581 (P3): en su sitio (stuBlockPaint), nunca outerHTML. */
+  if (blk) stuBlockPaint(blk, stuPlanBlockHTML({ id: uid }), () => stuPlansWireCurrent(uid));
   /* AUTH-565: la fila de botones visible se repinta con los
      planes recién llegados (su cableado lo rehace
      stuPlansWireCurrent) y el dato clave de la línea del plan
@@ -10472,16 +10546,21 @@ async function loadStudentChal(uid) {
   const blk = document.querySelector('#stu-chal-block');
   if (blk) {
     const u = ((STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(c => c.id === uid) || { id: uid };
-    blk.outerHTML = stuChalBlockHTML(u);
-    stuChalWireCurrent(uid);
-    /* AUTH-560: la casilla «Asignar reto» de la fila de botones
-       del plan refleja ESTE mismo estado: se repintan solo las
-       filas de botones del bloque del plan. */
-    const brs = document.querySelector('#stu-plan-btnrows');
-    if (brs) { brs.innerHTML = stuPlanBtnRowsHTML(u); stuPlansWireCurrent(uid); }
-    /* AUTH-565: el dato clave de la línea «Retos» refleja el
-       estado recién llegado. */
-    stuFoldSync();
+    /* AUTH-581 (P3): en su sitio (stuBlockPaint), nunca outerHTML;
+       sus consecuencias (cableado, fila de botones y dato clave)
+       viajan con la pintura, para que un aterrizaje diferido las
+       traiga todas a la vez. */
+    stuBlockPaint(blk, stuChalBlockHTML(u), () => {
+      stuChalWireCurrent(uid);
+      /* AUTH-560: la casilla «Asignar reto» de la fila de botones
+         del plan refleja ESTE mismo estado: se repintan solo las
+         filas de botones del bloque del plan. */
+      const brs = document.querySelector('#stu-plan-btnrows');
+      if (brs) { brs.innerHTML = stuPlanBtnRowsHTML(u); stuPlansWireCurrent(uid); }
+      /* AUTH-565: el dato clave de la línea «Retos» refleja el
+         estado recién llegado. */
+      stuFoldSync();
+    });
   }
 }
 function stuChalWireCurrent(uid) {
@@ -10672,7 +10751,8 @@ async function loadStudentTraining(uid) {
   STU_TRAIN = { uid, logs, plans, loadingFor: null, open };
   if (STUDENTS_DETAIL !== uid) return;
   const blk = document.querySelector('#stu-train-block');
-  if (blk) { blk.outerHTML = stuTrainBlockHTML({ id: uid }); stuTrainWireCurrent(uid); }
+  /* AUTH-581 (P3): en su sitio (stuBlockPaint), nunca outerHTML. */
+  if (blk) stuBlockPaint(blk, stuTrainBlockHTML({ id: uid }), () => stuTrainWireCurrent(uid));
   /* AUTH-565: el dato clave de la línea «Entrenamiento» (hoy)
      se sincroniza con los registros recién llegados. */
   stuFoldSync();
@@ -10858,7 +10938,7 @@ function stuSheetOpen(key) {
     body.appendChild(el);
     return { el, anchor };
   });
-  STU_SHEET = { key, nodes: moved };
+  STU_SHEET = { key, uid: STUDENTS_DETAIL, nodes: moved };
   sheet.style.display = '';
   const x = $('stu-sheet-x'); if (x) x.onclick = () => stuSheetClose();
   const bk = $('stu-sheet-back'); if (bk) bk.onclick = () => stuSheetClose();
@@ -10873,12 +10953,16 @@ function stuSheetClose() {
   const sheet = $('stu-sheet'); if (sheet) sheet.style.display = 'none';
   const body = $('stu-sheet-body'); if (body) body.innerHTML = '';
   stuFoldSync();
+  /* AUTH-581 (P3): las pinturas diferidas por el desplazamiento
+     aterrizan ahora, con el bloque ya de vuelta en su almacén. */
+  stuSheetFlushNow();
 }
 /* Al repintar el detalle (renderStudentsBody pinta todo de
    nuevo) la hoja se vacía sin devolver nodos: sus bloques
    viejos se descartan con el resto de la pintura anterior. */
 function stuSheetReset() {
   STU_SHEET = null;
+  stuSheetFlushDrop();
   const sheet = $('stu-sheet'); if (sheet) sheet.style.display = 'none';
   const body = $('stu-sheet-body'); if (body) body.innerHTML = '';
 }
@@ -11147,7 +11231,14 @@ function renderStudentsBody() {
   if (STUDENTS_DETAIL && !du) STUDENTS_DETAIL = null;
   /* AUTH-565: al repintar, la hoja del detalle se vacía sin
      devolver nodos (sus bloques viejos se descartan con esta
-     pintura, como en la ficha de AUTH-563). */
+     pintura, como en la ficha de AUTH-563).
+     AUTH-581 (P3): si la hoja estaba abierta sobre ESTE MISMO
+     alumno, el repintado la CONSERVA: se anotan su clave y su
+     posición y al final de esta pasada se reabre sobre el bloque
+     nuevo, en el mismo sitio — un repintado que aterriza mientras
+     el entrenador lee su hoja ya no se la quita de las manos. */
+  const keepSheetKey = (STU_SHEET && du && STU_SHEET.uid === du.id) ? STU_SHEET.key : null;
+  const keepSheetTop = keepSheetKey ? (($('stu-sheet') || {}).scrollTop || 0) : 0;
   stuSheetReset();
   el.innerHTML = du
     ? `<div class="students-split"><div class="students-col-list">${studentsListSectionHTML()}</div><div class="students-col-detail">${studentsDetailHTML(du)}</div></div>`
@@ -11221,6 +11312,11 @@ function renderStudentsBody() {
   /* AUTH-565: los datos clave de las líneas con lo que ya esté
      en caché al pintar (las cargas los refrescan al aterrizar). */
   if (du) stuFoldSync();
+  /* AUTH-581 (P3): la hoja conservada se reabre sobre el bloque
+     nuevo, en su posición. */
+  if (keepSheetKey && STUDENTS_DETAIL === du.id) {
+    try { stuSheetOpen(keepSheetKey); const sh = $('stu-sheet'); if (sh) sh.scrollTop = keepSheetTop; } catch {}
+  }
 }
 /* Barra de la vista: buscador + conmutador Lista/Rejilla en una
    fila y las tres pastillas debajo (A-A2), con el estado PROPIO
@@ -19368,7 +19464,7 @@ for (const _vk of Object.keys(VIEW_HOST_GETTERS)) {
    precarga en segundo plano la hace el service worker (la URL va
    en su lista de cáscara con el sello), así que pedirla aquí suele
    ser leerla de la caché de la cáscara, sin red. */
-const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-dia-en-su-sitio' };
+const VIEW_MODULE_URLS = { comms: './view-comms.js?v=20261123-detalle-alumno-estable' };
 const _viewMods = {};
 function viewLoad(name) {
   if (_viewMods[name]) return _viewMods[name];
@@ -62585,7 +62681,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') shareClose()
  *  - El SW (sw.js) solo cachea la cáscara del mismo origen en modo
  *    RED PRIMERO: Auth/Firestore/Worker jamás pasan por la caché.
  * ================================================================ */
-const PWA_SW_VERSION = '20261123-dia-en-su-sitio';
+const PWA_SW_VERSION = '20261123-detalle-alumno-estable';
 /* Sello de versión VISIBLE (2026-11-03): el pie de la tarjeta de
    acceso enseña qué copia corre este teléfono ('v ' + el sello),
    para comprobar de un vistazo si la versión nueva ya llegó.

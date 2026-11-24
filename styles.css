@@ -7563,7 +7563,7 @@ textarea.gest-in { resize: none; }
    activos (60): todo lo que un bloque abre sigue abriendo
    por encima de su propia pantalla. Las líneas son la fila
    plegada de la casa (.stu-train-row) con su dato clave. */
-#ficha-sheet { z-index: 44; }
+#ficha-sheet { z-index: 48; }
 .ficha-head-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .ficha-head-btns .btn-sm { min-height: 44px; }
 .ficha-summary { margin: 0 0 8px; color: #555; font-size: 14.5px; }
@@ -7586,12 +7586,31 @@ textarea.gest-in { resize: none; }
    plegada de la casa (.stu-train-row) con su dato clave a la
    derecha, como las de la ficha (AUTH-563). La fila de
    botones de AUTH-560 queda visible fuera del pliegue. */
-#stu-sheet { z-index: 44; }
+#stu-sheet { z-index: 48; }
 .stu-fold-line { min-height: 48px; }
 .stu-fold-line .stu-line-t { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .stu-fold-line .stu-line-s { color: #666; font-size: 13.5px; margin-left: auto; text-align: right; min-width: 0; overflow-wrap: anywhere; }
 .stu-fold-line .sx { flex: none; }
 .pendact-met { margin-top: 10px; }
+
+/* ═══ AUTH-2026-11-23-581 · P3 «DETALLE DEL ALUMNO ESTABLE» ═══
+   Defensa frente a la barra (auditoría de repintado, D1 + A2):
+   las hojas del detalle (#stu-sheet) y de la ficha (#ficha-sheet)
+   suben de 44 a 48 — sobre la barra de acciones (47) y bajo la
+   consulta (49), el modal de plan (50) y Pendientes activos
+   (60): todo lo que un bloque abre sigue abriendo por encima de
+   su propia hoja, como pedían las notas de AUTH-563/565. Las
+   hermanas del propio detalle suben a 49 para conservar su
+   sitio sobre la hoja: la bandeja de propuestas se abre desde
+   DENTRO del bloque de planes que la hoja alberga, y «Progreso
+   en este plan» y las del acceso rápido (AUTH-577) son puertas
+   del mismo detalle. La respuesta a una solicitud (49, familia
+   de la consulta) gana su empate con la bandeja por orden de
+   DOM — la casa resuelve así los empates —: su hoja se movió
+   tras la bandeja en index.html. */
+#stu-tray-float { z-index: 49; }
+#stu-prog-float { z-index: 49; }
+#stu-qprog-float, #stu-qdays-float, #stu-qday-float { z-index: 49; }
 
 /* ═══ AUTH-2026-11-23-566 · LA VISTA DE ENTRENAMIENTO, PLEGADA ═══
    La hoja de cada apartado de la vista (#train-sheet) hereda
