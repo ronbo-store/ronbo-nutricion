@@ -2916,6 +2916,27 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 #stu-prog-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px calc(120px + env(safe-area-inset-bottom, 0px)); }
 .stu-prog-sub { font-size: 13px; color: #5b6b66; margin: 0 0 4px; }
 .stu-prog-block { background: #fff; border: 1px solid #dde7e3; border-radius: 14px; padding: 12px 13px; margin-top: 12px; }
+/* REORG-FICHA (2026-11-24): la tarjeta-checklist «TIENE ACTIVO»
+   de la ficha, la parrilla de seis puertas de «Progreso» y la
+   pantalla «Plan de entrenamiento» con su «Volver» fijo. */
+.reorg-check { background: #f2faf8; border: 1px solid #d7ebe6; border-radius: 14px; padding: 12px 13px; margin-top: 10px; }
+.reorg-check-t { font-size: 12.5px; font-weight: 800; letter-spacing: .04em; color: #0b7c72; margin-bottom: 4px; }
+.reorg-check-line { display: flex; gap: 9px; align-items: flex-start; font-size: 15px; line-height: 1.35; margin-top: 7px; }
+.reorg-check-box { flex: none; width: 22px; height: 22px; border-radius: 6px; background: #0d9488; color: #fff; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.reorg-check-none { font-size: 14px; color: #64748b; margin-top: 4px; }
+.reorg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.reorg-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 11px 6px 9px; background: #fff; border: 1px solid #dde7e3; border-radius: 14px; cursor: pointer; font-family: inherit; box-sizing: border-box; }
+.reorg-tile-ic { width: 38px; height: 38px; border-radius: 50%; background: #eef7f4; display: flex; align-items: center; justify-content: center; font-size: 19px; }
+.reorg-tile-lb { font-size: 12px; font-weight: 700; color: #134e4a; text-align: center; line-height: 1.25; }
+.reorg-head { flex: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px 10px; border-bottom: 1px solid #eef2f5; background: #fff; }
+.reorg-head .back-row { margin-bottom: 0; min-height: 44px; padding: 0 6px; }
+.reorg-title { font-size: 19px; margin: 0; }
+.reorg-actcard { border: 1px solid #dde7e3; border-radius: 14px; padding: 12px 13px; margin-top: 10px; background: #fff; }
+.reorg-actnow { font-size: 12px; font-weight: 800; letter-spacing: .05em; color: #0b7c72; display: flex; align-items: center; gap: 6px; }
+.reorg-dot { width: 9px; height: 9px; border-radius: 50%; background: #16a34a; display: inline-block; flex: none; }
+.reorg-actname { font-size: 18px; font-weight: 800; margin-top: 5px; }
+.reorg-actdates { font-size: 13.5px; color: #64748b; margin-top: 3px; }
+#stu-planhub-blocks .stu-plan-block { margin-top: 14px; }
 .stu-prog-block-t { font-size: 15.5px; font-weight: 800; color: #173f38; margin-bottom: 7px; }
 .stu-prog-block p { margin: 4px 0; font-size: 13.5px; color: #334155; line-height: 1.45; }
 .stu-prog-note { font-size: 12.5px; color: #64748b; line-height: 1.45; }

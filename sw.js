@@ -55,19 +55,19 @@
  * app.js). La caché de imágenes NO se borra entre versiones: guarda
  * contenido ya visto, con su tope.
  */
-const SW_VERSION = '20261124-piloto-plan-pantalla';
+const SW_VERSION = '20261124-reorg-ficha';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const IMG_CACHE_NAME = 'ronbofit-img-v1';
 const IMG_CACHE_MAX = 300;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261124-piloto-plan-pantalla',
-  './app.js?v=20261124-piloto-plan-pantalla',
-  './i18n-en.js?v=20261124-piloto-plan-pantalla',
-  './i18n-es.js?v=20261124-piloto-plan-pantalla',
-  './view-comms.js?v=20261124-piloto-plan-pantalla',
-  './view-library.js?v=20261124-piloto-plan-pantalla',
+  './styles.css?v=20261124-reorg-ficha',
+  './app.js?v=20261124-reorg-ficha',
+  './i18n-en.js?v=20261124-reorg-ficha',
+  './i18n-es.js?v=20261124-reorg-ficha',
+  './view-comms.js?v=20261124-reorg-ficha',
+  './view-library.js?v=20261124-reorg-ficha',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

@@ -10505,32 +10505,62 @@ function stuPlanBlockHTML(u) {
       + `<button type="button" class="plan-review-btn" data-plan-review="${esc(u.id)}">🗳️ ${esc(t('students.reviewBtn'))}<span class="plan-review-count" data-plan-review-count style="display:none"></span></button>`;
   return `<div class="stu-plan-block" id="stu-plan-block"><h3 class="history-title">${esc(t('students.planBlock'))}</h3>${inner}</div>`;
 }
-/* AUTH-412: el bloque nace RECOGIDO — la fila de puertas
-   [Asignar plan] [📈 Progreso] (Progreso solo con plan activo; la
-   etiqueta «Asignar plan» es de ESTA superficie: la clave
-   compartida train.new no se renombra) y, bajo las filas, el
-   botón «Revisar propuestas» a todo el ancho con su contador de
-   pendientes (la pastilla nace oculta y la rellena
-   stuTrayPaintCount).
-   AUTH-560 (orden correctiva de Ronald, 2026-11-23: «colocar los
-   iconos juntos uno al lado del otro asignar plan y asígnar
-   reto»): para EL entrenador del alumno, la primera fila pasa a
-   ser [Asignar plan] [Asignar reto] — mismo ancho y misma altura
-   — y «📈 Progreso», cuando lo hay, baja a su propia fila a todo
-   el ancho justo debajo, con su mismo comportamiento. Sin
-   relación de entrenador, las filas quedan byte a byte las de
-   AUTH-412. Las filas viven en su propio contenedor
-   (#stu-plan-btnrows) para que la llegada de los estados de
-   retos (loadStudentChal) repinte SOLO los botones, sin tocar
-   las filas de planes ni la tarjeta desplegada. */
-function stuPlanBtnRowsHTML(u) {
-  if (STU_PLANS.uid !== u.id || !STU_PLANS.plans) return '';
-  const act = STU_PLANS.plans.find(p => p && p.active === true) || null;
-  const planBtn = `<button type="button" class="btn-primary" data-plan-new="1">${esc(t('students.assignPlan'))}</button>`;
-  const progBtn = act ? `<button type="button" class="btn-ghost" data-plan-progress="${esc(u.id)}">📈 ${esc(t('students.progressBtn'))}</button>` : '';
-  const slot = stuChalRowSlotHTML(u);
-  if (!slot) return `<div class="plan-block-btnrow">${planBtn}${progBtn}</div>`;
-  return `<div class="plan-block-btnrow">${planBtn}${slot}</div>` + (progBtn ? `<div class="plan-block-btnrow">${progBtn}</div>` : '');
+/* REORG-FICHA (orden de Ronald, 2026-11-24, sobre maquetas
+   aprobadas por él el mismo día): la zona superior de la ficha
+   del alumno deja de ser la fila de botones de AUTH-412/560
+   ([Asignar plan] [Asignar reto] [📈 Progreso] con la pastilla
+   «Ya lo tiene activo») y pasa a ser: (1) la tarjeta-checklist
+   «TIENE ACTIVO», que dice con su nombre real qué tiene activo
+   el alumno — su plan activo y su reto activo, que pueden
+   convivir — leída de las MISMAS cachés de los bloques
+   (STU_PLANS · STU_CHAL con chalPlan21State ya evaluado: ninguna
+   segunda fuente de verdad); (2) la puerta «Plan de
+   entrenamiento» (stuPlanHubOpen: la pantalla con «Ver plan
+   actual», «Asignar plan» y los bloques de plan y retos dentro);
+   y (3) la puerta «Progreso» (stuPlanProgressOpen, la vista de
+   siempre, ahora con su parrilla de seis puertas arriba).
+   «Asignar plan» vive dentro de la pantalla del plan (el flujo
+   de siempre, openPlanEditor) y «Asignar reto» dentro del
+   bloque «Retos», como en AUTH-559. La zona vive en su propio
+   contenedor (#stu-plan-btnrows) para que la llegada de los
+   estados (loadStudentPlans/loadStudentChal) la repinte sin
+   tocar el resto de la ficha. Sin plan activo, la puerta
+   «Progreso» sigue existiendo: su vista enseña su vacío
+   honesto, como hacía la hoja. */
+/* El plan «común» activo del alumno: el activo que NO es el
+   plan de un reto (el del Reto 21 se nombra en su línea «Reto:»
+   del checklist, no en la de «Plan:»). */
+function stuActiveCommonPlan(plans) {
+  const act = (plans || []).filter(p => p && p.active === true);
+  return act.find(p => !(p.genSource && p.genSource.kind === 'plan21') && p.sourceRoutineId !== 'PLAN21') || null;
+}
+function stuFichaTopHTML(u) {
+  const plansLoaded = STU_PLANS.uid === u.id && !!STU_PLANS.plans;
+  const chalLoaded = STU_CHAL.uid === u.id && !!STU_CHAL.states;
+  const lines = [];
+  const retoLines = [];
+  if (chalLoaded) {
+    for (const v of chalVigentesList()) {
+      const st = (STU_CHAL.states && STU_CHAL.states[v.kind]) || { state: 'none', plan: null };
+      if (st.plan && st.state === 'active') retoLines.push(`<div class="reorg-check-line"><span class="reorg-check-box" aria-hidden="true">✓</span><span><b>${esc(t('reorg.retoWord'))}</b> ${esc(t(v.titleKey))}</span></div>`);
+    }
+  }
+  if (plansLoaded) {
+    const common = stuActiveCommonPlan(STU_PLANS.plans);
+    /* Sin plan común y sin reto activo, un plan activo suelto
+       (p. ej. el del reto en pausa) se nombra en la línea del
+       plan: la tarjeta nunca dice «nada activo» habiéndolo. */
+    const named = common || (!retoLines.length ? (STU_PLANS.plans.find(p => p && p.active === true) || null) : null);
+    if (named) lines.push(`<div class="reorg-check-line"><span class="reorg-check-box" aria-hidden="true">✓</span><span><b>${esc(t('reorg.planWord'))}</b> ${esc(named.title || '')}</span></div>`);
+  }
+  lines.push(...retoLines);
+  let inner;
+  if (lines.length) inner = lines.join('');
+  else if (plansLoaded && chalLoaded) inner = `<div class="reorg-check-none">${esc(t('reorg.noneActive'))}</div>`;
+  else inner = `<div class="wempty">${esc(t('access.loading'))}</div>`;
+  return `<div class="reorg-check"><div class="reorg-check-t">${esc(t('reorg.activeTitle'))}</div>${inner}</div>`
+    + `<button type="button" class="btn-qprog" data-stu-planhub="${esc(u.id)}">🏋️ ${esc(t('reorg.hubTitle'))}</button>`
+    + `<button type="button" class="btn-breport" data-plan-progress="${esc(u.id)}">📈 ${esc(t('students.progressBtn'))}</button>`;
 }
 /* H-07 (AUTH-2026-11-10-392; auditoría de espacio 2026-11-09 §H-07 (a),
    aprobado por Ronald 2026-11-10): las filas del bloque de planes
@@ -10581,23 +10611,20 @@ function stuPlansWireCurrent(uid) {
   }
   const rb = blk.querySelector('[data-plan-review]');
   if (rb) rb.onclick = () => stuTrayOpen(uid);
-  /* AUTH-565: la fila de botones [Asignar plan] [Asignar reto]
-     vive fuera del bloque plegado, en su contenedor visible
-     #stu-plan-btnrows: sus botones se cablean aquí, sobre el
-     contenedor (el «Asignar plan» por el cableado de acciones
-     de siempre; «Progreso» y la casilla de retos como en
-     AUTH-560 — la misma hoja de AUTH-559, sin duplicar lógica;
-     con varios retos vigentes, su botón abre ahora la pantalla
-     del bloque «Retos» en vez de desplazar hasta él, porque el
-     bloque nace plegado). */
+  /* REORG-FICHA: la zona superior de la ficha (checklist +
+     puertas) vive en su contenedor #stu-plan-btnrows: sus dos
+     puertas se cablean aquí, sobre el contenedor — «Plan de
+     entrenamiento» abre su pantalla (stuPlanHubOpen) y
+     «Progreso» la vista de siempre (stuPlanProgressOpen). El
+     cableado de acciones del plan (wirePlanActionButtons) sigue
+     viviendo sobre el bloque, que ahora viaja dentro de la
+     pantalla del plan. */
   const brs = document.querySelector('#stu-plan-btnrows');
   if (brs) {
-    wirePlanActionButtons(brs, brs, uid, STU_PLANS.plans, () => { STU_PLANS.plans = null; loadStudentPlans(uid); });
+    const hb = brs.querySelector('[data-stu-planhub]');
+    if (hb) hb.onclick = () => stuPlanHubOpen(uid);
     const pb = brs.querySelector('[data-plan-progress]');
     if (pb) pb.onclick = () => stuPlanProgressOpen(uid);
-    brs.querySelectorAll('[data-chal-assign-open]').forEach(b => b.onclick = () => chalAsgOpen(uid, b.dataset.chalAssignOpen));
-    const gb = brs.querySelector('[data-chal-goto]');
-    if (gb) gb.onclick = () => stuSheetOpen('chal');
   }
   stuTrayPaintCount(uid);
 }
@@ -10741,7 +10768,10 @@ function stuPlanProgressModel(plan, logs) {
    detalle cuando están (STU_PLANS / STU_TRAIN) o de las
    lecturas de siempre (fetchPlans / fetchLogs /
    recoFetchStored). Estados vacíos honestos en cada bloque;
-   plan sin fechas → una sola nota. */
+   plan sin fechas → una sola nota.
+   REORG-FICHA (2026-11-24): es la pantalla que abre la puerta
+   «Progreso» de la ficha y nace con la parrilla de seis puertas
+   (stuProgGridHTML) sobre el contenido de siempre. */
 function stuPlanProgressClose() {
   const fl = $('stu-prog-float'); if (fl) fl.style.display = 'none';
 }
@@ -10753,11 +10783,11 @@ async function stuPlanProgressOpen(uid) {
   const bk = $('btn-stu-prog-back'); if (bk) bk.onclick = () => stuPlanProgressClose();
   const body = $('stu-prog-body'); if (!body) return;
   const show = () => { fl.style.display = ''; try { body.scrollTop = 0; } catch {} };
-  if (!plan) { body.innerHTML = `<div class="stu-prog-empty">${esc(t('train.noPlan'))}</div>`; show(); return; }
+  if (!plan) { body.innerHTML = stuProgGridHTML() + `<div class="stu-prog-empty">${esc(t('train.noPlan'))}</div>`; stuProgGridWire(body, uid); show(); return; }
   const head = `<p class="stu-prog-sub"><b>${esc(stuTrayStudentName(uid))}</b> · ${esc(plan.title || '')}</p>`;
   const s = String(plan.startsAt || '').slice(0, 10), e = String(plan.endsAt || '').slice(0, 10);
   const okWin = /^\d{4}-\d{2}-\d{2}$/.test(s) && /^\d{4}-\d{2}-\d{2}$/.test(e) && e >= s;
-  if (!okWin) { body.innerHTML = head + `<div class="stu-prog-empty">${esc(t('students.progNoWindow'))}</div>`; show(); return; }
+  if (!okWin) { body.innerHTML = head + stuProgGridHTML() + `<div class="stu-prog-empty">${esc(t('students.progNoWindow'))}</div>`; stuProgGridWire(body, uid); show(); return; }
   const logs = (STU_TRAIN.uid === uid && STU_TRAIN.logs) ? STU_TRAIN.logs : await fetchLogs(uid);
   const m = stuPlanProgressModel(plan, logs);
   const tp = stuPlanTimeProgress(plan);
@@ -10786,13 +10816,183 @@ async function stuPlanProgressOpen(uid) {
       : `<div class="stu-prog-empty">${esc(t('students.progMsEmpty'))}</div>`;
   } catch { msH = `<div class="stu-prog-empty">${esc(t('students.progMsEmpty'))}</div>`; }
   body.innerHTML = head
+    + stuProgGridHTML()
     + `<p class="stu-prog-sub">${esc(t('students.progWindow', { from: dateName(s), to: dateName(e), x: tp ? tp.x : 0, n: tp ? tp.n : 0 }))}</p>`
     + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progDaysTitle'))}</div><div class="stu-prog-days">${stripH}</div><div class="stu-prog-sess"><b>${esc(t('students.progSessions'))}</b><span>${esc(t('students.progSessionsOf', { done: m.done, total: m.planned }))}</span></div><div class="plan-card-bar"><i style="width:${pct}%"></i></div><p class="stu-prog-note">${esc(t('students.progDaysNote'))}</p></div>`
-    + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progMarksTitle'))}</div>${marksH}<p class="stu-prog-note">${esc(t('students.progMarksNote'))}</p></div>`
-    + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progFeelTitle'))}</div>${feelsH}</div>`
+    + `<div class="stu-prog-block" id="stu-prog-blk-marks"><div class="stu-prog-block-t">${esc(t('students.progMarksTitle'))}</div>${marksH}<p class="stu-prog-note">${esc(t('students.progMarksNote'))}</p></div>`
+    + `<div class="stu-prog-block" id="stu-prog-blk-feel"><div class="stu-prog-block-t">${esc(t('students.progFeelTitle'))}</div>${feelsH}</div>`
     + `<div class="stu-prog-block"><div class="stu-prog-block-t">${esc(t('students.progMsTitle'))}</div>${msH}<p class="stu-prog-note">${esc(t('students.progMsNote'))}</p></div>`;
+  stuProgGridWire(body, uid);
   show();
 }
+/* ════════════════════════════════════════════════════════════════
+   REORG-FICHA — LA PARRILLA DE «PROGRESO» Y LA PANTALLA
+   «PLAN DE ENTRENAMIENTO» (orden de Ronald, 2026-11-24, sobre
+   maquetas aprobadas por él el mismo día: «Bien así,
+   constrúyelo»). Ninguna vista ni ningún dato nuevo: cada
+   puerta abre la vista que ya existía para el entrenador.
+   Mapa de la parrilla (declarado en el informe del paquete):
+   · Composición corporal → la pantalla de AUTH-577
+     (#stu-qprog-float) con el foco en su tarjeta de composición
+     (su peso y su grasa: stuQPCompHTML).
+   · Entrenamiento → la hoja del bloque «El entrenamiento de mi
+     alumno» (stuSheetOpen('train'), el bloque de AUTH-352).
+   · Rendimiento → desplazamiento dentro de «Progreso» hasta su
+     bloque «Sus marcas en este plan».
+   · Alimentación e hidratación → la pantalla de AUTH-577 con
+     el foco en su tarjeta de alimentación (stuQPFoodHTML).
+   · Recuperación y bienestar → desplazamiento dentro de
+     «Progreso» hasta su bloque «Cómo se ha sentido en este
+     plan» (la encuesta de cierre: su bienestar registrado).
+   · Pruebas físicas → la pantalla de AUTH-577 con el foco en
+     su tarjeta ancha de pruebas (stuQPTestsHTML).
+   ════════════════════════════════════════════════════════════════ */
+function stuProgGridHTML() {
+  const tile = (attrs, icon, label) => `<button type="button" class="reorg-tile" ${attrs}><span class="reorg-tile-ic" aria-hidden="true">${icon}</span><span class="reorg-tile-lb">${esc(label)}</span></button>`;
+  return `<div class="reorg-grid">`
+    + tile('data-reorg-q="comp"', '🧍', t('mp.c1'))
+    + tile('data-reorg-train="1"', '🏋️', t('reorg.gridTrain'))
+    + tile('data-reorg-scroll="stu-prog-blk-marks"', '📊', t('reorg.gridPerf'))
+    + tile('data-reorg-q="food"', '💧', t('mp.c3'))
+    + tile('data-reorg-scroll="stu-prog-blk-feel"', '🌙', t('mp.c4'))
+    + tile('data-reorg-q="tests"', '🧪', t('reorg.gridTests'))
+    + `</div>`;
+}
+function stuProgGridWire(root, uid) {
+  if (!root || typeof root.querySelectorAll !== 'function') return;
+  root.querySelectorAll('[data-reorg-q]').forEach(b => b.onclick = () => stuQProgOpen(uid, b.dataset.reorgQ));
+  root.querySelectorAll('[data-reorg-scroll]').forEach(b => b.onclick = () => {
+    const el = document.getElementById(b.dataset.reorgScroll);
+    if (el) { try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch { el.scrollIntoView(); } }
+  });
+  const tb = root.querySelector('[data-reorg-train]');
+  if (tb) tb.onclick = () => {
+    const fl = $('stu-prog-float'); if (fl) fl.style.display = 'none';
+    try { coverSync(); } catch {}
+    stuSheetOpen('train');
+  };
+}
+/* La pantalla «Plan de entrenamiento» (#stu-planhub-float):
+   tarjeta del plan activo (nombre y fechas, con el «día x de n»
+   de stuPlanTimeProgress y la línea de ventana de siempre),
+   la puerta «Ver plan actual» (el paseo por la semana de
+   AUTH-577, stuPlanWalkOpen) y la puerta «Asignar plan» (el
+   editor de siempre, openPlanEditor con plan nuevo — la misma
+   llamada del cableado de acciones). Debajo VIAJAN los bloques
+   del plan y de retos desde #stu-store, con el mismo patrón de
+   anclas de la hoja del detalle (stuSheetOpen): sus pintores
+   los repintan en su sitio, estén donde estén, y al cerrar
+   vuelven a su ancla. Abrir la pantalla no escribe nada. */
+let STU_HUB = null;        /* { uid, nodes: [{el, anchor}], traveled } */
+function stuPlanHubTopHTML(uid) {
+  const loaded = STU_PLANS.uid === uid && !!STU_PLANS.plans;
+  if (!loaded) return `<div class="wempty">${esc(t('access.loading'))}</div>`;
+  /* La tarjeta nombra el mismo plan que la línea «Plan:» del
+     checklist de la ficha (el común activo; si no hay, el
+     activo que haya). */
+  const act = stuActiveCommonPlan(STU_PLANS.plans) || STU_PLANS.plans.find(p => p && p.active === true) || null;
+  let h = '';
+  if (act) {
+    const s = String(act.startsAt || '').slice(0, 10), e = String(act.endsAt || '').slice(0, 10);
+    const tp = stuPlanTimeProgress(act);
+    let dates;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s) && /^\d{4}-\d{2}-\d{2}$/.test(e) && e >= s && tp) dates = t('students.progWindow', { from: dateName(s), to: dateName(e), x: tp.x, n: tp.n });
+    else {
+      const bits = [];
+      if (act.startsAt) bits.push(`${t('train.dates.start')}: ${dateName(s)}`);
+      if (act.endsAt) bits.push(`${t('students.planEndLabel')}: ${dateName(e)}`);
+      dates = bits.join(' · ') || t('train.dates.none');
+    }
+    h += `<div class="reorg-actcard"><div class="reorg-actnow"><span class="reorg-dot" aria-hidden="true"></span>${esc(t('reorg.activeNow'))}</div><div class="reorg-actname">${esc(act.title || '')}</div><div class="reorg-actdates">${esc(dates)}</div></div>`;
+    h += `<button type="button" class="btn-qprog" data-hub-view="1">🏋️ ${esc(t('reorg.viewCurrent'))}</button>`;
+  } else {
+    h += `<div class="wempty">${esc(t('train.noPlan'))}</div>`;
+  }
+  h += `<button type="button" class="btn-breport" data-hub-assign="1">＋ ${esc(t('students.assignPlan'))}</button>`;
+  return h;
+}
+function stuPlanHubPaint(uid) {
+  const top = $('stu-planhub-top'); if (!top) return;
+  top.innerHTML = stuPlanHubTopHTML(uid);
+  const vb = top.querySelector('[data-hub-view]');
+  if (vb) vb.onclick = () => stuPlanWalkOpen(uid);
+  const ab = top.querySelector('[data-hub-assign]');
+  if (ab) ab.onclick = () => { stuPlanHubClose(); openPlanEditor(uid, null); };
+}
+/* Los bloques del plan y de retos viajan al cuerpo de la
+   pantalla (patrón de anclas de stuSheetOpen). */
+function stuPlanHubRetravel(uid) {
+  if (!STU_HUB || STU_HUB.uid !== uid || STU_HUB.traveled) return;
+  const host = $('stu-planhub-blocks'); if (!host) return;
+  const nodes = [$('stu-plan-block'), $('stu-chal-block')].filter(Boolean);
+  STU_HUB.nodes = nodes.map(el => {
+    const anchor = document.createElement('div');
+    anchor.className = 'stu-anchor'; anchor.style.display = 'none';
+    if (el.parentNode) el.parentNode.insertBefore(anchor, el);
+    host.appendChild(el);
+    return { el, anchor };
+  });
+  STU_HUB.traveled = true;
+}
+function stuPlanHubOpen(uid) {
+  const fl = $('stu-planhub-float'); if (!fl) return;
+  const u = ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(x => x.id === uid) || null;
+  if (!u) return;   // la puerta solo existe sobre SUS alumnos
+  if (STU_HUB && STU_HUB.uid !== uid) stuPlanHubClose();
+  if (!STU_HUB) STU_HUB = { uid, nodes: [], traveled: false };
+  const ttl = $('stu-planhub-title'); if (ttl) ttl.textContent = t('reorg.hubTitle');
+  const bk = $('stu-planhub-back'); if (bk) bk.onclick = () => stuPlanHubClose();
+  fl.style.display = '';
+  try { coverSync(); } catch {}
+  stuPlanHubPaint(uid);
+  stuPlanHubRetravel(uid);
+  const body = $('stu-planhub-body'); if (body) body.scrollTop = 0;
+}
+function stuPlanHubClose() {
+  const S = STU_HUB;
+  STU_HUB = null;
+  if (S) S.nodes.forEach(({ el, anchor }) => {
+    if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(el, anchor); anchor.remove(); }
+  });
+  const fl = $('stu-planhub-float'); if (fl) fl.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+/* Cuando los estados aterrizan (loadStudentPlans /
+   loadStudentChal) y la pantalla está abierta, su tarjeta del
+   plan activo se refresca con el mismo dato. */
+function stuPlanHubSync(uid) {
+  if (!STU_HUB || STU_HUB.uid !== uid) return;
+  const fl = $('stu-planhub-float');
+  if (fl && fl.style.display !== 'none') stuPlanHubPaint(uid);
+}
+/* Espejo de stuSheetReset para el repintado del detalle: los
+   bloques viajeros viejos se descartan con la pintura vieja y
+   la pantalla se oculta; renderStudentsBody la reabre sobre
+   los bloques nuevos cuando era de este mismo alumno (P3). */
+function stuPlanHubReset() {
+  if (!STU_HUB) return;
+  const host = $('stu-planhub-blocks'); if (host) host.innerHTML = '';
+  STU_HUB.nodes = [];
+  STU_HUB.traveled = false;
+  const fl = $('stu-planhub-float'); if (fl) fl.style.display = 'none';
+}
+/* «Ver plan actual»: el paseo por la semana de AUTH-577
+   (#stu-qdays-float → #stu-qday-float) entrando DIRECTO desde
+   la pantalla del plan, sin pasar por el resumen: carga los
+   datos con el lector de siempre (stuQProgLoad) y marca el
+   origen (from: 'hub') para que el «Volver» de la semana
+   regrese a la pantalla del plan y no al resumen. */
+async function stuPlanWalkOpen(uid) {
+  const u = ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(x => x.id === uid) || null;
+  if (!u) return;
+  STU_QP = { uid, name: stuName(u), data: null, dayIso: null, from: 'hub' };
+  const D = await stuQProgLoad(uid);
+  if (!STU_QP || STU_QP.uid !== uid || STU_QP.from !== 'hub') return;
+  STU_QP.data = D;
+  if (!D.plan) return;
+  stuQDaysOpen();
+}
+
 /* ════════════════════════════════════════════════════════════════
    AUTH-577 — ACCESO RÁPIDO DEL ENTRENADOR (órdenes de Ronald
    2026-11-23: «Quiero tener acceso rápido a esta información de
@@ -10843,8 +11043,8 @@ async function stuQProgLoad(uid) {
   try { if (actShareActive(D.udata, 'sleep')) { D.sleep = {}; const ss = await getDocs(query(collection(db, 'activity_data'), where('clientUid', '==', uid), where('dataType', '==', 'sleep'))); ss.forEach(d => { const v = d.data(); if (v.date && !v.deletedAt) D.sleep[v.date] = num(v.value); }); } } catch {}
   return D;
 }
-function stuQPTile(icon, title, lines) {
-  return `<div class="qprog-tile"><span class="qprog-tile-icon" aria-hidden="true">${icon}</span><span class="qprog-tile-name">${esc(title)}</span><span class="qprog-tile-data">${lines.join('')}</span></div>`;
+function stuQPTile(icon, title, lines, key) {
+  return `<div class="qprog-tile"${key ? ` data-qtile="${key}"` : ''}><span class="qprog-tile-icon" aria-hidden="true">${icon}</span><span class="qprog-tile-name">${esc(title)}</span><span class="qprog-tile-data">${lines.join('')}</span></div>`;
 }
 /* Composición: su peso más reciente (kg y lb, como la maqueta) y
    su grasa — la de sus pesajes si la trae (la misma fuente que
@@ -10858,7 +11058,7 @@ function stuQPCompHTML(D) {
   const lines = [];
   lines.push(w ? `<span class="qprog-line qprog-big">${stuQPfmt1(w.weight)} kg · ${stuQPfmt1(num(w.weight) / UNIT_LB_KG)} lb · ${esc(shortDate(w.date))}</span>` : `<span class="qprog-line qprog-none">${esc(t('students.qprogWeightNone'))}</span>`);
   lines.push(`<span class="qprog-line qprog-sub">${esc(fat ? t('students.qprogFat', { v: fmt(fat.v) }) : t('students.qprogFatNone'))}</span>`);
-  return stuQPTile('🧍', t('mp.c1'), lines);
+  return stuQPTile('🧍', t('mp.c1'), lines, 'comp');
 }
 /* Entrenamiento: hoy, esta semana y el avance — los modelos de
    la casa (stuTrainTodayState y stuCumplModel), sin recomputar. */
@@ -10872,7 +11072,7 @@ function stuQPTrainHTML(D) {
   if (cm && cm.week) lines.push(`<span class="qprog-line">${esc(t('students.cumplWeek', { done: cm.week.done, planned: cm.week.planned }))}</span>`);
   if (cm && cm.progress) lines.push(`<span class="qprog-line">${esc(t('students.cumplProgress', { done: cm.progress.done, planned: cm.progress.planned, pct: cm.progress.pct }))}</span>`);
   if (!D.plan) lines.push(`<span class="qprog-line qprog-none">${esc(t('train.noPlan'))}</span>`);
-  return stuQPTile('🏋️', t('mp.c2'), lines);
+  return stuQPTile('🏋️', t('mp.c2'), lines, 'train');
 }
 /* Alimentación: su meta y su objetivo (gmFocusEffective sobre SU
    documento, el resolvedor de la casa) y lo registrado hoy. */
@@ -10884,7 +11084,7 @@ function stuQPFoodHTML(D) {
   if (['mantener', 'bajar', 'ganar'].includes(fx.objective || '')) lines.push(`<span class="qprog-line">${esc(t('students.qprogObj', { obj: t('gm.obj.' + fx.objective) }))}</span>`);
   const tm = D.meals[todayISO()];
   lines.push(tm && tm.n ? `<span class="qprog-line qprog-sub">${esc(t('students.qprogTodayFood', { kcal: fmt(Math.round(tm.kcal)), n: tm.n }))}</span>` : `<span class="qprog-line qprog-sub">${esc(t('students.qprogTodayNone'))}</span>`);
-  return stuQPTile('🥗', t('mp.c3'), lines);
+  return stuQPTile('🥗', t('mp.c3'), lines, 'food');
 }
 /* Recuperación: solo lo que el alumno comparte (la doble
    compuerta de mpTrainerLoad); la composición de líneas es la de
@@ -10896,7 +11096,7 @@ function stuQPWellHTML(D) {
   const w = (D.well && D.well.length) ? D.well[0] : null;
   if (w) { const bits = []; if (w.energy) bits.push(esc(t('mp.f.energy')) + ' ' + w.energy + '/5'); if (w.fatigue) bits.push(esc(t('mp.f.fatigue')) + ' ' + w.fatigue + '/5'); if (w.stress) bits.push(esc(t('mp.f.stress')) + ' ' + w.stress + '/5'); if (bits.length) lines.push(`<span class="qprog-line">${bits.join(' · ')} · ${esc(shortDate(w.date))}</span>`); }
   if (!lines.length) lines.push(`<span class="qprog-line qprog-none">${esc(t('students.qprogWellNone'))}</span>`);
-  return stuQPTile('🌙', t('mp.c4'), lines);
+  return stuQPTile('🌙', t('mp.c4'), lines, 'well');
 }
 /* Sus pruebas físicas: el último resultado de cada prueba y
    variante, con la MISMA regla y los MISMOS formatos de la serie
@@ -10911,7 +11111,7 @@ function stuQPTestsHTML(D) {
     for (const r of sorted) if (r.complete !== false) latest[r.test + '|' + (r.variant || 'std')] = r;
     inner = Object.values(latest).map(r => `<div class="qprog-exrow"><span class="qprog-exname">${esc(t('fit.t.' + (FIT_TEST_ORDER.includes(r.test) ? r.test : 'sts1min')))} · ${esc(t('fit.var.' + (r.variant || 'std')))}</span><span class="qprog-chip">${esc(fitValTxt(r))}</span><span class="qprog-exdate">${esc(shortDate(r.date))}</span></div>`).join('');
   }
-  return `<div class="qprog-tile qprog-tile-wide"><span class="qprog-tile-icon" aria-hidden="true">🧪</span><span class="qprog-tile-name">${esc(t('students.qprogTests'))}</span><div class="qprog-tests">${inner}</div></div>`;
+  return `<div class="qprog-tile qprog-tile-wide" data-qtile="tests"><span class="qprog-tile-icon" aria-hidden="true">🧪</span><span class="qprog-tile-name">${esc(t('students.qprogTests'))}</span><div class="qprog-tests">${inner}</div></div>`;
 }
 /* La fila «Su peso»: nace plegada (regla de crecimiento de la
    casa) y despliega sus pesajes más recientes. */
@@ -10927,12 +11127,12 @@ function stuQProgHTML(D) {
     + stuQPWeightHTML(D)
     + (D.plan ? `<button type="button" class="btn-qprog-full" data-qprog-full="1">${esc(t('students.qprogFull'))} ›</button>` : '');
 }
-async function stuQProgOpen(uid) {
+async function stuQProgOpen(uid, focus) {
   const fl = $('stu-qprog-float'); if (!fl) return;
   const u = ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(x => x.id === uid) || null;
   if (!u) return;   // la puerta solo existe sobre SUS alumnos
   const name = stuName(u);
-  STU_QP = { uid, name, data: null, dayIso: null };
+  STU_QP = { uid, name, data: null, dayIso: null, from: 'qprog' };
   const ttl = $('stu-qprog-title'); if (ttl) ttl.textContent = t('students.qprogTitle', { name });
   const x = $('btn-stu-qprog-close'); if (x) x.onclick = () => stuQProgCloseAll();
   const bk = $('stu-qprog-back'); if (bk) bk.onclick = () => stuQProgCloseAll();
@@ -10944,6 +11144,13 @@ async function stuQProgOpen(uid) {
   STU_QP.data = D;
   body.innerHTML = stuQProgHTML(D);
   stuQProgWire(body);
+  /* REORG-FICHA: quien llega desde la parrilla de «Progreso»
+     aterriza con su tarjeta a la vista (composición, comida o
+     pruebas); sin foco, la pantalla nace arriba como siempre. */
+  if (focus) {
+    const tg = body.querySelector('[data-qtile="' + focus + '"]');
+    if (tg) { try { tg.scrollIntoView({ block: 'start' }); } catch {} }
+  }
 }
 function stuQProgWire(body) {
   const wt = body.querySelector('[data-qprog-wtoggle]');
@@ -10973,7 +11180,7 @@ function stuQDaysOpen() {
   const Q = STU_QP; if (!Q || !Q.data || !Q.data.plan) return;
   const ttl = $('stu-qdays-title'); if (ttl) ttl.textContent = t('students.progTitle');
   const x = $('btn-stu-qdays-close'); if (x) x.onclick = () => stuQProgCloseAll();
-  const bk = $('stu-qdays-back'); if (bk) bk.onclick = () => { stuQPHide('stu-qday-float'); stuQPHide('stu-qdays-float'); stuQPShow('stu-qprog-float'); };
+  const bk = $('stu-qdays-back'); if (bk) bk.onclick = () => { stuQPHide('stu-qday-float'); stuQPHide('stu-qdays-float'); stuQPShow(Q.from === 'hub' ? 'stu-planhub-float' : 'stu-qprog-float'); };
   stuQDaysPaint();
   stuQPHide('stu-qprog-float');
   stuQPShow('stu-qdays-float');
@@ -11412,12 +11619,15 @@ async function loadStudentPlans(uid) {
   const blk = document.querySelector('#stu-plan-block');
   /* AUTH-581 (P3): en su sitio (stuBlockPaint), nunca outerHTML. */
   if (blk) stuBlockPaint(blk, stuPlanBlockHTML({ id: uid }), () => stuPlansWireCurrent(uid));
-  /* AUTH-565: la fila de botones visible se repinta con los
-     planes recién llegados (su cableado lo rehace
-     stuPlansWireCurrent) y el dato clave de la línea del plan
-     se sincroniza. */
+  /* AUTH-565 → REORG-FICHA: la zona superior visible (checklist
+     «TIENE ACTIVO» + puertas) se repinta con los planes recién
+     llegados (su cableado lo rehace stuPlansWireCurrent), el
+     dato clave de la línea del plan se sincroniza y, si la
+     pantalla «Plan de entrenamiento» está abierta, su tarjeta
+     del plan activo se refresca con el mismo dato. */
   const brs = document.querySelector('#stu-plan-btnrows');
-  if (brs) { brs.innerHTML = stuPlanBtnRowsHTML({ id: uid }); stuPlansWireCurrent(uid); }
+  if (brs) { brs.innerHTML = stuFichaTopHTML({ id: uid }); stuPlansWireCurrent(uid); }
+  stuPlanHubSync(uid);
   stuFoldSync();
 }
 
@@ -11536,11 +11746,12 @@ async function loadStudentChal(uid) {
        traiga todas a la vez. */
     stuBlockPaint(blk, stuChalBlockHTML(u), () => {
       stuChalWireCurrent(uid);
-      /* AUTH-560: la casilla «Asignar reto» de la fila de botones
-         del plan refleja ESTE mismo estado: se repintan solo las
-         filas de botones del bloque del plan. */
+      /* AUTH-560 → REORG-FICHA: la línea del reto del checklist
+         «TIENE ACTIVO» refleja ESTE mismo estado: se repinta
+         solo la zona superior de la ficha. */
       const brs = document.querySelector('#stu-plan-btnrows');
-      if (brs) { brs.innerHTML = stuPlanBtnRowsHTML(u); stuPlansWireCurrent(uid); }
+      if (brs) { brs.innerHTML = stuFichaTopHTML(u); stuPlansWireCurrent(uid); }
+      stuPlanHubSync(uid);
       /* AUTH-565: el dato clave de la línea «Retos» refleja el
          estado recién llegado. */
       stuFoldSync();
@@ -11923,7 +12134,10 @@ function stuSheetOpen(key) {
   const nodes = stuSheetNodes(key).filter(Boolean);
   if (!nodes.length) return;
   const lineT = document.querySelector('[data-stu-line="' + key + '"] .stu-line-t');
-  const tt = $('stu-sheet-title'); if (tt) tt.textContent = lineT ? lineT.textContent : '';
+  /* REORG-FICHA: sin líneas plegadas en la ficha, el título sale
+     de la clave del bloque (la misma etiqueta de siempre). */
+  const tt = $('stu-sheet-title'); if (tt) tt.textContent = lineT ? lineT.textContent
+    : t(key === 'plan' ? 'students.planBlock' : key === 'chal' ? 'students.chalBlock' : 'students.trainBlock');
   const moved = nodes.map(el => {
     const anchor = document.createElement('div');
     anchor.className = 'stu-anchor'; anchor.style.display = 'none';
@@ -12381,14 +12595,18 @@ function studentsDetailHTML(u) {
     <div class="detail-head">${stuAvatarHTML(u, name)}<span class="detail-main"><span class="detail-name">${esc(name)}</span>${alertChipHTML((L.alertsByUid || {})[u.id])}<span class="detail-sub">${err ? esc(t('students.pendLoadError')) : pend.items.length ? esc(t('students.pendToResolve', { n: pend.items.length })) : esc(t('students.upToDate'))}</span></span></div>`;
   /* AUTH-565 (programa «Plegar todo» nº 2): los tres bloques
      (plan AUTH-341, retos AUTH-559, entrenamiento AUTH-352)
-     dejan de nacer desplegados en cadena tras la cabecera. La
-     fila de botones de AUTH-560 queda VISIBLE junto a la línea
-     del plan (decisión de Ronald) y cada bloque queda como UNA
-     LÍNEA plegada que abre su propia pantalla con volver; los
-     bloques viven en el almacén oculto #stu-store y VIAJAN a
-     la hoja #stu-sheet al abrir su línea — sus pintores, sus
-     cargas y su cableado no cambian. */
-  h += `<div id="stu-plan-btnrows">${stuPlanBtnRowsHTML(u)}</div>`;
+     dejan de nacer desplegados en cadena tras la cabecera; los
+     bloques viven en el almacén oculto #stu-store — sus
+     pintores, sus cargas y su cableado no cambian.
+     REORG-FICHA (2026-11-24): la zona visible tras la cabecera
+     es la de stuFichaTopHTML (checklist «TIENE ACTIVO» + las
+     puertas «Plan de entrenamiento» y «Progreso»). Las LÍNEAS
+     plegadas de AUTH-565 desaparecen de la ficha: el bloque del
+     plan y el de retos VIAJAN ahora dentro de la pantalla
+     «Plan de entrenamiento» (stuPlanHubOpen) y el de
+     entrenamiento se abre con su hoja desde la parrilla de
+     «Progreso» (stuSheetOpen('train')). */
+  h += `<div id="stu-plan-btnrows">${stuFichaTopHTML(u)}</div>`;
   /* AUTH-571: el botón «📏 Tomar medidas» del entrenador — ancho
      completo, fuera de todo pliegue, justo bajo la fila de botones
      de plan/reto de AUTH-560; abre su pantalla propia (#tmeas-float).
@@ -12400,15 +12618,13 @@ function studentsDetailHTML(u) {
      composición corporal (foto, imagen o PDF) se guarda como
      archivo en el historial del alumno, sin tocar sus medidas. */
   h += `<button type="button" class="btn-tmeas" data-stu-tmeas="${u.id}">📏 ${esc(t('tmeas.btn'))}</button><button type="button" class="btn-breport" data-stu-breport="${u.id}">📄 ${esc(t('r10.breportBtn'))}</button>`;
-  /* AUTH-577: la puerta del acceso rápido a su progreso — ancho
-     completo, fuera de todo pliegue, justo bajo «Tomar medidas»;
-     abre su pantalla propia (#stu-qprog-float). Vive SOLO en esta
-     superficie (el detalle que ven el entrenador y el admin sobre
-     un alumno): en la vista del propio alumno no existe. */
-  h += `<button type="button" class="btn-qprog" data-stu-qprog="${u.id}">📊 ${esc(t('students.qprogBtn'))}</button>`;
-  h += stuFoldLineHTML('plan', t('students.planBlock'));
-  h += stuFoldLineHTML('chal', t('students.chalBlock'));
-  h += stuFoldLineHTML('train', t('students.trainBlock'));
+  /* AUTH-577: la puerta del acceso rápido a su progreso
+     (#stu-qprog-float) vivía aquí como botón «Resumen de
+     progreso». REORG-FICHA (2026-11-24): ese botón DESAPARECE
+     de la ficha — su pantalla se abre ahora desde la parrilla
+     de seis puertas de «Progreso» (composición corporal,
+     alimentación e hidratación y pruebas físicas), con el
+     foco puesto en su tarjeta. */
   h += `<div id="stu-store" style="display:none">`
     + stuPlanBlockHTML(u)
     + stuChalBlockHTML(u)
@@ -12458,7 +12674,13 @@ function renderStudentsBody() {
      el entrenador lee su hoja ya no se la quita de las manos. */
   const keepSheetKey = (STU_SHEET && du && STU_SHEET.uid === du.id) ? STU_SHEET.key : null;
   const keepSheetTop = keepSheetKey ? (($('stu-sheet') || {}).scrollTop || 0) : 0;
+  /* REORG-FICHA: la pantalla «Plan de entrenamiento» se conserva
+     con la misma regla P3: si estaba abierta sobre ESTE alumno,
+     sus bloques viajeros se descartan con la pintura vieja y al
+     final de la pasada viajan los bloques nuevos. */
+  const keepHubUid = (typeof STU_HUB !== 'undefined' && STU_HUB && du && STU_HUB.uid === du.id) ? du.id : null;
   stuSheetReset();
+  stuPlanHubReset();
   el.innerHTML = du
     ? `<div class="students-split"><div class="students-col-list">${studentsListSectionHTML()}</div><div class="students-col-detail">${studentsDetailHTML(du)}</div></div>`
     : studentsListSectionHTML();
@@ -12516,8 +12738,16 @@ function renderStudentsBody() {
      «Tomar medidas», abre su pantalla propia. */
   el.querySelectorAll('[data-stu-breport]').forEach(b => b.onclick = () => breportOpen(b.dataset.stuBreport));
   el.querySelectorAll('[data-stu-qprog]').forEach(b => b.onclick = () => stuQProgOpen(b.dataset.stuQprog));
-  /* AUTH-565: las líneas plegadas del detalle abren la hoja
-     propia de su bloque (plan / retos / entrenamiento). */
+  /* REORG-FICHA: las puertas de la zona superior de la ficha —
+     «Plan de entrenamiento» abre su pantalla y «Progreso» la
+     vista de siempre (las recablea además stuPlansWireCurrent
+     cuando aterrizan los estados). */
+  el.querySelectorAll('[data-stu-planhub]').forEach(b => b.onclick = () => stuPlanHubOpen(b.dataset.stuPlanhub));
+  el.querySelectorAll('[data-plan-progress]').forEach(b => b.onclick = () => stuPlanProgressOpen(b.dataset.planProgress));
+  /* AUTH-565: las líneas plegadas del detalle abrían la hoja
+     propia de su bloque; REORG-FICHA las retiró de la ficha —
+     la hoja sigue viva para el bloque de entrenamiento, que se
+     abre desde la parrilla de «Progreso». */
   el.querySelectorAll('[data-stu-line]').forEach(b => b.onclick = () => stuSheetOpen(b.dataset.stuLine));
   /* ASIGNACIONES (este paquete): el botón de gestión del detalle
      abre la hoja de asignaciones (solo se pinta al administrador). */
@@ -12546,6 +12776,11 @@ function renderStudentsBody() {
      nuevo, en su posición. */
   if (keepSheetKey && STUDENTS_DETAIL === du.id) {
     try { stuSheetOpen(keepSheetKey); const sh = $('stu-sheet'); if (sh) sh.scrollTop = keepSheetTop; } catch {}
+  }
+  /* REORG-FICHA (P3): la pantalla del plan conservada recibe los
+     bloques nuevos y su tarjeta refrescada. */
+  if (keepHubUid && STUDENTS_DETAIL === du.id) {
+    try { const fl = $('stu-planhub-float'); if (fl) fl.style.display = ''; stuPlanHubPaint(keepHubUid); stuPlanHubRetravel(keepHubUid); } catch {}
   }
 }
 /* Barra de la vista: buscador + conmutador Lista/Rejilla en una
