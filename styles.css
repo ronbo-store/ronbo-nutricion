@@ -8028,6 +8028,11 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 /* AUTH-586 (punto 10): el icono de PDF en la lista de informes y
    la celda de la rejilla a ancho completo dentro de su envoltorio. */
 .br-row-ic { font-size: 26px; width: 44px; text-align: center; flex: none; }
+/* Paquete «Leer los datos del informe» (2026-11-24): el botón de
+   lectura de cada informe guardado, a ancho completo bajo su
+   fila (como la maqueta aprobada), y su línea de estado. */
+.br-read-btn { display: block; width: 100%; min-height: 48px; margin: 6px 0 4px; }
+.br-reading { margin: 8px 0 0; }
 .cgrid-cellwrap .cgrid-cell { width: 100%; }
 /* ===== AUTH-592 · Pliegues nº 10 «Biblioteca» =====
    Cabecera con «Nuevo» junto al título, línea de pliegue del

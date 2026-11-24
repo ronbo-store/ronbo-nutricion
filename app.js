@@ -12010,9 +12010,12 @@ function tmeasClose() {
    el PDF sube tal cual con uploadBytes). Se puede consultar
    la lista, abrir, reemplazar (el archivo viejo se borra de
    Storage) y eliminar (documento y archivo). La subida NO
-   modifica ninguna métrica registrada: no hay extracción de
-   valores, con IA ni sin ella — el informe es un archivo en
-   su historial, como pide la orden. */
+   modifica ninguna métrica registrada: el informe nace como
+   un archivo en su historial. Su LECTURA es el paso separado
+   del paquete «Leer los datos del informe» (2026-11-24, más
+   abajo): con confirmación expresa de la persona, los números
+   del informe entran en el progreso del alumno por la puerta
+   de AUTH-369. */
 let BREPORT = null;
 async function breportOpen(uid) {
   const fl = $('breport-float'), body = $('breport-body');
@@ -12020,7 +12023,7 @@ async function breportOpen(uid) {
   const u = ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(x => x.id === uid) || { id: uid };
   const name = stuName(u);
   const tt = $('breport-title'); if (tt) tt.textContent = '📄 ' + t('r10.breportTitle', { name });
-  BREPORT = { uid, name, file: null, prevUrl: '', replaceId: '', date: todayISO(), busy: false, err: '', list: null };
+  BREPORT = { uid, name, file: null, prevUrl: '', replaceId: '', date: todayISO(), busy: false, err: '', list: null, reading: false };
   fl.style.display = '';
   const x = $('breport-x'); if (x) x.onclick = () => breportClose();
   const bk = $('breport-back'); if (bk) bk.onclick = () => breportClose();
@@ -12058,14 +12061,15 @@ function breportPaint() {
   const prev = B.file ? `<div class="br-prev">${B.file.type === 'application/pdf'
     ? `<div class="br-prev-name">📄 ${esc(B.file.name)}</div>`
     : `${B.prevUrl ? `<img src="${esc(B.prevUrl)}" alt="">` : ''}<div class="br-prev-name">${esc(B.file.name)}</div>`}</div>` : '';
-  const rows = (B.list || []).map(r => `<div class="br-row">
+  const rows = (B.list || []).map(r => `<div class="br-item"><div class="br-row">
     ${r.fileType === 'pdf' ? `<span class="br-row-ic" aria-hidden="true">📄</span>` : `<img src="${esc(r.url || '')}" alt="">`}
     <div class="br-row-main"><b>${esc(shortDate(r.measureDate || ''))}</b><span>${esc(r.fileType === 'pdf' ? t('r10.brPdf') : t('r10.brPhoto'))}</span></div>
     <div class="br-row-acts">
       <button type="button" class="btn-ghost btn-sm" data-br-open="${esc(r.id)}">${esc(t('r10.brOpen'))}</button>
       <button type="button" class="btn-ghost btn-sm" data-br-rep="${esc(r.id)}">${esc(t('r10.brReplace'))}</button>
       <button type="button" class="btn-ghost btn-sm" data-br-del="${esc(r.id)}">${esc(t('r10.brDelete'))}</button>
-    </div></div>`).join('');
+    </div></div>
+    <button type="button" class="btn-primary br-read-btn" data-br-read="${esc(r.id)}" ${B.busy ? 'disabled' : ''}>${esc(t('r10.brRead'))}</button></div>`).join('');
   body.innerHTML = `
     <p class="r10-prog-note">${esc(t('r10.brNote'))}</p>
     <div class="br-pickrow">
@@ -12077,6 +12081,7 @@ function breportPaint() {
     ${prev}
     <label class="br-date">${esc(t('r10.brDate'))}<input type="date" id="br-date" value="${esc(B.date || todayISO())}"></label>
     ${B.err ? `<p class="br-err">${esc(B.err)}</p>` : ''}
+    ${B.reading ? `<p class="muted br-reading">${esc(t('r10.brReading'))}</p>` : ''}
     <div class="eval-actions"><button type="button" class="btn-primary" id="br-save" ${B.busy || !B.file ? 'disabled' : ''}>${esc(B.busy ? t('r10.brUploading') : t('r10.brSave'))}</button></div>
     <h4 style="margin:16px 0 4px">${esc(t('r10.brListT'))}</h4>
     ${B.list === null ? `<p class="muted">${esc(t('train.loading'))}</p>` : (rows || `<p class="muted">${esc(t('r10.brNone'))}</p>`)}`;
@@ -12089,6 +12094,7 @@ function breportPaint() {
   body.querySelectorAll('[data-br-open]').forEach(b => b.onclick = () => { const r = (BREPORT.list || []).find(x => x.id === b.dataset.brOpen); if (r && r.url) window.open(r.url, '_blank'); });
   body.querySelectorAll('[data-br-rep]').forEach(b => b.onclick = () => { BREPORT.replaceId = b.dataset.brRep; BREPORT.err = ''; const i = $('br-file'); if (i) i.click(); });
   body.querySelectorAll('[data-br-del]').forEach(b => b.onclick = () => breportDelete(b.dataset.brDel));
+  body.querySelectorAll('[data-br-read]').forEach(b => b.onclick = () => breportRead(b.dataset.brRead));
 }
 /* FIX-INFORME (2026-11-24): el catch genérico culpaba a la
    conexión de fallos que no eran de red — la causa raíz del
@@ -12156,6 +12162,60 @@ async function breportDelete(id) {
     await breportLoadList();
   } catch (e) { if (BREPORT) BREPORT.err = breportErrText(e); }
   if (BREPORT) { BREPORT.busy = false; breportPaint(); }
+}
+/* ═══ LEER LOS DATOS DEL INFORME (paquete 2026-11-24; orden y
+   maqueta aprobada de Ronald: «Bien así, constrúyelo») ═══
+   REGLA DE RONALD (2026-11-24): todo informe subido por esta
+   vía que contenga la información métrica del alumno TIENE
+   que ser leído para llenar sus métricas — para TODOS los
+   usuarios (el alumno que sube el suyo y el entrenador que
+   sube el de su alumno). Cada informe guardado lleva su botón
+   «Leer los datos del informe»: la app abre el archivo ya
+   guardado y lo pasa por la MISMA puerta de lectura de
+   AUTH-369 (la ruta /report del Worker, con sus topes de IA
+   y su registro en «Errores de la IA») y por su hoja de
+   confirmación de siempre (airOpen/airAnalyze con el uid DEL
+   ALUMNO): nada se guarda hasta que la persona confirma en
+   esa hoja, y al guardar, los valores entran en
+   nutrition_weight/{alumno}_{fecha} — el MISMO registro que
+   el alumno ve en su progreso y en su reporte, porque los
+   datos son DEL ALUMNO, como si los hubiera cargado él.
+   Los campos son los que el modelo de progreso guarda
+   (AUTH-369): peso, grasa corporal %, masa muscular, músculo
+   esquelético, masa ósea, proteína, agua corporal %, grasa
+   visceral, grasa subcutánea y SMI. El IMC y la edad
+   metabólica que traen algunos reportes NO tienen dónde
+   vivir en el modelo y no se guardan (la propia hoja ya lo
+   declara: air.notSavedNote) — no se inventan campos.
+   Si el informe guardado es un PDF, la lectura automática
+   no lo alcanza (la ruta /report lee imágenes): el botón lo
+   dice con su mensaje propio y no abre nada. Si el archivo
+   guardado no se puede abrir, el aviso habla de ESE archivo
+   — nunca se culpa a la conexión sin causa. */
+async function breportRead(id) {
+  const B = BREPORT; if (!B || B.busy) return;
+  const r = (B.list || []).find(x => x.id === id); if (!r) return;
+  if (r.fileType === 'pdf') { B.err = t('r10.brReadPdf'); breportPaint(); return; }
+  if (!r.url) { B.err = t('r10.brReadErr'); breportPaint(); return; }
+  B.busy = true; B.err = ''; B.reading = true; breportPaint();
+  let file = null;
+  try {
+    const resp = await fetch(r.url);
+    if (!resp.ok) throw new Error('http-' + resp.status);
+    const blob = await resp.blob();
+    if (blob.type && blob.type.indexOf('pdf') >= 0) {
+      if (BREPORT) { BREPORT.busy = false; BREPORT.reading = false; BREPORT.err = t('r10.brReadPdf'); breportPaint(); }
+      return;
+    }
+    file = new File([blob], 'informe-corporal.jpg', { type: blob.type || 'image/jpeg' });
+  } catch (e) {
+    if (BREPORT) { BREPORT.busy = false; BREPORT.reading = false; BREPORT.err = t('r10.brReadErr'); breportPaint(); }
+    return;
+  }
+  const uid = B.uid, name = B.name;
+  breportClose();
+  airOpen({ uid, name });
+  airAnalyze(file);
 }
 async function tmeasOpen(uid) {
   const fl = $('tmeas-float'), body = $('tmeas-body');
