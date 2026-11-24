@@ -3257,6 +3257,7 @@ export default {
   'train.f.warmupPh': 'Series de aproximación', 'train.f.restPh': 'Descanso',
   'train.tpl.title': '📋 Plantillas de rutina',
   'plan594.dates': '📅 Fechas',
+  'coach596.why': 'Por qué así',
   'prof595.dossier': 'Mi dossier',
   'prof595.more': 'Ver más',
   'prof595.less': 'Ver menos',

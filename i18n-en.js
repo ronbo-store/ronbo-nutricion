@@ -3260,6 +3260,7 @@ export default {
   'train.f.warmupPh': 'Warm-up sets', 'train.f.restPh': 'Rest',
   'train.tpl.title': '📋 Routine templates',
   'plan594.dates': '📅 Dates',
+  'coach596.why': 'Why this way',
   'prof595.dossier': 'My dossier',
   'prof595.more': 'See more',
   'prof595.less': 'See less',
