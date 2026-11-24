@@ -10748,6 +10748,15 @@ async function loadStudentTraining(uid) {
           if (ix >= 0) STU_PLANS.plans[ix] = actP21;
         }
       }
+      /* AUTH-584: la corrección de los 10 hallazgos corre
+         tras la de series, con la misma sincronización de
+         la caché de la ficha. */
+      if (await plan21FixEnsure(actP21, logs)) {
+        if (typeof STU_PLANS !== 'undefined' && STU_PLANS && STU_PLANS.uid === uid && Array.isArray(STU_PLANS.plans)) {
+          const ix = STU_PLANS.plans.findIndex(p => p && p.id === actP21.id);
+          if (ix >= 0) STU_PLANS.plans[ix] = actP21;
+        }
+      }
     } catch {}
   }
   const open = (STU_TRAIN.uid === uid && STU_TRAIN.open) || {};
@@ -26673,7 +26682,9 @@ async function fetchClientActLogs(clientUid) {
   return out;
 }
 function trainExercisesHTML(day) {
-  return (day.exercises || []).map(ex => `
+  /* AUTH-584 (H5): el detalle del entrenador también señala
+     en su sitio el día nacido con un ejercicio menos. */
+  return plan21HealthShortHTML(day) + (day.exercises || []).map(ex => `
     <div class="train-ex"><span>${esc(ex.name || '')}${ex.note ? ` <span class="muted">· ${esc(ex.note)}</span>` : ''}</span><span class="sx">${esc([ex.sets, ex.reps].filter(Boolean).join(' × '))}</span></div>`).join('');
 }
 
@@ -40804,7 +40815,7 @@ function trainCardio2StepFieldHTML(T, f, label, val, isSplit) {
    específicos de la máquina tras «Más datos ›» (nacen
    plegados, la regla de crecimiento de la casa), la foto del
    panel siempre visible y el guardar grande. */
-function trainCardio2FormHTML(T, e, isWarm, assign) {
+function trainCardio2FormHTML(T, e, isWarm, assign, noDel) {
   const meta = trainCardio2Meta(e.machine);
   const pills = TRAIN_CARDIO2_MACHINES.map(m => `<button type="button" data-cardio2-t="${T}" data-cardio2-machine="${m.id}" aria-pressed="${e.machine === m.id ? 'true' : 'false'}" class="${e.machine === m.id ? 'is-sel' : ''}">${m.icon ? m.icon + ' ' : ''}${esc(t('train.cardio2.machine.' + m.id))}</button>`).join('');
   const F = [];
@@ -40829,7 +40840,7 @@ function trainCardio2FormHTML(T, e, isWarm, assign) {
     + `<input type="file" accept="image/*" data-cardio2-file="${T}" hidden>`
     + (e.photo ? `<div class="cardio2-photo-prev"><img src="${e.photo}" alt="${esc(t('train.cardio2.photo'))}"><button type="button" class="cardio2-photo-del" data-cardio2-photo-del="${T}">${esc(t('train.cardio2.photoRemove'))}</button></div>` : '');
   const save = `<button type="button" class="cardio-save" data-cardio2-save="${T}">${esc(isWarm ? t('train.cardio.save') : t('train.cardio2.save'))}</button>`;
-  const del = isWarm ? '' : `<button type="button" class="cardio2-del" data-cardio2-del="${T}">${esc(t('train.cardio2.remove'))}</button>`;
+  const del = (isWarm || noDel) ? '' : `<button type="button" class="cardio2-del" data-cardio2-del="${T}">${esc(t('train.cardio2.remove'))}</button>`;   /* AUTH-584: un punto obligatorio del plan no trae botón de quitar */
   return `<div class="cardio-pills">${pills}</div><div class="cardio2-fields">${F.join('')}</div>${specHTML}${dose}${photo}${save}${del}`;
 }
 /* EL PUNTO DEL CALENTAMIENTO. En «No»: la línea compacta con
@@ -40865,6 +40876,22 @@ function trainCardio2WarmHTML(plan, di, iso, opts) {
      (sin responder, o con el formulario abierto). */
   const wrapFold = inner => `<div class="cardio-warm cardio2-point" data-cardio2-plan="${esc(plan.id)}" data-cardio2-iso="${esc(iso || todayISO())}">${inner}</div>`;
   if (!w) {
+    /* AUTH-584 · EL CALENTAMIENTO OBLIGATORIO DE LA SEMANA 1
+       DEL RETO (marca cardioReq en el día): el punto nace
+       ASIGNADO — no se ofrece con la pregunta Sí/No — con el
+       formulario del registro de siempre, los minutos del
+       plan y la máquina por elegir entre las registradas.
+       El cableado materializa la entrada en el borrador al
+       cablear (data-cardio2-req). Si la persona ya había
+       respondido «No» antes de que el plan trajera la marca,
+       manda la obligación del plan. */
+    const dayReqW = (plan.days && di >= 0 && plan.days[di] && plan.days[di].cardioReq) || null;
+    const reqWarm = dayReqW && Number(dayReqW.warm) > 0 ? Number(dayReqW.warm) : 0;
+    if (reqWarm) {
+      const eReq = { machine: null, minutes: reqWarm, kcal: null, dist: null, hr: null, spec: {}, photo: null, folded: false };
+      const headReq = `<div class="cardio-warm-head"><span class="cardio-warm-title">🔥 ${esc(t('train.cardio.title'))}</span><span class="cardio2-st is-req">${esc(t('plan21.cardioReq'))}</span></div>`;
+      return label + `<div class="cardio-warm cardio2-point" data-cardio2-plan="${esc(plan.id)}" data-cardio2-iso="${esc(iso || todayISO())}" data-cardio2-req="warm" data-cardio2-reqmin="${reqWarm}">${headReq}${trainCardio2FormHTML('warm', eReq, true)}</div>`;
+    }
     if (doc.warmOff) return label + wrapFold(`<div class="cardio-sum"><span aria-hidden="true">🔥</span><span>${esc(t('train.cardio.title'))} · ${esc(t('train.cardio2.offLine'))}</span><button type="button" class="cardio-edit" data-cardio2-editoff="1">${esc(t('train.cardio.edit'))}</button></div>`);
     return label + wrap(`<div class="cardio-hint">${esc(t('train.cardio.hintNo'))}</div>`);
   }
@@ -40921,6 +40948,19 @@ function trainCardio2ExtrasHTML(plan, di, iso, startNum) {
     }
     return `<div class="cardio-warm cardio2-point" ${attrs}><div class="cardio-warm-head"><span class="cardio-warm-title">➕ ${esc(t('train.cardio2.register'))}</span></div>${trainCardio2FormHTML(T, e, false, true)}</div>`;   /* CAND-527: la vista del día ASIGNA — el formulario lo declara */
   });
+  /* AUTH-584 · EL CARDIO FINAL OBLIGATORIO DE LA SEMANA 1 DEL
+     RETO (marca cardioReq en el día): si el día aún no tiene
+     ningún punto añadido, el de cierre nace ASIGNADO como el
+     último punto — mismo registro de máquinas, minutos del
+     plan, máquina por elegir, sin botón de quitar; el
+     cableado lo materializa en el borrador (data-cardio2-req).
+     Con un punto ya añadido por la persona, no se duplica. */
+  const dayReqX = (plan.days && di >= 0 && plan.days[di] && plan.days[di].cardioReq) || null;
+  const reqClose = dayReqX && Number(dayReqX.close) > 0 ? Number(dayReqX.close) : 0;
+  if (reqClose && !doc.extras.length) {
+    const eReq = { machine: null, minutes: reqClose, kcal: null, dist: null, hr: null, spec: {}, photo: null, folded: false };
+    parts.push(`<div class="cardio-warm cardio2-point" data-cardio2-plan="${esc(plan.id)}" data-cardio2-iso="${esc(iso || todayISO())}" data-cardio2-req="close" data-cardio2-reqmin="${reqClose}"><div class="cardio-warm-head"><span class="cardio-warm-title">🏁 ${esc(t('plan21.cardioClose'))}</span><span class="cardio2-st is-req">${esc(t('plan21.cardioReq'))}</span></div>${trainCardio2FormHTML('x0', eReq, false, true, true)}</div>`);
+  }
   parts.push(`<button type="button" class="cardio2-add" data-train-add-open="1" ${attrs}>${esc(t('train.day.addExercise'))}</button>`);
   return parts.join('');
 }
@@ -40951,6 +40991,32 @@ function trainCardio2AddBlank(planId, iso) {
 }
 function trainCardio2Wire(box) {
   if (!box) return;
+  /* AUTH-584 · LA MATERIALIZACIÓN DE LOS PUNTOS OBLIGATORIOS:
+     el pintor enseña los puntos que el plan exige (la semana
+     1 del Reto, marca cardioReq) desde la marca del día, sin
+     escribir; este cableado es el primer momento con
+     escritura y la entrada nace en el borrador ASIGNADA —
+     minutos del plan, máquina por elegir — exactamente como
+     nace al decir «Sí» en el calentamiento de siempre.
+     Idempotente: solo escribe si la entrada no existe (y el
+     punto de cierre, solo si no hay ningún punto añadido). */
+  box.querySelectorAll('[data-cardio2-req]').forEach(root => {
+    const planId = root.dataset.cardio2Plan, iso = root.dataset.cardio2Iso || undefined;
+    if (!planId) return;
+    const min = Number(root.dataset.cardio2Reqmin) > 0 ? Number(root.dataset.cardio2Reqmin) : 5;
+    const doc = trainCardio2Read(planId, iso);
+    let changed = false;
+    if (root.dataset.cardio2Req === 'warm' && !doc.warm) {
+      doc.warm = { machine: null, minutes: min, kcal: null, dist: null, hr: null, spec: {}, photo: null, folded: false };
+      delete doc.warmOff;
+      changed = true;
+    } else if (root.dataset.cardio2Req === 'close' && !(doc.extras && doc.extras.length)) {
+      doc.extras = Array.isArray(doc.extras) ? doc.extras : [];
+      doc.extras.push({ machine: null, minutes: min, kcal: null, dist: null, hr: null, spec: {}, photo: null, folded: false });
+      changed = true;
+    }
+    if (changed) trainCardio2Write(planId, doc, iso);
+  });
   const roots = box.querySelectorAll('[data-cardio2-plan]');
   if (!roots.length) return;
   const ctxOf = el => { const r = el.closest('[data-cardio2-plan]'); return r ? { planId: r.dataset.cardio2Plan, iso: r.dataset.cardio2Iso || undefined } : null; };
@@ -43763,6 +43829,9 @@ async function loadMyTraining() {
      registros ya leídos, antes de pintar el día — para que el
      día por venir nazca ya a 4 series (plan21SetsEnsure). */
   if (!isLoose && plan) { try { await plan21SetsEnsure(plan, logs); } catch {} }
+  /* AUTH-584: tras la regla de series, la corrección de los
+     10 hallazgos en los días por venir del mismo plan. */
+  if (!isLoose && plan) { try { await plan21FixEnsure(plan, logs); } catch {} }
   try { const ds2 = $('dateSel'); if (ds2 && typeof render === 'function') render(ds2.value); } catch {}
   const today = todayISO();
   const weekStart = mondayISO(today);
@@ -43860,7 +43929,7 @@ async function trainViewPaint(light) {
     const exHtml = done
       ? trainDayHistHTML(day, log)
       : (day.exercises || []).map((ex, ei) => trainExCardHTML(ex, di, ei)).join('');
-    return `<div class="train-day"><h4>${esc(label)}</h4>${exHtml}${trainSessionHTML(day)}
+    return `<div class="train-day"><h4>${esc(label)}</h4>${plan21HealthShortHTML(day)}${exHtml}${trainSessionHTML(day)}
       <div style="margin-top:8px">${done
         ? `${trainStatusBadge(status)}${status === 'skipped' ? ` <span class="muted">${t('train.d.skippedNote')}</span>` : ''} <button class="btn-ghost btn-sm" data-train-undo="${di}">${t('train.undo')}</button>`
         : trainEditTailHTML(plan.id, di)}</div>
@@ -43947,7 +44016,7 @@ async function trainViewPaint(light) {
       cardioTail = trainCardio2ExtrasHTML(plan, di, selIsoC, (trainCardio2ViewOf(docC.warm) ? 1 : 0) + nEx + 1)
         + trainCardio2LineHTML(plan.id, selIsoC);
     }
-    return `<h4>${esc(label)}</h4>${cardioHtml}${exHtml}${cardioTail}${mode === 'edit' ? trainRemovedLineHTML(plan, di, selIsoC) : ''}${trainSessionHTML(day)}${tail}${trainExtrasZoneHTML()}`;
+    return `<h4>${esc(label)}</h4>${plan21HealthShortHTML(day)}${cardioHtml}${exHtml}${cardioTail}${mode === 'edit' ? trainRemovedLineHTML(plan, di, selIsoC) : ''}${trainSessionHTML(day)}${tail}${trainExtrasZoneHTML()}`;
   };
   /* ENTRENAMIENTO-HOY: tira semanal + tarjeta del día (por defecto
      HOY). La configuración de pendientes es la ancla «cfg»: si
@@ -45967,16 +46036,20 @@ const PLAN21_TPL_ID = 'PLAN21';
 const PLAN21_TPL_VERSION = 'v1';
 /* El esqueleto de §10 TAL COMO SE APROBÓ: por sesión, los
    patrones en orden con su rol de banda y los candidatos por
-   familia en orden de preferencia [familia, exerciseId,
-   rolSustituto?]. Las 3 fichas Intermedio ⚠ aprobadas por
-   Ronald (E006, E141, E036) entran como variantes. */
+   familia en orden de preferencia [familia, exerciseId].
+   AUTH-584 (H1/H2/H10): la resolución (plan21Pick) solo admite
+   fichas de nivel Principiante con foto y video — las variantes
+   Intermedio que el diseño original traía (E006, E141, E036) y
+   las fichas sin video (E140) ya no pueden caer en el plan; el
+   puesto conserva siempre el rol del patrón (el empuje vertical
+   ya no nace como aislamiento por entrar con mancuernas). */
 const PLAN21_SESSIONS = [
   { code: 'TA', slots: [
     { pat: 'pushH', role: 'compound', cands: [['maquinas', 'E001'], ['mancuernas', 'E006'], ['poleas', 'E141'], ['corporal', 'E010']] },
     { pat: 'rowH', role: 'compound', cands: [['maquinas', 'E014'], ['poleas', 'E112'], ['mancuernas', 'E022'], ['corporal', 'E123']] },
-    { pat: 'pushV', role: 'compound', cands: [['maquinas', 'E025'], ['mancuernas', 'E032', 'isolation']] },
+    { pat: 'pushV', role: 'compound', cands: [['maquinas', 'E025'], ['mancuernas', 'E032']] },
     { pat: 'pullV', role: 'compound', cands: [['maquinas', 'E013'], ['poleas', 'E133'], ['corporal', 'E123']] },
-    { pat: 'core', role: 'core', cands: [['corporal', 'E093']] } ] },
+    { pat: 'core', role: 'core', cands: [['corporal', 'E093'], ['maquinas', 'E084']] } ] },
   { code: 'PA', slots: [
     { pat: 'knee', role: 'compound', cands: [['maquinas', 'E051'], ['mancuernas', 'E058'], ['kb', 'E058'], ['corporal', 'E059']] },
     { pat: 'hingeLight', role: 'isolation', cands: [['corporal', 'E074']] },
@@ -45989,7 +46062,7 @@ const PLAN21_SESSIONS = [
     { pat: 'latRaise', role: 'isolation', cands: [['maquinas', 'E026'], ['mancuernas', 'E032']] },
     { pat: 'triceps', role: 'isolation', cands: [['poleas', 'E044'], ['corporal', 'E047'], ['mancuernas', 'E049']] },
     { pat: 'biceps', role: 'isolation', cands: [['mancuernas', 'E039'], ['poleas', 'E036']] },
-    { pat: 'core', role: 'core', cands: [['corporal', 'E140']] } ] },
+    { pat: 'core', role: 'core', cands: [['corporal', 'E089'], ['maquinas', 'E084']] } ] },
   { code: 'PB', slots: [
     { pat: 'hinge', role: 'compound', cands: [['mancuernas', 'E066'], ['kb', 'E066'], ['corporal', 'E124']] },
     { pat: 'knee', role: 'compound', cands: [['kb', 'E058'], ['mancuernas', 'E058'], ['corporal', 'E059']] },
@@ -45997,7 +46070,13 @@ const PLAN21_SESSIONS = [
     { pat: 'gluteAbd', role: 'isolation', cands: [['maquinas', 'E069'], ['poleas', 'E143'], ['corporal', 'E076']] },
     { pat: 'calves', role: 'calves', cands: [['corporal', 'E081'], ['mancuernas', 'E081']] } ] },
   { code: 'TC', slots: [
-    { pat: 'technique', role: 'compound', technique: true, cands: [] },
+    /* AUTH-584 (H7): la sesión de técnica tiene contenido
+       PROPIO — ya no copia el primer ejercicio de Torso A:
+       técnica de sentadilla (sumo con mancuerna; sin
+       mancuernas, el bird dog como trabajo técnico corporal)
+       y el bird dog como core propio de la sesión. */
+    { pat: 'technique', role: 'compound', technique: true, cands: [['mancuernas', 'E075'], ['corporal', 'E125']] },
+    { pat: 'birddog', role: 'core', cands: [['corporal', 'E125'], ['corporal', 'E093']] },
     { pat: 'plankSide', role: 'time', time: 'plankSide', cands: [['corporal', 'E088']] },
     { pat: 'carry', role: 'time', time: 'carry', cands: [['mancuernas', 'E103'], ['kb', 'E103']] } ] }
 ];
@@ -46015,16 +46094,69 @@ function plan21Resolve(slot, fams) {
   const last = (slot.cands || [])[slot.cands.length - 1];
   return { id: last ? last[1] : '', role: (last && last[2]) || slot.role, assumed: true };
 }
-/* Bandas de la casa (§5.2): el escalón mueve la posición en la
-   banda la semana 1; desde la semana 2 la banda es plena para
-   todos y «con base» busca el techo en los compuestos. */
-function plan21Band(role, step, wk) {
-  if (role === 'compound') {
-    if (step === 'base' && wk >= 1) return [10, 12];
-    return (step === 'suave' && wk === 0) ? [8, 10] : [8, 12];
+/* AUTH-584 (H3): las bandas de repeticiones por escalón/semana
+   se RETIRAN — plan21SetsV2Ex (AUTH-578) ya imponía 10
+   repeticiones de nacimiento sobre cada fila, así que la banda
+   calculada aquí no actuaba en ninguna parte visible; el código
+   queda honesto con la orden vigente (todo nace 4×10) y las
+   filas de repeticiones nacen directamente con 10. Las bandas
+   de SEGUNDOS de los ejercicios por tiempo (plan21TimeBand) sí
+   actúan y se conservan intactas. */
+/* AUTH-584 · EL SELECTOR ÚNICO DE CANDIDATOS DEL RETO
+   (H1/H2/H9/H10, sobre la disciplina D3 de siempre):
+   – orden de siempre: primero los candidatos de las familias
+     que la persona tiene, luego el resto de la escalera;
+   – H1/H2: una ficha solo puede caer en el plan si es de nivel
+     Principiante y tiene foto y video (la ficha sin esos datos
+     en la biblioteca cargada no bloquea: sin entrada no hay
+     juicio, como en la resolución anterior);
+   – salud: el filtro de la casa excluye y entra el siguiente;
+   – H9: la semana rota el arranque de la escalera válida
+     (semana 1 → 1.ª variante, semana 2 → 2.ª, semana 3 → 3.ª,
+     envolviendo), mismos patrones, mismas 4×10;
+   – H10: dentro de la semana ningún ejercicio se repite en
+     otra sesión: la búsqueda avanza desde el arranque rotado
+     hasta el primer candidato no usado; solo si TODOS los
+     candidatos válidos ya se usaron se acepta el del arranque
+     (el patrón nunca desaparece por deduplicar);
+   – el rol devuelto es SIEMPRE el del patrón del puesto: el
+     empuje vertical conserva su tipo y su descanso entre
+     2-3 min sea cual sea el candidato que entre. */
+function plan21Pick(slot, inp, fams, step, wk, used) {
+  const famsHas = f => f === 'corporal' || (fams || []).includes(f);
+  const ordered = [...slot.cands.filter(c => famsHas(c[0])), ...slot.cands.filter(c => !famsHas(c[0]))];
+  const valid = [], validOwn = [];
+  for (const c of ordered) {
+    let cid = c[1];
+    /* D4: la batería solo elige la variante de entrada de
+       las flexiones (la variante registrada manda; sin
+       prueba, el escalón suave también entra inclinado). */
+    if (slot.pushup && (step === 'suave' || (inp.tests.pushup && inp.tests.pushup.variant && inp.tests.pushup.variant !== 'std'))) cid = 'E010';
+    const centry = LIB_BY_ID[cid] || null;
+    if (centry) {
+      if (inp.hp && autoHealthExcludes(centry, inp.hp)) continue;
+      if (autoLevelOf(centry) !== 'principiante') continue;
+      if (!centry.foto_url || !(centry.video_youtube_url || centry.video_url)) continue;
+    }
+    /* La escalera puede traer el mismo ejercicio por dos
+       familias (la goblet por mancuernas y por kb): la lista
+       de válidos lo lleva una sola vez. */
+    if (!valid.includes(cid)) valid.push(cid);
+    if (famsHas(c[0]) && !validOwn.includes(cid)) validOwn.push(cid);
   }
-  if (role === 'isolation') return (step === 'suave' && wk === 0) ? [10, 12] : [10, 15];
-  return (step === 'suave' && wk === 0) ? [12, 15] : [12, 20];   /* core y pantorrillas */
+  if (!valid.length) return null;
+  /* H9: la rotación corre sobre la escalera PROPIA de la
+     persona (sus familias; la cola de familias supuestas es
+     solo la reserva de D3 cuando ninguna propia es válida):
+     rotar hacia un equipo que la persona no tiene sería
+     peor que repetir su variante. */
+  const pool = validOwn.length ? validOwn : valid;
+  const start = ((wk % pool.length) + pool.length) % pool.length;
+  for (let k = 0; k < pool.length; k++) {
+    const cid = pool[(start + k) % pool.length];
+    if (!used || !used.has(cid)) return cid;
+  }
+  return pool[start];
 }
 function plan21TimeBand(kind, step) {
   if (kind === 'plank') return step === 'suave' ? [15, 25] : step === 'base' ? [25, 45] : [20, 35];
@@ -46138,7 +46270,21 @@ function plan21HasTests(inp) {
 function plan21SeedFor(inp, entry) {
   if (!plan21HasTests(inp)) return null;
   const kg = orgaSeedKg(entry || null, (inp && inp.lastWeight) || null);
-  return (kg != null && kg > 0) ? Math.round(kg * 100) / 100 : null;
+  if (kg != null && kg > 0) return Math.round(kg * 100) / 100;
+  /* AUTH-584 (H8): con prueba física pero SIN peso registrado,
+     orgaSeedKg no tiene base y devolvía silencio — la semilla
+     nace entonces de los mínimos fijos por familia de la misma
+     norma (planbSeedKg con bwKg null: barra 20 · máquinas 10 ·
+     poleas 5 · kb 8 · mancuernas 2,5; a peso corporal no hay
+     mínimo honesto y no se sugiere nada). Nunca se inventa un
+     porcentaje sin base. El plan declara el motivo en sus
+     notas (plan21.noteSeedNoWeight). */
+  const prev = PLANB_CTX;
+  let fb = null;
+  try { PLANB_CTX = { logs: [], bwKg: null }; fb = planbSeedKg(entry || null); }
+  catch (e) { fb = null; }
+  finally { PLANB_CTX = prev; }
+  return (fb != null && fb > 0) ? Math.round(fb * 100) / 100 : null;
 }
 function plan21SetsV2Ex(ex, seedKg) {
   if (!ex) return false;
@@ -46153,42 +46299,38 @@ function plan21SetsV2Ex(ex, seedKg) {
   }
   return changed;
 }
-function plan21SessionDay(code, inp, fams, step, wk) {
+function plan21SessionDay(code, inp, fams, step, wk, used) {
   const sess = PLAN21_SESSIONS.find(s => s.code === code);
   const sets = 4;   /* AUTH-578: 4 series para todos (la regla fina la aplica plan21SetsV2Ex abajo) */
   const exs = [];
   let dropped = false;
   for (const slot of sess.slots) {
-    /* D3 + salud: los candidatos se prueban en el orden de
-       preferencia (primero los de las familias de la persona);
-       si el filtro de salud de la casa excluye uno, entra el
-       siguiente del mismo patrón — el patrón no desaparece
-       salvo que todos queden excluidos. */
-    const srcSlot = slot.technique ? PLAN21_SESSIONS[0].slots[0] : slot;
-    const famsHas = f => f === 'corporal' || (fams || []).includes(f);
-    const ordered = [...srcSlot.cands.filter(c => famsHas(c[0])), ...srcSlot.cands.filter(c => !famsHas(c[0]))];
-    let id = '', role = srcSlot.role;
-    for (const c of ordered) {
-      let cid = c[1];
-      /* D4: la batería solo elige la variante de entrada de
-         las flexiones (la variante registrada manda; sin
-         prueba, el escalón suave también entra inclinado). */
-      if (slot.pushup && (step === 'suave' || (inp.tests.pushup && inp.tests.pushup.variant && inp.tests.pushup.variant !== 'std'))) cid = 'E010';
-      const centry = LIB_BY_ID[cid] || null;
-      if (centry && inp.hp && autoHealthExcludes(centry, inp.hp)) continue;
-      id = cid; role = c[2] || srcSlot.role; break;
-    }
+    /* AUTH-584: la elección vive en plan21Pick (salud, nivel
+       Principiante, foto+video, rotación por semana y
+       deduplicación dentro de la semana vía «used»). El rol
+       es siempre el del patrón del puesto. */
+    let role = slot.role;
+    let id = plan21Pick(slot, inp, fams, step, wk, used);
     if (!id) {
+      /* La red de seguridad de siempre del puesto de core: la
+         plancha lateral como ejercicio de tiempo. */
       if (slot.pat === 'core') { id = 'E088'; role = 'time'; }
       else { dropped = true; continue; }
     }
+    if (used) used.add(id);
     const e2 = LIB_BY_ID[id] || entry;
     let reps, repsMin, repsMax, repsKind;
     if (role === 'time') { const b = plan21TimeBand(id === 'E088' ? 'plankSide' : (slot.time || 'plank'), step); reps = b[0] + '-' + b[1] + ' seg'; repsMin = b[0]; repsMax = b[1]; repsKind = 'time'; }
-    else { const b = plan21Band(role, step, wk); reps = b[0] + '-' + b[1]; repsMin = b[0]; repsMax = b[1]; repsKind = 'reps'; }
+    /* AUTH-584 (H3): las filas de repeticiones nacen con las
+       10 de la orden vigente, sin banda intermedia. */
+    else { reps = '10'; repsMin = 10; repsMax = 10; repsKind = 'reps'; }
     exs.push({
       name: e2 ? libNameOf(e2) : id, sets, reps,
-      note: slot.technique ? t('plan21.noteTech') : (wk === 0 && role !== 'time' ? t('plan21.noteCalib') : ''),
+      /* AUTH-584 (H4, precisión de Ronald): en la semana 1 la
+         nota de calibración llega a TODAS las filas — también
+         a las de tiempo — y el acarreo, que sí lleva peso,
+         recibe con ella su orientación de carga. */
+      note: slot.technique ? t('plan21.noteTech') : (wk === 0 ? t('plan21.noteCalib') : ''),
       exerciseId: id, photoUrl: (e2 && e2.foto_url) || '', videoUrl: (e2 && (e2.video_youtube_url || e2.video_url)) || '',
       rest: plan21Rest(role), rest_en: plan21Rest(role), repsMin, repsMax, repsKind,
       warmup: exs.length === 0 ? (LANG === 'es' ? 'Series de aproximación' : 'Warm-up sets') : '', warmup_en: 'Warm-up sets'
@@ -46210,23 +46352,48 @@ function plan21Build(inp, startISO) {
   const seq = form === 5 ? ['TA', 'PA', 'TB', 'PB', 'TC'] : ['TA', 'PA', 'TB', 'PB'];
   const days = [], notes = [];
   let sessIx = 0, consec = 0, degraded = false, healthDropped = false;
+  let used = null, usedWk = -1;   /* AUTH-584 (H9/H10): los ejercicios ya colocados en la semana en curso */
   for (let i = 0; i < 21; i++) {
     const iso = planISOAddDays(startISO, i);
     const wk = Math.floor(i / 7);
+    if (wk !== usedWk) { used = new Set(); usedWk = wk; }
     const isAvail = avail.includes(plan21Weekday(iso));
     let place = false;
     if (isAvail) {
       const sessThisWeek = days.slice(wk * 7).filter(d => !d.freeDay).length;
       let availLeft = 0;
       for (let j = i + 1; j < (wk + 1) * 7; j++) if (avail.includes(plan21Weekday(planISOAddDays(startISO, j)))) availLeft++;
-      const need = form - sessThisWeek;
+      /* AUTH-584 (H6): en la forma de 5, una semana con 5 días
+         disponibles o menos coloca como máximo 4 sesiones —
+         la regla de descansos tras cada dos sesiones deja así
+         al menos un día de descanso completo entre los días
+         disponibles, en vez de cinco sesiones seguidas. Ese
+         descanso es intencional: no marca «degradado». */
+      let availThisWeek = 0;
+      for (let j = wk * 7; j < (wk + 1) * 7; j++) if (avail.includes(plan21Weekday(planISOAddDays(startISO, j)))) availThisWeek++;
+      const need = ((form === 5 && availThisWeek <= 5) ? 4 : form) - sessThisWeek;
       if (consec < 2 || need > availLeft) place = true;
       if (place && consec >= 2) degraded = true;
     }
     if (place) {
-      const built = plan21SessionDay(seq[sessIx % seq.length], inp, fam.fams, step, wk);
+      const built = plan21SessionDay(seq[sessIx % seq.length], inp, fam.fams, step, wk, used);
       sessIx++;
-      if (built.dropped) healthDropped = true;
+      if (built.dropped) {
+        healthDropped = true;
+        /* AUTH-584 (H5): el día que nace con un ejercicio
+           menos por salud lo dice en su PROPIA tarjeta, en
+           rojo — no solo en las notas generales del plan. */
+        built.day.healthShort = true;
+      }
+      /* AUTH-584 · CARDIO OBLIGATORIO EN LA SEMANA 1 (orden
+         de Ronald por correo, 2026-11-23): cada sesión de la
+         primera semana nace con 5 min de cardio al inicio y
+         5 min al final, obligatorios — la marca viaja en el
+         día y el mecanismo de cardio de siempre (AUTH-481)
+         los presenta como asignados: la persona ELIGE la
+         máquina entre las registradas. Las demás semanas
+         conservan el comportamiento vigente. */
+      if (wk === 0) built.day.cardioReq = { warm: 5, close: 5 };
       days.push(built.day);
       consec++;
     } else {
@@ -46237,8 +46404,24 @@ function plan21Build(inp, startISO) {
   if (fam.assumed) notes.push(t('plan21.noteAssumedGym'));
   if (degraded) notes.push(t('plan21.noteDegraded'));
   if ((inp.hp && inp.hp.programMarks && inp.hp.programMarks.length) || healthDropped) notes.push(t('plan21.noteHealthAdj'));
+  /* AUTH-584 (H8, precisión de Ronald): cuando no se puede
+     sugerir peso, el plan lo DICE — nada de silencio. Sin
+     prueba física no hay sugerencia posible; con prueba pero
+     sin peso, la sugerencia sale de los mínimos por equipo y
+     el plan lo declara. */
+  if (!plan21HasTests(inp)) notes.push(t('plan21.noteSeedNoTest'));
+  else if (!inp.hasWeight) notes.push(t('plan21.noteSeedNoWeight'));
   return { days, startsAt: startISO, endsAt: planISOAddDays(startISO, 20), form, step,
     notes: notes.join(' · '), hp: inp.hp, equipAssumed: fam.assumed };
+}
+/* AUTH-584 (H5): la marca roja del día que nació con un
+   ejercicio menos por salud — la pintan la tarjeta del día
+   del alumno y el detalle del entrenador bajo el título del
+   día. Sin la marca, cadena vacía (los demás planes y días
+   quedan byte a byte como siempre). */
+function plan21HealthShortHTML(day) {
+  return (day && day.healthShort === true)
+    ? `<div class="p21-healthshort" role="note">⚠ ${esc(t('plan21.dayHealthShort'))}</div>` : '';
 }
 /* Nacimiento directo (alumno sin entrenador): la misma puerta
    de salud y la misma desactivación del plan anterior que la
@@ -46255,8 +46438,9 @@ async function plan21CreatePlan(uid, built, birth) {
     genSource: { kind: 'plan21', version: PLAN21_TPL_VERSION, templateId: PLAN21_TPL_ID, form: built.form, step: built.step, equipAssumed: !!built.equipAssumed },
     /* AUTH-578: nace ya con la regla de 4 series aplicada —
        el sello que plan21SetsEnsure respeta para no corregir
-       dos veces el mismo plan. */
-    setsV2: true
+       dos veces el mismo plan. AUTH-584: el mismo nacimiento
+       lleva el sello fixV2 (nace ya con los 10 arreglos). */
+    setsV2: true, fixV2: true
   };
   /* AUTH-559: el nacimiento por ASIGNACIÓN del entrenador lleva
      su autoría (la misma convención del editor: createdBy es
@@ -47083,6 +47267,117 @@ async function plan21SetsEnsure(plan, logs) {
     await setDoc(ref, { setsV2: true, updatedAt: serverTimestamp() }, { merge: true });
   }
   plan.setsV2 = true;
+  return changed;
+}
+/* AUTH-584 · LA CORRECCIÓN DE LOS 10 HALLAZGOS EN LOS PLANES
+   DEL RETO YA ASIGNADOS, por la misma vía de la casa que
+   AUTH-578 (la app corrige al cargar; sin operaciones de
+   datos por detrás): con el sello fixV2 ausente, el plan se
+   RECONSTRUYE con el constructor vigente (plan21Build con los
+   insumos de hoy y la fecha de inicio guardada) y la fusión
+   toca SOLO días por venir, no cerrados y no libres:
+   – el día fusionado toma los ejercicios regenerados (H1/H2
+     fichas con video y de nivel Principiante, H4 la nota de
+     calibración también en los de tiempo y en el acarreo, H7
+     la técnica con contenido propio, H9 la rotación de la
+     semana, H10 sin repetidos y con el empuje vertical en su
+     tipo) y las marcas del día (H5 healthShort, el cardio
+     obligatorio de la semana 1);
+   – conserva la etiqueta guardada del día, el nombre y la
+     carga ya aceptada/dictada (dictLoad) de cada fila cuyo
+     ejercicio no cambia — lo aceptado por la persona manda;
+   – el único cambio de patrón admitido es el descanso de H6:
+     en la forma de 5, un día guardado de sesión puede pasar a
+     día libre si su semana guardada tenía las 5 sesiones (la
+     regeneración coloca 4 y un descanso). Cualquier otra
+     diferencia de patrón (p. ej. la persona cambió sus días
+     disponibles tras la asignación) deja el plan intacto: se
+     sella sin tocar días y queda declarado en el paquete.
+   Los días pasados o cerrados jamás se reescriben (H9/H10 no
+   tocan historial). Escritura con la disciplina §6.4 de
+   siempre (re-lectura fresca, instantánea previa, escritura
+   fusionada {days, fixV2, updatedAt}); idempotente por el
+   sello. La comparación usa una firma canónica del día para
+   no reescribir por orden de claves ni por idioma. */
+function plan21DaySig(d) {
+  if (!d) return 'null';
+  if (d.freeDay) return 'free';
+  const exs = (Array.isArray(d.exercises) ? d.exercises : []).map(ex => [ex && ex.exerciseId, ex && ex.sets, ex && ex.reps,
+    ex && ex.repsMin, ex && ex.repsMax, ex && ex.repsKind, ex && ex.note, ex && ex.rest,
+    (ex && typeof ex.dictLoad === 'number') ? ex.dictLoad : null].join(',')).join(';');
+  return [d.healthShort === true ? 'H' : '', (d.cardioReq && d.cardioReq.warm) || 0, (d.cardioReq && d.cardioReq.close) || 0, exs].join('|');
+}
+async function plan21FixEnsure(plan, logs) {
+  if (!plan || plan.fixV2 === true || plan.active !== true) return false;
+  if (!((plan.genSource && plan.genSource.kind === 'plan21') || plan.sourceRoutineId === PLAN21_TPL_ID)) return false;
+  if (!plan.id || !plan.clientUid || !plan.startsAt || !Array.isArray(plan.days)) return false;
+  const today = todayISO();
+  const myLogs = Array.isArray(logs) ? logs : await fetchLogs(plan.clientUid);
+  const doneSet = new Set((myLogs || []).filter(l => l && l.planId === plan.id
+    && (trainLogStatus(l) === 'done' || trainLogStatus(l) === 'partial'))
+    .map(l => String(l.date || '') + '|' + l.dayIndex));
+  const inp = await plan21FetchInputs(plan.clientUid);
+  const ref = doc(db, 'training_plans', plan.id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return false;
+  const prev = snap.data();
+  if (prev.fixV2 === true) { plan.fixV2 = true; if (Array.isArray(prev.days)) plan.days = prev.days; return false; }
+  const stored = Array.isArray(prev.days) ? prev.days : [];
+  let built = null;
+  try { built = plan21Build(inp, prev.startsAt || plan.startsAt); } catch (e) { built = null; }
+  if (!built || !Array.isArray(built.days) || built.days.length !== stored.length) {
+    await setDoc(ref, { fixV2: true, updatedAt: serverTimestamp() }, { merge: true });
+    plan.fixV2 = true;
+    return false;
+  }
+  const regen = built.days;
+  const form5 = Number(built.form) === 5;
+  const weekStoredSess = {};
+  stored.forEach((d, i) => { if (d && !d.freeDay) { const w = Math.floor(i / 7); weekStoredSess[w] = (weekStoredSess[w] || 0) + 1; } });
+  let compatible = true;
+  for (let i = 0; i < stored.length; i++) {
+    const sf = !!(stored[i] && stored[i].freeDay), rf = !!(regen[i] && regen[i].freeDay);
+    if (sf === rf) continue;
+    if (!(form5 && !sf && rf && weekStoredSess[Math.floor(i / 7)] === 5)) { compatible = false; break; }
+  }
+  if (!compatible) {
+    await setDoc(ref, { fixV2: true, updatedAt: serverTimestamp() }, { merge: true });
+    plan.fixV2 = true;
+    return false;
+  }
+  const days = JSON.parse(JSON.stringify(stored));
+  let changed = false;
+  days.forEach((d, i) => {
+    const iso = planISOAddDays(prev.startsAt || plan.startsAt, i);
+    if (!iso || iso < today) return;
+    if (doneSet.has(iso + '|' + i)) return;
+    const r = regen[i];
+    if (!r) return;
+    if (r.freeDay) {
+      if (d && !d.freeDay) { days[i] = JSON.parse(JSON.stringify(r)); changed = true; }
+      return;
+    }
+    if (!d || d.freeDay || !Array.isArray(d.exercises)) return;
+    const nd = JSON.parse(JSON.stringify(r));
+    nd.label = d.label;
+    const prevById = {};
+    d.exercises.forEach(ex => { if (ex && ex.exerciseId) prevById[ex.exerciseId] = ex; });
+    nd.exercises.forEach(ex => {
+      const p = prevById[ex.exerciseId];
+      if (!p) return;
+      ex.name = p.name;
+      if (typeof p.dictLoad === 'number' && p.dictLoad > 0) { ex.dictLoad = p.dictLoad; ex.dictLoadUnit = p.dictLoadUnit || 'kg'; }
+    });
+    if (plan21DaySig(nd) !== plan21DaySig(d)) { days[i] = nd; changed = true; }
+  });
+  if (changed) {
+    await addDoc(collection(db, 'training_plans'), { ...prev, isSnapshot: true, sourcePlanId: plan.id, snapshotAt: serverTimestamp(), active: false });
+    await setDoc(ref, { days, fixV2: true, updatedAt: serverTimestamp() }, { merge: true });
+    plan.days = days;
+  } else {
+    await setDoc(ref, { fixV2: true, updatedAt: serverTimestamp() }, { merge: true });
+  }
+  plan.fixV2 = true;
   return changed;
 }
 /* --- D10: las metas cuando el motor no las ha calculado --- */
