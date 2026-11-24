@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261123-dia-en-su-sitio">
+<link rel="stylesheet" href="styles.css?v=20261123-detalle-alumno-estable">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -879,6 +879,14 @@
     <button type="button" class="back-row treq-list-back" id="treq-list-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="treq-list-body"></div>
   </div>
+  <!-- AUTH-581 (P3): la bandeja de propuestas vive ahora AQUÍ,
+       justo antes de la respuesta: a z 49 las dos, el empate se
+       resuelve por orden de DOM y la respuesta — que se abre
+       DESDE la bandeja — queda encima de ella. -->
+  <div class="act-float act-sheet" id="stu-tray-float" style="display:none" role="dialog" aria-label="Review proposals">
+    <div class="act-sheet-head"><h2 class="act-sheet-title" id="stu-tray-title"></h2><button type="button" class="act-sheet-x" id="btn-stu-tray-close" aria-label="Close">✕</button></div>
+    <div id="stu-tray-body"></div>
+  </div>
   <div class="pend-float pend-consult" id="treq-reply-float" style="display:none" role="dialog">
     <div class="pend-head">
       <h2><span data-i18n="treq.replyTitle">Reply and resolve</span></h2>
@@ -1532,10 +1540,6 @@
   <div class="act-float act-sheet" id="stu-prog-float" style="display:none" role="dialog" aria-label="Progress in this plan">
     <div class="act-sheet-head"><h2 class="act-sheet-title" id="stu-prog-title"></h2><button type="button" class="act-sheet-x" id="btn-stu-prog-close" aria-label="Close">✕</button></div>
     <div id="stu-prog-body"></div>
-  </div>
-  <div class="act-float act-sheet" id="stu-tray-float" style="display:none" role="dialog" aria-label="Review proposals">
-    <div class="act-sheet-head"><h2 class="act-sheet-title" id="stu-tray-title"></h2><button type="button" class="act-sheet-x" id="btn-stu-tray-close" aria-label="Close">✕</button></div>
-    <div id="stu-tray-body"></div>
   </div>
   <div class="act-float act-sheet" id="stu-qprog-float" style="display:none" role="dialog" aria-label="Student progress summary">
     <div class="act-sheet-head"><h2 class="act-sheet-title" id="stu-qprog-title"></h2><button type="button" class="act-sheet-x" id="btn-stu-qprog-close" aria-label="Close">✕</button></div>
@@ -2860,6 +2864,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261123-dia-en-su-sitio"></script>
+<script type="module" src="app.js?v=20261123-detalle-alumno-estable"></script>
 </body>
 </html>
