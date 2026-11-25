@@ -13646,6 +13646,28 @@ async function tmeasSave() {
   } catch { toast(t('msg.uploadFail'), true); }
 }
 
+/* TIRA DE LA SEMANA (paquete 2026-11-25): la tira de la cabecera
+   de la tarjeta del alumno, a la derecha del bloque del nombre —
+   siete casillas INDICADORAS (no son botones): verde lleno con
+   letra blanca el día que su plan marca sesión, clara con letra
+   gris el día libre, y la leyenda «● Entrena · ○ Libre» debajo,
+   como en la maqueta aprobada. Lee el modelo que la pasada de
+   «Mis alumnos» derivó (STUDENTS_LAST.weekByUid, de
+   stuWeekStripModel): sin modelo no pinta NADA. Vive en la
+   cabecera del detalle (.detail-head) — la tarjeta que la
+   maqueta reproduce (avatar, nombre, alerta y «N pendientes por
+   resolver») — y se alcanza igual desde la lista y desde la
+   rejilla, porque ambas abren este mismo detalle; las filas
+   compactas de la lista y las celdas de la rejilla no llevan
+   esta cabecera y no la pintan. */
+function stuWeekStripHTML(u) {
+  const L = STUDENTS_LAST;
+  const m = L && L.weekByUid && L.weekByUid[u.id];
+  if (!m || !Array.isArray(m.days) || m.days.length !== 7) return '';
+  const letters = String(t('students.weekLetters') || '').split(',');
+  const cells = m.days.map((tr, i) => `<span class="wstrip-d${tr ? ' on' : ''}">${esc(letters[i] || '')}</span>`).join('');
+  return `<span class="wstrip"><span class="wstrip-row">${cells}</span><span class="wstrip-legend"><span class="wstrip-dot on"></span>${esc(t('students.weekTrains'))}<span class="wstrip-sep">·</span><span class="wstrip-dot"></span>${esc(t('students.weekFree'))}</span></span>`;
+}
 function studentsDetailHTML(u) {
   const L = STUDENTS_LAST;
   const name = stuName(u);
@@ -13658,7 +13680,7 @@ function studentsDetailHTML(u) {
      cambia: la cabecera del alumno conserva su avatar y su
      aviso de pendiente en rojo. */
   let h = `<div class="detail-card">
-    <div class="detail-head">${stuAvatarHTML(u, name)}<span class="detail-main"><span class="detail-name">${esc(name)}</span>${alertChipHTML((L.alertsByUid || {})[u.id])}<span class="detail-sub">${err ? esc(t('students.pendLoadError')) : pend.items.length ? esc(t('students.pendToResolve', { n: pend.items.length })) : esc(t('students.upToDate'))}</span></span></div>`;
+    <div class="detail-head">${stuAvatarHTML(u, name)}<span class="detail-main"><span class="detail-name">${esc(name)}</span>${alertChipHTML((L.alertsByUid || {})[u.id])}<span class="detail-sub">${err ? esc(t('students.pendLoadError')) : pend.items.length ? esc(t('students.pendToResolve', { n: pend.items.length })) : esc(t('students.upToDate'))}</span></span>${stuWeekStripHTML(u)}</div>`;
   /* AUTH-565 (programa «Plegar todo» nº 2): los tres bloques
      (plan AUTH-341, retos AUTH-559, entrenamiento AUTH-352)
      dejan de nacer desplegados en cadena tras la cabecera; los
@@ -14762,6 +14784,12 @@ async function loadStudents() {
   }));
   const planByUid = {};
   students.forEach(u => { const c = TALERTS_CACHE[u.id]; planByUid[u.id] = !!(c && c.hasPlan); });
+  /* TIRA DE LA SEMANA: el modelo de cada alumno viaja en la
+     pasada desde la misma caché de alertas (su derivación ya
+     leyó los planes en trainerAlertsFetch: cero lecturas
+     nuevas). Sin modelo derivable, null — la tira no se pinta. */
+  const weekByUid = {};
+  students.forEach(u => { const c = TALERTS_CACHE[u.id]; weekByUid[u.id] = (c && c.week) || null; });
   /* ASIGNACIONES: los nombres de los coaches presentes se resuelven
      una sola vez por uid antes de pintar (el entrenador de la lista
      es quien mira: su nombre sale de su propia cuenta). */
@@ -14769,7 +14797,7 @@ async function loadStudents() {
   const stuNamePend = new Set();
   students.forEach(u => { const cv = coachByUid[u.id]; if (cv) stuNamePend.add(cv); });
   await Promise.all([...stuNamePend].map(uid => assignNameSync(uid) ? null : assignResolveName(uid)));
-  STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, lastByUid, lastWByUid, pendingFood, pendByUid, pendErrByUid, reqByUid: latestReqByUid, coachByUid, wchkByUid };
+  STUDENTS_LAST = { clients: students, chkByUid, alertsByUid, planByUid, weekByUid, lastByUid, lastWByUid, pendingFood, pendByUid, pendErrByUid, reqByUid: latestReqByUid, coachByUid, wchkByUid };
   renderStudentsViewbar();
   renderStudentsBody();
   /* Punto 93 (D2): la tarjeta «Mi atención» del entrenador vive al
@@ -17907,7 +17935,7 @@ function paintClientRings(date) {
    alertas que dependen de eso NO nacen: nada de alertas sobre
    datos inexistentes. */
 const TALERT_TTL_MS = 30000;
-let TALERTS_CACHE = {};   // uid -> { at, alerts, hasPlan } (solo memoria; la derivación manda)
+let TALERTS_CACHE = {};   // uid -> { at, alerts, hasPlan, week } (solo memoria; la derivación manda)
 let TALERTS_SEQ = 0;
 let TALERT_FICHA_SEQ = 0;
 /* Agrupado por alumno (pedido de Ronald, 2026-10-27 17:29 CDT):
@@ -18062,6 +18090,58 @@ function trainerAlertsCompute(ctx, data) {
   if (endInfoA6) alerts.push({ kind: 'A6', date: endInfoA6.endsAt, state: endInfoA6.state });
   return alerts;
 }
+/* ════════════════════════════════════════════════════════════════
+   TIRA DE LA SEMANA (paquete 2026-11-25; diseño APROBADO por
+   Ronald el 2026-11-25 06:50 CST, «Bien así, constrúyelo», sobre
+   la maqueta de la tarjeta del alumno): el modelo de la semana de
+   un alumno para la tira L·M·X·J·V·S·D de la cabecera de su
+   tarjeta en «Mis alumnos» — para cada día de ESTA semana (lunes
+   a domingo), si su plan activo le marca sesión (true) o es día
+   libre (false).
+   LA DERIVACIÓN, sin inventar nada: el plan elegido es el común
+   activo (stuActiveCommonPlan, la precedencia de la propia
+   ficha) y, si no hay común, el primer activo — así el alumno
+   con solo el plan de un reto muestra SU semana. Cada fecha de
+   esta semana se resuelve con la resolución de día de la casa
+   (careDayFor SIN la configuración del alumno, la misma del
+   cumplimiento de la ficha en stuCumplModel): etiquetas de
+   semana, calendario del plan (la vía que resuelve fecha a
+   fecha los planes del Reto 21 y de Progresión 22, con sus
+   freeDay como días libres) y la ventana [startsAt, endsAt]
+   cuando el plan la declara — los días de esta semana fuera de
+   la ventana cuentan libres y la semana ENTERA fuera de la
+   ventana no pinta tira.
+   AUSENCIA HONESTA: sin plan activo, sin días, en modo rotación
+   (el plan no tiene calendario derivable sin la configuración
+   del alumno) o sin ningún día resuelto, devuelve null y la
+   tira NO se pinta — jamás una semana copiada ni supuesta. */
+function stuWeekStripModel(plans) {
+  const all = Array.isArray(plans) ? plans : [];
+  const act = all.filter(p => p && p.active === true);
+  if (!act.length) return null;
+  const plan = stuActiveCommonPlan(all) || act[0];
+  const days = Array.isArray(plan.days) ? plan.days : [];
+  if (!days.length) return null;
+  const mon = mondayISO(todayISO());
+  const sun = addDaysISO(mon, 6);
+  const s = plan.startsAt ? String(plan.startsAt).slice(0, 10) : '';
+  const e = plan.endsAt ? String(plan.endsAt).slice(0, 10) : '';
+  const sOk = /^\d{4}-\d{2}-\d{2}$/.test(s), eOk = /^\d{4}-\d{2}-\d{2}$/.test(e);
+  if (sOk && s > sun) return null;
+  if (eOk && e < mon) return null;
+  const out = [];
+  let anyIdx = false;
+  for (let i = 0; i < 7; i++) {
+    const iso = addDaysISO(mon, i);
+    if ((sOk && iso < s) || (eOk && iso > e)) { out.push(false); continue; }
+    const r = careDayFor(plan, null, iso);
+    if (!r || r.mode === 'rotation') return null;
+    if (r.idx == null) { out.push(false); continue; }
+    anyIdx = true;
+    out.push(((days[r.idx] || {}).freeDay === true) ? false : true);
+  }
+  return anyIdx ? { days: out } : null;
+}
 /* Lectura de los datos de UN alumno (las mismas fuentes que la
    ficha y el motor del alumno) y su cómputo. SOLO LECTURA. */
 async function trainerAlertsFetch(uid, udata, pre) {
@@ -18104,14 +18184,19 @@ async function trainerAlertsFetch(uid, udata, pre) {
   const logDates = new Set();
   const pLogs = (async () => { try { const logs = await fetchLogs(uid); logs.forEach(l => { if (l.date) logDates.add(l.date); }); } catch {} })();
   await Promise.all([pMeals, pPlan, pCfg, pMarks, pLogs]);
-  return { alerts: trainerAlertsCompute(ctx, { totals, mealsByDate, marks, logDates }), hasPlan: !!ctx.plan };
+  /* TIRA DE LA SEMANA: el modelo viaja con esta misma lectura
+     (los planes ya están en ctx.plans — cero consultas nuevas);
+     si la derivación no puede ser honesta, week queda null. */
+  let week = null;
+  try { week = stuWeekStripModel(ctx.plans); } catch {}
+  return { alerts: trainerAlertsCompute(ctx, { totals, mealsByDate, marks, logDates }), hasPlan: !!ctx.plan, week };
 }
 async function trainerAlertsFor(uid, udata, pre) {
   const c = TALERTS_CACHE[uid];
   if (c && (Date.now() - c.at) < TALERT_TTL_MS) return c.alerts;
-  let alerts = []; let hasPlan = false;
-  try { const r = await trainerAlertsFetch(uid, udata, pre); alerts = r.alerts; hasPlan = r.hasPlan; } catch {}
-  TALERTS_CACHE[uid] = { at: Date.now(), alerts, hasPlan };
+  let alerts = []; let hasPlan = false; let week = null;
+  try { const r = await trainerAlertsFetch(uid, udata, pre); alerts = r.alerts; hasPlan = r.hasPlan; week = r.week || null; } catch {}
+  TALERTS_CACHE[uid] = { at: Date.now(), alerts, hasPlan, week };
   return alerts;
 }
 function talertText(a) {

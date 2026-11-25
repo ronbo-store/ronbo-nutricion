@@ -3055,6 +3055,44 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 .detail-main { min-width: 0; }
 .detail-name { display: block; font-size: 17px; font-weight: 700; color: #1f2a44; }
 .detail-sub { display: block; font-size: 12.5px; color: #6b7280; margin-top: 2px; }
+/* TIRA DE LA SEMANA (paquete 2026-11-25; maqueta aprobada por
+   Ronald el 2026-11-25): la semana del plan activo a la derecha
+   del bloque del nombre en la cabecera de la tarjeta. Casillas
+   INDICADORAS de 22×32 con 4 px de separación (la tira mide
+   178 px); el día de entrenamiento va en el verde de la casa
+   (#0d9488, el mismo «encendido» del selector de días del
+   constructor de planes) con la letra en blanco y el día libre
+   en marfil con la letra gris; la leyenda va bajo la tira. A
+   560 px o menos las casillas bajan a 18×27 (la tira, 144 px)
+   para que el nombre se siga leyendo entero o casi; a 380 px o
+   menos la tira baja a su propia fila bajo el bloque del nombre
+   antes que apretar la cabecera. Con la tira presente, el
+   chevron de plegado de la cabecera cede su margen automático
+   y se queda tras ella. */
+.detail-head .wstrip { margin-left: auto; flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+#students-list .detail-head:has(.wstrip)::after { margin-left: 10px; }
+/* Con la tira presente, el bloque del nombre cede: su línea
+   secundaria (correo y avisos, palabras largas sin espacios)
+   puede partirse en vez de empujar la fila fuera de la tarjeta
+   (medido: 9 px de desborde a 430 y a 1200 sin esta regla). */
+#students-list .detail-head:has(.wstrip) .detail-main { overflow-wrap: anywhere; }
+.wstrip-row { display: flex; gap: 4px; }
+.wstrip-d { width: 22px; height: 32px; border-radius: 8px; background: #f4f1e6; color: #8a8578; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.wstrip-d.on { background: #0d9488; color: #fff; }
+.wstrip-legend { font-size: 11px; color: #6b7280; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.wstrip-dot { width: 7px; height: 7px; border-radius: 50%; background: #d9d4c3; flex: none; }
+.wstrip-dot.on { background: #0d9488; }
+.wstrip-sep { color: #9ca3af; }
+@media (max-width: 560px) {
+  .wstrip-row { gap: 3px; }
+  .wstrip-d { width: 18px; height: 27px; border-radius: 7px; font-size: 11.5px; }
+  .wstrip-legend { font-size: 10.5px; }
+}
+@media (max-width: 380px) {
+  .detail-head { flex-wrap: wrap; }
+  .detail-head .wstrip { order: 3; flex-basis: 100%; margin-left: 0; align-items: flex-start; }
+  .wstrip-d { width: 20px; height: 30px; }
+}
 .stu-pend-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eef2f5; }
 .stu-pend-item:last-of-type { border-bottom: none; }
 .stu-pend-item.trace { opacity: .72; }
