@@ -34,6 +34,17 @@ body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-se
 .ring-mini-svg { width: 60px; height: 60px; flex: none; }
 .ring-mini-name { font-size: 8.5px; font-weight: 700; letter-spacing: -.2px; color: #1f2a44; white-space: nowrap; }
 .ring-mini-sub { font-size: 9px; color: #6b7280; white-space: nowrap; }
+/* FIBRA en la ficha del alumno (2026-11-25): con el sexto anillo,
+   la fila de la ZONA DE LA FICHA (solo ella: .stu-rings la pinta
+   stuRingsHTML) se reparte en dos filas de tres — cada anillo
+   respira a ~100 px en 360 y el SVG conserva sus 60 px — en vez
+   de apretar los seis en una fila. La fila de cinco de las demás
+   vistas (.rings a secas) no se toca. La nota de cobertura de la
+   fibra (cuántas comidas de hoy traen el dato) va bajo la fila,
+   en el gris de los sub de anillo. */
+.stu-rings { flex-wrap: wrap; }
+.stu-rings .ring-mini { flex: 1 1 30%; }
+.stu-rings-note { font-size: 11px; color: #6b7280; margin: -6px 2px 12px; }
 /* Ventana flotante de detalle del anillo: mismo lenguaje que
    #pend-float (tarjeta blanca, radio 18, sombra suave), centrada,
    con fondo propio para el «tocar fuera» y cierre ✕ / Escape. */
@@ -8309,7 +8320,7 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .stu-goals-line { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; color: #173f38; text-align: right; }
 .stu-goals-head .sx { flex: none; color: #0b7c72; font-weight: 800; }
 .stu-goals-obj { font-size: 14px; color: #33475b; margin-top: 8px; }
-.stu-goals-nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.stu-goals-nums { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 10px; } /* 2026-11-25: cinco cajas — entra FIBRA junto a calorías · proteína · carbos · grasas, en la misma fila */
 .stu-goals-num { background: #fff; border: 1px solid #dde7e3; border-radius: 12px; padding: 8px 4px; text-align: center; min-width: 0; }
 .stu-goals-num b { display: block; font-size: 17px; color: #173f38; }
 .stu-goals-num span { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: #64748b; margin-top: 2px; overflow-wrap: anywhere; }

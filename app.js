@@ -10635,7 +10635,19 @@ function stuGoalsHTML(u) {
   if (!has) return `<div class="stu-goals"><div class="stu-goals-t">🎯 ${esc(t('reorg.goalsTitle'))}</div><div class="reorg-check-none">${esc(t('reorg.goalsNone'))}</div></div>`;
   const fx = gmFocusEffective(u || {});
   const obj = ['mantener', 'bajar', 'ganar'].includes(fx.objective || '') ? t('gm.obj.' + fx.objective) : '';
-  const nums = [['kcal', g.kcal, 'kcal'], ['prot', g.prot, 'g'], ['carb', g.carb, 'g'], ['gras', g.gras, 'g']]
+  /* FIBRA en las metas (pedido de Ronald, 2026-11-25 06:45 CST:
+     «Aquí me faltan las fibras»): la caja de FIBRA se suma a las
+     cuatro de siempre con la meta de la casa — la DERIVADA de la
+     kcal meta (fiberGoalFromKcal: 14 g/1.000 kcal del IOM/DGA con
+     piso de 25 g de EFSA, la de AUTH-2026-11-08-310) y el campo
+     aparte `goalsFib` como respaldo, la misma precedencia que la
+     barra de fibra de su Inicio (fusedFiberBarHTML) y la de la
+     hoja de metas (gmiFiberBarHTML). La fibra NUNCA entra en el
+     mapa cerrado `goals` (decisión B de AUTH-310): sin kcal meta
+     no hay meta de fibra y la caja no nace, como su fila. */
+  const fibGoal = (typeof fiberGoalFromKcal === 'function' ? fiberGoalFromKcal(g.kcal) : null)
+    || ((u && Number(u.goalsFib) > 0) ? Number(u.goalsFib) : null);
+  const nums = [['kcal', g.kcal, 'kcal'], ['prot', g.prot, 'g'], ['carb', g.carb, 'g'], ['gras', g.gras, 'g'], ['fib', fibGoal, 'g']]
     .filter(([, v]) => num(v) > 0)
     .map(([k, v, un]) => `<div class="stu-goals-num"><b>${fmt(Math.round(num(v)))}</b><span>${esc(t('metric.' + k))} · ${un}</span></div>`).join('');
   const line = [obj, num(g.kcal) > 0 ? fmt(Math.round(num(g.kcal))) + ' kcal' : ''].filter(Boolean).join(' · ');
@@ -10687,9 +10699,44 @@ function stuRingsHTML(state) {
     const sub = goal === null ? `${fmt(val)} ${m.unit}` : `${fmt(val)}/${fmt(goal)}${m.key === 'kcal' ? '' : ' ' + m.unit}`;
     return `<div class="ring-mini" style="cursor:default">${ringMiniSVG(m, val, goal)}<span class="ring-mini-name">${t('metric.' + m.key)}</span><span class="ring-mini-sub">${sub}</span></div>`;
   }).join('');
+  /* EL ANILLO DE FIBRA (pedido de Ronald, 2026-11-25 06:45 CST:
+     «Aquí me faltan las fibras»): la fibra no vive en METRICS
+     (compartido con Inicio y con la adherencia: tocarlo cambiaría
+     otras pantallas), así que su anillo se AÑADE tras los cinco,
+     como las barras de fibra de la casa se añaden tras las de
+     METRICS (fusedFiberBarHTML / gmiFiberBarHTML), con su mismo
+     color #92400E (ámbar oscuro, tono trigo). LA META: la derivada
+     de la kcal DEL DÍA que esta misma zona ya resolvió
+     (fiberGoalFromKcal sobre day.goals.kcal) con el campo aparte
+     goalsFib como respaldo — la precedencia de la casa. El ajuste
+     por tipo de día de la casa (goalsDayAdjust) solo reparte
+     carbos y grasas SIN tocar la kcal, así que la meta de fibra
+     de hoy sale la misma que la base: la fibra no lleva ajuste
+     propio por día. LO COMIDO: los gramos que loadStuDay sumó de
+     las comidas de hoy con la lectura única fiberOf (las que no
+     traen el dato cuentan 0 en la suma, como manda la regla de
+     Ronald del 2026-11-09: sin datos, en cero como las demás) y
+     la COBERTURA se declara bajo la fila cuando es parcial
+     (glance.fibPart), igual que la declaran las barras. Sin meta
+     de fibra (sin kcal meta ni sello guardado) el anillo no nace:
+     la misma regla de las barras de la casa. Con seis anillos la
+     fila se reparte en DOS FILAS DE TRES (clase .stu-rings, solo
+     de esta zona): a 360 px una sola fila apretaría cada anillo
+     a ~51 px y el SVG de 60 px desbordaría. */
+  const fibGoal = (typeof fiberGoalFromKcal === 'function' ? fiberGoalFromKcal(day.goals ? day.goals.kcal : null) : null)
+    || (state.goalsFib > 0 ? state.goalsFib : null);
+  let fibRing = '', fibNote = '';
+  if (fibGoal > 0) {
+    const fm = { key: 'fib', color: '#92400E', unit: 'g' };
+    const fval = num(tot.fib);
+    fibRing = `<div class="ring-mini" style="cursor:default">${ringMiniSVG(fm, fval, fibGoal)}<span class="ring-mini-name">${t('metric.fib')}</span><span class="ring-mini-sub">${fmt(fval)}/${fmt(fibGoal)} g</span></div>`;
+    if (num(tot.fibN) > 0 && num(tot.fibM) > num(tot.fibN)) {
+      fibNote = `<div class="stu-rings-note">${esc(t('metric.fib'))} ${esc(t('glance.fibPart', { n: num(tot.fibN), m: num(tot.fibM) }))}</div>`;
+    }
+  }
   return `<h3 class="history-title">${esc(t('client.ringsTitle'))}</h3>`
     + (hasGoals ? '' : `<div style="margin-bottom:8px"><span class="goals-none">${t('goals.none')}</span></div>`)
-    + `<div class="rings">${rings}</div>`;
+    + `<div class="rings${fibRing ? ' stu-rings' : ''}">${rings}${fibRing}</div>` + fibNote;
 }
 function stuBurnHTML(actByDate, logs) {
   const hoy = todayISO();
@@ -10835,15 +10882,28 @@ async function loadStuDay(uid, u) {
   if (!rBox && !bBox) return;
   if ((rBox && rBox.dataset.stuDay !== uid) || (bBox && bBox.dataset.stuDay !== uid)) return;
   const state = { uid, totals: {}, goals: (u && u.goals) || {}, prov: (u && u.goalsProvenance) || null,
-    overrides: (u && u.goalsDayOverrides) || null, plan: null, cfg: null };
+    overrides: (u && u.goalsDayOverrides) || null, plan: null, cfg: null,
+    /* El sello de fibra guardado (campo aparte goalsFib), respaldo
+       de la meta derivada que pinta stuRingsHTML. */
+    goalsFib: (u && Number(u.goalsFib) > 0) ? Number(u.goalsFib) : null };
   try {
     const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid), where('date', '>=', histCutoffISO())));
     const byDate = {};
     ms.forEach(d => { const v = d.data();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
-      const tt = byDate[v.date] = byDate[v.date] || { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
+      const tt = byDate[v.date] = byDate[v.date] || { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0, fib: 0, fibN: 0, fibM: 0 };
       tt.kcal += num(v.kcal); tt.prot += num(v.prot); tt.carb += num(v.carb); tt.azuc += num(v.sugar); tt.gras += num(v.fat);
+      /* FIBRA del día (2026-11-25): la misma suma que hace
+         fiberDayStats para las barras del alumno — gramos SOLO de
+         las comidas que traen el dato (lectura única fiberOf) y la
+         cobertura (fibN de fibM) que el anillo declara cuando es
+         parcial. Las comidas sin el campo cuentan como sin dato:
+         suman 0 gramos, nunca un cero disfrazado de medición. */
+      tt.fibM += 1;
+      const fv = (typeof fiberOf === 'function') ? fiberOf(v) : null;
+      if (fv != null) { tt.fib += fv; tt.fibN += 1; }
     });
+    Object.values(byDate).forEach(tt => { tt.fib = Math.round(tt.fib * 10) / 10; });
     state.totals = byDate;
   } catch {}
   try { const plans = await fetchPlans(uid); state.plan = (plans || []).find(p => p.active === true) || null; } catch {}
