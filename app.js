@@ -28876,6 +28876,18 @@ let TRAIN_CUSTOM_OPEN = false;   // el desplegable nace recogido; solo memoria
 let TRAIN_CUSTOM_OPEN_STASH = null;   // AUTH-370: estado del desplegable al entrar al modo guiado; al salir se restaura (null = sin guarda)
 let TRAIN_GUIDE_DOOR = false;   // AUTH-370: la tarjeta interactiva de hoy está en pie → la puerta del guiado se pinta ARRIBA (trainGuideDoorHTML)
 let TRAIN_PICK = null;           // { kind:'swap', idx } | { kind:'add' } — selector de biblioteca abierto dentro del desplegable
+/* SIMPLIFICACIÓN «Añadir ejercicios a mi rutina» (2026-11-24):
+   la vista visible del panel — 'menu' (las cuatro opciones) |
+   'tpl' (consultar plantillas) | 'tplday' (elegir el día de la
+   plantilla) | 'review' (revisar y ajustar antes de añadir) —,
+   la plantilla elegida, las filas de revisión y la guarda de
+   guardado en curso. Solo memoria, como TRAIN_PICK. */
+let TRAIN_ADD_VIEW = 'menu';
+let TRAIN_ADD_TPL = null;        // id de la plantilla elegida en la vista 'tpl'
+let TRAIN_ADD_ROWS = null;       // filas de revisión: [{ exerciseId, name, sets, reps, load, loadUnit, inDay }]
+let TRAIN_ADD_ERR = false;       // el último guardado de la revisión falló: lo escrito se conserva y se reintenta
+let TRAIN_ADD_SAVING = false;    // guarda contra la doble pulsación del botón de añadir
+let TRAIN_ADD_CTX = null;        // { plan, di, iso } del último pintado editable del panel
 let TRAIN_CUSTOM_ISO = null;     // FECHA VISTA (2026-11-01): fecha que el desplegable está personalizando; si la vista cambia de fecha, el selector abierto se cierra (su índice pertenecía a la lista de otro día)
 let TRAIN_MANAGE_DOOR = null;    // LA REAPERTURA DE HOY (AUTH-398, reconvertida en AUTH-410): { plan, di, log } — se arma SOLO con la sesión guardada a medias; la hoja de Gestiona se retiró en este paquete
 /* FECHA VISTA (2026-11-01, decisión de Ronald): la clave admite
@@ -31064,11 +31076,14 @@ function trainPastEditable() {
     : ((typeof UDATA !== 'undefined' && UDATA && UDATA.assignmentStatus === 'assigned' && UDATA.trainerUid) ? UDATA.trainerUid : '');
   return !relUid;
 }
-/* Herramientas de la sesión DENTRO del desplegable «Personaliza»
-   (el bloque #train-custom-tools; las otras tres piezas del
-   desplegable — plantillas, rutinas propias y propuestas — se
-   pintan en sus contenedores de siempre, ahora dentro del mismo
-   cuerpo). di = día del plan de la FECHA VISTA (la misma
+/* El panel «Añadir ejercicios a mi rutina» DENTRO de su
+   desplegable (el bloque #train-custom-tools; desde la
+   simplificación del 2026-11-24 el cuerpo lleva SOLO este
+   bloque: las zonas de plantillas, rutinas propias, propuestas
+   y Mis planes salieron del panel y sus funciones y datos se
+   conservan en sus accesos — el editor de planes, la hoja del
+   constructor, la bandeja #treq-box y la hoja de Mis planes).
+   di = día del plan de la FECHA VISTA (la misma
    resolución de la tarjeta para ESA fecha: pares/plancal/
    rotación) o null si esa fecha no tiene sesión; closed = la
    sesión de HOY ya está registrada (sin edición: se deshace
@@ -31084,7 +31099,13 @@ function trainPastEditable() {
 function trainCustomRenderSession(plan, di, closed, iso) {
   const viewIso = iso || todayISO();
   const isTodayView = viewIso === todayISO();
-  if (TRAIN_CUSTOM_ISO !== viewIso) { TRAIN_PICK = null; TRAIN_CUSTOM_ISO = viewIso; }
+  if (TRAIN_CUSTOM_ISO !== viewIso) {
+    TRAIN_PICK = null; TRAIN_CUSTOM_ISO = viewIso;
+    /* SIMPLIFICACIÓN «Añadir ejercicios» (orden de Ronald, correo
+       2026-11-24 20:35 CST): al cambiar la fecha vista, el panel
+       vuelve a sus cuatro opciones. */
+    TRAIN_ADD_VIEW = 'menu'; TRAIN_ADD_TPL = null; TRAIN_ADD_ROWS = null; TRAIN_ADD_ERR = false;
+  }
   const titleTxt = isTodayView ? t('train.custom.sessionTitle') : t('train.custom.sessionTitleDate', { date: dateName(viewIso) });
   const btn = $('btn-train-custom');
   if (btn && !btn.dataset.wired) {
@@ -31104,46 +31125,29 @@ function trainCustomRenderSession(plan, di, closed, iso) {
   if (bodyEl) bodyEl.style.display = TRAIN_CUSTOM_OPEN ? '' : 'none';
   const chevEl = $('train-custom-chev');
   if (chevEl) chevEl.textContent = TRAIN_CUSTOM_OPEN ? '▴' : '▾';
-  /* El nombre del desplegable también sigue a la fecha vista:
-     «de hoy» solo si la vista es hoy (al cambiar de idioma el
-     data-i18n puede devolver su texto; el próximo pintado lo
-     corrige). */
-  if (btn) { const tSpan = btn.querySelector('[data-i18n="train.custom.title"]'); if (tSpan) tSpan.textContent = isTodayView ? t('train.custom.title') : t('train.custom.titleDate', { date: dateName(viewIso) }); }
+  /* El botón lleva SOLO el título del panel («Añadir ejercicios
+     a mi rutina», train.custom.title): el día y la fecha que se
+     editan se ven DENTRO, en la cabecera del panel
+     (trainAddHeadHTML). La clave train.custom.titleDate queda
+     huérfana en el diccionario (precedente de la casa). */
+  if (btn) { const tSpan = btn.querySelector('[data-i18n="train.custom.title"]'); if (tSpan) tSpan.textContent = t('train.custom.title'); }
   const tools = $('train-custom-tools');
   if (!tools) return;
-  /* AÑADIR BAJO EL PLAN (AUTH-2026-11-11-403 los sacó de
-     este desplegable a la fila #train-add-row; AUTH-431,
-     orden de Ronald 2026-11-12 11:37 CST — «Estos iconos
-     debería estar debajo del plan» —, muda el CONTENEDOR:
-     ya no vive fijo en index.html sobre el plan; lo pinta la
-     plantilla de loadMyTraining dentro de #my-training, bajo
-     el bloque del plan y sobre la semana): los botones
-     «🎙 Añadir dictando» y «📷 Por foto» se pintan SOLO en
-     la rama editable de abajo — la misma guarda exacta que
-     tenían aquí dentro — y con su cableado de siempre; en
-     cualquier otra rama (sin plan, sin sesión, cerrado, solo
-     lectura) la fila queda vacía, como quedaba el desplegable
-     sin ellos. Esta función busca el contenedor por id: su
-     sitio en el DOM no le importa. */
-  /* AUTH-566 (programa «Plegar todo» nº 3): el contenedor de la
-     fila de añadir vive ahora DENTRO de Personaliza
-     (#train-custom-addrow, en index.html) — la vista deja de
-     llevar la fila suelta bajo el plan (el sitio de AUTH-431) y
-     queda una sola puerta, Personaliza, con todas las vías de
-     añadir juntas. Las guardas y el cableado de los dos botones
-     no cambian: esta función busca el contenedor por id, viva
-     donde viva. */
-  const addRow = $('train-custom-addrow');
-  const addRowClear = () => { if (addRow) addRow.innerHTML = ''; };
-  if (!plan) { tools.innerHTML = ''; addRowClear(); swapSheetSync(null); return; }
+  if (!plan) { tools.innerHTML = ''; swapSheetSync(null); return; }
   if (di == null) {
+    /* DÍA VACÍO (punto 1 del encargo): si la fecha vista es HOY y
+       aún no hay sesión, el panel ofrece igualmente sus cuatro
+       vías — al elegir una, la sesión libre de la fecha nace por
+       el mecanismo de siempre (base 'extra', di = -1: el mismo de
+       la puerta «Día libre» de la tarjeta), sin necesitar otro
+       botón que lo habilite. En otra fecha sin sesión, la nota
+       de siempre. */
+    if (isTodayView && !closed) { trainAddPaint(plan, null, viewIso); swapSheetSync(null); return; }
     tools.innerHTML = `<h4 class="tcu-title">${titleTxt}</h4><p class="progress-hint">${t(isTodayView ? 'train.custom.restNote' : 'train.custom.noSessionDate')}</p>`;
-    addRowClear();
     swapSheetSync(null);
     return;
   }
   if (closed) {
-    addRowClear();
     /* AUTH-398 · GUARDADA A MEDIAS SÍ ENTRA: si el registro de
        la fecha vista es PARCIAL, la puerta de la hoja vive también
        aquí — tocarla REABRE el día (trainManageReopen) y la sesión
@@ -31168,34 +31172,20 @@ function trainCustomRenderSession(plan, di, closed, iso) {
      solo lo ajustan su entrenador, el administrador o el usuario
      autónomo; el alumno CON entrenador lo ve en solo lectura. */
   const readOnly = !isTodayView && viewIso < todayISO() && !trainPastEditable();
-  /* AUTH-410 · PERSONALIZA SIN LA PUERTA DE GESTIONA: la
-     hoja se retiró en este paquete — componer la sesión vive en
-     la lista y en el foco guiado (arrastre, tarjeta y flujo).
-     Esta rama editable conserva el título y la fila de
-     añadir (dictado y foto, AUTH-2026-11-11-403; su
-     contenedor vive bajo el bloque del plan desde
-     AUTH-431) con su cableado de siempre; el render de
-     solo lectura de abajo queda intacto para los días pasados
-     del alumno con entrenador. */
+  /* RAMA EDITABLE (simplificación 2026-11-24): el panel pinta
+     SOLO su cabecera (día y fecha) y las cuatro vías de añadir
+     (trainAddPaint: un proceso visible a la vez, con «Volver»).
+     Las hojas de dictado, máquina y biblioteca son las de
+     siempre y se abren desde ahí; las guardas de esta función
+     (sin plan, cerrado, solo lectura de día pasado) no cambian:
+     los permisos quedan intactos. El render de solo lectura de
+     abajo queda intacto para los días pasados del alumno con
+     entrenador. */
   if (!readOnly) {
-    tools.innerHTML = `<h4 class="tcu-title">${titleTxt}</h4>`;
-    /* AUTH-403 (el contenedor, bajo el bloque del plan desde
-       AUTH-431): la fila se pinta y se cablea aquí, con
-       los mismos manejadores que trainCustomWire da a estos
-       dos botones (dictSheetOpen / mphSheetOpen con el plan y
-       la fecha vista) — las hojas que abren quedan intactas. */
-    if (addRow) {
-      addRow.innerHTML = `<button type="button" class="btn-primary dict-open-btn" data-tcu-dict="1">${t('dict.open')}</button><button type="button" class="btn-secondary photo-open-btn" data-tcu-photo="1">${t('mph.open')}</button>`;
-      const bDict = addRow.querySelector('[data-tcu-dict]');
-      if (bDict) bDict.onclick = () => dictSheetOpen(plan, di, viewIso);
-      const bPhoto = addRow.querySelector('[data-tcu-photo]');
-      if (bPhoto) bPhoto.onclick = () => mphSheetOpen(plan, di, viewIso);
-    }
-    trainCustomWire(plan, di, viewIso);
+    trainAddPaint(plan, di, viewIso);
     swapSheetSync(plan, di, viewIso);
     return;
   }
-  addRowClear();   /* AUTH-403: en solo lectura la fila tampoco vive (como los botones, que aquí nunca se pintaban) */
   /* ORDEN DEL DÍA: subir/bajar vive en las mismas filas que cambiar/quitar, solo para quien puede reordenar su día y nunca en solo lectura. */
   const canMove = !readOnly && trainReorderAllowed();
   const removeTxt = isTodayView ? t('train.custom.removeToday') : t('train.custom.removeDay');
@@ -31243,6 +31233,272 @@ function trainCustomRenderSession(plan, di, closed, iso) {
   if (readOnly) { swapSheetSync(null); return; }
   trainCustomWire(plan, di, viewIso);
   swapSheetSync(plan, di, viewIso);
+}
+/* ═══ EL PANEL «AÑADIR EJERCICIOS A MI RUTINA» (simplificación
+   pedida por Ronald, correo 2026-11-24 20:35 CST) ═══
+   El desplegable de siempre, con su botón en su ubicación,
+   pasa a mostrar SOLO cuatro opciones y UN proceso visible a
+   la vez: cada opción abre únicamente su contenido y «Volver»
+   regresa a las cuatro opciones — nada de formularios ni
+   listados acumulados hacia abajo. Las vías reutilizan los
+   mecanismos de siempre, intactos:
+   - dictando → la hoja de dictado (dictSheetOpen): revisión y
+     corrección antes de añadir; lo no reconocido ofrece buscar
+     en la biblioteca; nada dudoso se guarda solo.
+   - escanear una máquina → la hoja de foto (mphSheetOpen, la
+     antigua «Por foto» renombrada): la misma identificación y
+     su confirmación de siempre.
+   - biblioteca → el selector (TRAIN_PICK 'add': AUTH-601/605,
+     con su candado D1 por ficha y su nacimiento al final).
+   - plantilla → la consulta de plantillas de siempre (la
+     misma lectura por rol, tplCanRead) DENTRO del panel: se
+     elige la plantilla, se elige su día, se REVISA lo que se
+     incorporará (series, repeticiones y carga ajustables,
+     series con − / +, filas quitables; lo que ya está en el
+     día se marca y no se repite) y solo al tocar «Añadir a mi
+     día» se escribe — en la edición de sesión de la fecha
+     vista (added[]), conservando lo existente; la rutina
+     nunca se reemplaza en silencio. La confirmación
+     «Ejercicios añadidos» sale SOLO tras guardar bien; si el
+     guardado falla, lo introducido se conserva y se reintenta.
+   Las propuestas al entrenador NO viven en este flujo (punto
+   5 del encargo): ni botones ni formulario ni la zona «Mis
+   propuestas»; las solicitudes anteriores quedan intactas en
+   sus datos y la bandeja de peticiones (#treq-box) y la del
+   entrenador siguen siendo sus accesos. */
+function trainAddHeadHTML(iso) {
+  const wd = weekdayName(iso);
+  const cap = wd ? wd.charAt(0).toUpperCase() + wd.slice(1) : '';
+  return `<h4 class="tcu-title">${esc(cap)} · ${esc(dateName(iso))}</h4>`;
+}
+function trainAddPaint(plan, di, iso) {
+  const tools = $('train-custom-tools');
+  if (!tools || !plan) return;
+  TRAIN_ADD_CTX = { plan, di, iso };
+  const head = trainAddHeadHTML(iso);
+  if (TRAIN_ADD_VIEW === 'tpl') { tools.innerHTML = head + trainAddTplHTML(); trainAddWireTpl(plan, di, iso); return; }
+  if (TRAIN_ADD_VIEW === 'tplday') { tools.innerHTML = head + trainAddTplDayHTML(); trainAddWireTplDay(plan, di, iso); return; }
+  if (TRAIN_ADD_VIEW === 'review') { tools.innerHTML = head + trainAddReviewHTML(); trainAddWireReview(plan, di, iso); return; }
+  /* 'menu': las cuatro opciones, y nada más. */
+  const eff = di == null ? [] : trainEffectiveList(plan, di, iso);
+  tools.innerHTML = head + `
+    ${!eff.length ? `<p class="progress-hint">${t('addx.emptyHint')}</p>` : ''}
+    <div class="addx-menu">
+      <button type="button" class="btn-primary addx-opt dict-open-btn" data-addx="dict">${t('dict.open')}</button>
+      <button type="button" class="btn-secondary addx-opt photo-open-btn" data-addx="photo">${t('mph.open')}</button>
+      <button type="button" class="btn-secondary addx-opt" data-addx="lib">${t('addx.libBtn')}</button>
+      <button type="button" class="btn-secondary addx-opt" data-addx="tpl">${t('addx.tplBtn')}</button>
+    </div>`;
+  tools.querySelectorAll('[data-addx]').forEach(b => b.onclick = () => trainAddChoose(b.dataset.addx, plan, di, iso));
+}
+async function trainAddChoose(kind, plan, di, iso) {
+  if (kind === 'tpl') {
+    TRAIN_ADD_VIEW = 'tpl'; TRAIN_ADD_ERR = false;
+    trainAddPaint(plan, di, iso);
+    /* La consulta reutiliza la carga del catálogo de siempre;
+       al llegar, la vista se repinta con la lista resuelta. */
+    tplEnsure().then(() => { if (TRAIN_ADD_VIEW === 'tpl') trainAddPaint(plan, di, iso); });
+    libEnsure().then(() => { if (TRAIN_ADD_VIEW === 'tpl') trainAddPaint(plan, di, iso); });
+    return;
+  }
+  /* Dictado, máquina y biblioteca escriben sobre la sesión del
+     día: si la fecha aún no tiene sesión (día vacío), la libre
+     nace antes por el mecanismo de siempre (base 'extra'). */
+  let d = di;
+  if (d == null) {
+    trainBaseWrite(plan.id, { kind: 'extra' }, iso);
+    await loadMyTraining();
+    d = -1;
+  }
+  if (kind === 'dict') dictSheetOpen(plan, d, iso);
+  else if (kind === 'photo') mphSheetOpen(plan, d, iso);
+  else if (kind === 'lib') {
+    TRAIN_PICK = { kind: 'add' };
+    SWAP_QUERY = '';
+    SWAP_PRESET_GROUP = null;
+    SWAP_NAV_GROUP = null;
+    SWAP_NAV_POINT = null;
+    trainDayRepaint();
+  }
+}
+function trainAddTplHTML() {
+  let h = `<button type="button" class="btn-ghost addx-back" data-addx-back="menu">← ${t('dict.back')}</button>
+    <h4 class="tcu-title">${t('addx.tplHead')}</h4>`;
+  if (TPL_STATE === 'unavailable') return h + `<div class="wempty compact">${t('train.prop.tplUnavailable')}</div>`;
+  if (TPL_STATE !== 'ok' || !TPL) return h + `<div class="wempty compact">${t('train.loading')}</div>`;
+  const vis = TPL.filter(tplCanRead);
+  if (!vis.length) return h + `<div class="wempty compact">${t('addx.tplNone')}</div>`;
+  return h + vis.map(tpl => {
+    const meta = [tplField(tpl, 'nivel'), t('train.tpl.perWeek', { n: tpl.dias_por_semana }), tplField(tpl, 'objetivo')].filter(Boolean).join(' · ');
+    if (tpl.plan21 === true) {
+      /* La plantilla del Reto 21 no se vuelca a un día: su
+         puerta es la de siempre (empezar el reto). */
+      return `<div class="addx-tplcard"><span class="addx-tplname">${esc(tplField(tpl, 'nombre'))}</span>${meta ? `<span class="addx-tplmeta">${esc(meta)}</span>` : ''}<span class="addx-tplmeta">${esc(t('plan21.catalogLine'))}</span><button type="button" class="btn-primary btn-sm addx-tplgo" data-addx-p21="1">${t('plan21.startBtn')}</button></div>`;
+    }
+    const nEx = (tpl.days || []).reduce((a, d) => a + ((d.exercises || []).length), 0);
+    return `<button type="button" class="addx-tplcard" data-addx-tpl="${esc(tpl.id)}"><span class="addx-tplname">${esc(tplField(tpl, 'nombre'))}</span>${meta ? `<span class="addx-tplmeta">${esc(meta)}</span>` : ''}<span class="addx-tplmeta">${esc(t('train.daysCount', { n: (tpl.days || []).length }))} · ${esc(t('train.exCount', { n: nEx }))}</span></button>`;
+  }).join('');
+}
+function trainAddWireTpl(plan, di, iso) {
+  const tools = $('train-custom-tools'); if (!tools) return;
+  const back = tools.querySelector('[data-addx-back]');
+  if (back) back.onclick = () => { TRAIN_ADD_VIEW = 'menu'; trainAddPaint(plan, di, iso); };
+  tools.querySelectorAll('[data-addx-tpl]').forEach(b => b.onclick = () => {
+    TRAIN_ADD_TPL = b.dataset.addxTpl; TRAIN_ADD_VIEW = 'tplday'; trainAddPaint(plan, di, iso);
+  });
+  tools.querySelectorAll('[data-addx-p21]').forEach(b => b.onclick = () => r21Open('catalogo'));
+}
+function trainAddTplDayHTML() {
+  const tpl = TRAIN_ADD_TPL ? TPL_BY_ID[TRAIN_ADD_TPL] : null;
+  let h = `<button type="button" class="btn-ghost addx-back" data-addx-back="tpl">← ${t('dict.back')}</button>
+    <h4 class="tcu-title">${t('addx.tplDayHead')}</h4>`;
+  if (!tpl) return h + `<div class="wempty compact">${t('addx.tplNone')}</div>`;
+  h += `<p class="progress-hint">${esc(tplField(tpl, 'nombre'))}</p>`;
+  return h + (tpl.days || []).map((d, di2) => {
+    const dName = LANG === 'es' ? (d.dia_nombre_es || d.dia_nombre_en || '') : (d.dia_nombre_en || d.dia_nombre_es || '');
+    return `<button type="button" class="addx-tplcard" data-addx-tplday="${di2}"><span class="addx-tplname">${esc(dName || t('train.n09.mybDayTag', { n: di2 + 1 }))}</span><span class="addx-tplmeta">${esc(t('train.exCount', { n: (d.exercises || []).length }))}</span></button>`;
+  }).join('');
+}
+function trainAddWireTplDay(plan, di, iso) {
+  const tools = $('train-custom-tools'); if (!tools) return;
+  const back = tools.querySelector('[data-addx-back]');
+  if (back) back.onclick = () => { TRAIN_ADD_VIEW = 'tpl'; trainAddPaint(plan, di, iso); };
+  tools.querySelectorAll('[data-addx-tplday]').forEach(b => b.onclick = () => {
+    const tpl = TRAIN_ADD_TPL ? TPL_BY_ID[TRAIN_ADD_TPL] : null;
+    if (!tpl) return;
+    trainAddBuildRows(plan, di, iso, tpl, Number(b.dataset.addxTplday));
+    TRAIN_ADD_VIEW = 'review'; trainAddPaint(plan, di, iso);
+  });
+}
+function trainAddBuildRows(plan, di, iso, tpl, dayIdx) {
+  const day = (tpl.days || [])[dayIdx] || {};
+  TRAIN_ADD_ROWS = (day.exercises || []).map(te => {
+    const entry = te.exerciseId ? (LIB_BY_ID[te.exerciseId] || null) : null;
+    return {
+      exerciseId: te.exerciseId || '',
+      name: entry ? libNameOf(entry) : (te.nombre_libre || te.exerciseId || ''),
+      sets: te.series != null ? String(te.series) : '',
+      reps: te.repeticiones != null ? String(te.repeticiones) : '',
+      load: '', loadUnit: UNIT_PREFS.mass,
+      /* Lo que ya vive en el día (por ficha, candado D1) se
+         marca y NO se incorpora: la rutina se conserva. */
+      inDay: (di != null && te.exerciseId) ? swapEffHasId(plan, di, te.exerciseId, iso) : false
+    };
+  });
+  TRAIN_ADD_ERR = false;
+}
+function trainAddReviewHTML() {
+  const tpl = TRAIN_ADD_TPL ? TPL_BY_ID[TRAIN_ADD_TPL] : null;
+  let h = `<button type="button" class="btn-ghost addx-back" data-addx-back="tplday">← ${t('dict.back')}</button>
+    <h4 class="tcu-title">${t('addx.reviewHead')}</h4>`;
+  if (tpl) h += `<p class="progress-hint">${esc(tplField(tpl, 'nombre'))}</p>`;
+  const rows = TRAIN_ADD_ROWS || [];
+  h += rows.map((r, i) => `
+    <div class="dict-row" data-addx-row="${i}">
+      <div class="dict-row-head">
+        <span class="swap-card-main"><span class="swap-card-name">${esc(r.name)}</span>${r.inDay ? `<span class="train-mark">${esc(t('addx.inDay'))}</span>` : ''}</span>
+        ${r.inDay ? '' : `<button type="button" class="dict-rm" data-addx-rm="${i}" aria-label="${esc(t('dict.remove'))}">✕</button>`}
+      </div>
+      ${r.inDay ? '' : `<div class="dict-nums">
+        <span class="dict-num"><label>${esc(t('dict.sets'))}</label><span class="addx-sets"><button type="button" class="addx-step" data-addx-minus="${i}" aria-label="−">−</button><input type="number" inputmode="numeric" min="0" max="30" data-addx-num="${i}:sets" value="${esc(r.sets)}"><button type="button" class="addx-step" data-addx-plus="${i}" aria-label="+">+</button></span></span>
+        <span class="dict-num"><label>${esc(t('dict.reps'))}</label><input type="text" data-addx-num="${i}:reps" value="${esc(r.reps)}"></span>
+        <span class="dict-num"><label>${esc(t('dict.load'))}</label><input type="number" inputmode="decimal" min="0" step="any" data-addx-num="${i}:load" value="${esc(r.load)}"></span>
+        <span class="dict-num dict-num-unit"><label>&nbsp;</label><select data-addx-unit="${i}"><option value="kg"${r.loadUnit === 'kg' ? ' selected' : ''}>kg</option><option value="lb"${r.loadUnit === 'lb' ? ' selected' : ''}>lb</option></select></span>
+      </div>`}
+    </div>`).join('');
+  const addable = rows.some(r => !r.inDay);
+  if (!addable) h += `<p class="progress-hint">${t('addx.noneLeft')}</p>`;
+  if (TRAIN_ADD_ERR) h += `<p class="addx-err">${t('addx.saveFail')}</p>`;
+  if (addable) h += `<button type="button" class="btn-primary addx-confirm" data-addx-add="1"${TRAIN_ADD_SAVING ? ' disabled' : ''}>${t('dict.addToDay')}</button>`;
+  return h;
+}
+function trainAddHarvest() {
+  const tools = $('train-custom-tools');
+  if (!tools || !Array.isArray(TRAIN_ADD_ROWS)) return;
+  tools.querySelectorAll('[data-addx-num]').forEach(inp => {
+    const parts = String(inp.dataset.addxNum).split(':');
+    const r = TRAIN_ADD_ROWS[Number(parts[0])];
+    if (r && parts[1]) r[parts[1]] = inp.value;
+  });
+  tools.querySelectorAll('[data-addx-unit]').forEach(sel => {
+    const r = TRAIN_ADD_ROWS[Number(sel.dataset.addxUnit)];
+    if (r) r.loadUnit = sel.value === 'lb' ? 'lb' : 'kg';
+  });
+}
+function trainAddStep(iS, delta) {
+  const tools = $('train-custom-tools'); if (!tools) return;
+  const inp = tools.querySelector(`[data-addx-num="${iS}:sets"]`);
+  if (!inp) return;
+  const v = Math.max(0, Math.min(30, (parseInt(inp.value, 10) || 0) + delta));
+  inp.value = String(v);
+  trainAddHarvest();
+}
+function trainAddWireReview(plan, di, iso) {
+  const tools = $('train-custom-tools'); if (!tools) return;
+  const back = tools.querySelector('[data-addx-back]');
+  if (back) back.onclick = () => { trainAddHarvest(); TRAIN_ADD_VIEW = 'tplday'; trainAddPaint(plan, di, iso); };
+  tools.querySelectorAll('[data-addx-num]').forEach(inp => { inp.oninput = () => trainAddHarvest(); });
+  tools.querySelectorAll('[data-addx-unit]').forEach(sel => { sel.onchange = () => trainAddHarvest(); });
+  tools.querySelectorAll('[data-addx-minus]').forEach(b => b.onclick = () => trainAddStep(b.dataset.addxMinus, -1));
+  tools.querySelectorAll('[data-addx-plus]').forEach(b => b.onclick = () => trainAddStep(b.dataset.addxPlus, 1));
+  tools.querySelectorAll('[data-addx-rm]').forEach(b => b.onclick = () => {
+    trainAddHarvest();
+    TRAIN_ADD_ROWS.splice(Number(b.dataset.addxRm), 1);
+    trainAddPaint(plan, di, iso);
+  });
+  const add = tools.querySelector('[data-addx-add]');
+  if (add) add.onclick = () => trainAddApply();
+}
+function trainAddApply() {
+  if (TRAIN_ADD_SAVING) return;   /* doble pulsación: no entra dos veces */
+  /* Y si la revisión ya se aplicó (el panel volvió al menú), una
+     pulsación tardía sobre el botón ya retirado no hace nada: ni
+     duplica ni pisa la confirmación «Ejercicios añadidos». */
+  if (TRAIN_ADD_VIEW !== 'review') return;
+  const C = TRAIN_ADD_CTX;
+  if (!C || !C.plan) return;
+  trainAddHarvest();
+  const rows = (TRAIN_ADD_ROWS || []).filter(r => !r.inDay && r.exerciseId);
+  if (!rows.length) { toast(t('addx.noneLeft')); return; }
+  TRAIN_ADD_SAVING = true;
+  trainAddPaint(C.plan, C.di, C.iso);   /* repinta con el botón deshabilitado mientras guarda */
+  const plan = C.plan;
+  let di = C.di;
+  if (di == null) { trainBaseWrite(plan.id, { kind: 'extra' }, C.iso); di = -1; }
+  const ed = trainEditsRead(plan.id, C.iso) || { swaps: {}, added: [] };
+  if (!ed.swaps || typeof ed.swaps !== 'object') ed.swaps = {};
+  if (!Array.isArray(ed.added)) ed.added = [];
+  /* Segundo candado D1 (como en el selector y el dictado): lo
+     que ya vive en el día no se duplica al guardar. */
+  const fresh = rows.filter(r => !swapEffHasId(plan, di, r.exerciseId, C.iso));
+  for (const r of fresh) {
+    const rec = { exerciseId: r.exerciseId, name: r.name, sets: String(r.sets || ''), reps: String(r.reps || '') };
+    const lv = parseFloat(String(r.load || '').replace(',', '.'));
+    if (isFinite(lv) && lv > 0) { rec.load = lv; rec.loadUnit = r.loadUnit === 'lb' ? 'lb' : 'kg'; }
+    ed.added.push(rec);
+  }
+  if (!fresh.length) {
+    TRAIN_ADD_SAVING = false;
+    TRAIN_ADD_VIEW = 'menu'; TRAIN_ADD_ROWS = null; TRAIN_ADD_TPL = null;
+    toast(t('addx.noneLeft'));
+    trainDayRepaint();
+    return;
+  }
+  const okSave = trainEditsWrite(plan.id, ed, C.iso);
+  TRAIN_ADD_SAVING = false;
+  if (!okSave) {
+    /* Fallo honesto: lo introducido se CONSERVA (las filas
+       siguen en su estado) y el botón vuelve para reintentar;
+       la confirmación NO sale. */
+    TRAIN_ADD_ERR = true;
+    trainAddPaint(plan, C.di, C.iso);
+    toast(t('common.error'), true);
+    return;
+  }
+  TRAIN_ADD_ERR = false;
+  TRAIN_ADD_VIEW = 'menu'; TRAIN_ADD_ROWS = null; TRAIN_ADD_TPL = null;
+  toast(t('addx.done'));   /* «Ejercicios añadidos»: solo tras guardar bien */
+  trainDayRepaint();
 }
 /* ═══ AUTH-410 · SE RETIRA GESTIONA (paso 4 de la
    secuencia del flujo): la hoja «Gestiona tu sesión» (AUTH-387)
@@ -46661,7 +46917,13 @@ async function trainViewPaint(light) {
      CAND-530: lo que se pinta es la LÍNEA PLEGADA y su único
      cableado es abrir la hoja flotante; las filas y sus
      acciones se cablean DENTRO de la hoja, al abrirla, con el
-     mismo wirePlanActions de siempre. */
+     mismo wirePlanActions de siempre.
+     SIMPLIFICACIÓN «Añadir ejercicios» (2026-11-24): el
+     contenedor #train-custom-plans SALIÓ del panel por orden
+     de Ronald — este pintado queda guardado por su existencia
+     (sin contenedor no pinta nada) y la hoja de Mis planes
+     (myPlansSheetOpen/Sync, wirePlanActions) y los datos de
+     los planes quedan intactos en la app. */
   const mpHost = $('train-custom-plans');
   if (mpHost) {
     mpHost.innerHTML = myPlansHTML;
@@ -54879,7 +55141,14 @@ function mybHarvest() {
   });
 }
 function renderMyBuilder() {
-  const box = $('my-builder'); if (!box || !auth.currentUser) return;
+  const box = $('my-builder');
+  /* SIMPLIFICACIÓN «Añadir ejercicios» (2026-11-24): la zona
+     «Mis propias rutinas» salió del panel — sin su contenedor,
+     esta función conserva SOLO el ciclo de la hoja del editor
+     (mybSheetSync), que es la casa del constructor; la función
+     y los datos quedan intactos. */
+  if (!box) { if (auth.currentUser) mybSheetSync(); return; }
+  if (!auth.currentUser) return;
   let inner = `<h3 class="history-title">${t('train.n09.myTitle')}</h3><p class="progress-hint">${t('train.n09.myIntro')}</p>`;
   if (!MYB) {
     inner += `<button type="button" class="btn-primary btn-sm" id="myb-open">${t('train.n09.createBtn')}</button>`;
@@ -71754,13 +72023,20 @@ function chalAssignWire() {
   if (p21) p21.onclick = () => {
     /* D-R4: el Plan 21 se aplica desde el catálogo de
        plantillas — la hoja lleva a la pieza existente, con la
-       lista de plantillas abierta en Entrenamiento. */
+       lista de plantillas abierta en Entrenamiento.
+       SIMPLIFICACIÓN «Añadir ejercicios» (2026-11-24): el
+       catálogo vive ahora en la vista de plantillas del panel
+       «Añadir ejercicios a mi rutina» — la puerta abre ese
+       panel con su vista de plantillas desplegada. */
     chalSheetClose();
     try { navOpenPage('train'); } catch {}
     try {
-      PROP_TPL_LIST_OPEN = true;
-      renderPropTemplates();
-      const el = $('my-templates'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      TRAIN_CUSTOM_OPEN = true;
+      TRAIN_CUSTOM_OPEN_STASH = null;
+      TRAIN_ADD_VIEW = 'tpl';
+      tplEnsure();
+      trainDayRepaint();
+      setTimeout(() => { const el = $('train-custom-panel'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
     } catch {}
   };
   const stu = $('chal-asg2-student');

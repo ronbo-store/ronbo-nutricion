@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-comparar-informes">
+<link rel="stylesheet" href="styles.css?v=20261124-anadir-simplificado">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -607,40 +607,24 @@
       <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
       <!-- PETICIONES (AUTH-2026-11-04-237): el botón «Pedir un cambio a mi entrenador» y «Mis peticiones», junto al plan; lo pinta treqBoxSync (app.js) solo si el alumno tiene entrenador asignado. -->
       <div id="treq-box"></div>
-      <!-- PERSONALIZA TUS ASIGNACIONES DE HOY (pedido de Ronald,
-           2026-10-27 12:50 CDT): UN solo botón desplegable, nacido
-           recogido (patrón de la casa: perms-panel / tarjeta de
-           metas), junto a la tarjeta del día. Dentro viven, en
-           orden: (1) las herramientas de la sesión de hoy
-           (#train-custom-tools: Cambiar por ejercicio con el
-           selector de la biblioteca y «+ Agregar ejercicio»),
-           (2) «Plantillas de rutina» (#my-templates), (3) «Mis
-           propias rutinas» (#my-builder) y (4) «Mis propuestas»
-           (#my-proposals) — las tres zonas de siempre con sus
-           mismos contenedores y funciones, SIN duplicar: dejan de
-           aparecer sueltas en esta vista y pasan a vivir aquí. -->
+      <!-- AÑADIR EJERCICIOS A MI RUTINA (el desplegable nacido
+           como «Personaliza tus asignaciones de hoy» el 2026-10-27;
+           SIMPLIFICADO por orden de Ronald, correo 2026-11-24
+           20:35 CST): el botón se conserva en su ubicación y el
+           panel se titula «Añadir ejercicios a mi rutina». Dentro,
+           SOLO las cuatro vías de añadir — dictando, escanear una
+           máquina, biblioteca y plantilla — un proceso visible a
+           la vez con su «Volver» (trainAddPaint, app.js). Salen de
+           este panel «Mis planes», las explicaciones extensas de
+           plantillas, «Mis propias rutinas» y «Mis propuestas»:
+           sus funciones y datos se conservan intactos en la app
+           (la hoja de Mis planes, el editor de planes con su UI de
+           plantillas, la hoja del constructor y la bandeja de
+           peticiones #treq-box); aquí ya no se pintan. -->
       <div class="panel train-custom-panel" id="train-custom-panel">
-        <button type="button" class="btn-secondary manage-toggle train-custom-toggle" id="btn-train-custom" aria-expanded="false"><span data-i18n="train.custom.title">Customize today's assignments</span><span class="manage-chev" id="train-custom-chev">▾</span></button>
+        <button type="button" class="btn-secondary manage-toggle train-custom-toggle" id="btn-train-custom" aria-expanded="false"><span data-i18n="train.custom.title">Add exercises to my routine</span><span class="manage-chev" id="train-custom-chev">▾</span></button>
         <div id="train-custom-body" style="display:none">
-          <!-- AUTH-566 (programa «Plegar todo» nº 3): las vías de
-               AÑADIR (dictando y por foto) se mudan DENTRO de
-               Personaliza — la vista deja de llevar la fila suelta
-               #train-add-row bajo el plan (AUTH-431) y queda una
-               sola puerta, este desplegable, con todas las vías
-               juntas. Lo pinta trainCustomRenderSession (app.js)
-               con las mismas guardas y cableado de siempre. -->
-          <div id="train-custom-addrow"></div>
           <div id="train-custom-tools"></div>
-          <!-- «MIS PLANES» DEL PROPIO USUARIO (AUTH-411): el
-               bloque completo (filas, hoja ⋮ y «Plan nuevo») vive
-               aquí, tras las herramientas de la sesión — desplegar
-               y cambiar el plan se hace dentro de Personaliza. Lo
-               pinta y lo cablea loadMyTraining (app.js); en el
-               flujo de la vista queda solo su línea informativa. -->
-          <div id="train-custom-plans"></div>
-          <div id="my-templates"></div>
-          <div id="my-builder"></div>
-          <div id="my-proposals"></div>
         </div>
       </div>
       <!-- TARJETA «Entrena con cámara» EN SU SITIO FINAL (anuncio
@@ -3555,6 +3539,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-comparar-informes"></script>
+<script type="module" src="app.js?v=20261124-anadir-simplificado"></script>
 </body>
 </html>
