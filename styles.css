@@ -2177,7 +2177,7 @@ body { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inse
 .tf-warm { border: 1.5px dashed #0d9488; border-radius: 14px; background: #f0fdfa; padding: 10px 12px; margin: 10px 0 12px; }
 .tf-warm-head { display: flex; align-items: center; gap: 10px; }
 .tf-warm-title { font-size: 14px; font-weight: 700; color: #065f46; }
-.tf-warm-tog { margin-left: auto; flex: none; min-width: 64px; padding: 8px 14px; border-radius: 999px; border: 1.5px solid #0d9488; background: #fff; color: #0d9488; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.tf-warm-tog { margin-left: auto; flex: none; min-width: 64px; min-height: 44px; padding: 8px 14px; border-radius: 999px; border: 1.5px solid #0d9488; background: #fff; color: #0d9488; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }   /* PAQUETE «APROXIMACIÓN EN CURSO» (2026-11-25): la píldora Sí/No sube al mínimo de toque de la casa (44 px) — nació en ~35 px */
 .tf-warm-tog.is-on { background: #0d9488; color: #fff; }
 .tf-warm-rows { margin-top: 8px; }
 .tf-warm-del { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #f3c2c2; background: #fff; color: #b3261e; font-size: 13px; line-height: 1; cursor: pointer; font-family: inherit; }
@@ -8633,3 +8633,14 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .stu-now-row .sx { flex: none; color: #1d4ed8; font-weight: 800; }
 .stu-now-line { display: flex; align-items: center; gap: 8px; background: #f4f6f8; border: 1px solid #dde3e8; border-radius: 12px; padding: 10px 12px; font-size: 15px; color: #475569; }
 .stu-now-line + .stu-now-row, .stu-now-row + .stu-now-line { margin-top: 8px; }
+/* ═══ PAQUETE «APROXIMACIÓN EN CURSO» (2026-11-25) · LA PUERTA
+   DE APROXIMACIÓN EN LA VISTA COMPLETA DE LA SESIÓN: su línea
+   — título, la píldora Sí/No de siempre (familia .tf-warm-tog,
+   en su variante sobre fondo oscuro) y el «+ Añadir» — bajo la
+   fila de círculos del ejercicio en curso. Todo toque ≥ 44 px,
+   como manda la regla de crecimiento de la casa. ═══ */
+.sf-warmdoor { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.sf-warm-lab { font-size: 13.5px; font-weight: 700; color: #fff; }
+.sf-warmdoor .tf-warm-tog { margin-left: 0; background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .45); color: #fff; }
+.sf-warmdoor .tf-warm-tog.is-on { background: #0d9488; border-color: #0d9488; color: #fff; }
+.sf-warm-add { min-height: 44px; padding: 8px 14px; border-radius: 999px; border: 1.5px dashed rgba(255, 255, 255, .5); background: transparent; color: #fff; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }

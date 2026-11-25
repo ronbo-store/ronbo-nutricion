@@ -37959,6 +37959,35 @@ function sessDotsHTML(curChk, ck, flowSt, ex) {
   if (liveCd2) sessCdArm();
   return `<div class="${rowCls}">${warmDots}${dots}${editBtn}${voiceBtn}</div>`;
 }
+/* ═══ PAQUETE «APROXIMACIÓN EN CURSO» (2026-11-25) · LA
+   PUERTA DE APROXIMACIÓN EN LA VISTA COMPLETA: la línea
+   de círculos solo pinta las marcas «A» si el bloque ya
+   está encendido (AUTH-505) — apagado, la completa no
+   ofrecía ni encenderlo ni añadir, y la aproximación
+   quedaba inalcanzable sin salir a la tarjeta (reporte de
+   Ronald en plena sesión, 2026-11-25 08:20: «Después que
+   comienzo el ejercicio me impide editar las series de
+   aproximación»). Esta línea trae a la completa la MISMA
+   puerta de la tarjeta — su título y su píldora Sí/No,
+   con el mismo significado («No» = sin series de
+   aproximación configuradas) — y, encendido el bloque,
+   su «+ Añadir serie de aproximación». Los gestos corren
+   por las operaciones únicas del bloque (tfWarmToggleOp /
+   tfWarmAddOp: la misma marca, la misma persistencia al
+   acto que la tarjeta) y su cableado vive en sessPanelWire
+   ([data-sess-warm-tog] / [data-sess-warm-add]). Las
+   marcas «A» de la línea siguen marcando como siempre y
+   los números se editan en la tarjeta por la puerta
+   «Editar» de la línea, como los de las series de trabajo.
+   Solo en curso o en pausa, como la caja de la tarjeta. ═══ */
+function sessWarmDoorHTML(curChk, ck, flowSt) {
+  if (!curChk || (flowSt !== 'open' && flowSt !== 'paused')) return '';
+  const w = (curChk.warmup && typeof curChk.warmup === 'object' && !Array.isArray(curChk.warmup)) ? curChk.warmup : { on: false, sets: [] };
+  const n = Array.isArray(w.sets) ? w.sets.length : 0;
+  const tog = `<button type="button" class="tf-warm-tog sf-warm-tog${w.on ? ' is-on' : ''}" data-sess-warm-tog="${ck}" aria-pressed="${w.on ? 'true' : 'false'}">${w.on ? t('train.start.yes') : t('train.start.no')}</button>`;
+  const add = (w.on && n < 12) ? `<button type="button" class="sf-warm-add" data-sess-warm-add="${ck}">${esc(t('train.start.warmupAdd'))}</button>` : '';
+  return `<div class="sf-warmdoor"><span class="sf-warm-lab">🔥 ${esc(t('train.start.warmupTitle'))}</span>${tog}${add}</div>`;
+}
 /* ═══ AUTH-500 · EL BOTÓN DE VOZ DE LA LÍNEA (diseño
    aprobado por Ronald el 2026-11-18, con sus correcciones:
    el botón lleva SOLO el signo de la voz — sin la cara de la
@@ -38939,6 +38968,7 @@ function sessFullSync(run) {
     const nowBlk = `<div class="sf-now"><div class="sf-now-lab">${esc(t('sess.nowLab'))} · ${esc(pos)}</div><div class="sf-name">${esc(curName)}</div>`
       + (exState ? `<div class="sf-exrow">${exState}</div>` : '')
       + dotsBlk
+      + sessWarmDoorHTML(curChk, ck, flowSt)   /* PAQUETE «APROXIMACIÓN EN CURSO» (2026-11-25): la puerta Sí/No del bloque y su añadir, en la completa */
       + sessVoiceNoteHTML(ck)   /* AUTH-500: el recibo y los avisos de la voz, bajo la línea — fuera de ella, para que el recibo se siga viendo si el dictado finalizó el ejercicio y nacen las caras */
       + sessHowRowHTML(st.eff[st.cur].ex)   /* AUTH-501: la fila «Ver cómo se hace» — el botón de siempre y, si la ficha tiene foto, su imagen a la derecha en la misma línea */
       + acts + `</div>`;
@@ -39332,6 +39362,40 @@ function sessPanelWire(el, surface) {
         sessWarmTap(planW, keyW, Number(partsW[2]));
       }
       sessPanelRepaintLight(planW, keyW, sigW);   /* AUTH-579 (P1): idem el círculo */
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const wtog = ev.target.closest ? ev.target.closest('[data-sess-warm-tog]') : null;
+    if (wtog) {
+      /* PAQUETE «APROXIMACIÓN EN CURSO» (2026-11-25): la
+         píldora Sí/No de la puerta de la completa — la MISMA
+         operación de la tarjeta (tfWarmToggleOp: voltea el
+         bloque, siembra su primera fila con el cálculo de
+         AUTH-511 y persiste al acto), con la guarda de
+         contexto de las marcas de este panel. El repintado
+         ligero va SIN firma previa: encender/apagar cambia
+         lo que la tarjeta pinta aunque sus filas no cambien
+         (sessChkSig no trae el `on`), y el latido repinta la
+         completa por su término de aproximación. */
+      const planWT = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
+      if (planWT && TRAIN_CHECKS_CTX === planWT.id + '|' + todayISO()) {
+        tfWarmToggleOp(wtog.dataset.sessWarmTog, planWT.id);
+        sessPanelRepaintLight(planWT, wtog.dataset.sessWarmTog, null);
+      }
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const wadd = ev.target.closest ? ev.target.closest('[data-sess-warm-add]') : null;
+    if (wadd) {
+      /* PAQUETE «APROXIMACIÓN EN CURSO» (2026-11-25): el
+         «+ Añadir serie de aproximación» de la completa —
+         la misma operación de la tarjeta (tfWarmAddOp, con
+         su tope de 12 y su cálculo de AUTH-511). */
+      const planWA = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
+      if (planWA && TRAIN_CHECKS_CTX === planWA.id + '|' + todayISO()) {
+        tfWarmAddOp(wadd.dataset.sessWarmAdd, planWA.id);
+        sessPanelRepaintLight(planWA, wadd.dataset.sessWarmAdd, null);
+      }
       try { sessPillTick(); } catch {}
       return;
     }
@@ -41740,31 +41804,57 @@ function trainFlowWarmRefresh(body) {
    ejercicio de la aproximación carga con discos — en
    contexto 'warm'. */
 let TF_WARM_WIRE = null;   /* { box, plan } del último cableado del bloque */
+/* ═══ PAQUETE «APROXIMACIÓN EN CURSO» (2026-11-25) · LAS
+   OPERACIONES DEL BLOQUE, EN UNA SOLA FUENTE: encender/
+   apagar, añadir y borrar viven aquí y las consumen las
+   DOS superficies que pintan el bloque — la tarjeta/foco
+   (trainFlowWarmWire) y la vista completa de la sesión
+   (sessPanelWire, su puerta .sf-warmdoor) —. Cada operación
+   escribe en la marca y persiste al acto con el plan dado;
+   el repintado es de cada superficie, como siempre.
+   Diagnóstico del paquete: con el ejercicio EN CURSO la
+   vista de la sesión (la que nace maximizada, AUTH-482) no
+   tenía NINGUNA puerta de aproximación — sin series
+   configuradas no pinta ni sus marcas «A» (AUTH-505) — y la
+   única puerta viva era la píldora Sí/No de la tarjeta
+   (AUTH-428), de 64 × ~35 px, por debajo del mínimo de
+   toque de la casa. ═══ */
+function tfWarmOf(key) {
+  const c = TRAIN_CHECKS[key];
+  if (!c) return null;
+  if (!c.warmup || typeof c.warmup !== 'object' || Array.isArray(c.warmup)) c.warmup = { on: false, sets: [] };
+  if (!Array.isArray(c.warmup.sets)) c.warmup.sets = [];
+  return c.warmup;
+}
+function tfWarmToggleOp(key, planId) {
+  const w = tfWarmOf(key); if (!w) return false;
+  w.on = !w.on;
+  if (w.on && !w.sets.length) { w.sets.push({ repsDone: '', loadVal: '' }); tfWarmAutoApply(TRAIN_CHECKS[key]); }   /* AUTH-511: la fila nace con el cálculo de la regla si el ejercicio ya tiene carga de referencia */
+  trainChecksPersist(planId);
+  return true;
+}
+function tfWarmAddOp(key, planId) {
+  const w = tfWarmOf(key); if (!w) return false;
+  /* AUTH-506: la guarda espejo del tope de las series de
+     trabajo (12 vivas) — el pintor ya no pinta el botón al
+     llegar, y este gesto tampoco pasa de ahí. */
+  if (w.sets.length >= 12) return false;
+  w.sets.push({ repsDone: '', loadVal: '' });
+  tfWarmAutoApply(TRAIN_CHECKS[key]);   /* AUTH-511: la fila añadida nace con el cálculo de la regla, como la semilla */
+  trainChecksPersist(planId);
+  return true;
+}
 function trainFlowWarmWire(box, plan) {
   if (!box || !plan) return;
   TF_WARM_WIRE = { box, plan };
-  const warmOf = key => {
-    const c = TRAIN_CHECKS[key];
-    if (!c) return null;
-    if (!c.warmup || typeof c.warmup !== 'object' || Array.isArray(c.warmup)) c.warmup = { on: false, sets: [] };
-    if (!Array.isArray(c.warmup.sets)) c.warmup.sets = [];
-    return c.warmup;
-  };
+  const warmOf = tfWarmOf;
   box.querySelectorAll('[data-flow-warm-tog]').forEach(b => { b.onclick = () => {
-    const w = warmOf(b.dataset.flowWarmTog); if (!w) return;
-    w.on = !w.on;
-    if (w.on && !w.sets.length) { w.sets.push({ repsDone: '', loadVal: '' }); tfWarmAutoApply(TRAIN_CHECKS[b.dataset.flowWarmTog]); }   /* AUTH-511: la fila nace con el cálculo de la regla si el ejercicio ya tiene carga de referencia */
-    trainChecksPersist(plan.id); loadMyTraining();
+    if (!tfWarmToggleOp(b.dataset.flowWarmTog, plan.id)) return;
+    loadMyTraining();
   }; });
   box.querySelectorAll('[data-flow-warm-add]').forEach(b => { b.onclick = () => {
-    const w = warmOf(b.dataset.flowWarmAdd); if (!w) return;
-    /* AUTH-506: la guarda espejo del tope de las series de
-       trabajo (12 vivas) — el pintor ya no pinta el botón al
-       llegar, y este gesto tampoco pasa de ahí. */
-    if (w.sets.length >= 12) return;
-    w.sets.push({ repsDone: '', loadVal: '' });
-    tfWarmAutoApply(TRAIN_CHECKS[b.dataset.flowWarmAdd]);   /* AUTH-511: la fila añadida nace con el cálculo de la regla, como la semilla */
-    trainChecksPersist(plan.id); loadMyTraining();
+    if (!tfWarmAddOp(b.dataset.flowWarmAdd, plan.id)) return;
+    loadMyTraining();
   }; });
   box.querySelectorAll('[data-flow-warm-del]').forEach(b => { b.onclick = () => {
     const p = String(b.dataset.flowWarmDel).split(':');
