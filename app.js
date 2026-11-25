@@ -12547,6 +12547,10 @@ function tmeasClose() {
   const fl = $('tmeas-float');
   if (fl) fl.style.display = 'none';
   TMEAS = null;
+  /* «Su último análisis» (2026-11-25): guardar medidas escribe
+     el peso de hoy — la pantalla de análisis, si está debajo,
+     relee sus registros. */
+  try { banaReload(); } catch {}
   try { coverSync(); } catch {}
 }
 /* ═══ ANÁLISIS CORPORAL (paquete 2026-11-24; orden directa de
@@ -12573,16 +12577,30 @@ function tmeasClose() {
    y de informes dejan de ser hojas flotantes y pasan a
    PANTALLAS COMPLETAS propias (r10-screen en index.html) con
    su «‹ Volver» fijo en la cabecera y sin ✕ — sus flujos, su
-   comparador y su carga encadenada no cambian. */
-let BANA = null;   // { uid, name } de la pantalla abierta
+   comparador y su carga encadenada no cambian.
+   ÚLTIMO ANÁLISIS (2026-11-25, maqueta aprobada por Ronald
+   «Bien así, constrúyelo»): bajo las dos tarjetas, la pantalla
+   enseña «Su último análisis» — el registro más reciente del
+   alumno en nutrition_weight, la MISMA fuente del comparador
+   (AUTH-609) — organizado alrededor de una figura humana con
+   las métricas a cada lado, y debajo los «Análisis
+   anteriores» en líneas compactas. Regla de datos honesta:
+   se pinta SOLO lo que el registro trae (la noción de dato
+   presente de bcmpHas); un registro de solo peso enseña su
+   peso y nada inventado, y sin registros la sección lo dice.
+   Al volver de medidas o de informes la sección se relee
+   (banaReload desde tmeasClose / breportClose), porque ambos
+   flujos pueden dejar un registro nuevo. */
+let BANA = null;   // { uid, name, recs } de la pantalla abierta
 function banaOpen(uid) {
   const fl = $('bana-float'), body = $('bana-body');
   if (!fl || !body) return;
   const u = ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(x => x.id === uid) || { id: uid };
-  BANA = { uid, name: stuName(u) };
+  BANA = { uid, name: stuName(u), recs: null };
   const bk = $('bana-back'); if (bk) bk.onclick = () => banaClose();
   fl.style.display = '';
   banaPaint();
+  banaLoadRecs(uid);
   try { coverSync(); } catch {}
 }
 function banaClose() {
@@ -12601,9 +12619,106 @@ function banaPaint() {
     <div class="reorg-grid bana-doors">
       <button type="button" class="reorg-tile" id="bana-tmeas"><span class="reorg-tile-ic" aria-hidden="true">📏</span><span class="reorg-tile-lb">${esc(t('tmeas.btn'))}</span></button>
       <button type="button" class="reorg-tile" id="bana-upload"><span class="reorg-tile-ic" aria-hidden="true">📄</span><span class="reorg-tile-lb">${esc(t('bana.uploadBtn'))}</span></button>
-    </div>`;
+    </div>
+    <div id="bana-last">${blaSectionHTML()}</div>`;
   const tm = $('bana-tmeas'); if (tm) tm.onclick = () => tmeasOpen(BANA.uid);
   const up = $('bana-upload'); if (up) up.onclick = () => breportOpen(BANA.uid);
+}
+/* ═══ «SU ÚLTIMO ANÁLISIS» (2026-11-25) ═══
+   La carga de los registros del alumno: la misma consulta del
+   comparador (nutrition_weight por ownerUid). Cuenta como
+   análisis todo registro con fecha y ALGO que enseñar (peso o
+   algún dato de composición mayor que cero); si un día tiene
+   más de un documento, manda el que más datos trae. La lista
+   queda de más reciente a más antiguo en BANA.recs. */
+async function banaLoadRecs(uid) {
+  let recs = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
+    const byDate = {};
+    const score = r => BCMP_COMP_FIELDS.reduce((n, k) => n + (bcmpHas(r, k) ? 1 : 0), 0);
+    snap.forEach(d => {
+      const v = { id: d.id, ...(d.data() || {}) };
+      if (!v.date || !/^\d{4}-\d{2}-\d{2}/.test(String(v.date))) return;
+      if (!(num(v.weight) > 0) && !BCMP_COMP_FIELDS.some(k => num(v[k]) > 0)) return;
+      const prev = byDate[v.date];
+      if (!prev || score(v) > score(prev)) byDate[v.date] = v;
+    });
+    recs = Object.values(byDate).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  } catch {}
+  if (!BANA || BANA.uid !== uid) return;
+  BANA.recs = recs;
+  banaPaint();
+}
+/* Al volver de medidas o de informes (ambos pueden guardar un
+   registro nuevo de nutrition_weight), la sección se relee sin
+   hacer parpadear lo ya pintado. */
+function banaReload() {
+  if (!BANA) return;
+  banaLoadRecs(BANA.uid);
+}
+/* La fecha como la nombra la maqueta: «24 de noviembre» —
+   dateName sin el año. */
+function blaDate(iso) { return dateName(iso).replace(/ de \d{4}$/, '').replace(/, \d{4}$/, ''); }
+/* La etiqueta de la métrica sin su unidad entre paréntesis
+   («Grasa corporal», «Peso»): la unidad viaja en el valor. */
+function blaLbl(m) { return t(m.tk, m.k === 'weight' ? { u: UNIT_PREFS.mass } : undefined).replace(/\s*\([^)]*\)\s*$/, ''); }
+/* El valor como lo formatea el comparador (bcmpFmtNum sobre el
+   valor de pantalla), con su unidad detrás. La proteína es la
+   excepción que marca la maqueta aprobada: se enseña tal cual
+   viene en el informe, sin convertirla como masa ni añadirle
+   unidad. */
+function blaVal(m, rec) {
+  if (m.k === 'protein') return bcmpFmtNum(num(rec[m.k]), m.dec);
+  const s = bcmpFmtNum(bcmpDisp(m, rec[m.k]), m.dec);
+  return m.kind === 'mass' ? s + ' ' + UNIT_PREFS.mass : (m.kind === 'pct' ? s + ' %' : s);
+}
+function blaMetric(k) { return BCMP_METRICS.find(x => x.k === k); }
+/* La figura: una silueta humana de frente, limpia, en el verde
+   de la casa — SVG en línea, sin texto dentro. */
+const BLA_FIG = `<svg viewBox="0 0 120 300" aria-hidden="true" focusable="false"><defs><linearGradient id="blaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12A594"/><stop offset="1" stop-color="#0B7285"/></linearGradient></defs><g fill="url(#blaGrad)"><circle cx="60" cy="20" r="14"/><rect x="53" y="30" width="14" height="16" rx="5"/><path d="M60 40 C49 40 42.5 44 41 54 L32.5 118 C31.8 125.5 38.5 126.5 39.2 119.5 L42.5 88 L44.5 160 L45.5 280 C45.7 288 53.5 288 53.8 280.5 L56.5 192 C57 186 63 186 63.5 192 L66.2 280.5 C66.5 288 74.3 288 74.5 280 L75.5 160 L77.5 88 L80.8 119.5 C81.5 126.5 88.2 125.5 87.5 118 L79 54 C77.5 44 71 40 60 40 Z"/></g></svg>`;
+function blaLatestHTML(rec) {
+  const L = ['fat', 'subcutaneous', 'visceral', 'water'].filter(k => bcmpHas(rec, k));
+  const R = ['muscle', 'skeletal', 'bone', 'protein'].filter(k => bcmpHas(rec, k));
+  const head = `<div class="bla-head"><h3 class="bla-title">${esc(t('bla.lastTitle'))}</h3><span class="bla-date">${esc(blaDate(rec.date))}</span></div>`;
+  const wm = blaMetric('weight'), sm = blaMetric('smi');
+  const bigW = bcmpHas(rec, 'weight') ? `<div class="bla-big"><span class="bla-big-lb">${esc(blaLbl(wm))}</span><span class="bla-big-v">${esc(blaVal(wm, rec))}</span></div>` : '';
+  const bigS = bcmpHas(rec, 'smi') ? `<div class="bla-big bla-big-c"><span class="bla-big-lb">${esc(t('bla.smiLbl'))}</span><span class="bla-big-v">${esc(blaVal(sm, rec))}</span></div>` : '';
+  const bigrow = (bigW || bigS) ? `<div class="bla-bigrow">${bigW}${bigS}</div>` : '';
+  if (!L.length && !R.length) {
+    /* Solo peso (o solo SMI): se enseña lo que hay, sin figura
+       rodeada de huecos ni métricas en cero falso. */
+    return `<section class="bla-sec">${head}${bigrow}<p class="bla-note">${esc(t('bla.onlyNote'))}</p></section>`;
+  }
+  const item = k => { const m = blaMetric(k); return `<div class="bla-m"><span class="bla-m-lb">${esc(blaLbl(m))}</span><span class="bla-m-v">${esc(blaVal(m, rec))}</span><span class="bla-lead" aria-hidden="true"></span></div>`; };
+  return `<section class="bla-sec">${head}
+    <div class="bla-stage"><div class="bla-col bla-col-l">${L.map(item).join('')}</div><div class="bla-fig">${BLA_FIG}</div><div class="bla-col bla-col-r">${R.map(item).join('')}</div></div>
+    ${bigrow}</section>`;
+}
+/* El resumen corto de un análisis anterior: «Solo peso: …» si
+   no trae composición; si la trae, peso, grasa y masa muscular
+   (lo que haya de los tres). */
+function blaSummary(rec) {
+  if (!BCMP_COMP_FIELDS.some(k => bcmpHas(rec, k))) return esc(t('bla.onlyWeight', { v: blaVal(blaMetric('weight'), rec) }));
+  const parts = [];
+  for (const k of ['weight', 'fat', 'muscle']) {
+    if (bcmpHas(rec, k)) { const m = blaMetric(k); parts.push(esc(blaLbl(m)) + ' ' + esc(blaVal(m, rec))); }
+  }
+  if (!parts.length) for (const m of BCMP_METRICS) { if (bcmpHas(rec, m.k)) { parts.push(esc(blaLbl(m)) + ' ' + esc(blaVal(m, rec))); if (parts.length >= 2) break; } }
+  return parts.join(' · ');
+}
+function blaSectionHTML() {
+  if (!BANA) return '';
+  if (BANA.recs === null) return `<p class="muted bla-loading">${esc(t('train.loading'))}</p>`;
+  if (!BANA.recs.length) return `<section class="bla-sec"><h3 class="bla-title">${esc(t('bla.lastTitle'))}</h3><div class="bla-empty">${esc(t('bla.none'))}</div></section>`;
+  let h = blaLatestHTML(BANA.recs[0]);
+  const prev = BANA.recs.slice(1);
+  if (prev.length) {
+    h += `<div class="bla-prev"><h3 class="bla-title">${esc(t('bla.prevTitle'))}</h3>` +
+      prev.map(r => `<div class="bla-prev-row"><span class="bla-prev-d">${esc(blaDate(r.date))}</span><span class="bla-prev-s">${blaSummary(r)}</span></div>`).join('') +
+      `<p class="bla-nomore">${esc(t('bla.noMore'))}</p></div>`;
+  }
+  return h;
 }
 /* ═══ AUTH-586 (punto 10) · EL INFORME DE COMPOSICIÓN CORPORAL ═══
    Junto a «Tomar medidas» (AUTH-571), en la ficha del alumno:
@@ -12645,6 +12760,10 @@ function breportClose() {
   if (BREPORT && BREPORT.prevUrl) { try { URL.revokeObjectURL(BREPORT.prevUrl); } catch {} }
   BREPORT = null;
   const fl = $('breport-float'); if (fl) fl.style.display = 'none';
+  /* «Su último análisis» (2026-11-25): leer y guardar un
+     informe deja un registro nuevo — la pantalla de análisis,
+     si está debajo, relee sus registros. */
+  try { banaReload(); } catch {}
   try { coverSync(); } catch {}
 }
 async function breportLoadList() {

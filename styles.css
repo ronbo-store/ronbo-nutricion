@@ -8207,6 +8207,46 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .bcmp-chip.flat { background: #EEF1F0; color: #64748b; }
 .bcmp-note { margin-top: 14px; font-size: 13px; line-height: 1.55; color: var(--muted, #5b6b66); }
 .bcmp-empty { margin-top: 14px; background: #FFF8E6; border: 1.5px solid #EBD9A0; border-radius: 16px; padding: 14px; font-size: 14.5px; line-height: 1.5; color: #5f4b08; }
+/* ===== «Su último análisis» en «Análisis corporal» (2026-11-25,
+   maqueta aprobada por Ronald): la figura humana en el centro
+   con las métricas a cada lado unidas por líneas finas de
+   señalamiento, el peso y el SMI destacados debajo y los
+   análisis anteriores en líneas compactas. La rejilla central
+   usa minmax(0,1fr) a ambos lados: a 360 px ninguna etiqueta
+   larga («MÚSCULO ESQUELÉTICO») puede empujar la figura fuera
+   de su sitio ni montar los valores. ===== */
+.bla-sec, .bla-prev { max-width: 600px; margin-left: auto; margin-right: auto; }
+.bla-sec { margin-top: 24px; }
+.bla-loading { margin-top: 18px; text-align: center; }
+.bla-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.bla-title { font-size: 20px; font-weight: 800; color: #134e4a; margin: 0; }
+.bla-date { font-size: 14.5px; font-weight: 700; color: #0f766e; white-space: nowrap; }
+.bla-empty { margin-top: 12px; background: #FFF8E6; border: 1.5px solid #EBD9A0; border-radius: 16px; padding: 14px; font-size: 14.5px; line-height: 1.5; color: #5f4b08; text-align: center; }
+.bla-stage { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); column-gap: 30px; margin-top: 14px; }
+.bla-col { display: flex; flex-direction: column; justify-content: space-evenly; gap: 12px; min-width: 0; padding: 6px 0; }
+.bla-m { position: relative; min-width: 0; }
+.bla-col-l .bla-m { text-align: right; }
+.bla-m-lb { display: block; font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #7A8A90; line-height: 1.3; }
+.bla-m-v { display: block; font-size: 20px; font-weight: 800; color: #134e4a; margin-top: 2px; white-space: nowrap; }
+.bla-lead { position: absolute; top: 64%; width: 24px; border-top: 2px solid #C9D8D2; }
+.bla-col-l .bla-lead { right: -27px; }
+.bla-col-r .bla-lead { left: -27px; }
+.bla-lead::after { content: ''; position: absolute; top: -4px; width: 7px; height: 7px; border-radius: 50%; background: #0d9488; }
+.bla-col-l .bla-lead::after { right: -2px; }
+.bla-col-r .bla-lead::after { left: -2px; }
+.bla-fig { display: flex; align-items: center; }
+.bla-fig svg { display: block; width: clamp(70px, 21vw, 96px); height: auto; }
+.bla-bigrow { display: flex; gap: 12px; margin-top: 16px; }
+.bla-big { flex: 1; min-width: 0; }
+.bla-big-c { text-align: center; }
+.bla-big-lb { display: block; font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #7A8A90; line-height: 1.3; }
+.bla-big-v { display: block; font-size: 27px; font-weight: 800; color: #134e4a; margin-top: 2px; white-space: nowrap; }
+.bla-note { margin-top: 10px; font-size: 13.5px; line-height: 1.5; color: var(--muted, #5b6b66); }
+.bla-prev { margin-top: 24px; }
+.bla-prev-row { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 12px; flex-wrap: wrap; background: #fff; border: 1.5px solid #EAE2CE; border-radius: 14px; padding: 11px 14px; margin-top: 8px; }
+.bla-prev-d { font-size: 14.5px; font-weight: 800; color: #14201f; }
+.bla-prev-s { font-size: 13.5px; color: #5b6b66; }
+.bla-nomore { margin-top: 12px; text-align: center; font-size: 13px; color: #9db3ac; }
 .cgrid-cellwrap .cgrid-cell { width: 100%; }
 /* ===== AUTH-592 · Pliegues nº 10 «Biblioteca» =====
    Cabecera con «Nuevo» junto al título, línea de pliegue del
