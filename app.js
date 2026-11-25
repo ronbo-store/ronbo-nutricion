@@ -53521,6 +53521,39 @@ const PLANB_SEED_PCT = { pressH: 0.25, squat: 0.33, hinge: 0.40, row: 0.22, pull
 const PLANB_MACHINES = ['treadmill', 'bike', 'elliptical', 'stairs'];
 const planbR1 = x => Math.round(x * 10) / 10;
 
+/* CANTIDADES POR GRUPO (paquete 2026-11-25; diseño aprobado por
+   Ronald el 2026-11-25 06:35 CST — «Bien así, constrúyelo» —
+   sobre la maqueta maqueta-paso2-cantidades-rojo.png): en el
+   modo «Por grupos musculares» el paso 2 pregunta cuántos
+   ejercicios quiere la persona DE CADA grupo elegido, y el
+   motor propone exactamente esas cantidades por grupo. Valor
+   por defecto al elegir un grupo: 3 en los grupos grandes
+   (Pecho, Espalda, Pierna, Hombro, Glúteos) y 2 en los pequeños
+   (Bíceps, Tríceps, Core) — el ejemplo de la maqueta aprobada
+   (Espalda 3 · Bíceps 2 · Core 2). Rango 1–6. Al deseleccionar
+   un grupo su cantidad se olvida: al re-elegirlo vuelve el
+   valor por defecto. El modo «Parte superior e inferior» NO
+   lleva cantidades: la mascota reparte, como siempre. */
+const PLANB_QTY_DEFAULT = { pecho: 3, espalda: 3, pierna: 3, hombro: 3, gluteos: 3, biceps: 2, triceps: 2, core: 2 };
+const PLANB_QTY_MIN = 1;
+const PLANB_QTY_MAX = 6;
+function planbQtyFor(key) {
+  const c = PLANB_CTX;
+  const v = c && c.counts ? Number(c.counts[key]) : NaN;
+  if (Number.isFinite(v)) return Math.min(PLANB_QTY_MAX, Math.max(PLANB_QTY_MIN, Math.round(v)));
+  return PLANB_QTY_DEFAULT[key] || 3;
+}
+/* El chip dueño de un grupo de biblioteca (cada grupo pertenece
+   a un solo chip de la parrilla; «Pierna» agrupa tres). */
+function planbChipOfGroup(g) {
+  const ch = PLANB_CHIPS.find(x => x.groups.includes(g));
+  return ch ? ch.key : null;
+}
+function planbChipKeyOf(id) {
+  const e = LIB_BY_ID[id];
+  return e ? planbChipOfGroup(e.grupo_muscular_es) : null;
+}
+
 /* CONSTRUCTOR MÚLTIPLE (paquete 2026-11-24, promoción AUTH-606):
    en el modo «Por grupos musculares» el día admite VARIOS grupos
    a la vez (maqueta aprobada por Ronald el 2026-11-24: «Bien así,
@@ -53610,10 +53643,11 @@ function planbPool() {
   if (pool.length < 4) pool = all;
   return pool.slice().sort((a, b) => ((autoIsIsolation(a) ? 1 : 0) - (autoIsIsolation(b) ? 1 : 0)) || (a.id < b.id ? -1 : 1));
 }
-/* El respaldo determinista que honra el foco: un grupo → sus 5
-   primeras (compuestos primero); una parte o VARIOS grupos
-   elegidos → ronda entre sus grupos hasta 6, para que cada
-   grupo elegido quede representado en el día. Series/reps de
+/* El respaldo determinista que honra el foco: en el modo
+   «Por grupos musculares», las CANTIDADES pedidas por grupo
+   (planbCompose honra planbQtyFor por chip); en el modo de
+   partes, ronda entre sus grupos hasta 6, para que cada grupo
+   de la parte quede representado en el día. Series/reps de
    las bandas de la casa. */
 function planbCompose() {
   const c = PLANB_CTX; const pool = planbPool();
@@ -53621,8 +53655,31 @@ function planbCompose() {
   for (const e of pool) (byGroup[e.grupo_muscular_es] = byGroup[e.grupo_muscular_es] || []).push(e);
   const groups = planbFocusGroups().filter(g => byGroup[g] && byGroup[g].length);
   const picked = [];
+  c.shortfalls = [];
   if (!groups.length) return [];
-  if ((c.mode === 'groups' && (c.chips || []).length <= 1) || groups.length === 1) {
+  if (c.mode === 'groups') {
+    /* Cantidades por grupo: de cada chip elegido, exactamente
+       los pedidos, en el orden del fondo (compuestos primero,
+       luego por id). Si el fondo de un grupo no alcanza, se
+       propone lo que hay y el faltante queda asentado en
+       c.shortfalls para que el paso 3 lo diga junto al grupo
+       (clave planb.shortOne/shortMany) — nunca se rellena con
+       ejercicios de otro grupo ni se inventa una ficha. */
+    const used = new Set();
+    for (const ch of PLANB_CHIPS) {
+      if (!(c.chips || []).includes(ch.key)) continue;
+      const want = planbQtyFor(ch.key);
+      let got = 0;
+      for (const g of ch.groups) {
+        for (const e of (byGroup[g] || [])) {
+          if (got >= want) break;
+          if (!used.has(e.id)) { used.add(e.id); picked.push(e); got++; }
+        }
+        if (got >= want) break;
+      }
+      if (got < want) c.shortfalls.push({ key: ch.key, have: got, want });
+    }
+  } else if (groups.length === 1) {
     for (const e of byGroup[groups[0]]) { if (picked.length >= 5) break; picked.push(e); }
   } else {
     let round = 0, added = true;
@@ -53642,6 +53699,7 @@ async function planbLoadProps() {
   bd.innerHTML = `<p class="progress-hint">${esc(t('planb.working'))}</p>`;
   const pool = planbPool();
   c.poolIds = pool.map(e => e.id);
+  c.shortfalls = [];
   const locMap = planbLocMap();
   const catalog = pool.slice(0, 64).map(e => ({ id: e.id, name: libNameOf(e) || e.id, group: libField(e, 'grupo_muscular') || '', level: autoLevelOf(e) || 'principiante' }));
   let cards = null, srcAi = false;
@@ -53658,7 +53716,23 @@ async function planbLoadProps() {
       const groups = planbFocusGroups();
       if (days && days.length === 1 && days[0].exercises.every(x => groups.includes((LIB_BY_ID[x.exerciseId] || {}).grupo_muscular_es))) {
         const made = days[0].exercises.map(x => planbMakeCard(x.exerciseId, x.sets, x.reps)).filter(Boolean);
-        if (made.length >= 2) { cards = made; srcAi = true; }
+        if (made.length >= 2) {
+          /* En el modo «Por grupos musculares» la propuesta de
+             la IA solo se acepta si su reparto coincide
+             EXACTAMENTE con las cantidades pedidas por grupo;
+             si no coincide, compone la app con las cantidades
+             (planbCompose) — la etiqueta de fuente sigue siendo
+             honesta: dirá que la compuso la aplicación. */
+          let useAi = true;
+          if (c.mode === 'groups') {
+            const dist = {};
+            for (const card of made) { const k = planbChipKeyOf(card.id); if (k) dist[k] = (dist[k] || 0) + 1; }
+            useAi = (c.chips || []).length > 0
+              && (c.chips || []).every(k => dist[k] === planbQtyFor(k))
+              && Object.keys(dist).length === (c.chips || []).length;
+          }
+          if (useAi) { cards = made; srcAi = true; }
+        }
       }
     } catch { cards = null; }
   }
@@ -53681,7 +53755,7 @@ async function planbOpen() {
   const logs = await fetchLogs(uid).catch(() => []);
   const bwKg = await plan21LastWeightKg(uid).catch(() => null);
   PLANB_CTX = { uid, profile, logs, bwKg, step: 1, horizon: null, totalDays: 1, dayIdx: 0, built: [],
-    mode: 'groups', chips: [], part: null, props: [], poolIds: [], usedIds: new Set(), srcAi: false, editingId: null,
+    mode: 'groups', chips: [], counts: {}, shortfalls: [], part: null, props: [], poolIds: [], usedIds: new Set(), srcAi: false, editingId: null,
     cardioWarm: { machine: 'treadmill', minutes: 10 }, cardioFinal: { machine: 'treadmill', minutes: 10 } };
   planbRender();
 }
@@ -53716,11 +53790,21 @@ function planbRenderWhen(bd) {
 function planbRenderHow(bd) {
   const c = PLANB_CTX;
   const picked = PLANB_CHIPS.filter(ch => (c.chips || []).includes(ch.key));
+  /* La tira de la maqueta aprobada: «N grupos elegidos · M
+     ejercicios en total» (M = suma real de las cantidades). */
+  const totalQty = picked.reduce((s, ch) => s + planbQtyFor(ch.key), 0);
   const strip = picked.length
-    ? `<div class="pb-count"><span class="pb-count-n">${esc(picked.length === 1 ? t('planb.pickedOne') : t('planb.pickedMany', { n: picked.length }))}</span><span class="pb-count-w">${esc(picked.map(ch => t('planb.grp.' + ch.key)).join(' · '))}</span></div><p class="pb-note">${esc(t('planb.pickNote'))}</p>`
+    ? `<div class="pb-count"><span class="pb-count-n">${esc(picked.length === 1 ? t('planb.pickedOne') : t('planb.pickedMany', { n: picked.length }))}</span><span class="pb-count-w">${esc(totalQty === 1 ? t('planb.totalOne') : t('planb.totalMany', { m: totalQty }))}</span></div><p class="pb-note">${esc(t('planb.pickNote'))}</p>`
+    : '';
+  /* La zona de cantidades de la maqueta: una fila por grupo
+     elegido, con su selector − / número / + (botones de 44 px,
+     los .pb-step-btn de la casa). Solo en el modo «Por grupos
+     musculares»: el modo de partes no lleva cantidades. */
+  const qtyZone = picked.length
+    ? `<div class="pb-sec">${esc(t('planb.qtyTitle'))}</div><div class="pb-qtys">${picked.map(ch => `<div class="pb-qty-row"><span class="pb-qty-name">${esc(t('planb.grp.' + ch.key))}</span><span class="pb-qty-ctl"><button type="button" class="pb-step-btn" data-pb-qminus="${ch.key}" aria-label="−">−</button><span class="pb-qty-val">${esc(String(planbQtyFor(ch.key)))}</span><button type="button" class="pb-step-btn pb-qty-plus" data-pb-qplus="${ch.key}" aria-label="+">+</button></span></div>`).join('')}</div>`
     : '';
   const sel = c.mode === 'groups'
-    ? `<div class="pb-sec">${esc(t('planb.pickGroups'))}</div><div class="pb-chips">${PLANB_CHIPS.map(ch => { const on = (c.chips || []).includes(ch.key); return `<button type="button" class="pb-chip${on ? ' sel' : ''}" data-pb-chip="${ch.key}" aria-pressed="${on}">${esc(t('planb.grp.' + ch.key))}${on ? ' ✓' : ''}</button>`; }).join('')}</div>${strip}`
+    ? `<div class="pb-sec">${esc(t('planb.pickGroups'))}</div><div class="pb-chips">${PLANB_CHIPS.map(ch => { const on = (c.chips || []).includes(ch.key); return `<button type="button" class="pb-chip${on ? ' sel' : ''}" data-pb-chip="${ch.key}" aria-pressed="${on}">${esc(t('planb.grp.' + ch.key))}${on ? ' ✓' : ''}</button>`; }).join('')}</div>${qtyZone}${strip}`
     : `<div class="pb-sec">${esc(t('planb.pickPart'))}</div><div class="pb-chips"><button type="button" class="pb-chip${c.part === 'upper' ? ' sel' : ''}" data-pb-part="upper" aria-pressed="${c.part === 'upper'}">${esc(t('planb.partUpper'))}</button><button type="button" class="pb-chip${c.part === 'lower' ? ' sel' : ''}" data-pb-part="lower" aria-pressed="${c.part === 'lower'}">${esc(t('planb.partLower'))}</button></div>`;
   bd.innerHTML = `
     ${planbHeadHtml(t('planb.qHow'), false)}
@@ -53731,9 +53815,15 @@ function planbRenderHow(bd) {
   bd.querySelectorAll('[data-pb-mode]').forEach(b => b.onclick = () => { c.mode = b.dataset.pbMode; planbRender(); });
   bd.querySelectorAll('[data-pb-chip]').forEach(b => b.onclick = () => {
     const k = b.dataset.pbChip; const i = (c.chips || []).indexOf(k);
-    if (i >= 0) c.chips.splice(i, 1); else c.chips.push(k);
+    /* Al elegir un grupo, su cantidad nace con el valor por
+       defecto de la maqueta; al deseleccionarlo, la cantidad
+       se olvida (al re-elegirlo vuelve el valor por defecto). */
+    if (i >= 0) { c.chips.splice(i, 1); if (c.counts) delete c.counts[k]; }
+    else { c.chips.push(k); c.counts = c.counts || {}; c.counts[k] = PLANB_QTY_DEFAULT[k] || 3; }
     planbRender();
   });
+  bd.querySelectorAll('[data-pb-qminus]').forEach(b => b.onclick = () => { const k = b.dataset.pbQminus; c.counts = c.counts || {}; c.counts[k] = Math.max(PLANB_QTY_MIN, planbQtyFor(k) - 1); planbRender(); });
+  bd.querySelectorAll('[data-pb-qplus]').forEach(b => b.onclick = () => { const k = b.dataset.pbQplus; c.counts = c.counts || {}; c.counts[k] = Math.min(PLANB_QTY_MAX, planbQtyFor(k) + 1); planbRender(); });
   bd.querySelectorAll('[data-pb-part]').forEach(b => b.onclick = () => { c.part = b.dataset.pbPart; planbRender(); });
   $('pb-back').onclick = () => { c.step = 1; planbRender(); };
   $('pb-go').onclick = () => { if (!planbFocusGroups().length) return; planbLoadProps(); };
@@ -53755,7 +53845,7 @@ function planbCardHtml(p) {
     <div class="pb-sr">${esc(String(p.sets))} × ${esc(String(p.reps))}</div>
     ${lastTxt}
     <div class="pb-load"><span class="pb-load-lab">${esc(t('planb.loadLab'))}</span><button type="button" class="pb-step-btn" data-pb-minus="${p.id}" aria-label="−">−</button>${loadVal}<button type="button" class="pb-step-btn" data-pb-plus="${p.id}" aria-label="+">+</button></div>
-    <div class="pb-card-actions"><button type="button" class="btn-primary" data-pb-acc="${p.id}">${esc(p.accepted ? t('planb.accepted') : t('planb.accept'))}</button><button type="button" class="btn-ghost" data-pb-rm="${p.id}">${esc(t('planb.remove'))}</button></div>
+    <div class="pb-card-actions"><button type="button" class="btn-primary pb-acc${p.accepted ? '' : ' pb-acc-off'}" data-pb-acc="${p.id}">${esc(p.accepted ? t('planb.accepted') : t('planb.accept'))}</button><button type="button" class="btn-ghost" data-pb-rm="${p.id}">${esc(t('planb.remove'))}</button></div>
   </div>`;
 }
 function planbRenderProps(bd) {
@@ -53768,6 +53858,7 @@ function planbRenderProps(bd) {
   bd.innerHTML = `
     ${planbHeadHtml(t('planb.qProps', { focus: planbFocusLabel() }), false)}
     <span class="plan-ai-src">${esc(t(c.srcAi ? 'planb.srcAi' : 'planb.srcLocal'))}</span>
+    ${(c.shortfalls || []).map(s => `<p class="pb-short">${esc(s.have === 1 ? t('planb.shortOne', { g: t('planb.grp.' + s.key) }) : t('planb.shortMany', { g: t('planb.grp.' + s.key), n: s.have }))}</p>`).join('')}
     ${c.props.map(p => planbCardHtml(p)).join('')}
     <div class="pb-nav"><button type="button" class="btn-ghost" id="pb-back">${esc(t('planb.back'))}</button><button type="button" class="btn-primary" id="pb-go">${esc(t('planb.continue'))}</button></div>`;
   const stepKg = UNIT_PREFS.mass === 'lb' ? 5 * UNIT_LB_KG : 2.5;
@@ -53799,12 +53890,17 @@ function planbRenderProps(bd) {
 }
 /* Quitar: la mascota ofrece otra del mismo foco (la siguiente
    del fondo que aún no salió); si no queda reserva, la tarjeta
-   simplemente se va. */
+   simplemente se va. En el modo «Por grupos musculares» el
+   recambio sale del MISMO grupo que la tarjeta retirada, para
+   conservar las cantidades pedidas por grupo; si de ese grupo
+   no queda reserva, la tarjeta se va sin recambio — nunca
+   entra un ejercicio de otro grupo. */
 function planbRemove(id) {
   const c = PLANB_CTX; if (!c) return;
   const idx = c.props.findIndex(p => p.id === id);
   if (idx < 0) return;
-  const reserveId = (c.poolIds || []).find(pid => !c.usedIds.has(pid));
+  const rmChip = c.mode === 'groups' ? planbChipKeyOf(id) : null;
+  const reserveId = (c.poolIds || []).find(pid => !c.usedIds.has(pid) && (!rmChip || planbChipKeyOf(pid) === rmChip));
   if (reserveId) {
     const entry = LIB_BY_ID[reserveId];
     const band = restrBandFor(entry, entry.grupo_muscular_es);
@@ -53860,7 +53956,7 @@ function planbRenderDone(bd) {
       : `<div class="pb-nav"><button type="button" class="btn-primary" id="pb-next">${esc(t('planb.nextDay'))}</button></div>`}`;
   const nx = $('pb-next');
   if (nx) nx.onclick = () => {
-    c.dayIdx++; c.mode = 'groups'; c.chips = []; c.part = null; c.props = []; c.usedIds = new Set(); c.editingId = null;
+    c.dayIdx++; c.mode = 'groups'; c.chips = []; c.counts = {}; c.shortfalls = []; c.part = null; c.props = []; c.usedIds = new Set(); c.editingId = null;
     c.cardioWarm = { machine: 'treadmill', minutes: 10 }; c.cardioFinal = { machine: 'treadmill', minutes: 10 };
     c.step = 2; planbRender();
   };

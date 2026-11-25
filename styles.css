@@ -7479,6 +7479,32 @@ textarea.gest-in { resize: none; }
 .pb-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .pb-chip { min-height: 48px; border: 2px solid #cbd5e1; background: #fff; border-radius: 12px; font: inherit; font-size: 15.5px; font-weight: 700; cursor: pointer; }
 .pb-chip.sel { border-color: #0d9488; background: #0d9488; color: #fff; }
+/* REGLA DE COLOR DE LA PROPUESTA (paquete 2026-11-25; orden de
+   Ronald el 2026-11-25 06:26 CST, maquetas aprobadas 06:35):
+   dentro del flujo de la propuesta de plan, todo botón de
+   selección SIN elegir va en ROJO SUAVE (fondo rosa pálido
+   #fdecea, borde rojo suave #f0b3ae, texto rojo oscuro legible
+   #b3261e) y el elegido va en verde teal lleno con ✓, como
+   siempre. Aplica a los chips de grupo y de parte del paso 2,
+   a los chips de máquina del paso de cardio (mismo patrón de
+   botón de estado en el mismo flujo) y al botón «Aceptar» de
+   cada tarjeta en la revisión (.pb-acc-off). Fuera de este
+   flujo ningún color cambia: las clases .pb-* solo viven aquí. */
+.pb-chip:not(.sel) { background: #fdecea; border-color: #f0b3ae; color: #b3261e; }
+.pb-mach:not(.sel) { background: #fdecea; border-color: #f0b3ae; color: #b3261e; }
+.pb-card-actions .pb-acc-off { background: #fdecea; border: 2px solid #f0b3ae; color: #b3261e; }
+.pb-card-actions .pb-acc-off:hover { background: #fadbd8; }
+/* Zona de cantidades por grupo del paso 2 (mismo paquete): una
+   fila por grupo elegido con su selector − / número / +. */
+.pb-qtys { display: flex; flex-direction: column; gap: 8px; }
+.pb-qty-row { display: flex; align-items: center; gap: 10px; background: #f8fbfa; border: 1.5px solid #d7e3df; border-radius: 12px; padding: 8px 12px; }
+.pb-qty-name { flex: 1; font-size: 15.5px; font-weight: 800; }
+.pb-qty-ctl { display: flex; align-items: center; gap: 8px; }
+.pb-qty-val { min-width: 30px; text-align: center; font-size: 17px; font-weight: 800; }
+.pb-qty-ctl .pb-qty-plus { background: #0d9488; color: #fff; }
+/* La línea honesta del paso 3 cuando un grupo no alcanza sus
+   cantidades pedidas (mismo paquete). */
+.pb-short { background: #fef3c7; color: #92400e; border-radius: 10px; padding: 9px 11px; font-size: 13.5px; font-weight: 700; margin: 8px 0; }
 .pb-count { display: flex; align-items: center; gap: 10px; background: #e9f9ee; border: 1.5px solid #0d9488; border-radius: 14px; padding: 11px 13px; margin-top: 12px; }
 .pb-count-n { font-size: 16px; font-weight: 800; color: #0b6e63; white-space: nowrap; }
 .pb-count-w { font-size: 13.5px; color: #475569; line-height: 1.35; }
