@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-anadir-simplificado">
+<link rel="stylesheet" href="styles.css?v=20261124-analisis-corporal">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1144,6 +1144,25 @@
     </div>
     <button type="button" class="back-row stu-sheet-back" id="stu-sheet-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="stu-sheet-body"></div>
+  </div>
+
+  <!-- «Análisis corporal» del detalle de «Mis alumnos» (paquete
+       2026-11-24, orden directa de Ronald): la ficha deja de
+       llevar dos puertas sueltas («Tomar medidas» y «Subir
+       informe corporal») y lleva UNA, «Análisis corporal», que
+       abre esta pantalla propia con «Volver» fijo y dos botones
+       grandes: «📏 Tomar medidas» (el flujo de AUTH-571, sin
+       cambios) y «📄 Cargar resultado externo» (la pantalla de
+       informes de AUTH-586/602/609, sin cambios). Va ANTES de
+       #tmeas-float y #breport-float en el documento: esas dos
+       pantallas se abren ENCIMA de esta y al volver se regresa
+       a ella. La pintan y la mueven banaOpen / banaClose. -->
+  <div class="pend-float pend-consult r10-screen" id="bana-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <button type="button" class="pend-back" id="bana-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
+      <h2><span id="bana-title" data-i18n="bana.title">Análisis corporal</span></h2>
+    </div>
+    <div id="bana-body"></div>
   </div>
 
   <!-- TOMAR MEDIDAS DEL ENTRENADOR (AUTH-2026-11-23-571): la hoja
@@ -3539,6 +3558,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-anadir-simplificado"></script>
+<script type="module" src="app.js?v=20261124-analisis-corporal"></script>
 </body>
 </html>

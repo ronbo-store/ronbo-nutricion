@@ -8105,6 +8105,15 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
    fila, con el mismo estilo; la hoja de informes con su vista
    previa, su estado de subida y su lista de anteriores. */
 .btn-breport { display: block; width: 100%; margin: 8px 0 2px; padding: 13px 16px; min-height: 48px; background: #fff; color: #0d7a78; border: 2px solid #0d7a78; border-radius: 14px; font-size: 17px; font-weight: 800; cursor: pointer; font-family: inherit; }
+/* ANÁLISIS CORPORAL (2026-11-24): la puerta única de la ficha
+   que sustituye a las dos sueltas de medidas e informe — la
+   misma geometría de .btn-breport — y los dos botones grandes
+   de su pantalla, con la geometría del botón de carga
+   encadenada (.br-another). El botón único de origen de la
+   hoja de informes (.br-upload) comparte esa geometría. */
+.btn-bana { display: block; width: 100%; margin: 8px 0 2px; padding: 13px 16px; min-height: 48px; background: #fff; color: #0d7a78; border: 2px solid #0d7a78; border-radius: 14px; font-size: 17px; font-weight: 800; cursor: pointer; font-family: inherit; }
+.bana-btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px; margin-top: 12px; font-size: 17px; }
+.br-upload { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px; margin: 10px 0; font-size: 17px; }
 .br-pickrow { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
 .br-pickrow .btn-ghost, .br-pickrow .btn-primary { flex: 1 1 150px; min-height: 50px; }
 .br-prev { margin: 10px 0; border: 1px solid var(--line, #d8e2de); border-radius: 12px; padding: 10px; background: #fbfdfc; }

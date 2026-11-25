@@ -12261,6 +12261,48 @@ function tmeasClose() {
   TMEAS = null;
   try { coverSync(); } catch {}
 }
+/* ═══ ANÁLISIS CORPORAL (paquete 2026-11-24; orden directa de
+   Ronald con dos capturas de su iPhone): la ficha del alumno
+   deja de llevar DOS puertas sueltas — «📏 Tomar medidas»
+   (AUTH-571) y «📄 Subir informe corporal» (AUTH-586) — y
+   lleva UNA sola puerta, «Análisis corporal», en la misma
+   zona donde vivían las dos. La puerta abre su pantalla
+   propia (#bana-float, «‹ Volver» fijo) con DOS botones
+   grandes: «📏 Tomar medidas», que abre el flujo de siempre
+   (tmeasOpen) SIN cambios, y «📄 Cargar resultado externo»,
+   que abre la pantalla de informes de siempre (breportOpen)
+   SIN cambios — su comparador (AUTH-609) y su carga
+   encadenada viajan dentro de ella. Ninguna función ni dato
+   cambia: solo cambia la entrada. La pantalla de análisis
+   queda abierta DEBAJO de la que se abre (el mismo patrón de
+   la hoja de informes con su comparador encima): al volver
+   de medidas o de informes se regresa a ella, y su «Volver»
+   regresa a la ficha. */
+let BANA = null;   // { uid, name } de la pantalla abierta
+function banaOpen(uid) {
+  const fl = $('bana-float'), body = $('bana-body');
+  if (!fl || !body) return;
+  const u = ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(x => x.id === uid) || { id: uid };
+  BANA = { uid, name: stuName(u) };
+  const bk = $('bana-back'); if (bk) bk.onclick = () => banaClose();
+  fl.style.display = '';
+  banaPaint();
+  try { coverSync(); } catch {}
+}
+function banaClose() {
+  BANA = null;
+  const fl = $('bana-float'); if (fl) fl.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+function banaPaint() {
+  const body = $('bana-body'); if (!body || !BANA) return;
+  body.innerHTML = `
+    <p class="r10-prog-note">${esc(t('bana.note', { name: BANA.name }))}</p>
+    <button type="button" class="btn-primary bana-btn" id="bana-tmeas">📏 ${esc(t('tmeas.btn'))}</button>
+    <button type="button" class="btn-primary bana-btn" id="bana-upload">📄 ${esc(t('bana.uploadBtn'))}</button>`;
+  const tm = $('bana-tmeas'); if (tm) tm.onclick = () => tmeasOpen(BANA.uid);
+  const up = $('bana-upload'); if (up) up.onclick = () => breportOpen(BANA.uid);
+}
 /* ═══ AUTH-586 (punto 10) · EL INFORME DE COMPOSICIÓN CORPORAL ═══
    Junto a «Tomar medidas» (AUTH-571), en la ficha del alumno:
    el entrenador sube el informe de composición corporal — foto
@@ -12370,11 +12412,7 @@ function breportPaint() {
     ${lastRead ? `<div class="br-ok"><span class="br-ok-ic" aria-hidden="true">✅</span><div class="br-ok-tx"><div class="br-ok-t1">${esc(t('bcmp.savedOk'))}</div><div class="br-ok-t2">${esc(t('bcmp.lastRead', { date: dateName(lastRead) }))}</div></div></div>
     <button type="button" class="btn-primary br-another" id="br-another">＋ ${esc(t('bcmp.another'))}</button>
     <p class="br-another-cap">${esc(t('bcmp.anotherCap'))}</p>` : ''}
-    <div class="br-pickrow">
-      <button type="button" class="btn-ghost" id="br-take">${esc(t('r10.brTake'))}</button>
-      <button type="button" class="btn-ghost" id="br-pick">${esc(t('r10.brPick'))}</button>
-    </div>
-    <input type="file" id="br-file-cam" accept="image/*" capture="environment" style="display:none">
+    <button type="button" class="btn-primary br-upload" id="br-upload">📄 ${esc(t('bana.uploadBtn'))}</button>
     <input type="file" id="br-file" accept="image/*,.pdf" style="display:none">
     ${prev}
     <label class="br-date">${esc(t('r10.brDate'))}<input type="date" id="br-date" value="${esc(B.date || todayISO())}"></label>
@@ -12384,10 +12422,14 @@ function breportPaint() {
     <h4 style="margin:16px 0 4px">${esc(t('r10.brListT'))}</h4>
     ${B.list === null ? `<p class="muted">${esc(t('train.loading'))}</p>` : (rows || `<p class="muted">${esc(t('r10.brNone'))}</p>`)}
     <button type="button" class="btn-ghost br-cmp-btn" id="br-cmp">📊 ${esc(t('bcmp.title'))}</button>`;
-  const take = $('br-take'); if (take) take.onclick = () => { const i = $('br-file-cam'); if (i) i.click(); };
-  const pick = $('br-pick'); if (pick) pick.onclick = () => { const i = $('br-file'); if (i) i.click(); };
+  /* ANÁLISIS CORPORAL (2026-11-24): UN solo botón de origen,
+     «Cargar resultado externo», y UN solo selector SIN atributo
+     capture: el aparato ofrece en un paso tomar foto, galería
+     o archivos/PDF (antes eran dos botones y dos selectores:
+     «Tomar una foto» con capture y «Elegir imagen o PDF»). */
+  const up = $('br-upload'); if (up) up.onclick = () => { const i = $('br-file'); if (i) i.click(); };
   const onFile = inp => { if (inp) inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) breportSetFile(f); }; };
-  onFile($('br-file-cam')); onFile($('br-file'));
+  onFile($('br-file'));
   const dt = $('br-date'); if (dt) dt.onchange = () => { if (BREPORT) BREPORT.date = dt.value; };
   const sv = $('br-save'); if (sv) sv.onclick = () => breportSave();
   const an = $('br-another'); if (an) an.onclick = () => { const i = $('br-file'); if (i) i.click(); };
@@ -12822,17 +12864,18 @@ function studentsDetailHTML(u) {
      entrenamiento se abre con su hoja desde la parrilla de
      «Progreso» (stuSheetOpen('train')). */
   h += `<div id="stu-plan-btnrows">${stuFichaTopHTML(u)}</div>`;
-  /* AUTH-571: el botón «📏 Tomar medidas» del entrenador — ancho
-     completo, fuera de todo pliegue, justo bajo la fila de botones
-     de plan/reto de AUTH-560; abre su pantalla propia (#tmeas-float).
-     Vive SOLO en esta superficie (el detalle que ven el entrenador
-     y el admin sobre un alumno): en la vista del propio alumno no
-     existe. */
-  /* AUTH-586 (punto 10): «Tomar medidas» y «Subir informe
-     corporal» comparten fila y estilo — el informe de
-     composición corporal (foto, imagen o PDF) se guarda como
-     archivo en el historial del alumno, sin tocar sus medidas. */
-  h += `<button type="button" class="btn-tmeas" data-stu-tmeas="${u.id}">📏 ${esc(t('tmeas.btn'))}</button><button type="button" class="btn-breport" data-stu-breport="${u.id}">📄 ${esc(t('r10.breportBtn'))}</button>`;
+  /* AUTH-571 + AUTH-586 (punto 10): aquí vivían DOS puertas
+     sueltas, «📏 Tomar medidas» y «📄 Subir informe corporal»,
+     ancho completo y fuera de todo pliegue, justo bajo la zona
+     superior de la ficha. ANÁLISIS CORPORAL (2026-11-24, orden
+     directa de Ronald): las dos se sustituyen por UNA sola
+     puerta, «Análisis corporal», en la misma zona, que abre su
+     pantalla propia (#bana-float) con los dos botones dentro —
+     los flujos de medidas (tmeasOpen) y de informes
+     (breportOpen) no cambian. Vive SOLO en esta superficie (el
+     detalle que ven el entrenador y el admin sobre un alumno):
+     en la vista del propio alumno no existe. */
+  h += `<button type="button" class="btn-bana" data-stu-bana="${u.id}">🧬 ${esc(t('bana.title'))}</button>`;
   /* AUTH-577: la puerta del acceso rápido a su progreso
      (#stu-qprog-float) vivía aquí como botón «Resumen de
      progreso». REORG-FICHA (2026-11-24): ese botón DESAPARECE
@@ -12946,12 +12989,10 @@ function renderStudentsBody() {
   /* AUTH-562: el botón «Pendientes activos» del detalle abre la
      pantalla del paquete. */
   el.querySelectorAll('[data-pendact]').forEach(b => b.onclick = () => pendActOpen(b.dataset.pendact));
-  /* AUTH-571: el botón «📏 Tomar medidas» del detalle abre la
-     pantalla propia de medidas del entrenador. */
-  el.querySelectorAll('[data-stu-tmeas]').forEach(b => b.onclick = () => tmeasOpen(b.dataset.stuTmeas));
-  /* AUTH-586 (punto 10): «Subir informe corporal», junto a
-     «Tomar medidas», abre su pantalla propia. */
-  el.querySelectorAll('[data-stu-breport]').forEach(b => b.onclick = () => breportOpen(b.dataset.stuBreport));
+  /* ANÁLISIS CORPORAL (2026-11-24): la única puerta de la
+     ficha abre su pantalla propia, con «Tomar medidas»
+     (AUTH-571) y «Cargar resultado externo» (AUTH-586) dentro. */
+  el.querySelectorAll('[data-stu-bana]').forEach(b => b.onclick = () => banaOpen(b.dataset.stuBana));
   el.querySelectorAll('[data-stu-qprog]').forEach(b => b.onclick = () => stuQProgOpen(b.dataset.stuQprog));
   /* REORG-FICHA: las puertas de la zona superior de la ficha —
      «Plan de entrenamiento» abre su pantalla y «Progreso» la
