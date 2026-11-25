@@ -47146,20 +47146,21 @@ async function trainViewPaint(light) {
   if (!isLoose && plan && plan.genSource && plan.genSource.kind === 'plan21') { try { prog22TrainDoor(plan); } catch {} }
   if (isLoose && canSelfManage) planAiDoorRender(box);
   /* AUTH-411: el bloque «Mis planes» se pinta y se cablea en
-     su nueva casa, #train-custom-plans (index.html, dentro de
-     «Personaliza tus asignaciones de hoy»); la línea del flujo ya
-     no lleva despliegue ni cableado. Sin autogestión el
-     contenedor queda vacío, como el bloque de antes.
+     su casa, #train-custom-plans (index.html); la línea del
+     flujo ya no lleva despliegue ni cableado. Sin autogestión
+     el contenedor queda vacío, como el bloque de antes.
      CAND-530: lo que se pinta es la LÍNEA PLEGADA y su único
      cableado es abrir la hoja flotante; las filas y sus
      acciones se cablean DENTRO de la hoja, al abrirla, con el
      mismo wirePlanActions de siempre.
      SIMPLIFICACIÓN «Añadir ejercicios» (2026-11-24): el
-     contenedor #train-custom-plans SALIÓ del panel por orden
-     de Ronald — este pintado queda guardado por su existencia
-     (sin contenedor no pinta nada) y la hoja de Mis planes
-     (myPlansSheetOpen/Sync, wirePlanActions) y los datos de
-     los planes quedan intactos en la app. */
+     contenedor SALIÓ del panel por orden de Ronald y la hoja
+     quedó sin puerta visible; su decisión del mismo día
+     (23:01 CST, opción A) le dio casa nueva al contenedor:
+     la vista de Entrenamiento, junto a la rutina del día
+     (#my-training). El pintado y el cableado no cambian —
+     la hoja es la de siempre (myPlansSheetOpen/Sync,
+     wirePlanActions) y los datos de los planes, intactos. */
   const mpHost = $('train-custom-plans');
   if (mpHost) {
     mpHost.innerHTML = myPlansHTML;

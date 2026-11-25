@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-analisis-corporal">
+<link rel="stylesheet" href="styles.css?v=20261124-mis-planes-puerta">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -605,6 +605,18 @@
            hoja con la explicación es #fdcam-float. -->
       <div id="fdcam-ad-box" style="display:none"></div>
       <div id="my-training"><div class="wempty" data-i18n="train.loading">Loading your plan…</div></div>
+      <!-- PUERTA «MIS PLANES» (decisión de Ronald 2026-11-24
+           23:01 CST, opción A): la línea plegada «📋 Mis planes»
+           vivía dentro del desplegable «Añadir ejercicios a mi
+           rutina» y la simplificación AUTH-610 la retiró de
+           allí — era la ÚNICA puerta visible de la hoja de Mis
+           planes. Su casa nueva es esta: la vista de
+           Entrenamiento, junto a la rutina del día. El pintor
+           de siempre (trainViewPaint, app.js) deja aquí la
+           línea y la cablea a la hoja existente
+           (myPlansSheetOpen); sin autogestión (alumno con otro
+           entrenador) el contenedor queda vacío, como siempre. -->
+      <div id="train-custom-plans"></div>
       <!-- PETICIONES (AUTH-2026-11-04-237): el botón «Pedir un cambio a mi entrenador» y «Mis peticiones», junto al plan; lo pinta treqBoxSync (app.js) solo si el alumno tiene entrenador asignado. -->
       <div id="treq-box"></div>
       <!-- AÑADIR EJERCICIOS A MI RUTINA (el desplegable nacido
@@ -3569,6 +3581,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-analisis-corporal"></script>
+<script type="module" src="app.js?v=20261124-mis-planes-puerta"></script>
 </body>
 </html>
