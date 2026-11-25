@@ -8109,6 +8109,42 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
    fila (como la maqueta aprobada), y su línea de estado. */
 .br-read-btn { display: block; width: 100%; min-height: 48px; margin: 6px 0 4px; }
 .br-reading { margin: 8px 0 0; }
+/* Paquete «Comparar resultados» (2026-11-24, maqueta aprobada):
+   en la hoja de informes, el bloque verde tras guardar una
+   lectura (con la fecha del último informe leído), el botón
+   grande de ingresar otro sin salir, el distintivo «YA LEÍDO ✓»
+   de cada informe ya leído y la puerta al comparador; y la
+   pantalla propia del comparador, con sus selectores, su frase
+   resumen y su tabla de cambios en color. */
+.br-ok { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; background: #E5F5EC; border: 1.5px solid #7BC79B; border-radius: 14px; padding: 12px 14px; }
+.br-ok-ic { font-size: 19px; line-height: 1.2; }
+.br-ok-t1 { font-size: 15.5px; font-weight: 800; color: #14532D; }
+.br-ok-t2 { font-size: 14.5px; color: #14532D; margin-top: 3px; }
+.br-another { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px; margin-top: 12px; font-size: 17px; }
+.br-another-cap { text-align: center; font-size: 13px; color: var(--muted, #5b6b66); margin-top: 7px; }
+.br-read-badge { display: inline-block; margin-top: 4px; font-size: 11.5px; font-weight: 800; letter-spacing: .02em; color: #157347; background: #E5F5EC; border: 1px solid #7BC79B; padding: 3px 8px; border-radius: 999px; }
+.br-cmp-btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; margin-top: 14px; font-size: 16px; font-weight: 700; }
+#bcmp-float #bcmp-body { max-width: 780px; margin: 0 auto; }
+.bcmp-stu { font-size: 15px; color: var(--muted, #5b6b66); margin: 4px 0 2px; }
+.bcmp-sellabels { display: flex; gap: 10px; margin-top: 12px; }
+.bcmp-sellabels span { flex: 1; font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #0f766e; }
+.bcmp-sels { display: flex; gap: 10px; margin-top: 6px; }
+.bcmp-sels select { flex: 1; min-width: 0; min-height: 52px; padding: 9px 10px; border: 1.5px solid #c3d2cc; border-radius: 14px; background: #fff; font: inherit; font-size: 15.5px; font-weight: 700; color: #14201f; }
+.bcmp-summary { margin-top: 14px; background: #EDF7F4; border: 1.5px solid #BFE3DA; border-radius: 16px; padding: 12px 14px; font-size: 14.5px; line-height: 1.45; color: #134e4a; }
+.bcmp-card { margin-top: 14px; background: #fff; border: 1.5px solid #EAE2CE; border-radius: 18px; overflow: hidden; }
+.bcmp-row { display: flex; align-items: center; gap: 6px; padding: 6px 12px; min-height: 47px; border-top: 1px solid #F1EAD8; }
+.bcmp-row:first-child { border-top: none; }
+.bcmp-row.head { min-height: 40px; background: #F8F5EA; }
+.bcmp-m { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; color: #33475b; line-height: 1.25; }
+.bcmp-v { width: 62px; flex: none; text-align: right; font-size: 14.5px; font-weight: 700; color: #14201f; }
+.bcmp-c { width: 82px; flex: none; display: flex; justify-content: flex-end; }
+.bcmp-row.head .bcmp-m, .bcmp-row.head .bcmp-v, .bcmp-row.head .bcmp-c { font-size: 11.5px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: #7A8A90; }
+.bcmp-chip { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 800; padding: 5px 8px; border-radius: 999px; white-space: nowrap; }
+.bcmp-chip.good { background: #E5F5EC; color: #157347; }
+.bcmp-chip.bad { background: #FDECEC; color: #B3402E; }
+.bcmp-chip.flat { background: #EEF1F0; color: #64748b; }
+.bcmp-note { margin-top: 14px; font-size: 13px; line-height: 1.55; color: var(--muted, #5b6b66); }
+.bcmp-empty { margin-top: 14px; background: #FFF8E6; border: 1.5px solid #EBD9A0; border-radius: 16px; padding: 14px; font-size: 14.5px; line-height: 1.5; color: #5f4b08; }
 .cgrid-cellwrap .cgrid-cell { width: 100%; }
 /* ===== AUTH-592 · Pliegues nº 10 «Biblioteca» =====
    Cabecera con «Nuevo» junto al título, línea de pliegue del

@@ -12286,13 +12286,14 @@ async function breportOpen(uid) {
   const u = ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(x => x.id === uid) || { id: uid };
   const name = stuName(u);
   const tt = $('breport-title'); if (tt) tt.textContent = '📄 ' + t('r10.breportTitle', { name });
-  BREPORT = { uid, name, file: null, prevUrl: '', replaceId: '', date: todayISO(), busy: false, err: '', list: null, reading: false };
+  BREPORT = { uid, name, file: null, prevUrl: '', replaceId: '', date: todayISO(), busy: false, err: '', list: null, reading: false, reads: null };
   fl.style.display = '';
   const x = $('breport-x'); if (x) x.onclick = () => breportClose();
   const bk = $('breport-back'); if (bk) bk.onclick = () => breportClose();
   breportPaint();
   try { coverSync(); } catch {}
   await breportLoadList();
+  await breportLoadReads();
   breportPaint();
 }
 function breportClose() {
@@ -12311,6 +12312,36 @@ async function breportLoadList() {
     if (BREPORT) BREPORT.list = rows;
   } catch { if (BREPORT) BREPORT.list = []; }
 }
+/* Paquete «Comparar resultados» (2026-11-24): la hoja también
+   carga los registros de peso/composición DEL ALUMNO para saber
+   qué informes ya fueron leídos y guardados en su progreso. Un
+   informe cuenta como LEÍDO si su propio documento trae la
+   marca readAt (la deja el guardado de la lectura, airSave) o
+   si existe un registro con source 'ai-report' de la MISMA
+   fecha de medición (las lecturas guardadas antes de que
+   existiera la marca). El «último informe leído» es la fecha
+   mayor entre esas marcas y esos registros. */
+async function breportLoadReads() {
+  if (!BREPORT) return;
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', BREPORT.uid)));
+    const rows = [];
+    snap.forEach(d => rows.push({ id: d.id, ...(d.data() || {}) }));
+    if (BREPORT) BREPORT.reads = rows;
+  } catch { if (BREPORT) BREPORT.reads = []; }
+}
+function breportIsRead(r) {
+  if (!r) return false;
+  if (r.readAt) return true;
+  return ((BREPORT && BREPORT.reads) || []).some(w => w && w.source === 'ai-report' && w.date && w.date === r.measureDate);
+}
+function breportLastReadDate() {
+  if (!BREPORT) return '';
+  let last = '';
+  for (const r of (BREPORT.list || [])) { if (r && r.readDate && r.readDate > last) last = r.readDate; }
+  for (const w of (BREPORT.reads || [])) { if (w && w.source === 'ai-report' && w.date && w.date > last) last = w.date; }
+  return last;
+}
 function breportSetFile(f) {
   if (!BREPORT || !f) return;
   if (BREPORT.prevUrl) { try { URL.revokeObjectURL(BREPORT.prevUrl); } catch {} BREPORT.prevUrl = ''; }
@@ -12326,15 +12357,19 @@ function breportPaint() {
     : `${B.prevUrl ? `<img src="${esc(B.prevUrl)}" alt="">` : ''}<div class="br-prev-name">${esc(B.file.name)}</div>`}</div>` : '';
   const rows = (B.list || []).map(r => `<div class="br-item"><div class="br-row">
     ${r.fileType === 'pdf' ? `<span class="br-row-ic" aria-hidden="true">📄</span>` : `<img src="${esc(r.url || '')}" alt="">`}
-    <div class="br-row-main"><b>${esc(shortDate(r.measureDate || ''))}</b><span>${esc(r.fileType === 'pdf' ? t('r10.brPdf') : t('r10.brPhoto'))}</span></div>
+    <div class="br-row-main"><b>${esc(shortDate(r.measureDate || ''))}</b><span>${esc(r.fileType === 'pdf' ? t('r10.brPdf') : t('r10.brPhoto'))}</span>${breportIsRead(r) ? `<span class="br-read-badge">${esc(t('bcmp.readBadge'))}</span>` : ''}</div>
     <div class="br-row-acts">
       <button type="button" class="btn-ghost btn-sm" data-br-open="${esc(r.id)}">${esc(t('r10.brOpen'))}</button>
       <button type="button" class="btn-ghost btn-sm" data-br-rep="${esc(r.id)}">${esc(t('r10.brReplace'))}</button>
       <button type="button" class="btn-ghost btn-sm" data-br-del="${esc(r.id)}">${esc(t('r10.brDelete'))}</button>
     </div></div>
     <button type="button" class="btn-primary br-read-btn" data-br-read="${esc(r.id)}" ${B.busy ? 'disabled' : ''}>${esc(t('r10.brRead'))}</button></div>`).join('');
+  const lastRead = breportLastReadDate();
   body.innerHTML = `
     <p class="r10-prog-note">${esc(t('r10.brNote'))}</p>
+    ${lastRead ? `<div class="br-ok"><span class="br-ok-ic" aria-hidden="true">✅</span><div class="br-ok-tx"><div class="br-ok-t1">${esc(t('bcmp.savedOk'))}</div><div class="br-ok-t2">${esc(t('bcmp.lastRead', { date: dateName(lastRead) }))}</div></div></div>
+    <button type="button" class="btn-primary br-another" id="br-another">＋ ${esc(t('bcmp.another'))}</button>
+    <p class="br-another-cap">${esc(t('bcmp.anotherCap'))}</p>` : ''}
     <div class="br-pickrow">
       <button type="button" class="btn-ghost" id="br-take">${esc(t('r10.brTake'))}</button>
       <button type="button" class="btn-ghost" id="br-pick">${esc(t('r10.brPick'))}</button>
@@ -12347,13 +12382,16 @@ function breportPaint() {
     ${B.reading ? `<p class="muted br-reading">${esc(t('r10.brReading'))}</p>` : ''}
     <div class="eval-actions"><button type="button" class="btn-primary" id="br-save" ${B.busy || !B.file ? 'disabled' : ''}>${esc(B.busy ? t('r10.brUploading') : t('r10.brSave'))}</button></div>
     <h4 style="margin:16px 0 4px">${esc(t('r10.brListT'))}</h4>
-    ${B.list === null ? `<p class="muted">${esc(t('train.loading'))}</p>` : (rows || `<p class="muted">${esc(t('r10.brNone'))}</p>`)}`;
+    ${B.list === null ? `<p class="muted">${esc(t('train.loading'))}</p>` : (rows || `<p class="muted">${esc(t('r10.brNone'))}</p>`)}
+    <button type="button" class="btn-ghost br-cmp-btn" id="br-cmp">📊 ${esc(t('bcmp.title'))}</button>`;
   const take = $('br-take'); if (take) take.onclick = () => { const i = $('br-file-cam'); if (i) i.click(); };
   const pick = $('br-pick'); if (pick) pick.onclick = () => { const i = $('br-file'); if (i) i.click(); };
   const onFile = inp => { if (inp) inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) breportSetFile(f); }; };
   onFile($('br-file-cam')); onFile($('br-file'));
   const dt = $('br-date'); if (dt) dt.onchange = () => { if (BREPORT) BREPORT.date = dt.value; };
   const sv = $('br-save'); if (sv) sv.onclick = () => breportSave();
+  const an = $('br-another'); if (an) an.onclick = () => { const i = $('br-file'); if (i) i.click(); };
+  const cm = $('br-cmp'); if (cm) cm.onclick = () => bcmpOpen(BREPORT.uid, BREPORT.name);
   body.querySelectorAll('[data-br-open]').forEach(b => b.onclick = () => { const r = (BREPORT.list || []).find(x => x.id === b.dataset.brOpen); if (r && r.url) window.open(r.url, '_blank'); });
   body.querySelectorAll('[data-br-rep]').forEach(b => b.onclick = () => { BREPORT.replaceId = b.dataset.brRep; BREPORT.err = ''; const i = $('br-file'); if (i) i.click(); });
   body.querySelectorAll('[data-br-del]').forEach(b => b.onclick = () => breportDelete(b.dataset.brDel));
@@ -12477,8 +12515,151 @@ async function breportRead(id) {
   }
   const uid = B.uid, name = B.name;
   breportClose();
-  airOpen({ uid, name });
+  airOpen({ uid, name, fromBreport: id });
   airAnalyze(file);
+}
+/* ═══ COMPARAR RESULTADOS DE INFORMES CORPORALES (paquete
+   2026-11-24; orden de Ronald con maqueta aprobada: «Bien así,
+   constrúyelo») ═══
+   Como el comparador de fotos, pero de RESULTADOS: cuando un
+   alumno tiene dos o más informes corporales con sus datos
+   guardados en su progreso, esta pantalla propia (con «Volver»
+   fijo, la regla de pantallas de la casa) los pone lado a lado:
+   dos selectores de fecha, una frase resumen que la APP genera
+   sola (sin IA externa: sale de las diferencias, como mandó la
+   regla del comparador automático) y la tabla por métrica con
+   su cambio en color — verde si mejoró (bajan peso, grasa,
+   visceral y subcutánea; suben masa muscular, músculo
+   esquelético, proteína y SMI), rojo suave si empeoró y gris
+   para la masa ósea, el agua y lo que no tenga dato.
+   QUÉ CUENTA COMO INFORME COMPARABLE: un registro de
+   nutrition_weight con peso y AL MENOS UN dato de composición
+   mayor que cero — los registros de solo peso (que guardan la
+   composición en ceros, como el pesaje suelto del 23/11 de
+   Alberto) NO son informes y nunca aparecen como columna.
+   La puerta vive al final de la hoja «Subir informe corporal»;
+   con menos de dos informes comparables, la pantalla lo dice
+   con honestidad en vez de inventar una segunda columna. */
+const BCMP_COMP_FIELDS = ['fat', 'muscle', 'skeletal', 'bone', 'protein', 'water', 'visceral', 'subcutaneous', 'smi'];
+const BCMP_METRICS = [
+  { k: 'weight', tk: 'bcmp.m.weight', kind: 'mass', dir: 'down', dec: 2 },
+  { k: 'fat', tk: 'bcmp.m.fat', kind: 'pct', dir: 'down', dec: 1 },
+  { k: 'muscle', tk: 'bcmp.m.muscle', kind: 'mass', dir: 'up', dec: 2 },
+  { k: 'skeletal', tk: 'bcmp.m.skeletal', kind: 'mass', dir: 'up', dec: 2 },
+  { k: 'protein', tk: 'bcmp.m.protein', kind: 'mass', dir: 'up', dec: 2 },
+  { k: 'bone', tk: 'bcmp.m.bone', kind: 'mass', dir: 'flat', dec: 2 },
+  { k: 'visceral', tk: 'bcmp.m.visceral', kind: 'level', dir: 'down', dec: 0 },
+  { k: 'subcutaneous', tk: 'bcmp.m.subcutaneous', kind: 'pct', dir: 'down', dec: 1 },
+  { k: 'smi', tk: 'bcmp.m.smi', kind: 'smi', dir: 'up', dec: 1 },
+  { k: 'water', tk: 'bcmp.m.water', kind: 'pct', dir: 'flat', dec: 1 }
+];
+let BCMP = null;   // { uid, name, recs, a, b } de la pantalla abierta
+function bcmpComparable(rec) {
+  if (!rec || !rec.date || !(num(rec.weight) > 0)) return false;
+  return BCMP_COMP_FIELDS.some(k => num(rec[k]) > 0);
+}
+function bcmpHas(rec, k) { const v = rec ? rec[k] : null; return typeof v === 'number' && Number.isFinite(v) && v > 0; }
+function bcmpRound(v, dec) { const p = Math.pow(10, dec); return Math.round(v * p) / p; }
+function bcmpFmtNum(v, dec) { return String(bcmpRound(v, dec)); }
+function bcmpDisp(m, canon) { return m.kind === 'mass' ? massToDisplay(canon) : canon; }
+function bcmpDateLabel(iso) { return plan21DateLabel(iso) + ' ' + String(iso || '').slice(0, 4); }
+async function bcmpOpen(uid, name) {
+  const fl = $('bcmp-float'); if (!fl) return;
+  BCMP = { uid, name: name || '', recs: null, a: '', b: '' };
+  fl.style.display = '';
+  const bk = $('bcmp-back'); if (bk) bk.onclick = () => bcmpClose();
+  bcmpPaint();
+  let recs = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
+    snap.forEach(d => { const v = { id: d.id, ...(d.data() || {}) }; if (bcmpComparable(v)) recs.push(v); });
+  } catch {}
+  recs.sort((x, y) => String(x.date).localeCompare(String(y.date)));
+  if (!BCMP || BCMP.uid !== uid) return;
+  BCMP.recs = recs;
+  if (recs.length >= 2) { BCMP.a = recs[recs.length - 2].date; BCMP.b = recs[recs.length - 1].date; }
+  bcmpPaint();
+}
+function bcmpClose() {
+  const fl = $('bcmp-float'); if (fl) fl.style.display = 'none';
+  BCMP = null;
+  try { coverSync(); } catch {}
+}
+function bcmpJoinList(items) {
+  if (!items.length) return '';
+  if (items.length === 1) return items[0];
+  const and = esc(t('bcmp.and'));
+  return items.slice(0, -1).join(' ' + and + ' ') + ', ' + and + ' ' + items[items.length - 1];
+}
+/* La frase resumen: SOLO de las diferencias reales entre los
+   dos informes elegidos (sin IA): hasta tres mejoras y dos
+   empeoramientos, en el orden de la tabla. */
+function bcmpSummary(ra, rb) {
+  const good = [], bad = [];
+  for (const m of BCMP_METRICS) {
+    if (m.dir === 'flat') continue;
+    if (!bcmpHas(ra, m.k) || !bcmpHas(rb, m.k)) continue;
+    const rd = bcmpRound(bcmpDisp(m, rb[m.k] - ra[m.k]), m.dec);
+    if (rd === 0) continue;
+    const improved = m.dir === 'down' ? rd < 0 : rd > 0;
+    const v = bcmpFmtNum(Math.abs(rd), m.dec);
+    let phrase = '';
+    if (m.k === 'weight') phrase = t(rd < 0 ? 'bcmp.sumWDown' : 'bcmp.sumWUp', { v: v + ' ' + UNIT_PREFS.mass });
+    else if (m.k === 'fat') phrase = t(rd < 0 ? 'bcmp.sumFDown' : 'bcmp.sumFUp', { v });
+    else if (m.k === 'subcutaneous') phrase = t(rd < 0 ? 'bcmp.sumSDown' : 'bcmp.sumSUp', { v });
+    else if (m.k === 'visceral') phrase = t(rd < 0 ? 'bcmp.sumVDown' : 'bcmp.sumVUp');
+    else if (m.k === 'muscle') phrase = t(rd > 0 ? 'bcmp.sumMUp' : 'bcmp.sumMDown');
+    else if (m.k === 'skeletal') phrase = t(rd > 0 ? 'bcmp.sumSkUp' : 'bcmp.sumSkDown');
+    else if (m.k === 'protein') phrase = t(rd > 0 ? 'bcmp.sumPUp' : 'bcmp.sumPDown');
+    else if (m.k === 'smi') phrase = t(rd > 0 ? 'bcmp.sumSmiUp' : 'bcmp.sumSmiDown');
+    if (phrase) (improved ? good : bad).push(esc(phrase));
+  }
+  if (!good.length && !bad.length) return esc(t('bcmp.sumNone'));
+  const parts = [];
+  if (good.length) parts.push(bcmpJoinList(good.slice(0, 3)));
+  if (bad.length) parts.push((good.length ? esc(t('bcmp.sumBut')) + ' ' : '') + bcmpJoinList(bad.slice(0, 2)));
+  return esc(t('bcmp.sumIntro')) + ' ' + parts.join(', ') + '.';
+}
+function bcmpPaint() {
+  const body = $('bcmp-body'); if (!body || !BCMP) return;
+  const C = BCMP;
+  const head = C.name ? `<p class="bcmp-stu">${esc(t('bcmp.ofStudent', { name: C.name }))}</p>` : '';
+  if (!C.recs) { body.innerHTML = `${head}<p class="muted">${esc(t('train.loading'))}</p>`; return; }
+  if (C.recs.length < 2) {
+    const one = C.recs.length === 1 ? `<p class="bcmp-note">${esc(t('bcmp.haveOne', { date: dateName(C.recs[0].date) }))}</p>` : '';
+    body.innerHTML = `${head}<div class="bcmp-empty"><p>${esc(t('bcmp.needTwo'))}</p></div>${one}`;
+    return;
+  }
+  const ra = C.recs.find(r => r.date === C.a) || C.recs[0];
+  const rb = C.recs.find(r => r.date === C.b) || C.recs[C.recs.length - 1];
+  const opts = sel => C.recs.map(r => `<option value="${esc(r.date)}"${r.date === sel ? ' selected' : ''}>${esc(bcmpDateLabel(r.date))}</option>`).join('');
+  const rows = BCMP_METRICS.map(m => {
+    const va = bcmpHas(ra, m.k) ? bcmpFmtNum(bcmpDisp(m, ra[m.k]), m.dec) : '—';
+    const vb = bcmpHas(rb, m.k) ? bcmpFmtNum(bcmpDisp(m, rb[m.k]), m.dec) : '—';
+    let chip;
+    if (!bcmpHas(ra, m.k) || !bcmpHas(rb, m.k)) chip = `<span class="bcmp-chip flat">—</span>`;
+    else {
+      const rd = bcmpRound(bcmpDisp(m, rb[m.k] - ra[m.k]), m.dec);
+      if (rd === 0) chip = `<span class="bcmp-chip flat">0</span>`;
+      else {
+        const good = m.dir === 'flat' ? null : (m.dir === 'down' ? rd < 0 : rd > 0);
+        chip = `<span class="bcmp-chip ${good === null ? 'flat' : good ? 'good' : 'bad'}">${rd > 0 ? '↑' : '↓'} ${bcmpFmtNum(Math.abs(rd), m.dec)}</span>`;
+      }
+    }
+    return `<div class="bcmp-row"><span class="bcmp-m">${esc(t(m.tk, m.k === 'weight' ? { u: UNIT_PREFS.mass } : undefined))}</span><span class="bcmp-v">${esc(va)}</span><span class="bcmp-v">${esc(vb)}</span><span class="bcmp-c">${chip}</span></div>`;
+  }).join('');
+  body.innerHTML = `${head}
+    <div class="bcmp-sellabels"><span>${esc(t('bcmp.prevLbl'))}</span><span>${esc(t('bcmp.nextLbl'))}</span></div>
+    <div class="bcmp-sels"><select id="bcmp-sel-a" aria-label="${esc(t('bcmp.prevLbl'))}">${opts(ra.date)}</select><select id="bcmp-sel-b" aria-label="${esc(t('bcmp.nextLbl'))}">${opts(rb.date)}</select></div>
+    <div class="bcmp-summary">${bcmpSummary(ra, rb)}</div>
+    <div class="bcmp-card">
+      <div class="bcmp-row head"><span class="bcmp-m">${esc(t('bcmp.colMeasure'))}</span><span class="bcmp-v">${esc(bcmpDateLabel(ra.date))}</span><span class="bcmp-v">${esc(bcmpDateLabel(rb.date))}</span><span class="bcmp-c">${esc(t('bcmp.colChange'))}</span></div>
+      ${rows}
+    </div>
+    <p class="bcmp-note">${esc(t('bcmp.legend'))}</p>`;
+  const sa = $('bcmp-sel-a'), sb = $('bcmp-sel-b');
+  if (sa) sa.onchange = () => { C.a = sa.value; if (C.a > C.b) { const tmp = C.a; C.a = C.b; C.b = tmp; } bcmpPaint(); };
+  if (sb) sb.onchange = () => { C.b = sb.value; if (C.a > C.b) { const tmp = C.a; C.a = C.b; C.b = tmp; } bcmpPaint(); };
 }
 async function tmeasOpen(uid) {
   const fl = $('tmeas-float'), body = $('tmeas-body');
@@ -79671,18 +79852,19 @@ function airBuildSave(st) {
 function airDraftRead() { try { const d = JSON.parse(localStorage.getItem(AIR_DRAFT_KEY) || 'null'); return (d && typeof d === 'object') ? d : null; } catch { return null; } }
 function airDraftSync() {
   if (!AIR || AIR.stage !== 'confirm') return;
-  try { localStorage.setItem(AIR_DRAFT_KEY, JSON.stringify({ uid: AIR.uid, brand: AIR.brand, date: AIR.date, time: AIR.time, unit: AIR.unit, vals: AIR.vals })); } catch {}
+  try { localStorage.setItem(AIR_DRAFT_KEY, JSON.stringify({ uid: AIR.uid, brand: AIR.brand, date: AIR.date, time: AIR.time, unit: AIR.unit, vals: AIR.vals, fromBreport: AIR.fromBreport || '' })); } catch {}
 }
 function airDraftClear() { try { localStorage.removeItem(AIR_DRAFT_KEY); } catch {} }
 
 function airOpen(ctx) {
   const uid = (ctx && ctx.uid) || (auth.currentUser && auth.currentUser.uid);
   if (!uid) return;
-  AIR = { uid, name: (ctx && ctx.name) || '', stage: 'start', brand: '', date: '', time: '', unit: null, vals: {}, canComp: airCanComp(uid), restored: false, discardArmed: false };
+  AIR = { uid, name: (ctx && ctx.name) || '', stage: 'start', brand: '', date: '', time: '', unit: null, vals: {}, canComp: airCanComp(uid), restored: false, discardArmed: false, fromBreport: (ctx && ctx.fromBreport) || '' };
   const draft = airDraftRead();
   if (draft && draft.uid === uid && draft.vals) {
     AIR.stage = 'confirm'; AIR.brand = draft.brand || ''; AIR.date = draft.date || ''; AIR.time = draft.time || '';
     AIR.unit = draft.unit || null; AIR.vals = draft.vals; AIR.restored = true;
+    if (draft.fromBreport) AIR.fromBreport = draft.fromBreport;
   }
   mpSheetOpen('mp-air');
   airPaint();
@@ -79849,12 +80031,26 @@ async function airSave() {
   }
   airDraftClear();
   const wasTrainer = uid !== (auth.currentUser && auth.currentUser.uid);
+  const fromBr = AIR.fromBreport || '';
   const dstr = dateName(built.date);
   AIR = null;
   airClose();
   toast(t('air.saved', { date: dstr }));
   if (wasTrainer) { try { openClient(uid); } catch {} }
   else { try { await loadAll(); } catch {} try { if ($('mp-hist-body')) mpHistBody(); } catch {} }
+  /* Paquete «Comparar resultados» (2026-11-24): si la lectura
+     vino de un informe guardado de la hoja «Subir informe
+     corporal», el informe queda marcado como leído (readAt /
+     readDate en su propio documento, para su distintivo
+     «YA LEÍDO ✓») y la hoja REABRE sobre el alumno: enseña el
+     bloque verde con la fecha de este informe y deja seguir
+     con el siguiente sin salir (la carga encadenada de la
+     maqueta aprobada). La marca es un adorno del guardado: si
+     fallara, el registro del alumno ya quedó guardado igual. */
+  if (fromBr) {
+    try { await setDoc(doc(db, 'nutrition_progress', fromBr), { readAt: serverTimestamp(), readDate: built.date }, { merge: true }); } catch {}
+    try { await breportOpen(uid); } catch {}
+  }
 }
 
 /* ---------- Delegación global de clics del módulo ---------- */
