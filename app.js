@@ -38964,11 +38964,18 @@ function sessFullSync(run) {
        de la decisión de Ronald de 2026-11-25: pendiente el
        cardio, ni título de completado ni celebración;
        solo el aviso cuando el temporizador entra en sus
-       últimos 30 s. */
-    const celebBlk = endPending ? (endWarn ? sessCelebWarnHTML() : '') : sessCelebHTML();
+       últimos 30 s. TELEPROMPTER (AUTH-628): mientras el
+       cardio final está pendiente y fuera de la ventana
+       del aviso, la ranura la ocupa el resumen del día
+       (sessTpHTML) pasando línea a línea; en la ventana
+       de los últimos 30 s manda el aviso de la mascota
+       (sessCelebWarnHTML, AUTH-627); resuelto el cardio,
+       la celebración de siempre. Línea de composición
+       declarada en el informe del paquete teleprompter. */
+    const celebBlk = endPending ? (endWarn ? sessCelebWarnHTML() : sessTpHTML(dc)) : sessCelebHTML();
     const doneTitle = endPending ? '' : `<div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div>`;
     const doneBlk = `<div class="sf-done">${doneTitle}<div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: doneD, m: totD }))} · <span class="sf-done-clock">00:00:00</span></div>${celebBlk}${progAnn}${doneInner}</div>`;
-    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-'), 'P' + pctD, 'CC' + (endPending ? (endWarn ? 'W' : 'P') : 'R'), 'RG' + (moveGenreSelSaved() ? '1' : '0'), 'PG' + progCloseKeys(dc).join(',')].join('|');   /* CC: la puerta de la celebración tras el cardio — pendiente/aviso/resuelta: entrar en los últimos 30 s o resolver el cardio repinta una vez */   /* AUTH-540 */   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma · AUTH-526: el % fino también — cuando la etapa se marca hecha, la barra repinta a su valor */
+    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-'), 'P' + pctD, 'CC' + (endPending ? (endWarn ? 'W' : 'P') : 'R'), 'RG' + (moveGenreSelSaved() ? '1' : '0'), 'PG' + progCloseKeys(dc).join(',')].join('|');   /* CC: la puerta de la ranura tras el cardio — pendiente con teleprompter (P) / ventana del aviso de 30 s (W) / resuelta con celebración (R): entrar en los últimos 30 s o resolver el cardio repinta una vez */   /* AUTH-540 */   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma · AUTH-526: el % fino también — cuando la etapa se marca hecha, la barra repinta a su valor */
     if (!SESS_FULL_SIG.startsWith('fdone')) sessDayDoneHook(dc);   /* AUTH-507: la celebración se engancha a la ENTRADA en el estado, no a cada latido */
     html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${msgBlk}${sessReflBlockHTML()}${doneBlk}</div>${minBtn}</div>`;
   } else if (sessCStageWarmT(run.planId)) {
@@ -40050,6 +40057,233 @@ function sessCelebWarnHTML() {
   const iso = todayISO();
   const url = SESS_CELEB_URLS[sessCelebIdxFor(iso)];
   return `<div class="sf-celeb sf-celeb-warn"><div class="sf-celeb-bubble">${esc(t('sess.celebWarn30'))}</div><div class="sf-celeb-scene"><img src="${url}" alt="" loading="lazy" onerror="this.remove()"></div></div>`;
+}
+
+/* ═══ TELEPROMPTER DEL CARDIO FINAL (decisión de Ronald,
+   2026-11-25 09:53–10:05 CST; maqueta aprobada con su
+   «Está bien» y UN añadido suyo: las calorías quemadas
+   hasta ese momento): mientras el cardio final del día
+   está pendiente — la última parada del panel, con su
+   cuenta sin empezar, corriendo o en pausa — y aún no
+   entra en sus últimos 30 s, la ranura que la celebración
+   de AUTH-521 ocupará al resolverse el cardio enseña el
+   «Resumen de tu día»: las líneas pasan una a una (ritmo
+   declarado: 5 s por línea), la actual en grande y las
+   vecinas atenuadas arriba y abajo, con sus puntos de
+   posición, en un cuadro de ALTURA FIJA que nunca crece
+   (requisito de Ronald, 2026-11-25 10:07 CST: la vista
+   completa cabe en la pantalla del teléfono sin bajar).
+   Al entrar la cuenta en sus últimos 30 s el cuadro CEDE
+   la ranura (la mascota del aviso es del paquete hermano
+   «celebración tras el cardio», que se compone antes en
+   la cadena); al llegar a cero, al marcarse «✓ Hecho» o
+   al quitarse el cardio, manda la celebración de siempre.
+   Sin cardio final asignado, este cuadro no existe.
+   LAS LÍNEAS salen SOLO de datos que la app ya guarda
+   (nada inventado; sin dato, esa línea no sale):
+   — por ejercicio hecho hoy: su nombre y su peso real de
+     hoy (la mayor carga de sus series, leída de las marcas
+     del día — la misma cifra que el cierre escribirá en
+     el registro); si es por tiempo, su tiempo hecho; si
+     no, sus repeticiones totales; sin ningún dato, solo
+     su nombre con «hecho ✓».
+   — la comparación con «la última vez» de ESA FORMA
+     (regla D2: el escaneo estricto de la casa,
+     trainHistLoadsRows sobre MY_LOGS_ALL — sesiones
+     cerradas; la de hoy aún no está cerrada y no se
+     compara consigo misma): subió → «Subiste X ↑» en
+     verde; igual → frase sobria; bajó → frase honesta
+     con ánimo, SIN elogio falso. Sin sesión previa con
+     cargas (o solo legado), no hay línea de comparación.
+   — las metas del día que los anillos ya pintan (la
+     proteína primero): consumido de la meta, leídos de
+     totals() y goalsDayGoalsFor() — las fuentes de la
+     casa. Sin meta en una métrica, esa línea no sale.
+   — las CALORÍAS QUEMADAS HASTA ESE MOMENTO: lo ya
+     guardado del día (actDayView().burned — extras y
+     kcal de máquina de las sesiones cerradas de hoy)
+     MÁS la estimación de ESTA sesión abierta con la
+     fórmula exacta del cierre (actKcalOf, MET de
+     entrenamiento_plan, intensidad 'moderada' — la
+     preseleccionada de AUTH-574 —, minutos vivos del
+     cronómetro menos el calentamiento marcado, la
+     resta D4 de trainCloseConfirm). SIN DOBLE CONTEO:
+     la sesión abierta aún no consta en ninguna cifra
+     guardada; y su calentamiento solo sumará por la
+     vía guardada cuando la sesión se cierre — momento
+     en el que este cuadro ya no vive. Sin peso
+     registrado y sin nada guardado, la línea no sale.
+   — una línea de cierre de ánimo.
+   El avance lo mueve un latido propio de 250 ms que
+   solo toca el interior del cuadro; la cesión la
+   detectan ese latido y la firma 'CC' de sessFullSync.
+   EN PAUSA de la cuenta: el cuadro se queda y las
+   líneas siguen pasando (la persona sigue en la última
+   parada; el restante queda congelado, así que la
+   cesión de los 30 s no se acerca mientras dura la
+   pausa — y si la pausa llega ya dentro de los 30 s,
+   el cuadro ya cedió, como manda la regla). ═══ */
+const SESS_TP_MS = 5000;   /* el ritmo declarado: 5 s por línea */
+let SESS_TP_IV = 0;
+let SESS_TP_KEY = '';
+let SESS_TP_IDX = 0;
+let SESS_TP_LASTADV = 0;
+function sessTpSessionKcal(planId) {
+  /* La estimación de la sesión abierta con la fórmula del
+     cierre (ver la cabecera): minutos vivos del cronómetro
+     (trainChronoSuggestion, con su tope de 240) menos el
+     calentamiento marcado (trainCloseAutoWarmMin), MET de
+     entrenamiento_plan a intensidad 'moderada' y el último
+     peso registrado. Sin cronómetro o sin peso: null. */
+  try {
+    const sug = trainChronoSuggestion(planId);
+    if (!sug) return null;
+    const warm = trainCloseAutoWarmMin(planId) || 0;
+    const eff = Math.max(0, sug.min - warm);
+    const w = actLastWeight();
+    if (!(eff > 0) || !w) return null;
+    return actKcalOf('entrenamiento_plan', 'moderada', eff, w.weight);
+  } catch { return null; }
+}
+function sessTpBurned(planId) {
+  /* Quemado hasta este momento: lo guardado del día
+     (actDayView().burned) + la sesión abierta estimada.
+     Sin ninguna de las dos cifras: null y la línea no sale. */
+  let saved = 0;
+  try { const v = actDayView(todayISO()); if (v && typeof v.burned === 'number' && isFinite(v.burned)) saved = v.burned; } catch {}
+  const est = sessTpSessionKcal(planId);
+  const total = saved + (est || 0);
+  return total > 0 ? actRound1(total) : null;
+}
+function sessTpLines(dc) {
+  const out = [];
+  const iso = todayISO();
+  (Array.isArray(dc.eff) ? dc.eff : []).forEach((it, ei) => {
+    const ex = it && it.ex; if (!ex) return;
+    const name = trainExName(ex) || ex.name || '';
+    if (!name) return;
+    const chk = dc.checks ? dc.checks[dc.di + ':' + ei] : null;
+    const sets = (chk && Array.isArray(chk.sets)) ? chk.sets.filter(s => s && s.pend !== true) : [];
+    let maxKg = null, totSec = 0, totReps = null;
+    sets.forEach(s => {
+      const lv = parseFloat(s.loadVal);
+      if (s.loadVal !== '' && s.loadVal != null && isFinite(lv) && lv > 0) { const kg = massToCanonical(lv); if (maxKg == null || kg > maxKg) maxKg = kg; }
+      if (typeof s.secDone === 'number' && isFinite(s.secDone) && s.secDone > 0) totSec += Math.floor(s.secDone);
+      const rv = Number(s.repsDone);
+      if (s.repsDone != null && s.repsDone !== '' && isFinite(rv)) totReps = (totReps == null ? 0 : totReps) + rv;
+    });
+    let main = '';
+    if (maxKg != null) main = fmtMass(maxKg);
+    else if (totSec > 0) main = trainTimerFmt(totSec);
+    else if (totReps != null) main = totReps + ' ' + t('train.lastTime.reps');
+    let html = `<b>${esc(name)}</b>` + (main ? `: <span class="sf-tp-num">${esc(main)}</span>` : ` · ${esc(t('sess.tp.done'))}`);
+    if (maxKg != null) {
+      /* D2: la comparación es con la última sesión CERRADA
+         de ESTA forma (el escaneo de la casa); sin fila con
+         cargas no hay comparación que afirmar. */
+      let prev = null;
+      try {
+        const rows = trainHistLoadsRows(ex, (typeof MY_LOGS_ALL !== 'undefined' && Array.isArray(MY_LOGS_ALL)) ? MY_LOGS_ALL : []);
+        const r = rows.find(x => !x.legacy && x.maxKg != null);
+        if (r) prev = r.maxKg;
+      } catch {}
+      if (prev != null) {
+        const d = Math.round((maxKg - prev) * 10) / 10;
+        if (d > 0.05) html += ` — ${esc(t('sess.tp.lastWas', { w: fmtMass(prev) }))}. <span class="sf-tp-up">${esc(t('sess.tp.up', { w: fmtMass(d) }))}</span>`;
+        else if (d < -0.05) html += ` — ${esc(t('sess.tp.lastWas', { w: fmtMass(prev) }))}. <span class="sf-tp-down">${esc(t('sess.tp.down', { w: fmtMass(-d) }))}</span>`;
+        else html += ` · ${esc(t('sess.tp.same'))}`;
+      }
+    }
+    out.push(html);
+  });
+  try {
+    const tot = totals(iso);
+    const goals = (goalsDayGoalsFor(iso) || {}).goals || {};
+    ['prot', 'kcal', 'carb', 'gras', 'azuc'].forEach(key => {
+      const g = Number(goals[key]);
+      if (!(isFinite(g) && g > 0)) return;
+      const m = METRICS.find(x => x.key === key);
+      const unit = m ? m.unit : '';
+      const raw = t('metric.' + key);
+      const label = raw.charAt(0) + raw.slice(1).toLowerCase();
+      const v = Math.round(Number(tot[key]) || 0);
+      let html = esc(t('sess.tp.goal', { metric: label, v: fmt(v), g: fmt(Math.round(g)), u: unit }));
+      if (key !== 'azuc' && v >= g) html += ` · <span class="sf-tp-up">${esc(t('sess.tp.goalDone'))}</span>`;
+      out.push(html);
+    });
+  } catch {}
+  const burned = sessTpBurned(dc.plan && dc.plan.id);
+  if (burned != null) out.push(`🔥 ${esc(t('sess.tp.kcal', { n: fmt(Math.round(burned)) }))}`);
+  out.push(esc(t('sess.tp.cheer')));
+  return out;
+}
+function sessTpSlotsHTML(lines, idx) {
+  const n = lines.length;
+  const prev = n > 1 ? lines[(idx - 1 + n) % n] : '';
+  const next = n > 1 ? lines[(idx + 1) % n] : '';
+  return `<div class="sf-tp-line side"><span>${prev}</span></div><div class="sf-tp-line now"><span>${lines[idx]}</span></div><div class="sf-tp-line side"><span>${next}</span></div>`;
+}
+function sessTpDotsHTML(n, idx) {
+  let out = '';
+  for (let i = 0; i < n; i++) out += `<i${i === idx ? ' class="on"' : ''}></i>`;
+  return out;
+}
+function sessTpHTML(dc) {
+  const key = (dc.plan && dc.plan.id ? dc.plan.id : '') + '|' + todayISO() + '|' + dc.di;
+  if (SESS_TP_KEY !== key) { SESS_TP_KEY = key; SESS_TP_IDX = 0; }
+  const lines = sessTpLines(dc);
+  if (!lines.length) return '';
+  sessTpArm();
+  const idx = ((SESS_TP_IDX % lines.length) + lines.length) % lines.length;
+  return `<div class="sf-tp" data-sess-tp="1"><div class="sf-tp-head"><div class="sf-tp-tag">📋 ${esc(t('sess.tp.title'))}</div><div class="sf-tp-dots" data-sess-tp-dots>${sessTpDotsHTML(lines.length, idx)}</div></div><div class="sf-tp-view" data-sess-tp-view>${sessTpSlotsHTML(lines, idx)}</div></div>`;
+}
+function sessTpArm() {
+  if (!SESS_TP_IV) { SESS_TP_LASTADV = Date.now(); SESS_TP_IV = setInterval(sessTpTick, 250); }
+}
+function sessTpActive(dc, eT) {
+  /* La misma puerta que pinta sessFullSync (endPending sin
+     endWarn), recomputada para el latido: cardio final
+     asignado y sin resolver, cuenta no terminada y — si la
+     cuenta vive — fuera de sus últimos 30 s. */
+  if (!dc || !eT) return false;
+  if (SESS_CSTAGE_END_DONE) return false;
+  const cd = (SESS_CSTAGE_CD && SESS_CSTAGE_CD.T === eT) ? SESS_CSTAGE_CD : null;
+  if (cd && cd.f === 1) return false;
+  if (cd && sessCStageCdRemain(cd) <= 30) return false;
+  return true;
+}
+function sessTpTick() {
+  const box = document.querySelector('[data-sess-tp]');
+  if (!box) { if (SESS_TP_IV) { clearInterval(SESS_TP_IV); SESS_TP_IV = 0; } return; }
+  let dc = null, eT = '';
+  try {
+    const run = sessRunning();
+    if (run) { dc = sessDayCompleteState(run); if (dc) eT = sessCStageEndT(dc.plan.id); }
+  } catch {}
+  if (!sessTpActive(dc, eT)) {
+    /* Cesión: la ranura cambia de dueño (aviso de 30 s,
+       celebración o cierre) — se fuerza el repintado y el
+       latido se apaga; la firma 'CC' hace el mismo trabajo
+       en el siguiente latido de la píldora. */
+    SESS_FULL_SIG = '';
+    try { sessPillTick(); } catch {}
+    if (SESS_TP_IV) { clearInterval(SESS_TP_IV); SESS_TP_IV = 0; }
+    return;
+  }
+  if (Date.now() - SESS_TP_LASTADV >= SESS_TP_MS) {
+    SESS_TP_LASTADV = Date.now();
+    const lines = sessTpLines(dc);
+    if (lines.length) {
+      SESS_TP_IDX = (SESS_TP_IDX + 1) % lines.length;
+      const view = box.querySelector('[data-sess-tp-view]');
+      if (view) {
+        view.innerHTML = sessTpSlotsHTML(lines, SESS_TP_IDX);
+        view.classList.remove('sf-tp-anim'); void view.offsetWidth; view.classList.add('sf-tp-anim');
+      }
+      const dots = box.querySelector('[data-sess-tp-dots]');
+      if (dots) dots.innerHTML = sessTpDotsHTML(lines.length, SESS_TP_IDX);
+    }
+  }
 }
 
 /* ═══ AUTH-516 · «¿CARDIO PARA FINALIZAR?» (regla de Ronald,
