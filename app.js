@@ -11144,11 +11144,11 @@ async function stuPlanProgressOpen(uid) {
   const bk = $('btn-stu-prog-back'); if (bk) bk.onclick = () => stuPlanProgressClose();
   const body = $('stu-prog-body'); if (!body) return;
   const show = () => { fl.style.display = ''; try { body.scrollTop = 0; } catch {} };
-  if (!plan) { body.innerHTML = stuProgGridHTML() + `<div class="stu-prog-empty">${esc(t('train.noPlan'))}</div>`; stuProgGridWire(body, uid); show(); return; }
+  if (!plan) { body.innerHTML = stuProgGridHTML({ blocks: false }) + `<div class="stu-prog-empty">${esc(t('train.noPlan'))}</div>`; stuProgGridWire(body, uid); show(); return; }
   const head = `<p class="stu-prog-sub"><b>${esc(stuTrayStudentName(uid))}</b> · ${esc(plan.title || '')}</p>`;
   const s = String(plan.startsAt || '').slice(0, 10), e = String(plan.endsAt || '').slice(0, 10);
   const okWin = /^\d{4}-\d{2}-\d{2}$/.test(s) && /^\d{4}-\d{2}-\d{2}$/.test(e) && e >= s;
-  if (!okWin) { body.innerHTML = head + stuProgGridHTML() + `<div class="stu-prog-empty">${esc(t('students.progNoWindow'))}</div>`; stuProgGridWire(body, uid); show(); return; }
+  if (!okWin) { body.innerHTML = head + stuProgGridHTML({ blocks: false }) + `<div class="stu-prog-empty">${esc(t('students.progNoWindow'))}</div>`; stuProgGridWire(body, uid); show(); return; }
   const logs = (STU_TRAIN.uid === uid && STU_TRAIN.logs) ? STU_TRAIN.logs : await fetchLogs(uid);
   const m = stuPlanProgressModel(plan, logs);
   const tp = stuPlanTimeProgress(plan);
@@ -11208,14 +11208,24 @@ async function stuPlanProgressOpen(uid) {
    · Pruebas físicas → la pantalla de AUTH-577 con el foco en
      su tarjeta ancha de pruebas (stuQPTestsHTML).
    ════════════════════════════════════════════════════════════════ */
-function stuProgGridHTML() {
+/* opts.blocks === false (sin plan activo o sin ventana de
+   fechas): los bloques «Sus marcas» y «Cómo se ha sentido» no
+   se pintan en la pantalla, así que sus tarjetas de
+   desplazamiento NO nacen — una tarjeta sin contenido al que
+   llevar no se pinta (auditoría de puertas, extra, 2026-11-25).
+   La tarjeta de la encuesta lleva su propia clave
+   (reorg.gridFeel, corrección 7): «Recuperación y bienestar»
+   (mp.c4) nombra en el acceso rápido el sueño y el bienestar,
+   otra cosa distinta de la encuesta de cierre. */
+function stuProgGridHTML(opts) {
+  const withBlocks = !opts || opts.blocks !== false;
   const tile = (attrs, icon, label) => `<button type="button" class="reorg-tile" ${attrs}><span class="reorg-tile-ic" aria-hidden="true">${icon}</span><span class="reorg-tile-lb">${esc(label)}</span></button>`;
   return `<div class="reorg-grid">`
     + tile('data-reorg-q="comp"', '🧍', t('mp.c1'))
     + tile('data-reorg-train="1"', '🏋️', t('reorg.gridTrain'))
-    + tile('data-reorg-scroll="stu-prog-blk-marks"', '📊', t('reorg.gridPerf'))
+    + (withBlocks ? tile('data-reorg-scroll="stu-prog-blk-marks"', '📊', t('reorg.gridPerf')) : '')
     + tile('data-reorg-q="food"', '💧', t('mp.c3'))
-    + tile('data-reorg-scroll="stu-prog-blk-feel"', '🌙', t('mp.c4'))
+    + (withBlocks ? tile('data-reorg-scroll="stu-prog-blk-feel"', '🌙', t('reorg.gridFeel')) : '')
     + tile('data-reorg-q="tests"', '🧪', t('reorg.gridTests'))
     + `</div>`;
 }
@@ -11234,9 +11244,7 @@ function stuProgGridWire(root, uid) {
   };
 }
 /* La pantalla «Plan de entrenamiento» (#stu-planhub-float):
-   tarjeta del plan activo (nombre y fechas, con el «día x de n»
-   de stuPlanTimeProgress y la línea de ventana de siempre),
-   la puerta «Ver plan actual» (el paseo por la semana de
+   la puerta «Ver su semana» (el paseo por la semana de
    AUTH-577, stuPlanWalkOpen) y la puerta «Asignar plan» (el
    editor de siempre, openPlanEditor con plan nuevo — la misma
    llamada del cableado de acciones). Debajo VIAJAN los bloques
@@ -11248,23 +11256,18 @@ let STU_HUB = null;        /* { uid, nodes: [{el, anchor}], traveled } */
 function stuPlanHubTopHTML(uid) {
   const loaded = STU_PLANS.uid === uid && !!STU_PLANS.plans;
   if (!loaded) return `<div class="wempty">${esc(t('access.loading'))}</div>`;
-  /* La tarjeta nombra el mismo plan que la línea «Plan:» del
-     checklist de la ficha (el común activo; si no hay, el
-     activo que haya). */
+  /* El plan activo (el común activo; si no hay, el activo que
+     haya) solo decide si nace la puerta «Ver su semana»: sin
+     plan activo no hay semana que pasear. */
   const act = stuActiveCommonPlan(STU_PLANS.plans) || STU_PLANS.plans.find(p => p && p.active === true) || null;
   let h = '';
   if (act) {
-    const s = String(act.startsAt || '').slice(0, 10), e = String(act.endsAt || '').slice(0, 10);
-    const tp = stuPlanTimeProgress(act);
-    let dates;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s) && /^\d{4}-\d{2}-\d{2}$/.test(e) && e >= s && tp) dates = t('students.progWindow', { from: dateName(s), to: dateName(e), x: tp.x, n: tp.n });
-    else {
-      const bits = [];
-      if (act.startsAt) bits.push(`${t('train.dates.start')}: ${dateName(s)}`);
-      if (act.endsAt) bits.push(`${t('students.planEndLabel')}: ${dateName(e)}`);
-      dates = bits.join(' · ') || t('train.dates.none');
-    }
-    h += `<div class="reorg-actcard"><div class="reorg-actnow"><span class="reorg-dot" aria-hidden="true"></span>${esc(t('reorg.activeNow'))}</div><div class="reorg-actname">${esc(act.title || '')}</div><div class="reorg-actdates">${esc(dates)}</div></div>`;
+    /* Auditoría de puertas de la ficha (2026-11-25, corrección 1):
+       la tarjeta «ACTIVO AHORA» ya no se pinta aquí — el bloque
+       «Su plan de entrenamiento» que viaja debajo trae la misma
+       tarjeta del plan activo (nombre, fechas y «día X de N») y
+       además despliega los días; eran el mismo plan dos veces en
+       la misma pantalla. Queda una sola: la del bloque. */
     h += `<button type="button" class="btn-qprog" data-hub-view="1">🏋️ ${esc(t('reorg.viewCurrent'))}</button>`;
   } else {
     h += `<div class="wempty">${esc(t('train.noPlan'))}</div>`;
@@ -11337,7 +11340,7 @@ function stuPlanHubReset() {
   STU_HUB.traveled = false;
   const fl = $('stu-planhub-float'); if (fl) fl.style.display = 'none';
 }
-/* «Ver plan actual»: el paseo por la semana de AUTH-577
+/* «Ver su semana»: el paseo por la semana de AUTH-577
    (#stu-qdays-float → #stu-qday-float) entrando DIRECTO desde
    la pantalla del plan, sin pasar por el resumen: carga los
    datos con el lector de siempre (stuQProgLoad) y marca el
@@ -11474,18 +11477,15 @@ function stuQPTestsHTML(D) {
   }
   return `<div class="qprog-tile qprog-tile-wide" data-qtile="tests"><span class="qprog-tile-icon" aria-hidden="true">🧪</span><span class="qprog-tile-name">${esc(t('students.qprogTests'))}</span><div class="qprog-tests">${inner}</div></div>`;
 }
-/* La fila «Su peso»: nace plegada (regla de crecimiento de la
-   casa) y despliega sus pesajes más recientes. */
-function stuQPWeightHTML(D) {
-  const w = D.weights.length ? D.weights[D.weights.length - 1] : null;
-  if (!w) return '';
-  const rows = D.weights.slice(-8).reverse().map(x => `<div class="qprog-wrow-det"><span>${esc(dateName(x.date))}</span><span><b>${stuQPfmt1(x.weight)} kg</b> · ${stuQPfmt1(num(x.weight) / UNIT_LB_KG)} lb</span></div>`).join('');
-  return `<button type="button" class="stu-train-row qprog-wrow" data-qprog-wtoggle="1" aria-expanded="false"><span>⚖️ ${esc(t('students.qprogWeightRow', { kg: stuQPfmt1(w.weight) }))}</span><span class="sx">▾</span></button><div data-qprog-wdet style="display:none">${rows}</div>`;
-}
+/* Auditoría de puertas de la ficha (2026-11-25, corrección 5):
+   la fila «Su peso» del acceso rápido YA NO se pinta — era la
+   tercera lista del mismo historial de pesos y la más pobre
+   (solo el peso). El historial queda en «Análisis anteriores»
+   de «Análisis corporal» (leer) y en la tabla de la ficha
+   completa (editar), que no se tocan. */
 function stuQProgHTML(D) {
   return `<div class="qprog-grid">${stuQPCompHTML(D)}${stuQPTrainHTML(D)}${stuQPFoodHTML(D)}${stuQPWellHTML(D)}</div>`
     + stuQPTestsHTML(D)
-    + stuQPWeightHTML(D)
     + (D.plan ? `<button type="button" class="btn-qprog-full" data-qprog-full="1">${esc(t('students.qprogFull'))} ›</button>` : '');
 }
 async function stuQProgOpen(uid, focus) {
@@ -11514,8 +11514,6 @@ async function stuQProgOpen(uid, focus) {
   }
 }
 function stuQProgWire(body) {
-  const wt = body.querySelector('[data-qprog-wtoggle]');
-  if (wt) wt.onclick = () => { const det = body.querySelector('[data-qprog-wdet]'); if (!det) return; const open = det.style.display !== 'none'; det.style.display = open ? 'none' : ''; wt.setAttribute('aria-expanded', open ? 'false' : 'true'); };
   const fb = body.querySelector('[data-qprog-full]');
   if (fb) fb.onclick = () => stuQDaysOpen();
 }
@@ -11539,7 +11537,7 @@ function stuQProgStrip(plan, logs) {
 }
 function stuQDaysOpen() {
   const Q = STU_QP; if (!Q || !Q.data || !Q.data.plan) return;
-  const ttl = $('stu-qdays-title'); if (ttl) ttl.textContent = t('students.progTitle');
+  const ttl = $('stu-qdays-title'); if (ttl) ttl.textContent = t('students.walkTitle');
   const x = $('btn-stu-qdays-close'); if (x) x.onclick = () => stuQProgCloseAll();
   const bk = $('stu-qdays-back'); if (bk) bk.onclick = () => { stuQPHide('stu-qday-float'); stuQPHide('stu-qdays-float'); stuQPShow(Q.from === 'hub' ? 'stu-planhub-float' : 'stu-qprog-float'); };
   stuQDaysPaint();
@@ -11550,16 +11548,18 @@ function stuQDaysPaint() {
   const Q = STU_QP; if (!Q || !Q.data || !Q.data.plan) return;
   const body = $('stu-qdays-body'); if (!body) return;
   const D = Q.data, plan = D.plan;
-  const cm = stuCumplModel(D.logs, D.plans);
-  const lines = [];
-  if (cm && cm.week) lines.push(`<div class="stu-cumpl-line">${esc(t('students.cumplWeek', { done: cm.week.done, planned: cm.week.planned }))}</div>`);
-  lines.push(stuTrainTodayLineHTML(stuTrainTodayState(D.logs, D.plans)));
-  if (cm && cm.progress) lines.push(`<div class="stu-cumpl-line">${esc(t('students.cumplProgress', { done: cm.progress.done, planned: cm.progress.planned, pct: cm.progress.pct }))}</div>`);
+  /* Auditoría de puertas de la ficha (2026-11-25, corrección 3):
+     el resumen de cumplimiento («esta semana X de Y · hoy
+     entrenó · avance del plan Z %») ya NO se pinta en esta
+     tarjeta: salía en tres sitios y aquí la tira de días de
+     abajo cuenta lo mismo. Sigue en la hoja «El entrenamiento
+     de mi alumno» y en la tarjeta de entrenamiento del acceso
+     rápido, que no se tocan. */
   const cells = stuQProgStrip(plan, D.logs).map(c => {
     const st = c.done ? t('students.progDayDone') : c.free ? t('train.free.label') : c.planDay ? t('students.progDayDue') : '—';
     return `<button type="button" class="qprog-cell${c.done ? ' done' : ''}${c.today ? ' today' : ''}${Q.dayIso === c.iso ? ' sel' : ''}" data-qday="${c.iso}"><b>${esc((DAYNAMES[LANG] || DAYNAMES.en)[c.wd])} ${Number(c.iso.slice(8, 10))}</b><span>${esc(st)}</span></button>`;
   }).join('');
-  body.innerHTML = `<div class="qprog-card"><div class="qprog-card-t">🏋️ ${esc(t('students.qprogPlanCard'))}</div><p class="qprog-card-sub"><b>${esc(plan.title || '')}</b> · ${esc(Q.name)}</p>${lines.join('')}</div>`
+  body.innerHTML = `<div class="qprog-card"><div class="qprog-card-t">🏋️ ${esc(t('students.qprogPlanCard'))}</div><p class="qprog-card-sub"><b>${esc(plan.title || '')}</b> · ${esc(Q.name)}</p></div>`
     + `<div class="qprog-strip">${cells}</div><p class="qprog-hint">${esc(t('students.qprogTapDay'))}</p>`;
   body.querySelectorAll('[data-qday]').forEach(b => b.onclick = () => stuQDayOpen(b.dataset.qday));
 }
