@@ -39228,6 +39228,38 @@ function sessTrainRepaintIfAdvanced() {
    el patrón de reintentos de la casa. Sin el contexto de
    marcas cargado, el gesto degrada a solo navegar, como los
    demás gestos de este panel. ═══ */
+/* ═══ EDITAR ENFOCADO (pedido de Ronald, 2026-11-25 09:11
+   CST, en plena sesión, con sus capturas; y su añadido de
+   las 09:13: «está esa área muy muy lenta»): al presionar
+   «Editar» en el ejercicio en curso, el editor muestra SOLO
+   ese ejercicio, con su panel de peso y series YA desplegado,
+   y al terminar la edición se vuelve a la vista en curso.
+   EL ESTADO: SESS_EDIT_FOCUS guarda la clave «di:ei» del
+   ejercicio enfocado — solo pantalla, como FLOW_AREA_FOLD;
+   nace SOLO en sessPanelEditGo con el contexto de marcas
+   vivo (la guarda de siempre) y muere al salir (la vuelta de
+   abajo, el «Terminar edición» del área de series, un cambio
+   de contexto de la carga o un pintado de otro día). Con el
+   foco vivo, el pintor del día (trainViewPaint, vía
+   dressedTodayCard) pinta SOLO esa tarjeta en la tarjeta de
+   hoy, con su barra de vuelta.
+   LA RAPIDEZ (la causa raíz de la lentitud, medida en la
+   batería del paquete): el aterrizaje de AUTH-489 pagaba la
+   carga completa loadMyTraining() DOS veces — la suya y la
+   de AUTH-497 al abrir la página, porque la sesión avanzada
+   separa las épocas — con sus lecturas de Firestore en
+   cadena, para un gesto que no necesita NINGUNA: el dato
+   entero (plan, registros, marcas, flujo) ya vive en
+   memoria, que es sobre lo que el propio panel trabaja.
+   Ahora el aterrizaje pinta PRIMERO desde la memoria con el
+   repintado ligero de AUTH-580 (trainDayRepaint, que cae a
+   la carga completa solo si la memoria o el contexto no
+   están listos) y abre la página después: la época de
+   pintado queda igualada y la recarga de AUTH-497 no se
+   dispara. Las áreas del ejercicio aterrizan DESPLEGADAS:
+   su pliegue de pantalla se limpia al entrar, edite lo que
+   edite la persona. ═══ */
+let SESS_EDIT_FOCUS = null;
 function sessPanelEditGo(key) {
   const plan = sessWorkPlan();  /* AUTH-557: el panel trabaja también sobre el día suelto */
   const partsE = String(key || '').split(':').map(Number);
@@ -39237,17 +39269,59 @@ function sessPanelEditGo(key) {
   if (ctxOk) {
     if (trainGuidePref() === 'guided') TRAIN_GUIDE.pin = eiE;
     try { TRAIN_VIEW = { planId: plan.id, sel: todayISO() }; } catch {}
+    SESS_EDIT_FOCUS = diE + ':' + eiE;
+    delete FLOW_AREA_FOLD['sets:' + SESS_EDIT_FOCUS];
+    delete FLOW_AREA_FOLD['warm:' + SESS_EDIT_FOCUS];
   }
   sessViewSet('pill');
+  if (!ctxOk) {
+    navOpenPage('train');
+    try { loadMyTraining(); } catch {}
+    return;
+  }
+  try { trainDayRepaint(); } catch {}
   navOpenPage('train');
-  try { loadMyTraining(); } catch {}
-  if (!ctxOk) return;
   let triesE = 0;
   const ivE = setInterval(() => {
     triesE++;
-    const rowE = document.querySelector('#my-training [data-train-row="' + diE + ':' + eiE + ':edit"]');
-    if (rowE || triesE >= 50) { if (rowE) { try { rowE.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} } clearInterval(ivE); }
+    const focE = document.querySelector('#my-training [data-edit-focus="' + diE + ':' + eiE + '"]');
+    if (focE || triesE >= 50) { if (focE) { try { focE.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} } clearInterval(ivE); }
   }, 120);
+}
+/* LA VUELTA A LA SESIÓN: el foco muere, la tarjeta del día
+   se repinta ligera detrás (la vista normal, desde la misma
+   memoria) y la vista completa de la sesión vuelve a mandar
+   — el panel lee las marcas, así que lo editado se ve en
+   los círculos al instante, sin lecturas. La llaman el
+   botón «Volver a la sesión» de la barra del foco y el
+   «Terminar edición» del área de series enfocado (en
+   trainFlowWire). */
+function sessEditFocusExit() {
+  if (!SESS_EDIT_FOCUS) return;
+  SESS_EDIT_FOCUS = null;
+  try { trainDayRepaint(); } catch {}
+  sessViewSet('full');
+}
+/* LA TARJETA ENFOCADA: la tarjeta de siempre del ejercicio
+   (trainExCompactHTML en modo edit — su zona de flujo con
+   la aproximación y las series, la misma persistencia al
+   acto de siempre), sola, con su ancla data-train-row
+   pre-sellada como la del foco guiado y su barra de vuelta.
+   Si la clave ya no resuelve (fuera de la lista efectiva o
+   el ejercicio quedó hecho), el foco muere y el pintor
+   sigue con la tarjeta normal: devuelve ''. */
+function sessEditFocusCardHTML(plan, di) {
+  const key = SESS_EDIT_FOCUS;
+  const pF = String(key || '').split(':').map(Number);
+  if (pF[0] !== di || !Number.isInteger(pF[1])) { SESS_EDIT_FOCUS = null; return ''; }
+  const effF = trainEffectiveList(plan, di);
+  const itF = effF[pF[1]];
+  if (!itF || !itF.ex) { SESS_EDIT_FOCUS = null; return ''; }
+  const chkF = TRAIN_CHECKS[key] || null;
+  if (chkF && chkF.done === true) { SESS_EDIT_FOCUS = null; return ''; }
+  let cardF = trainExCompactHTML(itF.ex, di, pF[1], 'edit', null, null);
+  cardF = cardF.replace('<div class="train-ex-card', `<div data-train-row="${di}:${pF[1]}:edit" style="--stripe:#0fb5a3" class="train-ex-card`);
+  return `<div class="train-day train-day-dressed train-edit-focus" data-edit-focus="${key}"><img class="train-dressed-wm" src="icons/icon-512.png" alt="" aria-hidden="true" onerror="this.remove()"><div class="train-dressed-content"><div class="tef-bar"><button type="button" class="tef-back" data-edit-focus-exit="1">‹ ${esc(t('train.editFocus.back'))}</button><span class="tef-tag">${esc(t('sess.edit'))}</span></div>${cardF}</div></div>`;
 }
 function sessPanelWire(el, surface) {
   if (!el || el.dataset.panelWired) return;
@@ -42538,12 +42612,17 @@ function trainFlowWire(box, plan) {
      estado de pantalla y se repinta — la marca no se toca,
      porque sus datos ya están guardados al acto. */
   box.querySelectorAll('[data-flow-fold-done]').forEach(b => { b.onclick = () => {
+    /* EDITAR ENFOCADO: el «Terminar edición» del área de
+       series DEL ejercicio enfocado no pliega — termina la
+       edición y vuelve a la vista en curso, como pidió
+       Ronald. El de aproximación conserva su pliegue. */
+    if (SESS_EDIT_FOCUS && b.dataset.flowFoldDone === 'sets:' + SESS_EDIT_FOCUS) { sessEditFocusExit(); return; }
     FLOW_AREA_FOLD[b.dataset.flowFoldDone] = true;
-    loadMyTraining();
+    trainDayRepaint();   /* EDITAR ENFOCADO (rapidez): gesto de solo pantalla — repintado ligero desde la memoria (AUTH-580), no la carga completa; trainDayRepaint cae a ella si la memoria o el contexto no están listos */
   }; });
   box.querySelectorAll('[data-flow-fold-open]').forEach(b => { b.onclick = () => {
     delete FLOW_AREA_FOLD[b.dataset.flowFoldOpen];
-    loadMyTraining();
+    trainDayRepaint();   /* EDITAR ENFOCADO (rapidez): la misma vía ligera que el pliegue */
   }; });
 }
 
@@ -48032,6 +48111,7 @@ async function loadMyTraining() {
     trainChecksPruneStale(plan.id);
     TRAIN_FLOW = {};   /* AUTH-406: el estado del flujo muere con el contexto, como las marcas */
     FLOW_AREA_FOLD = {};   /* AUTH-495: el pliegue de las áreas de series muere con el contexto, como el flujo */
+    SESS_EDIT_FOCUS = null;   /* EDITAR ENFOCADO: el foco del editor muere con el contexto, como el pliegue */
     trainFlowRehydrate(plan.id);   /* AUTH-451: …y renace de su propio borrador, como las marcas */
   }
   return trainViewPaint(false);   /* AUTH-580 (P2): la composición y la pintura viven en trainViewPaint — la comparten esta carga completa y el repintado ligero del día */
@@ -48240,6 +48320,7 @@ async function trainViewPaint(light) {
   if (dlIso) { TRAIN_VIEW = { planId: plan.id, sel: dlIso }; DAY_LINK_USED = true; }
   else if (TRAIN_VIEW.planId !== plan.id || !TRAIN_VIEW.sel) TRAIN_VIEW = { planId: plan.id, sel: today };
   const sel = TRAIN_VIEW.sel;
+  if (sel !== today && SESS_EDIT_FOCUS) SESS_EDIT_FOCUS = null;   /* EDITAR ENFOCADO: el foco solo vive en la tarjeta de hoy — pintar otro día lo apaga */
   const dayLabelOf = di => { const d = (plan.days || [])[di] || {}; return d.label || ('Día ' + (di + 1)); };
   const histCardHTML = (day, log) => `<div class="train-day is-readonly"><h4>${esc(log.dayLabel || day.label || '')}</h4>${trainDayHistHTML(day, log)}${trainSessionHTML(day)}<div style="margin-top:8px">${trainStatusBadge(trainLogStatus(log))}</div></div>`;
   /* CHECKLIST FLOTANTE + TARJETA COMPACTA: la tarjeta del día
@@ -48252,6 +48333,11 @@ async function trainViewPaint(light) {
      cerrado). Las de historial se visten igual, en solo lectura. */
   const dressedTodayCard = (day, di) => {
     const done = doneToday.has(di);
+    /* EDITAR ENFOCADO: con el foco vivo, la tarjeta de hoy ES
+       el editor de ese solo ejercicio — sessEditFocusCardHTML
+       decide si la clave aún resuelve; si no resuelve, el
+       foco muere dentro y el pintado sigue el curso normal. */
+    if (!done && SESS_EDIT_FOCUS) { const focH = sessEditFocusCardHTML(plan, di); if (focH) return focH; }
     /* AUTH-360 · MODO GUIADO: con la preferencia en 'guided', la
        tarjeta vestida de HOY sin cerrar pinta la ruta paso a paso
        (trainGuidedHTML) en vez de la lista compacta — la misma
@@ -48318,7 +48404,7 @@ async function trainViewPaint(light) {
         const freeCard = `<div class="train-day train-rest"><img class="train-rest-face" src="${PLAN_FACE_REST}" alt="" onerror="this.remove()"><h4>${esc(day.label || t('train.free.label'))}</h4><p class="progress-hint">${t('train.freeDay.assignedNote')}</p></div>`;
         selCard = freeCard + (sel < today ? othersFD : blankDoorHTML(sel) + othersFD);
       }
-      else if (sel === today) selCard = dressedTodayCard(day, selDi) + (broughtActive && selDi === baseOv.di ? `<p class="progress-hint">${esc(t('train.bring.note', { date: dateName(baseOv.from || today) }))}</p>` : '') + trainShareRowHTML(selDi, sel);
+      else if (sel === today) selCard = dressedTodayCard(day, selDi) + (!SESS_EDIT_FOCUS && broughtActive && selDi === baseOv.di ? `<p class="progress-hint">${esc(t('train.bring.note', { date: dateName(baseOv.from || today) }))}</p>` : '') + (SESS_EDIT_FOCUS ? '' : trainShareRowHTML(selDi, sel));   /* EDITAR ENFOCADO: bajo el editor no va ni la nota ni la fila de compartir */
       else if (sel < today) {
         const logSD = logs.find(l => l.date === sel && l.dayIndex === selDi) || null;
         const other = logs.filter(l => l.date === sel && l.dayIndex !== selDi);
@@ -48383,7 +48469,7 @@ async function trainViewPaint(light) {
     const looseBase = trainBaseRead(plan.id, sel);
     const logsSelL = logs.filter(l => l.date === sel).sort((a, b) => a.dayIndex - b.dayIndex);
     if (sel === today) {
-      if (logByDay[-1] || looseBase) selCard = dressedTodayCard({ label: t('train.trained.label'), exercises: [] }, -1) + trainShareRowHTML(-1, sel);
+      if (logByDay[-1] || looseBase) selCard = dressedTodayCard({ label: t('train.trained.label'), exercises: [] }, -1) + (SESS_EDIT_FOCUS ? '' : trainShareRowHTML(-1, sel));   /* EDITAR ENFOCADO: sin fila de compartir bajo el editor */
       else selCard = `<div class="train-day train-rest"><img class="train-rest-face" src="${PLAN_FACE_REST}" alt="" onerror="this.remove()"><h4>${t('train.today.restToday')}</h4></div>` + blankDoorHTML(sel);
     } else if (sel < today) {
       selCard = logsSelL.length
@@ -48399,7 +48485,7 @@ async function trainViewPaint(light) {
   } else {
     if (sel === today) {
       const di = trainRotationNext(plan, logs, today);
-      selCard = dressedTodayCard((plan.days || [])[di] || {}, di) + trainShareRowHTML(di, sel);
+      selCard = dressedTodayCard((plan.days || [])[di] || {}, di) + (SESS_EDIT_FOCUS ? '' : trainShareRowHTML(di, sel));   /* EDITAR ENFOCADO: sin fila de compartir bajo el editor */
     } else if (sel < today) {
       const logsSel = logs.filter(l => l.date === sel).sort((a, b) => a.dayIndex - b.dayIndex);
       selCard = logsSel.length
@@ -48516,8 +48602,8 @@ async function trainViewPaint(light) {
   </div>` : '';
   const trainTodayHTML = `<div class="train-today">
     <div class="train-sel-head"><b>${esc(dateName(sel))}</b>${sel === today ? ` <span class="ok-badge">${t('train.today.todayWord')}</span>` : ''}</div>
-    ${trainGuideDoorHTML()}
-    ${trainReopenDoorHTML()}
+    ${sel === today && SESS_EDIT_FOCUS ? '' : trainGuideDoorHTML()}
+    ${sel === today && SESS_EDIT_FOCUS ? '' : trainReopenDoorHTML()}
     ${selCard}</div>`;
   /* ESTA SEMANA · MQ5 + TIRA ÚNICA (AUTH-334): el contexto del
      bloque se fija con la resolución fecha→día de ESTA vista
@@ -48688,6 +48774,8 @@ async function trainViewPaint(light) {
    fecha vista y el mapa de registros de hoy. */
 function trainTodayWire(box, W) {
   const { uid, plan, logs, sel, today, logByDay } = W;
+  /* EDITAR ENFOCADO: la vuelta de la barra del editor enfocado. */
+  box.querySelectorAll('[data-edit-focus-exit]').forEach(b => { b.onclick = () => { try { sessEditFocusExit(); } catch {} }; });
   box.querySelectorAll('[data-train-share]').forEach(b => b.onclick = () => {
     const [diS, iso] = b.dataset.trainShare.split('|');
     trainShareOpen(trainShareModel(plan, logs, Number(diS), iso));

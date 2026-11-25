@@ -7606,6 +7606,14 @@ textarea.gest-in { resize: none; }
 .flow-area-fold .faf-go { font-weight: 800; }
 .tf-warm .flow-area-fold { min-height: 40px; margin: 0; padding: 2px 0; border: none; border-radius: 0; color: #065f46; }
 
+/* EDITAR ENFOCADO (2026-11-25): la barra de vuelta del editor
+   de un solo ejercicio — la envoltura es la tarjeta vestida
+   de siempre (.train-day-dressed); aquí solo vive su barra:
+   el botón grande de volver a la sesión y la etiqueta. */
+.tef-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.tef-back { min-height: 48px; padding: 10px 16px; box-sizing: border-box; border: 2px solid rgba(255, 255, 255, .5); border-radius: 14px; background: transparent; color: inherit; font: inherit; font-size: 15.5px; font-weight: 800; cursor: pointer; }
+.tef-tag { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #C6FF4A; }
+
 /* AUTH-503 · Plan 21 días: la tarjeta del plan en la vista del
    alumno (progreso, advertencia D7, pregunta D9, salida D8) y
    las dos propuestas de comida. Controles grandes de la casa. */

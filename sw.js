@@ -55,7 +55,7 @@
  * app.js). La caché de imágenes NO se borra entre versiones: guarda
  * contenido ya visto, con su tope.
  */
-const SW_VERSION = '20261125-aproximacion-en-curso';
+const SW_VERSION = '20261125-editar-enfocado';
 
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const IMG_CACHE_NAME = 'ronbofit-img-v1';
@@ -63,12 +63,12 @@ const IMG_CACHE_MAX = 300;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261125-aproximacion-en-curso',
-  './app.js?v=20261125-aproximacion-en-curso',
-  './i18n-en.js?v=20261125-aproximacion-en-curso',
-  './i18n-es.js?v=20261125-aproximacion-en-curso',
-  './view-comms.js?v=20261125-aproximacion-en-curso',
-  './view-library.js?v=20261125-aproximacion-en-curso',
+  './styles.css?v=20261125-editar-enfocado',
+  './app.js?v=20261125-editar-enfocado',
+  './i18n-en.js?v=20261125-editar-enfocado',
+  './i18n-es.js?v=20261125-editar-enfocado',
+  './view-comms.js?v=20261125-editar-enfocado',
+  './view-library.js?v=20261125-editar-enfocado',
 
   './manifest.json',
   './icons/icon-192.png',
