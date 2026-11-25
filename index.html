@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-constructor-multiple">
+<link rel="stylesheet" href="styles.css?v=20261124-dias-senalados">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -835,6 +835,18 @@
     </div>
     <button type="button" class="back-row" id="prof595-pwa-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="prof595-pwa-body"></div>
+  </div>
+  <!-- DÍAS SEÑALADOS: la pantalla propia de «Dónde vivo» (ciudad
+       y país del perfil, código postal opcional y los días
+       marcados de la persona); su bloque #mkd-geo-box viaja
+       desde su almacén de #tab-profile, patrón PROF595. -->
+  <div class="pend-float prof595-sheet" id="prof595-geo-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <h2><span id="prof595-geo-title"></span></h2>
+      <button type="button" class="pend-close" id="prof595-geo-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    </div>
+    <button type="button" class="back-row" id="prof595-geo-back">‹ <span data-i18n="pendact.back">Back</span></button>
+    <div id="prof595-geo-body"></div>
   </div>
 
   <!-- AUTH-597 (pliegues nº 15): las pantallas propias de
@@ -2443,6 +2455,10 @@ cuando no hay declaración legible (decisión 5). -->
          o son orden expresa de Ronald. -->
     <div id="profile-doors"></div>
     <div id="prof595-store-card" style="display:none"><div id="profile-card-box"></div></div>
+    <!-- DÍAS SEÑALADOS: el almacén de la caja «Dónde vivo»; la
+         pinta mkdGeoPaint en app.js y viaja a su pantalla
+         propia (PROF595.geo) tras su puerta. -->
+    <div id="prof595-store-geo" style="display:none"><div id="mkd-geo-box"></div></div>
     <!-- LA RUTA COMPLETADA (órdenes de Ronald, 2026-11-08): al
          completar la ruta base, la tarjeta «Tu ruta» sale de
          Pendientes y vive aquí, plegada en su línea resumen,
@@ -3519,6 +3535,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-constructor-multiple"></script>
+<script type="module" src="app.js?v=20261124-dias-senalados"></script>
 </body>
 </html>

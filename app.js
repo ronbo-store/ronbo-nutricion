@@ -2621,7 +2621,8 @@ const PROF595 = {
   nutri:     { float: 'prof595-nutri-float',     title: 'prof595-nutri-title',     body: 'prof595-nutri-body',     block: 'nutri-pro-box',       store: 'prof595-store-nutri',     titleFn: () => '🩺 ' + t('nutri.proTitle') },
   nutriedit: { float: 'prof595-nutriedit-float', title: 'prof595-nutriedit-title', body: 'prof595-nutriedit-body', block: 'nutri-editprof-zone', store: 'prof595-store-nutriedit', titleFn: () => t('nutri.pro.editProfile') },
   dossier:   { float: 'prof595-dossier-float',   title: 'prof595-dossier-title',   body: 'prof595-dossier-body',   block: 'dossier-editor-box',  store: 'prof595-store-dossier',   titleFn: () => t('prof595.dossier') },
-  pwa:       { float: 'prof595-pwa-float',       title: 'prof595-pwa-title',       body: 'prof595-pwa-body',       block: 'pwa595-block',        store: 'pwa595-store',            titleFn: () => t('pwa.rowLabel') }
+  pwa:       { float: 'prof595-pwa-float',       title: 'prof595-pwa-title',       body: 'prof595-pwa-body',       block: 'pwa595-block',        store: 'pwa595-store',            titleFn: () => t('pwa.rowLabel') },
+  geo:       { float: 'prof595-geo-float',       title: 'prof595-geo-title',       body: 'prof595-geo-body',       block: 'mkd-geo-box',         store: 'prof595-store-geo',       titleFn: () => t('mkd.whereTitle') }
 };
 function prof595Open(which) {
   const c = PROF595[which]; if (!c) return;
@@ -2661,6 +2662,10 @@ function prof595DoorsSync() {
   const u = UDATA || {};
   const door = (which, title, sub) => `<button type="button" class="pl-fold prof595-door" data-prof595-open="${which}"><span>${esc(title)}</span>${sub ? `<span class="pl-fold-n">${esc(sub)}</span>` : ''}<span class="pl-fold-chev" aria-hidden="true">›</span></button>`;
   let h = door('card', t('myprof.title'), u.name || '');
+  /* DÍAS SEÑALADOS: la puerta «Dónde vivo» vive siempre en la
+     superficie de Mi perfil (decisión 1: el perfil lleva
+     ciudad y país); su dato sale de la casa propia (MKD_GEO). */
+  h += door('geo', '📍 ' + t('mkd.whereTitle'), mkdDoorSub());
   const pb = $('purpose-profile-box');
   if (pb && pb.innerHTML.trim()) {
     const kind = rolPathKind(u);
@@ -3151,6 +3156,9 @@ async function renderProfileView() {
      pintado (cada caja con contenido tiene su línea en
      superficie; las demás, ninguna). */
   try { prof595DoorsSync(); } catch {}
+  /* DÍAS SEÑALADOS: la puerta «Dónde vivo» trae su dato de la
+     casa propia de la función (carga perezosa, una vez). */
+  try { mkdGeoEnsure(); } catch {}
   /* La zona «Administración» YA NO vive en «Mi perfil»
      (AUTH-2026-10-28-069): se mudó a su vista propia del panel
      principal y se pinta al abrirla (gancho en switchTab). El
@@ -3241,6 +3249,7 @@ const ADMIN_SECTIONS = [
   { id: 'care', sub: 'system', titleKey: 'care.title', mount: admSecMountCare, refresh: admSecRefreshCare },
   { id: 'faqed', sub: 'system', titleKey: 'faq.edTitle', mount: admSecMountFaqEd, refresh: renderFaqEditorBox },
   { id: 'gestor', sub: 'system', titleKey: 'move.gestTitle', mount: admSecMountGestor, refresh: renderGestorBox },
+  { id: 'countries', sub: 'system', titleKey: 'mkd.admTitle', mount: admSecMountCountries },
 ];
 const ADM_SEC_OPEN = {};     // id → abierta (solo presentación)
 const ADM_SEC_MOUNTED = {};  // id → contenido ya montado
@@ -11772,10 +11781,25 @@ function chalAsgOpen(uid, kind) {
   const fl = $('chal-assign-float'); if (!fl) return;
   const v = chalVigentesList().find(x => x.kind === kind); if (!v) return;
   const u = ((STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(c => c.id === uid) || { id: uid };
-  CHAL_ASG = { uid, kind, name: stuName(u), busy: false };
+  CHAL_ASG = { uid, kind, name: stuName(u), busy: false, mkd: null, inp: null };
   fl.style.display = '';
   const x = $('chal-assign-x'); if (x) x.onclick = () => chalAsgClose();
   chalAsgPaint();
+  /* DÍAS SEÑALADOS: la propuesta de fechas del alumno se
+     carga tras la primera pintura y la hoja se repinta con
+     el paso de pregunta (el entrenador responde con los días
+     que el alumno ya trae marcados en su casa de datos). */
+  if (kind === 'plan21') (async () => {
+    try {
+      await libEnsure();
+      const inp = await plan21FetchInputs(uid);
+      if (!CHAL_ASG || CHAL_ASG.uid !== uid || CHAL_ASG.kind !== kind) return;
+      CHAL_ASG.inp = inp;
+      CHAL_ASG.mkd = mkdStepNew(uid, inp.mkd, plan21Build(inp, plan21StartISO(inp)));
+      CHAL_ASG.mkd.avail = plan21AvailDays(inp);
+      chalAsgPaint();
+    } catch {}
+  })();
 }
 function chalAsgClose() {
   const fl = $('chal-assign-float'); if (fl) fl.style.display = 'none';
@@ -11797,15 +11821,17 @@ function chalAsgPaint() {
       <div class="chal-assign-step"><span class="chal-assign-n">2</span><span>${esc(t('chal.assign.step2'))}</span></div>
       <div class="chal-assign-step"><span class="chal-assign-n">3</span><span>${esc(t('chal.assign.step3'))}</span></div>
     </div>
+    ${C.kind === 'plan21' ? (C.mkd ? `<div id="chal-asg-mkd">${mkdStepHTML(C.mkd)}</div>` : `<p class="wiz-body">${esc(t('train.loading'))}</p>`) : ''}
     <button type="button" class="btn-primary chal-assign-confirm" id="chal-assign-go"${C.busy ? ' disabled' : ''}>${esc(t('chal.assign.confirm', { name: C.name }))}</button>`;
   const back = $('chal-assign-back'); if (back) back.onclick = () => chalAsgClose();
+  const mkdBox = $('chal-asg-mkd'); if (mkdBox && C.mkd) mkdStepWire(mkdBox, C.mkd, chalAsgPaint);
   const go = $('chal-assign-go'); if (go) go.onclick = () => chalAsgConfirm();
 }
 async function chalAsgConfirm() {
   const C = CHAL_ASG; if (!C || C.busy) return;
   C.busy = true; chalAsgPaint();
   try {
-    const res = await plan21AssignNow(C.uid);
+    const res = await plan21AssignNow(C.uid, C.mkd);
     chalAsgClose();
     STU_CHAL.states = null; STU_PLANS.plans = null;
     loadStudentPlans(C.uid); loadStudentChal(C.uid);
@@ -11824,14 +11850,22 @@ async function chalAsgConfirm() {
    de plan21CreatePlan, con la autoría del entrenador. Si el
    alumno ya tiene el reto (en cualquier estado), no se crea
    otro: asignar dos veces no duplica. */
-async function plan21AssignNow(studentUid) {
+async function plan21AssignNow(studentUid, mkdState) {
   const me = auth.currentUser && auth.currentUser.uid;
   if (!me || !studentUid) return null;
   await libEnsure();
   const st = await chalPlan21State(studentUid);
   if (st && st.plan) return { existing: true, id: st.plan.id, active: st.plan.active === true };
   const inp = await plan21FetchInputs(studentUid);
-  const built = plan21Build(inp, plan21StartISO(inp));
+  let built = plan21Build(inp, plan21StartISO(inp));
+  /* DÍAS SEÑALADOS: con el paso respondido en la hoja de
+     asignar, lo respondido se guarda en la casa de datos del
+     alumno y el plan nace ya ajustado; sin paso (otras
+     puertas de asignación), el nacimiento es el de siempre. */
+  if (mkdState) {
+    await mkdStepPersist(mkdState);
+    built = mkdAdjust(built, mkdBlockedDates({ ...mkdState, built }), plan21AvailDays(inp));
+  }
   return plan21CreatePlan(studentUid, built, { createdBy: me, assignedBy: me });
 }
 /* AUTH-352: «🏋️ El entrenamiento de mi alumno», nacido visible en
@@ -48118,6 +48152,403 @@ function plan21TimeBand(kind, step) {
   return [30, 45];   /* carry: distancia por tiempo, igual para todos [D declarado] */
 }
 function plan21Rest(role) { return role === 'compound' ? '2-3 min' : role === 'isolation' ? '60-90 s' : '60 s'; }
+/* ════════════════════════════════════════════════════════════
+   DÍAS SEÑALADOS (diseño cerrado por Ronald en el chat de
+   Retos, 2026-11-24; orden de construir dada el mismo día en
+   el chat RONBO.NUTRI). Al ASIGNAR un reto, la app mira la
+   propuesta completa de fechas y pregunta por cada fecha de
+   entrenamiento que cae en un día señalado — feriado oficial
+   del país de la persona o día que ella misma marcó
+   (vacaciones / sin gimnasio) — si entrena o no ese día:
+   · si dice que NO, la sesión se mueve al siguiente día
+     libre y el resto del plan se corre (mkdAdjust): no se
+     pierde ninguna sesión y el reto termina después;
+   · el perfil lleva ciudad y país (código postal opcional)
+     en su documento propio de esta función (ver la nota de
+     datos de abajo);
+   · un país cuyos feriados aún no están cargados usa el
+     calendario de EE. UU. como provisional (decisión expresa
+     de Ronald) y su primera inscripción deja la ALERTA al
+     administrador (documento countryAlert + sección en
+     Administración) para que se carguen sus feriados.
+   El motor trabaja sobre el plan YA construido (built de
+   plan21Build): es el mismo para el Reto 21 hoy y para el
+   calendario de 42 días de Progresión 22 mañana, sin tocar
+   ninguna de sus decisiones D-1 a D-6. Sin días señalados
+   respondidos «no», el plan queda byte a byte como nació.
+   NOTA DE DATOS (delta de reglas = 0): la rama de perfil
+   inofensivo de users/{uid} tiene su lista de campos CERRADA
+   en las reglas vivas (fccfa635) y no admite campos nuevos;
+   por eso la casa de estos datos es el documento propio
+   nutrition_progress/{uid}_markeddays (kind 'markedDays'),
+   que las reglas vivas ya dejan crear/leer/escribir a la
+   persona, a su entrenador asignado y al propietario — la
+   misma colección de las propuestas y los informes. ═══ */
+/* Países: solo viajan los códigos ISO 3166-1 alfa-2; el
+   nombre visible sale de Intl.DisplayNames en el idioma de
+   la interfaz (sin tabla de nombres que mantener). */
+const MKD_COUNTRIES = 'AD,AE,AF,AG,AI,AL,AM,AO,AQ,AR,AS,AT,AU,AW,AX,AZ,BA,BB,BD,BE,BF,BG,BH,BI,BJ,BL,BM,BN,BO,BQ,BR,BS,BT,BV,BW,BY,BZ,CA,CC,CD,CF,CG,CH,CI,CK,CL,CM,CN,CO,CR,CU,CV,CW,CX,CY,CZ,DE,DJ,DK,DM,DO,DZ,EC,EE,EG,EH,ER,ES,ET,FI,FJ,FK,FM,FO,FR,GA,GB,GD,GE,GF,GG,GH,GI,GL,GM,GN,GP,GQ,GR,GS,GT,GU,GW,GY,HK,HN,HR,HT,HU,ID,IE,IL,IM,IN,IO,IQ,IR,IS,IT,JE,JM,JO,JP,KE,KG,KH,KI,KM,KN,KP,KR,KW,KY,KZ,LA,LB,LC,LI,LK,LR,LS,LT,LU,LV,LY,MA,MC,MD,ME,MF,MG,MH,MK,ML,MM,MN,MO,MP,MQ,MR,MS,MT,MU,MV,MW,MX,MY,MZ,NA,NC,NE,NF,NG,NI,NL,NO,NP,NR,NU,NZ,OM,PA,PE,PF,PG,PH,PK,PL,PM,PN,PR,PS,PT,PW,PY,QA,RE,RO,RS,RU,RW,SA,SB,SC,SD,SE,SG,SH,SI,SJ,SK,SL,SM,SN,SO,SR,SS,ST,SV,SX,SY,SZ,TC,TD,TF,TG,TH,TJ,TK,TL,TM,TN,TO,TR,TT,TW,TZ,UA,UG,UM,US,UY,UZ,VA,VC,VE,VG,VI,VN,VU,WF,WS,YE,YT,ZA,ZM,ZW'.split(',');
+function mkdCountryName(cc) {
+  const code = String(cc || '').toUpperCase();
+  if (!code) return '';
+  try { const n = new Intl.DisplayNames([LANG === 'es' ? 'es' : 'en'], { type: 'region' }).of(code); if (n) return n; } catch {}
+  return code;
+}
+function mkdCountryOptions(sel) {
+  const names = MKD_COUNTRIES.map(cc => ({ cc, name: mkdCountryName(cc) }));
+  names.sort((a, b) => a.name.localeCompare(b.name));
+  return names.map(x => `<option value="${x.cc}"${x.cc === sel ? ' selected' : ''}>${esc(x.name)}</option>`).join('');
+}
+/* Feriados computables en la app, sin servicios externos.
+   Hoy solo EE. UU. trae su tabla (los 11 feriados federales,
+   en su fecha de calendario); cargar la de otro país es
+   añadir su función a MKD_TABLES — hasta entonces ese país
+   usa la de EE. UU. como provisional (decisión 4). */
+function mkdISO(y, m, d) { return y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0'); }
+function mkdNthWeekday(y, m, wd, n) {
+  if (n > 0) { const first = new Date(y, m - 1, 1).getDay(); return 1 + ((wd - first + 7) % 7) + (n - 1) * 7; }
+  const last = new Date(y, m, 0); return last.getDate() - ((last.getDay() - wd + 7) % 7);
+}
+function mkdUSHolidays(y) {
+  const F = (m, d, es, en) => ({ iso: mkdISO(y, m, d), es, en });
+  const W = (m, wd, n, es, en) => ({ iso: mkdISO(y, m, mkdNthWeekday(y, m, wd, n)), es, en });
+  return [
+    F(1, 1, 'Año Nuevo', "New Year's Day"),
+    W(1, 1, 3, 'Día de Martin Luther King Jr.', 'Martin Luther King Jr. Day'),
+    W(2, 1, 3, 'Día de los Presidentes', "Presidents' Day"),
+    W(5, 1, -1, 'Día de los Caídos', 'Memorial Day'),
+    F(6, 19, 'Juneteenth', 'Juneteenth'),
+    F(7, 4, 'Día de la Independencia', 'Independence Day'),
+    W(9, 1, 1, 'Día del Trabajo', 'Labor Day'),
+    W(10, 1, 2, 'Día de Colón', 'Columbus Day'),
+    F(11, 11, 'Día de los Veteranos', 'Veterans Day'),
+    W(11, 4, 4, 'Día de Acción de Gracias', 'Thanksgiving Day'),
+    F(12, 25, 'Navidad', 'Christmas Day')
+  ];
+}
+const MKD_TABLES = { US: mkdUSHolidays };
+function mkdHasTable(cc) { return !!MKD_TABLES[String(cc || '').toUpperCase()]; }
+function mkdEffectiveCountry(cc) { const c = String(cc || '').toUpperCase(); return mkdHasTable(c) ? c : 'US'; }
+function mkdIsProvisional(cc) { const c = String(cc || '').toUpperCase(); return !!c && !mkdHasTable(c); }
+/* Mapa iso → feriado del calendario EFECTIVO (el del país o
+   el provisional de EE. UU.) para un rango de fechas. */
+function mkdHolidayMap(country, fromISO, toISO) {
+  const map = new Map();
+  const fn = MKD_TABLES[mkdEffectiveCountry(country)];
+  if (!fn || !fromISO || !toISO) return map;
+  const y0 = Number(fromISO.slice(0, 4)), y1 = Number(toISO.slice(0, 4));
+  for (let y = y0; y <= y1; y++) for (const h of fn(y)) if (h.iso >= fromISO && h.iso <= toISO) map.set(h.iso, h);
+  return map;
+}
+/* — La casa de los datos: nutrition_progress/{uid}_markeddays — */
+const MKD_CACHE = {};
+function mkdNorm(raw) {
+  const r = raw && typeof raw === 'object' ? raw : {};
+  const marks = [];
+  const seen = new Set();
+  for (const m of (Array.isArray(r.marks) ? r.marks : [])) {
+    if (!m || !/^\d{4}-\d{2}-\d{2}$/.test(String(m.date || ''))) continue;
+    const kind = m.kind === 'nogym' ? 'nogym' : 'vacation';
+    const k = m.date + '|' + kind;
+    if (seen.has(k)) continue; seen.add(k);
+    marks.push({ date: String(m.date), kind });
+  }
+  marks.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.kind.localeCompare(b.kind));
+  return {
+    city: typeof r.city === 'string' ? r.city.slice(0, 80) : '',
+    country: /^[A-Z]{2}$/.test(String(r.country || '')) ? String(r.country) : '',
+    postalCode: typeof r.postalCode === 'string' ? r.postalCode.slice(0, 16) : '',
+    marks: marks.slice(0, 400)
+  };
+}
+async function mkdLoad(uid) {
+  if (!uid) return mkdNorm(null);
+  if (MKD_CACHE[uid]) return MKD_CACHE[uid];
+  let data = mkdNorm(null);
+  try { const s = await getDoc(doc(db, 'nutrition_progress', uid + '_markeddays')); if (s.exists()) data = mkdNorm(s.data()); } catch {}
+  MKD_CACHE[uid] = data;
+  return data;
+}
+async function mkdSave(uid, data) {
+  if (!uid) return;
+  const clean = mkdNorm(data);
+  MKD_CACHE[uid] = clean;
+  await setDoc(doc(db, 'nutrition_progress', uid + '_markeddays'), {
+    kind: 'markedDays', ownerUid: uid, uid,
+    city: clean.city, country: clean.country, postalCode: clean.postalCode, marks: clean.marks,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+  /* País nuevo (sin tabla de feriados): la alerta al
+     administrador nace con la primera inscripción — el
+     documento countryalert_<CC> es único por país: el primer
+     creador lo crea y los demás intentos quedan denegados por
+     las reglas (es un update sobre documento ajeno), en
+     silencio. El propietario lo lee en Administración. */
+  if (clean.country && mkdIsProvisional(clean.country)) {
+    try {
+      await setDoc(doc(db, 'nutrition_progress', 'countryalert_' + clean.country), {
+        kind: 'countryAlert', ownerUid: uid, country: clean.country,
+        countryName: mkdCountryName(clean.country), status: 'pending', createdAt: serverTimestamp()
+      }, { merge: true });
+    } catch {}
+  }
+}
+/* — Detección: las fechas de SESIÓN del plan propuesto que
+   caen en día señalado, con su motivo y su respuesta por
+   defecto (feriado: entrena; día marcado por la persona:
+   no entrena — lo marcó porque no puede). — */
+function mkdMarkedList(built, geo, marks) {
+  if (!built || !Array.isArray(built.days) || !built.startsAt) return [];
+  const start = built.startsAt, end = built.endsAt || planISOAddDays(start, built.days.length - 1);
+  const hol = mkdHolidayMap(geo && geo.country, start, end);
+  const mine = new Map();
+  for (const m of (marks || [])) { if (!mine.has(m.date)) mine.set(m.date, []); mine.get(m.date).push(m.kind); }
+  const out = [];
+  built.days.forEach((d, i) => {
+    if (!d || d.freeDay) return;
+    const iso = planISOAddDays(start, i);
+    const reasons = [];
+    const h = hol.get(iso);
+    if (h) reasons.push({ type: 'holiday', name: LANG === 'es' ? h.es : h.en });
+    for (const k of (mine.get(iso) || [])) reasons.push({ type: k });
+    if (reasons.length) out.push({ iso, ix: i, reasons, def: reasons.some(r => r.type !== 'holiday') ? false : true });
+  });
+  return out;
+}
+/* — El corrimiento (decisión 2): cada sesión conserva su
+   contenido y su orden; la que cae en un día respondido
+   «no entreno» se mueve al siguiente día libre (día de
+   disponibilidad que no sea señalado) y las siguientes se
+   corren detrás de ella. Sin sesiones afectadas, el plan
+   vuelve INTACTO (el mismo objeto). El calendario se alarga
+   lo que haga falta: el reto termina después. — */
+function mkdAdjust(built, blocked, avail) {
+  if (!built || !Array.isArray(built.days) || !built.startsAt || !blocked || !blocked.size) return built;
+  const start = built.startsAt;
+  const sessions = [];
+  built.days.forEach((d, i) => { if (d && !d.freeDay) sessions.push({ day: d, iso: planISOAddDays(start, i) }); });
+  if (!sessions.some(s => blocked.has(s.iso))) return built;
+  const av = (avail && avail.length) ? avail : [1, 2, 4, 5];
+  const eligible = iso => av.includes(plan21Weekday(iso)) && !blocked.has(iso);
+  const placed = new Map();
+  let prev = null, moved = 0;
+  for (const s of sessions) {
+    let cand = s.iso;
+    if (prev && cand <= prev) cand = planISOAddDays(prev, 1);
+    let guard = 0;
+    while (!eligible(cand) && guard++ < 400) cand = planISOAddDays(cand, 1);
+    placed.set(cand, s.day);
+    if (cand !== s.iso) moved++;
+    prev = cand;
+  }
+  const span = Math.round((new Date(prev + 'T12:00:00') - new Date(start + 'T12:00:00')) / 86400000) + 1;
+  /* El calendario nunca se acorta: si todas las sesiones
+     corridas caben en el plazo original, el plan conserva su
+     largo y su fecha de fin; solo se alarga cuando la última
+     sesión cae más allá. */
+  const total = Math.max(built.days.length, span);
+  const days = [];
+  for (let i = 0; i < total; i++) {
+    const iso = planISOAddDays(start, i);
+    days.push(placed.get(iso) || { label: t('plan21.restDay'), exercises: [], freeDay: true });
+  }
+  return { ...built, days, endsAt: (built.endsAt && built.endsAt > prev) ? built.endsAt : prev,
+    notes: (built.notes ? built.notes + ' · ' : '') + t('mkd.noteShifted', { n: moved }),
+    markedShift: { moved, blocked: sessions.filter(s => blocked.has(s.iso)).map(s => s.iso).sort() } };
+}
+/* — El paso de pregunta al asignar (decisión 3): UNA sola
+   pieza compartida por la hoja del alumno (plan21) y la hoja
+   del entrenador (chalAsg): sobre la propuesta completa, la
+   persona responde cada día señalado y ahí mismo agrega sus
+   vacaciones; el plan nace ya ajustado. El estado (st) vive
+   en la hoja anfitriona y sobrevive a sus repintados. — */
+function mkdStepNew(uid, mkdData, built) {
+  const d = mkdNorm(mkdData);
+  /* country queda VACÍO si la persona aún no lo declaró: el
+     selector lo muestra en EE. UU. (el provisional vigente)
+     pero nada se registra como declarado hasta que ella lo
+     elige (countryTouched) o ya lo traía guardado. */
+  return { uid, country: d.country, countryOrig: d.country, countryTouched: false,
+    city: d.city, postalCode: d.postalCode,
+    marks: d.marks.map(m => ({ ...m })), answers: {}, built: built || null, avail: null };
+}
+function mkdStepAnswer(st, row) {
+  return typeof st.answers[row.iso] === 'boolean' ? st.answers[row.iso] : row.def;
+}
+function mkdStepBlocked(st) {
+  const out = new Set();
+  if (!st || !st.built) return out;
+  for (const row of mkdMarkedList(st.built, st, st.marks)) if (!mkdStepAnswer(st, row)) out.add(row.iso);
+  return out;
+}
+/* El conjunto que el corrimiento respeta: lo respondido «no
+   entreno» MÁS toda fecha con marca propia. Una marca de
+   vacaciones o de sin gimnasio sobre un día que no era sesión
+   en la propuesta nunca se preguntó, pero una sesión corrida
+   tampoco puede caer ahí: la persona ya dijo que ese día no
+   está disponible. */
+function mkdBlockedDates(st) {
+  const out = mkdStepBlocked(st);
+  for (const m of (st && st.marks) || []) if (m && m.date) out.add(m.date);
+  return out;
+}
+function mkdStepPreview(st) {
+  if (!st || !st.built) return null;
+  return mkdAdjust(st.built, mkdBlockedDates(st), st.avail);
+}
+function mkdReasonChip(r) {
+  if (r.type === 'holiday') return `<span class="mkd-chip mkd-chip-hol">📅 ${esc(t('mkd.holidayTag'))} · ${esc(r.name || '')}</span>`;
+  if (r.type === 'nogym') return `<span class="mkd-chip">🏠 ${esc(t('mkd.nogym'))}</span>`;
+  return `<span class="mkd-chip">🌴 ${esc(t('mkd.vacation'))}</span>`;
+}
+function mkdMarksListHTML(st) {
+  if (!st.marks.length) return '';
+  const rows = st.marks.map(m => `<div class="mkd-mark-row"><span>${esc(plan21DateLabel(m.date))} · ${esc(t(m.kind === 'nogym' ? 'mkd.nogym' : 'mkd.vacation'))}</span><button type="button" class="btn-ghost btn-sm mkd-unmark" data-mkd-unmark="${esc(m.date)}|${esc(m.kind)}">${esc(t('mkd.remove'))}</button></div>`).join('');
+  return `<h4 class="mkd-sub">${esc(t('mkd.yourMarks'))}</h4>${rows}`;
+}
+function mkdStepHTML(st) {
+  if (!st) return '';
+  const rows = st.built ? mkdMarkedList(st.built, st, st.marks) : [];
+  const rowHTML = rows.map(row => {
+    const ans = mkdStepAnswer(st, row);
+    return `<div class="mkd-row">
+      <div class="mkd-row-head"><b>${esc(plan21DateLabel(row.iso))}</b><span class="mkd-chips">${row.reasons.map(mkdReasonChip).join('')}</span></div>
+      <div class="mkd-ans" role="group">
+        <button type="button" class="mkd-ans-btn${ans ? ' sel' : ''}" data-mkd-ans="${esc(row.iso)}|1" aria-pressed="${ans ? 'true' : 'false'}">${esc(t('mkd.trainYes'))}</button>
+        <button type="button" class="mkd-ans-btn${!ans ? ' sel' : ''}" data-mkd-ans="${esc(row.iso)}|0" aria-pressed="${!ans ? 'true' : 'false'}">${esc(t('mkd.trainNo'))}</button>
+      </div>
+    </div>`;
+  }).join('');
+  const prev = mkdStepPreview(st);
+  const shifted = !!(prev && prev !== st.built && prev.endsAt !== (st.built && st.built.endsAt));
+  return `<div class="mkd-box">
+    <h3 class="wiz-h">${esc(t('mkd.askTitle'))}</h3>
+    <p class="wiz-body">${esc(t('mkd.stepWhere'))}</p>
+    <div class="mkd-geo">
+      <label class="mkd-field"><span>${esc(t('mkd.country'))}</span><select class="mkd-country">${mkdCountryOptions(st.country || 'US')}</select></label>
+      <label class="mkd-field"><span>${esc(t('mkd.city'))}</span><input type="text" class="mkd-city" value="${esc(st.city)}" maxlength="80" autocomplete="address-level2"></label>
+      <label class="mkd-field"><span>${esc(t('mkd.postal'))}</span><input type="text" class="mkd-postal" value="${esc(st.postalCode)}" maxlength="16" autocomplete="postal-code"></label>
+    </div>
+    ${mkdIsProvisional(st.country) ? `<p class="wiz-body mkd-prov">ℹ️ ${esc(t('mkd.provisional'))}</p>` : ''}
+    ${rows.length ? `<p class="wiz-body">${esc(t('mkd.askIntro'))}</p>${rowHTML}` : `<p class="wiz-body">${esc(t('mkd.askNone'))}</p>`}
+    ${shifted ? `<p class="wiz-body mkd-newend">➡️ ${esc(t('mkd.newEnd', { date: plan21DateLabel(prev.endsAt) }))}</p>` : ''}
+    ${mkdAddFormHTML(st)}
+  </div>`;
+}
+function mkdAddFormHTML(st) {
+  return `<h4 class="mkd-sub">${esc(t('mkd.addTitle'))}</h4>
+    <div class="mkd-add">
+      <label class="mkd-field"><span>${esc(t('mkd.from'))}</span><input type="date" class="mkd-from"></label>
+      <label class="mkd-field"><span>${esc(t('mkd.to'))}</span><input type="date" class="mkd-to"></label>
+      <label class="mkd-field"><span>${esc(t('mkd.vacation'))} / ${esc(t('mkd.nogym'))}</span><select class="mkd-kind"><option value="vacation">${esc(t('mkd.vacation'))}</option><option value="nogym">${esc(t('mkd.nogym'))}</option></select></label>
+      <button type="button" class="btn-ghost mkd-add-btn">${esc(t('mkd.addBtn'))}</button>
+    </div>
+    <div class="mkd-marks">${mkdMarksListHTML(st)}</div>`;
+}
+/* Cableado del paso dentro de su contenedor; repaint es el
+   repintado de la hoja anfitriona (el estado manda). */
+function mkdStepWire(root, st, repaint) {
+  if (!root || !st) return;
+  const q = s => root.querySelector(s);
+  const cs = q('.mkd-country'); if (cs) cs.onchange = () => { st.country = cs.value || ''; st.countryTouched = true; repaint(); };
+  const ci = q('.mkd-city'); if (ci) ci.onchange = () => { st.city = ci.value.trim().slice(0, 80); };
+  const po = q('.mkd-postal'); if (po) po.onchange = () => { st.postalCode = po.value.trim().slice(0, 16); };
+  root.querySelectorAll('[data-mkd-ans]').forEach(b => b.onclick = () => {
+    const [iso, v] = String(b.dataset.mkdAns).split('|');
+    st.answers[iso] = v === '1';
+    repaint();
+  });
+  const add = q('.mkd-add-btn');
+  if (add) add.onclick = () => {
+    const f = q('.mkd-from'), tEl = q('.mkd-to'), k = q('.mkd-kind');
+    const from = f && f.value, to = (tEl && tEl.value) || from;
+    if (!from) return;
+    const kind = k && k.value === 'nogym' ? 'nogym' : 'vacation';
+    let d = from < to ? from : to; const last = from < to ? to : from;
+    let guard = 0;
+    while (d <= last && guard++ < 62) { st.marks.push({ date: d, kind }); d = planISOAddDays(d, 1); }
+    st.marks = mkdNorm({ marks: st.marks }).marks;
+    repaint();
+  };
+  root.querySelectorAll('[data-mkd-unmark]').forEach(b => b.onclick = () => {
+    const [date, kind] = String(b.dataset.mkdUnmark).split('|');
+    st.marks = st.marks.filter(m => !(m.date === date && m.kind === kind));
+    repaint();
+  });
+}
+async function mkdStepPersist(st) {
+  if (!st || !st.uid) return;
+  try { await mkdSave(st.uid, { city: st.city, country: st.countryTouched ? st.country : st.countryOrig, postalCode: st.postalCode, marks: st.marks }); } catch {}
+}
+/* — La pantalla «Dónde vivo» de Mi perfil (decisión 1: el
+   perfil lleva ciudad y país, código postal opcional, y ahí
+   mismo los días que la persona marca). Su puerta vive en
+   prof595DoorsSync y su bloque viaja con el patrón de la
+   casa (PROF595.geo). Guardar aquí SÍ registra el país
+   mostrado: es el acto expreso de la persona en su perfil. — */
+let MKD_GEO = null;
+function mkdDoorSub() {
+  const me = auth.currentUser && auth.currentUser.uid;
+  const d = (MKD_GEO && MKD_GEO.uid === me) ? MKD_GEO : null;
+  if (!d || (!d.city && !d.countryOrig)) return t('mkd.geoNone');
+  return [d.city, mkdCountryName(d.countryOrig)].filter(Boolean).join(', ') || t('mkd.geoNone');
+}
+async function mkdGeoEnsure() {
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  if (MKD_GEO && MKD_GEO.uid === me) { mkdGeoPaint(); return; }
+  const data = await mkdLoad(me);
+  MKD_GEO = mkdStepNew(me, data, null);
+  MKD_GEO.countryTouched = true;
+  if (!MKD_GEO.country) MKD_GEO.country = 'US';
+  mkdGeoPaint();
+  try { prof595DoorsSync(); } catch {}
+}
+function mkdGeoPaint() {
+  const box = $('mkd-geo-box'); if (!box || !MKD_GEO) return;
+  const st = MKD_GEO;
+  box.innerHTML = `<div class="panel mkd-geo-panel">
+    <p class="wiz-body">${esc(t('mkd.stepWhere'))}</p>
+    <div class="mkd-geo">
+      <label class="mkd-field"><span>${esc(t('mkd.country'))}</span><select class="mkd-country">${mkdCountryOptions(st.country || 'US')}</select></label>
+      <label class="mkd-field"><span>${esc(t('mkd.city'))}</span><input type="text" class="mkd-city" value="${esc(st.city)}" maxlength="80" autocomplete="address-level2"></label>
+      <label class="mkd-field"><span>${esc(t('mkd.postal'))}</span><input type="text" class="mkd-postal" value="${esc(st.postalCode)}" maxlength="16" autocomplete="postal-code"></label>
+    </div>
+    ${mkdIsProvisional(st.country) ? `<p class="wiz-body mkd-prov">ℹ️ ${esc(t('mkd.provisional'))}</p>` : ''}
+    ${mkdAddFormHTML(st)}
+    <div style="margin-top:14px"><button type="button" class="btn-primary mkd-geo-save">${esc(t('mkd.save'))}</button></div>
+  </div>`;
+  mkdStepWire(box, st, mkdGeoPaint);
+  const sv = box.querySelector('.mkd-geo-save');
+  if (sv) sv.onclick = async () => {
+    sv.disabled = true;
+    try {
+      await mkdSave(st.uid, { city: st.city, country: st.country, postalCode: st.postalCode, marks: st.marks });
+      st.countryOrig = st.country;
+      toast(t('mkd.savedOk'));
+      try { prof595DoorsSync(); } catch {}
+    } catch { toast(t('train.saveError'), true); }
+    sv.disabled = false;
+  };
+}
+/* — La alerta al administrador, visible: la sección de
+   Administración que lista los países nuevos pendientes de
+   cargar feriados (los documentos countryAlert que nacen
+   con la primera inscripción desde cada país). — */
+async function admSecMountCountries(body) {
+  body.innerHTML = `<p class="progress-hint">${esc(t('mkd.admIntro'))}</p><div class="wempty compact">${esc(t('train.loading'))}</div>`;
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('kind', '==', 'countryAlert')));
+    const rows = [];
+    snap.forEach(d => { const v = d.data(); if (v && v.country && v.status !== 'loaded') rows.push(v); });
+    rows.sort((a, b) => String(a.country).localeCompare(String(b.country)));
+    const since = v => {
+      try { const ms = v.createdAt && typeof v.createdAt.toMillis === 'function' ? v.createdAt.toMillis() : null; return ms ? plan21DateLabel(new Date(ms).toISOString().slice(0, 10)) : ''; } catch { return ''; }
+    };
+    body.innerHTML = `<p class="progress-hint">${esc(t('mkd.admIntro'))}</p>` + (rows.length
+      ? rows.map(v => `<div class="mkd-adm-row"><b>${esc(v.countryName || mkdCountryName(v.country))}</b> <span class="muted">(${esc(v.country)})</span>${since(v) ? `<span class="muted"> · ${esc(t('mkd.admSince', { date: since(v) }))}</span>` : ''}</div>`).join('')
+      : `<div class="wempty">${esc(t('mkd.admEmpty'))}</div>`);
+  } catch { body.innerHTML = `<p class="progress-hint">${esc(t('mkd.admIntro'))}</p><div class="wempty">${esc(t('train.saveError'))}</div>`; }
+}
 /* Lectura de insumos de UNA persona (sirve igual en la sesión
    del alumno y en la del entrenador: declaración solo si el
    consentimiento específico la deja ver, como en planGateState). */
@@ -48134,6 +48565,11 @@ async function plan21FetchInputs(uid) {
     const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid), where('kind', '==', 'fitTest')));
     snap.forEach(d => { const x = d.data(); if (x && x.test && isFinite(Number(x.value))) { const cur = out.tests[x.test]; if (!cur || String(x.date || '') >= String(cur.date || '')) out.tests[x.test] = { value: Number(x.value), variant: x.variant || '', complete: x.complete === true, date: x.date || '' }; } });
   } catch {}
+  /* DÍAS SEÑALADOS: la casa de datos de la persona (país,
+     ciudad y sus días marcados) viaja con los insumos para
+     que la asignación — del alumno o de su entrenador — la
+     lea por la misma vía. */
+  try { out.mkd = await mkdLoad(uid); } catch { out.mkd = mkdNorm(null); }
   out.batteryComplete = ['sts1min', 'pushup', 'plank', 'stepYmca'].every(k => out.tests[k] && out.tests[k].complete);
   if (out.udata) {
     try {
@@ -48402,6 +48838,11 @@ async function plan21CreatePlan(uid, built, birth) {
      vea como asignado por su entrenador. Sin birth, el nacimiento
      es el de siempre, byte a byte. */
   if (birth && birth.assignedBy) data.assignedBy = birth.assignedBy;
+  /* DÍAS SEÑALADOS: si el nacimiento corrió sesiones, la
+     marca viaja en el plan (cuántas y qué fechas se
+     respondieron «no entreno»); sin corrimiento, el plan no
+     lleva la marca y queda como siempre. */
+  if (built.markedShift) data.markedShift = built.markedShift;
   if (!active) data.holdSince = serverTimestamp();
   const ref = await addDoc(collection(db, 'training_plans'), data);
   if (active) {
@@ -48444,7 +48885,17 @@ async function plan21ApplyTemplate(uid, tpl) {
 async function plan21ApplyForStudent(uid) {
   await libEnsure();
   const inp = await plan21FetchInputs(uid);
-  const built = plan21Build(inp, plan21StartISO(inp));
+  let built = plan21Build(inp, plan21StartISO(inp));
+  /* DÍAS SEÑALADOS: si la propuesta del alumno trae sus
+     respuestas (marked.blocked), el plan nace ya ajustado
+     también por esta puerta — el volcado al editor lleva los
+     días corridos y su nueva fecha de fin. */
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid), where('kind', '==', 'planProposal')));
+    let marked = null;
+    snap.forEach(d => { const v = d.data(); if (v && v.type === 'plan21Start' && v.status === 'pending' && v.marked && Array.isArray(v.marked.blocked) && v.marked.blocked.length) marked = v.marked; });
+    if (marked) built = mkdAdjust(built, new Set(marked.blocked), plan21AvailDays(inp));
+  } catch {}
   await plan21DumpToEditor(uid, built);
 }
 
@@ -48470,7 +48921,8 @@ async function plan21OpenSheet() {
   const inp = await plan21FetchInputs(me);
   const days = new Set(plan21AvailDays(inp));
   const fams = new Set((inp.udata && inp.udata.equipFamilies) || []);
-  PLAN21_SHEET = { inp, days, fams, showDays: days.size < 4, showEq: !fams.size, more593: false };
+  PLAN21_SHEET = { inp, days, fams, showDays: days.size < 4, showEq: !fams.size, more593: false,
+    mkd: mkdStepNew(me, inp.mkd, null) };
   plan21SheetPaint();
 }
 function plan21SheetPaint() {
@@ -48480,6 +48932,10 @@ function plan21SheetPaint() {
   const form = plan21FormOf(probe);
   const step = plan21StepOf(S.inp);
   const startISO = plan21StartISO(probe);
+  /* DÍAS SEÑALADOS: la propuesta completa que la persona
+     responde es ESTE mismo plan de prueba, construido con lo
+     que la hoja lleva elegido; el paso se repinta con él. */
+  if (S.mkd) { S.mkd.avail = plan21AvailDays(probe); try { S.mkd.built = plan21Build(probe, startISO); } catch { S.mkd.built = null; } }
   const dayChips = WIZ_DAY_ORDER.map(wd => `<button type="button" class="wiz-chip${S.days.has(wd) ? ' sel' : ''}" data-p21-day="${wd}" aria-pressed="${S.days.has(wd)}">${esc(plan21DayName(wd))}</button>`).join('');
   const eqChips = WIZ_EQ_FAMS.map(f => `<button type="button" class="wiz-chip${S.fams.has(f) ? ' sel' : ''}" data-p21-eq="${f}" aria-pressed="${S.fams.has(f)}">${esc(t('train.auto.eq.' + f))}</button>`).join('');
   /* AUTH-593 (pliegues nº 11): de los tres párrafos de
@@ -48496,6 +48952,7 @@ function plan21SheetPaint() {
     ${S.showDays ? `<h3 class="wiz-h">${esc(t('wiz.daysTitle'))}</h3><div class="wiz-chips">${dayChips}</div>` : ''}
     ${S.showEq ? `<h3 class="wiz-h">${esc(t('wiz.eqTitle'))}</h3><div class="wiz-chips">${eqChips}</div>` : ''}
     ${S.days.size < 4 ? `<p class="wiz-body" style="color:#b91c1c">${esc(t('plan21.sheetDaysMin'))}</p>` : ''}
+    ${S.mkd ? `<div id="p21-mkd">${mkdStepHTML(S.mkd)}</div>` : ''}
     <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
       <button type="button" class="btn-primary" id="p21-go" ${S.days.size < 4 ? 'disabled' : ''}>${esc(t('plan21.sheetGo'))}</button>
       <button type="button" class="btn-ghost" id="p21-cancel">${esc(t('client.close'))}</button>
@@ -48503,6 +48960,7 @@ function plan21SheetPaint() {
   body.querySelectorAll('[data-p21-day]').forEach(b => b.onclick = () => { const wd = Number(b.dataset.p21Day); if (S.days.has(wd)) S.days.delete(wd); else S.days.add(wd); plan21SheetPaint(); });
   body.querySelectorAll('[data-p21-eq]').forEach(b => b.onclick = () => { const f = b.dataset.p21Eq; if (S.fams.has(f)) S.fams.delete(f); else S.fams.add(f); plan21SheetPaint(); });
   const moreBtn = $('p21-more-btn'); if (moreBtn) moreBtn.onclick = () => { S.more593 = !S.more593; plan21SheetPaint(); };
+  const mkdBox = $('p21-mkd'); if (mkdBox && S.mkd) mkdStepWire(mkdBox, S.mkd, plan21SheetPaint);
   const cancel = $('p21-cancel'); if (cancel) cancel.onclick = () => plan21CloseSheet();
   const go = $('p21-go'); if (go) go.onclick = () => plan21Start();
 }
@@ -48517,21 +48975,31 @@ async function plan21Start() {
     if (S.showDays) { const arr = [...S.days].sort((a, b) => WIZ_DAY_ORDER.indexOf(a) - WIZ_DAY_ORDER.indexOf(b)); await setDoc(doc(db, 'users', me), { availDays: arr }, { merge: true }); if (UDATA) UDATA.availDays = arr; }
     if (S.showEq) { const arr = [...S.fams]; await setDoc(doc(db, 'users', me), { equipFamilies: arr }, { merge: true }); if (UDATA) UDATA.equipFamilies = arr; }
     const inp = await plan21FetchInputs(me);
+    /* DÍAS SEÑALADOS: lo respondido en la hoja se guarda en
+       la casa de datos de la persona, y las fechas respondidas
+       «no entreno» se calculan sobre el plan final (el mismo
+       que nacería sin la función) para mover sus sesiones. */
+    if (S.mkd) await mkdStepPersist(S.mkd);
+    const built0 = plan21Build(inp, plan21StartISO(inp));
+    const mkdBlocked = S.mkd ? mkdBlockedDates({ ...S.mkd, built: built0 }) : new Set();
     const selfManaged = plan21SelfManaged();
     if (!selfManaged) {
       /* Con entrenador asignado las reglas no dejan al alumno
          escribir su training_plans: la petición viaja por el
-         canal de propuestas y el entrenador lo arma (D6). */
+         canal de propuestas y el entrenador lo arma (D6). Las
+         respuestas de días señalados viajan EN la propuesta y
+         el entrenador las aplica al armarlo (plan21ApplyForStudent). */
       await setDoc(doc(db, 'nutrition_progress', `${me}_p21start_${Date.now()}`), {
         kind: 'planProposal', ownerUid: me, uid: me, planId: '', planTitle: t('plan21.title'),
-        type: 'plan21Start', sourceTemplateId: PLAN21_TPL_ID, note: '', status: 'pending', createdAt: serverTimestamp()
+        type: 'plan21Start', sourceTemplateId: PLAN21_TPL_ID, note: '', status: 'pending', createdAt: serverTimestamp(),
+        ...(S.mkd ? { marked: { country: S.mkd.countryTouched ? S.mkd.country : S.mkd.countryOrig, blocked: [...mkdBlocked].sort() } } : {})
       });
       plan21CloseSheet();
       toast(t('plan21.sentTrainer'));
       try { renderMyProposals(); } catch {}
       return;
     }
-    const built = plan21Build(inp, plan21StartISO(inp));
+    const built = mkdAdjust(built0, mkdBlocked, plan21AvailDays(inp));
     const res = await plan21CreatePlan(me, built);
     plan21CloseSheet();
     toast(t(res.active ? 'plan21.startedOk' : 'plan21.startedHold'), !res.active);

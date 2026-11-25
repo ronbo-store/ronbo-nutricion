@@ -8222,3 +8222,27 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 /* Comunicaciones: la previa y la lista de destinatarios del
    panel de envío nacen tras «Ver más» (patrón 593/595). */
 .comms597-morewrap { margin-top: 4px; }
+/* DÍAS SEÑALADOS (2026-11-24): el paso de pregunta al asignar
+   el reto y la pantalla «Dónde vivo». Controles ≥44 px, como
+   manda la regla de la casa. */
+.mkd-box{margin-top:18px;border-top:2px solid #E7E1D3;padding-top:6px}
+.mkd-sub{font-size:15px;font-weight:800;color:#111827;margin:16px 0 8px}
+.mkd-geo{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.mkd-field{display:flex;flex-direction:column;gap:4px;font-size:13.5px;font-weight:700;color:#374151;flex:1 1 140px}
+.mkd-field input,.mkd-field select{min-height:44px;padding:8px 10px;border:2px solid #E7E1D3;border-radius:10px;font:inherit;font-size:16px;background:#fff;color:#111827;width:100%;box-sizing:border-box}
+.mkd-prov{color:#92400e}
+.mkd-newend{font-weight:700;color:#0D9488}
+.mkd-row{border:2px solid #E7E1D3;border-radius:12px;padding:10px 12px;margin:10px 0;background:#fff}
+.mkd-row-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.mkd-chips{display:inline-flex;gap:6px;flex-wrap:wrap}
+.mkd-chip{font-size:12.5px;font-weight:700;background:#F3EFE6;border-radius:999px;padding:3px 9px;color:#374151}
+.mkd-chip-hol{background:#FEF3C7;color:#92400e}
+.mkd-ans{display:flex;gap:10px}
+.mkd-ans-btn{flex:1;min-height:44px;padding:10px 12px;border-radius:10px;border:2px solid #E7E1D3;background:#fff;font:inherit;font-size:16px;font-weight:700;color:#111827;cursor:pointer}
+.mkd-ans-btn.sel{border-color:#0D9488;background:#0D9488;color:#fff}
+.mkd-add{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.mkd-add .mkd-field{flex:1 1 120px}
+.mkd-add-btn{min-height:44px}
+.mkd-mark-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #EFEAE0;font-size:15px}
+.mkd-adm-row{padding:10px 0;border-bottom:1px solid #EFEAE0;font-size:16px}
+.mkd-geo-panel .mkd-geo{margin-top:4px}
