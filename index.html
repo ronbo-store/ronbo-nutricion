@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261125-stepup-e218">
+<link rel="stylesheet" href="styles.css?v=20261125-ficha-pantalla">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1062,6 +1062,27 @@
        gobierna backSync/backReturn en app.js; nace oculta y solo
        vive mientras hay un origen Pendientes por devolver. -->
   <button type="button" id="pend-back-chip" style="display:none"></button>
+
+  <!-- FICHA DEL ALUMNO COMO PANTALLA PROPIA (orden de Ronald,
+       2026-11-25 01:57 CST): al tocar un alumno en «Mis alumnos» se
+       abre SOLO su ficha, como pantalla completa con cabecera fija:
+       a la izquierda «‹ Volver a mis alumnos» y EN MEDIO el nombre
+       del alumno. Nada de la cabecera de la lista queda visible.
+       El detalle (studentsDetailHTML) se pinta en #stu-ficha-body,
+       que conserva la clase .students-col-detail para que los
+       selectores de siempre sigan resolviendo. Este flotante va
+       ANTES en el documento que las pantallas que se abren desde
+       la ficha (nudge, pendact, stu-sheet, bana, tmeas, breport,
+       assign, planhub, qprog, bcmp): coverSync corona la ÚLTIMA
+       visible, así esas pantallas quedan encima y al cerrarlas
+       se vuelve aquí. La gobierna stuFichaSync (app.js). -->
+  <div class="pend-float pend-consult r10-screen" id="stu-ficha-float" style="display:none" role="dialog">
+    <div class="pend-head stu-ficha-head">
+      <button type="button" class="pend-back" id="stu-ficha-back">‹ <span data-i18n="students.backToMine">Volver a mis alumnos</span></button>
+      <h2 class="stu-ficha-title"><span id="stu-ficha-name"></span></h2>
+    </div>
+    <div id="stu-ficha-body" class="students-col-detail"></div>
+  </div>
 
   <!-- AUTH-121 (R4): hoja flotante de CONSULTA de un pendiente — el
        patrón .pend-float de la casa. Al tocar un pendiente con
@@ -3581,6 +3602,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261125-stepup-e218"></script>
+<script type="module" src="app.js?v=20261125-ficha-pantalla"></script>
 </body>
 </html>
