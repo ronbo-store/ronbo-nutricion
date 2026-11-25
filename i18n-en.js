@@ -2104,6 +2104,8 @@ export default {
   'reorg.gridTrain': 'Training',
   'reorg.gridPerf': 'Performance',
   'reorg.gridTests': 'Fitness tests',
+  'reorg.goalsTitle': "Student's goals",
+  'reorg.goalsNone': 'No goals yet',
   'students.qprogPlanCard': 'Their training plan',
   'students.qprogTapDay': 'Tap a day to see its assigned exercises',
   'students.qprogDaySub': 'Assigned plan day',

@@ -8113,6 +8113,41 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
    hoja de informes (.br-upload) comparte esa geometría. */
 .btn-bana { display: block; width: 100%; margin: 8px 0 2px; padding: 13px 16px; min-height: 48px; background: #fff; color: #0d7a78; border: 2px solid #0d7a78; border-radius: 14px; font-size: 17px; font-weight: 800; cursor: pointer; font-family: inherit; }
 .bana-btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px; margin-top: 12px; font-size: 17px; }
+/* TARJETAS DE LA FICHA (2026-11-24, maqueta aprobada por
+   Ronald): la rejilla de tres puertas del detalle y la de dos
+   de «Análisis corporal» reutilizan las tarjetas de «Progreso
+   en este plan» (.reorg-tile / .reorg-tile-ic / .reorg-tile-lb,
+   el mismo lenguaje visual) con el tamaño de la maqueta
+   aprobada. (.btn-bana y .bana-btn quedan sin uso — sus
+   superficies son ahora tarjetas — y se conservan, como los
+   demás huérfanos declarados de la casa.) */
+.ficha-doors .reorg-tile { padding: 16px 6px 14px; border-radius: 18px; }
+.ficha-doors .reorg-tile-ic { width: 56px; height: 56px; font-size: 27px; }
+.ficha-doors .reorg-tile-lb { font-size: 15px; }
+.bana-doors { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.bana-doors .reorg-tile { padding: 22px 8px 18px; border-radius: 18px; }
+.bana-doors .reorg-tile-ic { width: 62px; height: 62px; font-size: 30px; }
+.bana-doors .reorg-tile-lb { font-size: 16px; }
+/* LA ZONA DEL DÍA DE LA FICHA (2026-11-24): los anillos de hoy
+   (#stu-rings, el mismo pintor de anillo de la casa), la línea
+   de quema (#stu-burn) y el bloque «Metas del alumno», que nace
+   plegado en una línea (regla de crecimiento) con su detalle de
+   cuatro números. */
+#stu-rings { margin-top: 14px; }
+#stu-burn { margin-top: 10px; }
+.stu-burn-line { display: flex; align-items: center; gap: 8px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 10px 12px; font-size: 15px; color: #92400e; }
+.stu-burn-line b { font-size: 17px; }
+.stu-goals { margin-top: 12px; background: #f2faf8; border: 1px solid #d7ebe6; border-radius: 14px; padding: 12px 13px; }
+.stu-goals-t { font-size: 13px; font-weight: 800; letter-spacing: .04em; color: #0b7c72; text-transform: uppercase; }
+.stu-goals-head { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 44px; box-sizing: border-box; padding: 0; background: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.stu-goals-head .stu-goals-t { flex: none; }
+.stu-goals-line { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; color: #173f38; text-align: right; }
+.stu-goals-head .sx { flex: none; color: #0b7c72; font-weight: 800; }
+.stu-goals-obj { font-size: 14px; color: #33475b; margin-top: 8px; }
+.stu-goals-nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.stu-goals-num { background: #fff; border: 1px solid #dde7e3; border-radius: 12px; padding: 8px 4px; text-align: center; min-width: 0; }
+.stu-goals-num b { display: block; font-size: 17px; color: #173f38; }
+.stu-goals-num span { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: #64748b; margin-top: 2px; overflow-wrap: anywhere; }
 .br-upload { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px; margin: 10px 0; font-size: 17px; }
 .br-pickrow { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
 .br-pickrow .btn-ghost, .br-pickrow .btn-primary { flex: 1 1 150px; min-height: 50px; }

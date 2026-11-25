@@ -10535,7 +10535,15 @@ function stuPlanBlockHTML(u) {
    estados (loadStudentPlans/loadStudentChal) la repinte sin
    tocar el resto de la ficha. Sin plan activo, la puerta
    «Progreso» sigue existiendo: su vista enseña su vacío
-   honesto, como hacía la hoja. */
+   honesto, como hacía la hoja.
+   TARJETAS (2026-11-24, maqueta aprobada por Ronald «Bien así,
+   constrúyelo»): las puertas de la ficha dejan de ser botones
+   largos — esta función pinta SOLO el checklist y las tres
+   puertas son la rejilla de tarjetas de stuDoorsGridHTML, que
+   pinta el propio detalle más abajo en su zona (tras
+   Pendientes, los anillos, la quema y las metas): el checklist
+   es lo único de la zona que depende de los estados que
+   aterrizan, y es lo único que este contenedor repinta. */
 /* El plan «común» activo del alumno: el activo que NO es el
    plan de un reto (el del Reto 21 se nombra en su línea «Reto:»
    del checklist, no en la de «Plan:»). */
@@ -10567,9 +10575,153 @@ function stuFichaTopHTML(u) {
   if (lines.length) inner = lines.join('');
   else if (plansLoaded && chalLoaded) inner = `<div class="reorg-check-none">${esc(t('reorg.noneActive'))}</div>`;
   else inner = `<div class="wempty">${esc(t('access.loading'))}</div>`;
-  return `<div class="reorg-check"><div class="reorg-check-t">${esc(t('reorg.activeTitle'))}</div>${inner}</div>`
-    + `<button type="button" class="btn-qprog" data-stu-planhub="${esc(u.id)}">🏋️ ${esc(t('reorg.hubTitle'))}</button>`
-    + `<button type="button" class="btn-breport" data-plan-progress="${esc(u.id)}">📈 ${esc(t('students.progressBtn'))}</button>`;
+  return `<div class="reorg-check"><div class="reorg-check-t">${esc(t('reorg.activeTitle'))}</div>${inner}</div>`;
+}
+/* ════════════════════════════════════════════════════════════════
+   TARJETAS DE LA FICHA + LA ZONA DEL DÍA (paquete 2026-11-24;
+   maqueta aprobada por Ronald «Bien así, constrúyelo» y sus tres
+   añadidos de las 23:09, 23:10 y 23:11 CST). La zona visible de
+   la ficha, en su orden final: el checklist «TIENE ACTIVO»
+   (stuFichaTopHTML) → la puerta de Pendientes → LOS ANILLOS del
+   alumno de hoy → SU LÍNEA DE QUEMA de hoy → el bloque «Metas
+   del alumno» → LA REJILLA DE TRES TARJETAS. Todo lee de las
+   fuentes que la app ya usa para ese alumno: nada de cálculos
+   paralelos ni de valores de ejemplo. ════════════════════════ */
+/* LA REJILLA DE TARJETAS: las tres puertas de la ficha con el
+   estilo EXACTO de las tarjetas de «Progreso en este plan» — la
+   misma clase .reorg-tile de stuProgGridHTML (tarjeta blanca
+   redondeada, icono en círculo claro, etiqueta centrada) con el
+   tamaño de la maqueta aprobada (.ficha-doors). Cada tarjeta
+   abre EXACTAMENTE lo que abría su botón largo: «Plan de
+   entrenamiento» su pantalla (stuPlanHubOpen), «Progreso» la
+   vista de siempre (stuPlanProgressOpen) y «Análisis corporal»
+   su pantalla (banaOpen). Su cableado es el de siempre, el de
+   renderStudentsBody por los mismos atributos. */
+function stuDoorsGridHTML(u) {
+  const tile = (attrs, icon, label) => `<button type="button" class="reorg-tile" ${attrs}><span class="reorg-tile-ic" aria-hidden="true">${icon}</span><span class="reorg-tile-lb">${esc(label)}</span></button>`;
+  return `<div class="reorg-grid ficha-doors">`
+    + tile(`data-stu-planhub="${esc(u.id)}"`, '🏋️', t('reorg.hubTitle'))
+    + tile(`data-plan-progress="${esc(u.id)}"`, '📈', t('students.progressBtn'))
+    + tile(`data-stu-bana="${esc(u.id)}"`, '🧬', t('bana.title'))
+    + `</div>`;
+}
+/* EL BLOQUE «METAS DEL ALUMNO» (añadido de Ronald, 2026-11-24
+   23:09 CST, opción A): su objetivo y sus números del día —
+   calorías · proteína · carbos · grasa — leídos de la MISMA
+   fuente que ya pinta esos números en las demás pantallas: el
+   campo goals de su propio users (el que lee stuQPFoodHTML para
+   su tarjeta de alimentación y del que nace el GOALS de su
+   sesión) y su objetivo vigente por el resolvedor de la casa
+   (gmFocusEffective, el mismo de stuQPFoodHTML). Nace PLEGADO
+   en una línea (la regla de crecimiento de la casa: la zona ya
+   lleva el checklist, los anillos y la quema) que ya deja leer
+   el objetivo y las calorías; el despliegue enseña los cuatro
+   números. Sin metas, el estado honesto «Sin metas todavía» —
+   y su pendiente en rojo sigue donde siempre, intacto. */
+function stuGoalsHTML(u) {
+  const g = (u && u.goals) || {};
+  const has = METRICS.some(m => { const v = Number(g[m.key]); return isFinite(v) && v > 0; });
+  if (!has) return `<div class="stu-goals"><div class="stu-goals-t">🎯 ${esc(t('reorg.goalsTitle'))}</div><div class="reorg-check-none">${esc(t('reorg.goalsNone'))}</div></div>`;
+  const fx = gmFocusEffective(u || {});
+  const obj = ['mantener', 'bajar', 'ganar'].includes(fx.objective || '') ? t('gm.obj.' + fx.objective) : '';
+  const nums = [['kcal', g.kcal, 'kcal'], ['prot', g.prot, 'g'], ['carb', g.carb, 'g'], ['gras', g.gras, 'g']]
+    .filter(([, v]) => num(v) > 0)
+    .map(([k, v, un]) => `<div class="stu-goals-num"><b>${fmt(Math.round(num(v)))}</b><span>${esc(t('metric.' + k))} · ${un}</span></div>`).join('');
+  const line = [obj, num(g.kcal) > 0 ? fmt(Math.round(num(g.kcal))) + ' kcal' : ''].filter(Boolean).join(' · ');
+  return `<div class="stu-goals">
+    <button type="button" class="stu-goals-head" data-stu-goals-fold aria-expanded="false"><span class="stu-goals-t">🎯 ${esc(t('reorg.goalsTitle'))}</span><span class="stu-goals-line">${esc(line)}</span><span class="sx" aria-hidden="true">▾</span></button>
+    <div class="stu-goals-det" data-stu-goals-det style="display:none">${obj ? `<div class="stu-goals-obj">${esc(t('students.qprogObj', { obj }))}</div>` : ''}<div class="stu-goals-nums">${nums}</div></div>
+  </div>`;
+}
+/* LOS ANILLOS DE HOY Y LA LÍNEA DE QUEMA en la ficha (añadidos
+   de Ronald, 2026-11-24 23:10 y 23:11 CST): los anillos son los
+   mismos de su tarjeta del día — los cinco (calorías, proteína,
+   carbos, azúcares, grasas) con su % y su «consumido/meta» — y
+   salen del MISMO mecanismo que ya los pinta para el entrenador
+   en su ficha completa (loadClientRings / paintClientRings):
+   los totales sumados de sus nutrition_meals con el mismo
+   mapeo de campos, la meta del día por cringDayGoalsFor (la
+   réplica parametrizada del motor: goalsDayLevelForDate +
+   goalsDayAdjust sobre SUS datos) y el mismo pintor de anillo
+   (ringMiniSVG) con el mismo formato de «consumido/meta». La
+   carga de esta zona monta el mismo estado CRING que monta
+   loadClientRings y lo restaura al salir: el cálculo es el de
+   la casa, ejecutado tal cual, sin una segunda versión.
+   LA LÍNEA DE QUEMA: el quemado de HOY del alumno — la cifra de
+   su llamita (actDayView().burned: los extras guardados del día
+   más las kcal de máquina del calentamiento de sus sesiones de
+   hoy) — leída por la vía del entrenador que ya existe
+   (fetchClientActLogs + trainCardioFromLog, la misma fuente y
+   el mismo redondeo con que su ficha completa pinta el quemado
+   de cada día cerrado en logBurn). Sin datos de quema hoy, la
+   línea pinta el cero honesto que su propia llamita pinta.
+   (La OTRA candidata era la tira de racha ponderada —
+   fusedStreakChip / streakWeighted con streakDayValue —: mide
+   días activos, no quema de calorías; no es la que pidió.) */
+function stuDayGoalsFor(state, iso) {
+  const prev = CRING;
+  CRING = state;
+  try { return cringDayGoalsFor(iso); } finally { CRING = prev; }
+}
+function stuRingsHTML(state) {
+  const hoy = todayISO();
+  const tot = state.totals[hoy] || { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
+  const base = state.goals || {};
+  const hasGoals = METRICS.some(m => { const v = Number(base[m.key]); return isFinite(v) && v > 0; });
+  const day = stuDayGoalsFor(state, hoy);
+  const goalFor = key => { const v = Number(day.goals[key]); return (isFinite(v) && v > 0) ? v : null; };
+  const rings = METRICS.map(m => {
+    const goal = goalFor(m.key);
+    const val = tot[m.key];
+    const sub = goal === null ? `${fmt(val)} ${m.unit}` : `${fmt(val)}/${fmt(goal)}${m.key === 'kcal' ? '' : ' ' + m.unit}`;
+    return `<div class="ring-mini" style="cursor:default">${ringMiniSVG(m, val, goal)}<span class="ring-mini-name">${t('metric.' + m.key)}</span><span class="ring-mini-sub">${sub}</span></div>`;
+  }).join('');
+  return `<h3 class="history-title">${esc(t('client.ringsTitle'))}</h3>`
+    + (hasGoals ? '' : `<div style="margin-bottom:8px"><span class="goals-none">${t('goals.none')}</span></div>`)
+    + `<div class="rings">${rings}</div>`;
+}
+function stuBurnHTML(actByDate, logs) {
+  const hoy = todayISO();
+  const d = (actByDate || {})[hoy];
+  let total = d ? Math.round(num(d.kcalExtraTotal)) : 0;
+  (logs || []).forEach(l => {
+    if (!l || l.date !== hoy) return;
+    const cv = trainCardioFromLog(l.cardioWarmup);
+    if (cv && cv.kcal) total += Math.round(cv.kcal);
+  });
+  return `<div class="stu-burn-line"><span aria-hidden="true">🔥</span><span><b>${fmt(total)}</b> ${esc(t('act.kcalUnit'))} ${esc(t('act.flameBurned'))}</span></div>`;
+}
+async function loadStuDay(uid, u) {
+  const rBox = $('stu-rings'), bBox = $('stu-burn');
+  if (!rBox && !bBox) return;
+  if ((rBox && rBox.dataset.stuDay !== uid) || (bBox && bBox.dataset.stuDay !== uid)) return;
+  const state = { uid, totals: {}, goals: (u && u.goals) || {}, prov: (u && u.goalsProvenance) || null,
+    overrides: (u && u.goalsDayOverrides) || null, plan: null, cfg: null };
+  try {
+    const ms = await getDocs(query(collection(db, 'nutrition_meals'), where('ownerUid', '==', uid), where('date', '>=', histCutoffISO())));
+    const byDate = {};
+    ms.forEach(d => { const v = d.data();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date || '')) return;
+      const tt = byDate[v.date] = byDate[v.date] || { kcal: 0, prot: 0, carb: 0, azuc: 0, gras: 0 };
+      tt.kcal += num(v.kcal); tt.prot += num(v.prot); tt.carb += num(v.carb); tt.azuc += num(v.sugar); tt.gras += num(v.fat);
+    });
+    state.totals = byDate;
+  } catch {}
+  try { const plans = await fetchPlans(uid); state.plan = (plans || []).find(p => p.active === true) || null; } catch {}
+  try {
+    const cs = await getDoc(doc(db, 'nutrition_progress', uid + '_pendconfig'));
+    state.cfg = cs.exists() ? Object.assign(pendDefaults(), cs.data()) : { activated: false };
+  } catch { state.cfg = null; }
+  let actByDate = {};
+  try { actByDate = await fetchClientActLogs(uid); } catch {}
+  let logs = (typeof STU_TRAIN !== 'undefined' && STU_TRAIN.uid === uid && STU_TRAIN.logs) ? STU_TRAIN.logs : null;
+  if (!logs) { try { logs = await fetchLogs(uid); } catch { logs = []; } }
+  /* Si el detalle ya cambió de alumno (o se cerró) mientras se
+     leía, lo leído no se pinta: las cajas llevan el uid dueño. */
+  if (typeof STUDENTS_DETAIL === 'undefined' || STUDENTS_DETAIL !== uid) return;
+  const r2 = $('stu-rings'), b2 = $('stu-burn');
+  if (r2 && r2.dataset.stuDay === uid) r2.innerHTML = stuRingsHTML(state);
+  if (b2 && b2.dataset.stuDay === uid) b2.innerHTML = stuBurnHTML(actByDate, logs || []);
 }
 /* H-07 (AUTH-2026-11-10-392; auditoría de espacio 2026-11-09 §H-07 (a),
    aprobado por Ronald 2026-11-10): las filas del bloque de planes
@@ -10620,21 +10772,16 @@ function stuPlansWireCurrent(uid) {
   }
   const rb = blk.querySelector('[data-plan-review]');
   if (rb) rb.onclick = () => stuTrayOpen(uid);
-  /* REORG-FICHA: la zona superior de la ficha (checklist +
-     puertas) vive en su contenedor #stu-plan-btnrows: sus dos
-     puertas se cablean aquí, sobre el contenedor — «Plan de
-     entrenamiento» abre su pantalla (stuPlanHubOpen) y
-     «Progreso» la vista de siempre (stuPlanProgressOpen). El
-     cableado de acciones del plan (wirePlanActionButtons) sigue
-     viviendo sobre el bloque, que ahora viaja dentro de la
-     pantalla del plan. */
-  const brs = document.querySelector('#stu-plan-btnrows');
-  if (brs) {
-    const hb = brs.querySelector('[data-stu-planhub]');
-    if (hb) hb.onclick = () => stuPlanHubOpen(uid);
-    const pb = brs.querySelector('[data-plan-progress]');
-    if (pb) pb.onclick = () => stuPlanProgressOpen(uid);
-  }
+  /* REORG-FICHA: la zona superior de la ficha vivía en su
+     contenedor #stu-plan-btnrows (checklist + puertas) y sus
+     dos puertas se cableaban aquí. TARJETAS (2026-11-24): el
+     contenedor conserva SOLO el checklist (lo único que los
+     estados repintan al aterrizar) y las puertas son la rejilla
+     de tarjetas del detalle (stuDoorsGridHTML), cableadas por
+     renderStudentsBody con los mismos atributos — aquí ya no
+     hay puertas que cablear. El cableado de acciones del plan
+     (wirePlanActionButtons) sigue viviendo sobre el bloque,
+     que ahora viaja dentro de la pantalla del plan. */
   stuTrayPaintCount(uid);
 }
 /* H-07 (AUTH-2026-11-10-392): el toque de la línea «+ N plan(es) inactivo(s)»
@@ -11628,12 +11775,13 @@ async function loadStudentPlans(uid) {
   const blk = document.querySelector('#stu-plan-block');
   /* AUTH-581 (P3): en su sitio (stuBlockPaint), nunca outerHTML. */
   if (blk) stuBlockPaint(blk, stuPlanBlockHTML({ id: uid }), () => stuPlansWireCurrent(uid));
-  /* AUTH-565 → REORG-FICHA: la zona superior visible (checklist
-     «TIENE ACTIVO» + puertas) se repinta con los planes recién
-     llegados (su cableado lo rehace stuPlansWireCurrent), el
-     dato clave de la línea del plan se sincroniza y, si la
-     pantalla «Plan de entrenamiento» está abierta, su tarjeta
-     del plan activo se refresca con el mismo dato. */
+  /* AUTH-565 → REORG-FICHA: la zona superior visible (el
+     checklist «TIENE ACTIVO»; desde TARJETAS 2026-11-24 es lo
+     único que vive en el contenedor — las puertas son la
+     rejilla del detalle) se repinta con los planes recién
+     llegados, el dato clave de la línea del plan se sincroniza
+     y, si la pantalla «Plan de entrenamiento» está abierta, su
+     tarjeta del plan activo se refresca con el mismo dato. */
   const brs = document.querySelector('#stu-plan-btnrows');
   if (brs) { brs.innerHTML = stuFichaTopHTML({ id: uid }); stuPlansWireCurrent(uid); }
   stuPlanHubSync(uid);
@@ -12277,7 +12425,15 @@ function tmeasClose() {
    queda abierta DEBAJO de la que se abre (el mismo patrón de
    la hoja de informes con su comparador encima): al volver
    de medidas o de informes se regresa a ella, y su «Volver»
-   regresa a la ficha. */
+   regresa a la ficha.
+   TARJETAS (2026-11-24, maqueta aprobada por Ronald «Bien así,
+   constrúyelo»): la puerta de la ficha es una TARJETA de la
+   rejilla (stuDoorsGridHTML); los dos botones de dentro son
+   TARJETAS .reorg-tile (banaPaint); y las pantallas de medidas
+   y de informes dejan de ser hojas flotantes y pasan a
+   PANTALLAS COMPLETAS propias (r10-screen en index.html) con
+   su «‹ Volver» fijo en la cabecera y sin ✕ — sus flujos, su
+   comparador y su carga encadenada no cambian. */
 let BANA = null;   // { uid, name } de la pantalla abierta
 function banaOpen(uid) {
   const fl = $('bana-float'), body = $('bana-body');
@@ -12296,10 +12452,16 @@ function banaClose() {
 }
 function banaPaint() {
   const body = $('bana-body'); if (!body || !BANA) return;
+  /* TARJETAS (2026-11-24, maqueta aprobada): los dos botones son
+     TARJETAS .reorg-tile en rejilla de dos (.bana-doors), el
+     mismo lenguaje visual de las de «Progreso en este plan»;
+     los ids y los destinos no cambian. */
   body.innerHTML = `
     <p class="r10-prog-note">${esc(t('bana.note', { name: BANA.name }))}</p>
-    <button type="button" class="btn-primary bana-btn" id="bana-tmeas">📏 ${esc(t('tmeas.btn'))}</button>
-    <button type="button" class="btn-primary bana-btn" id="bana-upload">📄 ${esc(t('bana.uploadBtn'))}</button>`;
+    <div class="reorg-grid bana-doors">
+      <button type="button" class="reorg-tile" id="bana-tmeas"><span class="reorg-tile-ic" aria-hidden="true">📏</span><span class="reorg-tile-lb">${esc(t('tmeas.btn'))}</span></button>
+      <button type="button" class="reorg-tile" id="bana-upload"><span class="reorg-tile-ic" aria-hidden="true">📄</span><span class="reorg-tile-lb">${esc(t('bana.uploadBtn'))}</span></button>
+    </div>`;
   const tm = $('bana-tmeas'); if (tm) tm.onclick = () => tmeasOpen(BANA.uid);
   const up = $('bana-upload'); if (up) up.onclick = () => breportOpen(BANA.uid);
 }
@@ -12330,7 +12492,8 @@ async function breportOpen(uid) {
   const tt = $('breport-title'); if (tt) tt.textContent = '📄 ' + t('r10.breportTitle', { name });
   BREPORT = { uid, name, file: null, prevUrl: '', replaceId: '', date: todayISO(), busy: false, err: '', list: null, reading: false, reads: null };
   fl.style.display = '';
-  const x = $('breport-x'); if (x) x.onclick = () => breportClose();
+  /* TARJETAS (2026-11-24): pantalla completa sin ✕ — la única
+     salida es el «‹ Volver» fijo de la cabecera. */
   const bk = $('breport-back'); if (bk) bk.onclick = () => breportClose();
   breportPaint();
   try { coverSync(); } catch {}
@@ -12712,7 +12875,8 @@ async function tmeasOpen(uid) {
   body.innerHTML = `<div class="wempty">${esc(t('access.loading'))}</div>`;
   fl.style.display = '';
   try { coverSync(); } catch {}
-  const x = $('tmeas-x'); if (x) x.onclick = () => tmeasClose();
+  /* TARJETAS (2026-11-24): pantalla completa sin ✕ — la única
+     salida es el «‹ Volver» fijo de la cabecera. */
   const bk = $('tmeas-back'); if (bk) bk.onclick = () => tmeasClose();
   const S = todayISO();
   let units = 'metric';
@@ -12856,26 +13020,52 @@ function studentsDetailHTML(u) {
      bloques viven en el almacén oculto #stu-store — sus
      pintores, sus cargas y su cableado no cambian.
      REORG-FICHA (2026-11-24): la zona visible tras la cabecera
-     es la de stuFichaTopHTML (checklist «TIENE ACTIVO» + las
+     la abría stuFichaTopHTML (checklist «TIENE ACTIVO» + las
      puertas «Plan de entrenamiento» y «Progreso»). Las LÍNEAS
      plegadas de AUTH-565 desaparecen de la ficha: el bloque del
      plan y el de retos VIAJAN ahora dentro de la pantalla
      «Plan de entrenamiento» (stuPlanHubOpen) y el de
      entrenamiento se abre con su hoja desde la parrilla de
-     «Progreso» (stuSheetOpen('train')). */
+     «Progreso» (stuSheetOpen('train')).
+     TARJETAS (2026-11-24): la zona visible queda, en su orden
+     final — checklist «TIENE ACTIVO» → puerta de Pendientes →
+     anillos de hoy → línea de quema → «Metas del alumno» →
+     rejilla de tres tarjetas (stuDoorsGridHTML). El checklist
+     es lo único que vive en #stu-plan-btnrows (lo repintan los
+     estados al aterrizar); el resto lo pinta este detalle. */
   h += `<div id="stu-plan-btnrows">${stuFichaTopHTML(u)}</div>`;
-  /* AUTH-571 + AUTH-586 (punto 10): aquí vivían DOS puertas
-     sueltas, «📏 Tomar medidas» y «📄 Subir informe corporal»,
-     ancho completo y fuera de todo pliegue, justo bajo la zona
-     superior de la ficha. ANÁLISIS CORPORAL (2026-11-24, orden
-     directa de Ronald): las dos se sustituyen por UNA sola
-     puerta, «Análisis corporal», en la misma zona, que abre su
-     pantalla propia (#bana-float) con los dos botones dentro —
-     los flujos de medidas (tmeasOpen) y de informes
-     (breportOpen) no cambian. Vive SOLO en esta superficie (el
-     detalle que ven el entrenador y el admin sobre un alumno):
-     en la vista del propio alumno no existe. */
-  h += `<button type="button" class="btn-bana" data-stu-bana="${u.id}">🧬 ${esc(t('bana.title'))}</button>`;
+  if (err) {
+    h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
+  } else {
+    /* AUTH-562: la lista desplegada y su barra del mensaje
+       combinado desaparecen del detalle: un solo botón
+       «Pendientes activos · N» abre la pantalla del paquete, con
+       la lista pelada, la barra y los resueltos dentro. Las
+       trazas («Resueltos») también viven dentro de esa
+       pantalla, en líneas peladas; el detalle solo conserva la
+       puerta (botón principal o el fantasma «Resueltos · N» de
+       pendActDoorHTML). */
+    h += pendActDoorHTML(u.id, pend);
+  }
+  /* LA ZONA DEL DÍA (añadidos de Ronald, 2026-11-24 23:10 y
+     23:11 CST): los anillos de hoy y la línea de quema nacen en
+     su caja y los pinta loadStuDay con los datos reales del
+     alumno cuando aterrizan (la caja lleva el uid dueño para
+     que una lectura tardía no pinte sobre otro alumno). */
+  h += `<div id="stu-rings" data-stu-day="${esc(u.id)}"><div class="wempty">${esc(t('access.loading'))}</div></div>`;
+  h += `<div id="stu-burn" data-stu-day="${esc(u.id)}"></div>`;
+  /* EL BLOQUE «METAS DEL ALUMNO» (añadido de Ronald, 2026-11-24
+     23:09 CST, opción A): de su propio users, ya pintado. */
+  h += stuGoalsHTML(u);
+  /* TARJETAS (2026-11-24, maqueta aprobada): las tres puertas de
+     la ficha en tarjetas estilo «Progreso». Aquí vivían los
+     botones largos: el de «Análisis corporal» suelto bajo la
+     zona superior (que ya había sustituido a las dos puertas de
+     AUTH-571/586) y los de plan y progreso dentro de
+     #stu-plan-btnrows. Vive SOLO en esta superficie (el detalle
+     que ven el entrenador y el admin sobre un alumno): en la
+     vista del propio alumno no existe. */
+  h += stuDoorsGridHTML(u);
   /* AUTH-577: la puerta del acceso rápido a su progreso
      (#stu-qprog-float) vivía aquí como botón «Resumen de
      progreso». REORG-FICHA (2026-11-24): ese botón DESAPARECE
@@ -12888,24 +13078,13 @@ function studentsDetailHTML(u) {
     + stuChalBlockHTML(u)
     + stuTrainBlockHTML(u)
     + `</div>`;
-  if (err) {
-    h += `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-ghost btn-sm" data-stu-retry="${u.id}" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
-  } else {
-    /* AUTH-562: la lista desplegada y su barra del mensaje
-       combinado desaparecen del detalle: un solo botón
-       «Pendientes activos · N» abre la pantalla del paquete, con
-       la lista pelada, la barra y los resueltos dentro. */
-    h += pendActDoorHTML(u.id, pend);
+  if (!err) {
     h += stuAdminStepRowHTML(u.id);
     h += studentsEqRowHTML(u.id, (L.chkByUid || {})[u.id]);
     /* ASIGNACIONES (este paquete): quién es su entrenador y su
        coach, con la gestión completa para el administrador. */
     h += stuAssignFoldHTML(u, { trainerUid: u.trainerUid || null, coachUid: (L.coachByUid || {})[u.id] || null, coachKnown: !!(L.coachByUid && (u.id in L.coachByUid)) });
     if (!pend.items.length && !pend.traces.length) h += `<p class="pend-none">${esc(t('students.detailClear'))}</p>`;
-    /* AUTH-562: las trazas («Resueltos») también viven dentro de
-       la pantalla de pendientes activos, en líneas peladas; el
-       detalle solo conserva la puerta (botón principal o el
-       fantasma «Resueltos · N» de pendActDoorHTML). */
   }
   h += `<button type="button" class="btn-ficha" data-stu-ficha="${u.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>${esc(t('students.viewFull'))}</button>
   </div>`;
@@ -12991,8 +13170,21 @@ function renderStudentsBody() {
   el.querySelectorAll('[data-pendact]').forEach(b => b.onclick = () => pendActOpen(b.dataset.pendact));
   /* ANÁLISIS CORPORAL (2026-11-24): la única puerta de la
      ficha abre su pantalla propia, con «Tomar medidas»
-     (AUTH-571) y «Cargar resultado externo» (AUTH-586) dentro. */
+     (AUTH-571) y «Cargar resultado externo» (AUTH-586) dentro.
+     TARJETAS (2026-11-24): la puerta es ahora la tercera
+     tarjeta de la rejilla (stuDoorsGridHTML) — el mismo
+     atributo y el mismo destino. */
   el.querySelectorAll('[data-stu-bana]').forEach(b => b.onclick = () => banaOpen(b.dataset.stuBana));
+  /* METAS DEL ALUMNO (2026-11-24): su línea plegada despliega
+     y recoge el detalle de los cuatro números. */
+  el.querySelectorAll('[data-stu-goals-fold]').forEach(b => b.onclick = () => {
+    const det = b.parentElement ? b.parentElement.querySelector('[data-stu-goals-det]') : null;
+    if (!det) return;
+    const open = det.style.display !== 'none';
+    det.style.display = open ? 'none' : '';
+    b.setAttribute('aria-expanded', open ? 'false' : 'true');
+    const sx = b.querySelector('.sx'); if (sx) sx.textContent = open ? '▾' : '▴';
+  });
   el.querySelectorAll('[data-stu-qprog]').forEach(b => b.onclick = () => stuQProgOpen(b.dataset.stuQprog));
   /* REORG-FICHA: las puertas de la zona superior de la ficha —
      «Plan de entrenamiento» abre su pantalla y «Progreso» la
@@ -13025,6 +13217,9 @@ function renderStudentsBody() {
   if (du) loadStudentPlans(du.id);
   if (du) loadStudentTraining(du.id);
   if (du) loadStudentChal(du.id);
+  /* LA ZONA DEL DÍA (2026-11-24): los anillos de hoy y la línea
+     de quema del alumno se cargan y se pintan en sus cajas. */
+  if (du) loadStuDay(du.id, du);
   /* AUTH-565: los datos clave de las líneas con lo que ya esté
      en caché al pintar (las cargas los refrescan al aterrizar). */
   if (du) stuFoldSync();

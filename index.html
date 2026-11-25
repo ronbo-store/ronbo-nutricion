@@ -1156,7 +1156,10 @@
        informes de AUTH-586/602/609, sin cambios). Va ANTES de
        #tmeas-float y #breport-float en el documento: esas dos
        pantallas se abren ENCIMA de esta y al volver se regresa
-       a ella. La pintan y la mueven banaOpen / banaClose. -->
+       a ella. La pintan y la mueven banaOpen / banaClose.
+       TARJETAS (2026-11-24, maqueta aprobada por Ronald): los dos
+       botones son ahora TARJETAS con el estilo de las de
+       «Progreso en este plan» (.reorg-tile en rejilla de dos). -->
   <div class="pend-float pend-consult r10-screen" id="bana-float" style="display:none" role="dialog">
     <div class="pend-head">
       <button type="button" class="pend-back" id="bana-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
@@ -1172,13 +1175,17 @@
        medidas y la grasa corporal) y la escritura por las mismas
        puertas del alumno (nutrition_weight y su documento de
        evaluación de hoy), con la marca de origen de la casa. La
-       pintan y la mueven tmeasOpen / tmeasClose (app.js). -->
-  <div class="pend-float pend-consult" id="tmeas-float" style="display:none" role="dialog">
+       pintan y la mueven tmeasOpen / tmeasClose (app.js).
+       TARJETAS (2026-11-24, maqueta aprobada por Ronald): deja de
+       ser hoja flotante y pasa a PANTALLA COMPLETA propia
+       (r10-screen, el patrón de #bana-float / #bcmp-float) con el
+       «‹ Volver» fijo en la cabecera — sin ✕: la única salida es
+       el Volver, que regresa a «Análisis corporal». -->
+  <div class="pend-float pend-consult r10-screen" id="tmeas-float" style="display:none" role="dialog">
     <div class="pend-head">
+      <button type="button" class="pend-back" id="tmeas-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
       <h2><span id="tmeas-title"></span></h2>
-      <button type="button" class="pend-close" id="tmeas-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
-    <button type="button" class="back-row" id="tmeas-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="tmeas-body"></div>
     <div class="p4-foot" id="tmeas-foot" style="display:none"></div>
   </div>
@@ -1186,14 +1193,18 @@
   <!-- AUTH-586 (punto 10): los informes de composición corporal del
        alumno — foto, imagen o PDF guardados como archivo en su
        historial, junto a «Tomar medidas». El contenido lo pinta
-       breportPaint (app.js); la ✕ y el ‹ Volver cierran sin tocar
-       nada. -->
-  <div class="pend-float pend-consult" id="breport-float" style="display:none" role="dialog">
+       breportPaint (app.js).
+       TARJETAS (2026-11-24, maqueta aprobada por Ronald): como la
+       de medidas, pasa a PANTALLA COMPLETA propia (r10-screen)
+       con el «‹ Volver» fijo en la cabecera — sin ✕ — y al volver
+       se regresa a «Análisis corporal». Su flujo encadenado de la
+       AUTH-609 y la lectura de la AUTH-602 viven dentro, sin
+       cambios. -->
+  <div class="pend-float pend-consult r10-screen" id="breport-float" style="display:none" role="dialog">
     <div class="pend-head">
+      <button type="button" class="pend-back" id="breport-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
       <h2><span id="breport-title"></span></h2>
-      <button type="button" class="pend-close" id="breport-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
-    <button type="button" class="back-row" id="breport-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="breport-body"></div>
     <div class="p4-foot" id="breport-foot" style="display:none"></div>
   </div>
