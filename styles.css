@@ -8422,6 +8422,20 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .pl594-auto-sheet { z-index: 60; }
 .pl594-auto-sheet .pl-auto { margin-top: 0; border-top: none; padding-top: 0; }
 .pl594-back { min-height: 44px; padding: 6px 10px; background: none; border: none; font: inherit; font-size: 15px; font-weight: 700; color: #0f766e; cursor: pointer; }
+/* EDITOR DE EJERCICIOS (2026-11-25, pedido de Ronald): título
+   grande del editor, estado VERDE del botón fijo de guardado
+   («✓ GUARDADO» solo cuando la firma del editor coincide con la
+   línea base guardada), botón por día «Guardar este día como
+   plantilla» y su hoja del nombre (el patrón .ex-media-pop). */
+.modal h2.pl-ed-title { font-size: 25px; font-weight: 800; letter-spacing: .03em; color: #1f2a44; margin-bottom: 12px; }
+#pl-save.pl-save-ok { background: #15803d; border-color: #15803d; color: #fff; }
+.pl-day-tpl { width: 100%; min-height: 44px; margin-top: 8px; }
+.edex-sheet { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 90; }
+.edex-sheet-card { background: #fff; border-radius: 16px 16px 0 0; padding: 16px; width: min(94vw, 430px); max-height: 100dvh; overflow-y: auto; position: relative; box-shadow: 0 -8px 30px rgba(15,23,42,.25); }
+.edex-sheet-card h3 { margin: 0 36px 10px 0; }
+.edex-sheet-card label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 10px; color: #374151; }
+.edex-sheet-card input { width: 100%; margin-top: 4px; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+@media (min-width: 640px) { .edex-sheet { align-items: flex-start; } .edex-sheet-card { border-radius: 16px; margin-top: 16px; } }
 #pl-dates-fold { margin: 0 0 6px; }
 .myb-day-sum { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 6px 2px; background: none; border: none; border-radius: 8px; font: inherit; font-weight: 700; color: #1f2a44; text-align: left; cursor: pointer; }
 .myb-day-sum-c { flex: none; color: #0d9488; font-weight: 700; transition: transform .15s ease; }

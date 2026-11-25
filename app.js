@@ -32675,7 +32675,13 @@ function trainAddBuildRows(plan, di, iso, tpl, dayIdx) {
       name: entry ? libNameOf(entry) : (te.nombre_libre || te.exerciseId || ''),
       sets: te.series != null ? String(te.series) : '',
       reps: te.repeticiones != null ? String(te.repeticiones) : '',
-      load: '', loadUnit: UNIT_PREFS.mass,
+      /* PLANTILLA DE UN DÍA (2026-11-25): la carga guardada en la
+         plantilla nace puesta en la revisión (editable, como
+         cualquier carga del panel) y al confirmar viaja al día
+         como dictLoad por el camino de siempre (trainAddApply →
+         ed.added.load → trainEffectiveList). */
+      load: (typeof te.dictLoad === 'number' && te.dictLoad > 0) ? String(te.dictLoad) : '',
+      loadUnit: (typeof te.dictLoad === 'number' && te.dictLoad > 0) ? (te.dictLoadUnit === 'lb' ? 'lb' : 'kg') : UNIT_PREFS.mass,
       /* Lo que ya vive en el día (por ficha, candado D1) se
          marca y NO se incorpora: la rutina se conserva. */
       inDay: (di != null && te.exerciseId) ? swapEffHasId(plan, di, te.exerciseId, iso) : false
@@ -56280,7 +56286,7 @@ async function tplApply(id) {
   (tpl.days || []).forEach(d => {
     const tplMapped = (d.exercises || []).map(te => {
       const entry = LIB_BY_ID[te.exerciseId] || null;
-      return {
+      const mapped = {
         name: entry ? libNameOf(entry) : (te.nombre_libre || te.exerciseId || ''),
         sets: te.series || '', reps: te.repeticiones || '', note: '',
         exerciseId: te.exerciseId || '',
@@ -56289,6 +56295,12 @@ async function tplApply(id) {
         rest: te.descanso_es || '', rest_en: te.descanso_en || '',
         warmup: te.aproximacion_es || '', warmup_en: te.aproximacion_en || '',
       };
+      /* PLANTILLA DE UN DÍA (2026-11-25): la carga guardada en la
+         plantilla viaja al ejercicio — planDayRow la deja en
+         _extra de la fila y el guardado del editor la restituye
+         al plan, como con cualquier plan que la trae. */
+      if (typeof te.dictLoad === 'number' && te.dictLoad > 0) { mapped.dictLoad = te.dictLoad; mapped.dictLoadUnit = te.dictLoadUnit === 'lb' ? 'lb' : 'kg'; }
+      return mapped;
     });
     const tplDedup = planDedupList([], tplMapped);
     tplOmitted += tplDedup.omitted.length;
@@ -56302,10 +56314,29 @@ async function tplApply(id) {
   $('pl-title').value = tplField(tpl, 'nombre');
   if (planCtx) planCtx.tplSource = { id: tpl.id, version: tpl.version || '' };
   if (planCtx) planCtx.genSource = null;
+  if (tpl.dayTemplate === true && planCtx) {
+    /* REPETIR EN OTRA FECHA (2026-11-25): la plantilla de un día
+       nace como plan NUEVO — el borrador se despega del plan que
+       estuviera abierto (planId null: al guardar se CREA el plan
+       de esa fecha y el original NO se toca), la cadencia queda
+       en un día (repeatOneDay: el fin es el propio inicio) y el
+       pliegue de fechas se abre con el inicio en hoy para que la
+       persona elija la fecha y guarde. Una fecha por aplicación. */
+    planCtx.planId = null;
+    planCtx.repeatOneDay = true;
+    const st = $('pl-start'); if (st) st.value = todayISO();
+    const en = $('pl-end'); if (en) en.value = todayISO();
+    const pr = $('pl-preset'); if (pr) pr.value = '';
+    const db = $('pl-dates-body'); if (db) db.style.display = '';
+    const df = $('pl-dates-fold'); if (df) { df.setAttribute('aria-expanded', 'true'); const ch = df.querySelector('.pl-fold-chev'); if (ch) ch.textContent = '▾'; }
+    repeatNoteShow(t('edex.dateNote'));
+    if (typeof pl594DatesSumSync === 'function') pl594DatesSumSync();
+  }
   tplAlignState = { tpl, dismissed: false, aligned: false };
   tplRenderAlign();
   toast(t('train.tpl.applied'));
   if (tplOmitted) planDupToastOmitted(tplOmitted);
+  planSaveStatePaint();
 }
 /* ================= N-09: PERMISOS DE BIBLIOTECA Y PLANTILLAS =================
    Decisión N-09 de Ronald (correo memphis, 2026-10-23 22:53 CDT),
@@ -56490,6 +56521,111 @@ async function tplSaveAsTemplate() {
   tplRenderTplUI();
   renderPropTemplates();
 }
+/* ═══ EDITOR DE EJERCICIOS · PLANTILLA DE UN DÍA (2026-11-25,
+   extensión pedida por Ronald a las 06:40): el botón de cada día
+   del editor guarda LA CONSTRUCCIÓN ACTUAL DE ESE DÍA — los
+   ejercicios con sus series, repeticiones y la carga que viaja
+   en la fila (dictLoad, en _extra) tal como están editados en
+   pantalla — como plantilla PERSONAL en routine_templates
+   (visibility 'private', ownerUid = el dueño del plan), con el
+   nombre que la persona escribe en la hoja #edex-tpl-sheet.
+   Vive en la lista de siempre: el editor la lista (tplRenderList)
+   y «Añadir → Elegir una plantilla» también (trainAddTplHTML),
+   porque ambas leen el mismo catálogo por clases; las
+   plantillas de planes completos no cambian en nada. Al
+   aplicarla en el editor (tplApply) el borrador nace como plan
+   NUEVO de un día: se elige la fecha y al guardar la rutina
+   queda en esa fecha sin tocar el plan original. ═══ */
+let edexTplDayEl = null;
+function edexTplCollectDay(dEl) {
+  const labelEl = dEl.querySelector('.pl-day-label');
+  const label = labelEl ? labelEl.value.trim() : '';
+  const exercises = [];
+  dEl.querySelectorAll('.pl-ex-row').forEach(r => {
+    const name = r.querySelector('.pl-ex-name').value.trim();
+    if (!name) return;
+    const te = { exerciseId: r.dataset.exid || '', series: r.querySelector('.pl-ex-sets').value.trim(), repeticiones: r.querySelector('.pl-ex-reps').value.trim() };
+    if (!te.exerciseId) te.nombre_libre = name;
+    let rest = r.dataset.rest || '', restEn = r.dataset.restEn || '', warm = r.dataset.warmup || '', warmEn = r.dataset.warmupEn || '';
+    const restIn = r.querySelector('.pl-ex-rest'), warmIn = r.querySelector('.pl-ex-warmup');
+    if (restIn) { if (LANG === 'es') rest = restIn.value.trim(); else restEn = restIn.value.trim(); }
+    if (warmIn) { if (LANG === 'es') warm = warmIn.value.trim(); else warmEn = warmIn.value.trim(); }
+    if (rest) te.descanso_es = rest;
+    if (restEn) te.descanso_en = restEn;
+    if (warm) te.aproximacion_es = warm;
+    if (warmEn) te.aproximacion_en = warmEn;
+    /* LA CARGA VIAJA: la fila del editor no tiene campo de peso;
+       la carga vive en _extra (dictLoad/dictLoadUnit) y la
+       plantilla la conserva — al aplicarla, el día nace con el
+       mismo peso (tplApply y trainAddBuildRows la leen). */
+    const xtra = r._extra || {};
+    if (typeof xtra.dictLoad === 'number' && xtra.dictLoad > 0) { te.dictLoad = xtra.dictLoad; te.dictLoadUnit = xtra.dictLoadUnit === 'lb' ? 'lb' : 'kg'; }
+    exercises.push(te);
+  });
+  const tplDay = { dia_num: 1, dia_nombre_es: label, dia_nombre_en: label, exercises: dEl._freeDay === true ? [] : exercises };
+  if (dEl._freeDay === true) tplDay.libre = true;
+  const session = [];
+  const blocks = dEl._sessionBlocks || [];
+  if (blocks.length) {
+    const row = { dia_num: 1 };
+    blocks.forEach(b => {
+      const pre = b.kind === 'cardio_pre' ? 'cardio_antes' : b.kind === 'cardio_post' ? 'cardio_despues' : b.kind === 'sauna' ? 'sauna' : null;
+      if (!pre) return;
+      if (b.detail_es) row[pre + '_es'] = b.detail_es;
+      if (b.detail_en) row[pre + '_en'] = b.detail_en;
+    });
+    if (Object.keys(row).length > 1) session.push(row);
+  }
+  return { tplDay, session };
+}
+function edexTplOpen(dEl) {
+  if (!planCtx || !auth.currentUser) return;
+  edexTplDayEl = dEl;
+  const sheet = $('edex-tpl-sheet'); if (!sheet) return;
+  const inp = $('edex-tpl-name');
+  const labelEl = dEl.querySelector('.pl-day-label');
+  inp.value = labelEl ? labelEl.value.trim() : '';
+  const err = $('edex-tpl-err'); if (err) err.style.display = 'none';
+  sheet.style.display = '';
+  setTimeout(() => { try { inp.focus(); inp.select(); } catch {} }, 30);
+}
+function edexTplClose() { const s = $('edex-tpl-sheet'); if (s) s.style.display = 'none'; edexTplDayEl = null; }
+async function edexTplSave() {
+  if (!planCtx || !auth.currentUser || !edexTplDayEl) return;
+  const err = $('edex-tpl-err');
+  const fail = msg => { if (err) { err.textContent = msg; err.style.display = ''; } };
+  const name = (($('edex-tpl-name') || {}).value || '').trim();
+  if (!name) { fail(t('edex.tplNeedName')); return; }
+  const { tplDay, session } = edexTplCollectDay(edexTplDayEl);
+  if (!tplDay.exercises.length && tplDay.libre !== true) { fail(t('edex.tplNeedEx')); return; }
+  const data = {
+    nombre_es: name, nombre_en: name,
+    dias_por_semana: 1, dayTemplate: true,
+    days: [tplDay], session,
+    visibility: 'private', ownerUid: planCtx.clientUid,
+    createdBy: auth.currentUser.uid, createdByName: (typeof UDATA !== 'undefined' && UDATA && (UDATA.name || UDATA.email)) || '',
+    createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: auth.currentUser.uid,
+  };
+  const btn = $('edex-tpl-save'); if (btn) btn.disabled = true;
+  try { await addDoc(collection(db, 'routine_templates'), data); }
+  catch { if (btn) btn.disabled = false; fail(t('edex.tplErr')); return; }
+  if (btn) btn.disabled = false;
+  edexTplClose();
+  toast(t('edex.tplSaved', { name }));
+  /* La plantilla nueva entra en el catálogo de la sesión sin
+     recargar: la lista del editor y «Elegir una plantilla» la
+     muestran al momento (la misma invalidación de
+     tplSaveAsTemplate). */
+  TPL_STATE = 'idle'; TPL = null; TPL_BY_ID = {};
+  await tplEnsure();
+  tplRenderTplUI();
+  renderPropTemplates();
+}
+{ const x = $('edex-tpl-x'); if (x) x.onclick = () => edexTplClose();
+  const c = $('edex-tpl-cancel'); if (c) c.onclick = () => edexTplClose();
+  const s = $('edex-tpl-save'); if (s) s.onclick = () => edexTplSave();
+  const sh = $('edex-tpl-sheet'); if (sh) sh.addEventListener('click', e => { if (e.target === sh) edexTplClose(); }); }
+
 async function tplEditLoad(id) {
   if (!TPL_BY_ID[id] || !tplCanEdit(TPL_BY_ID[id])) { toast(t('train.n09.lockedNote'), true); return; }
   await tplApply(id);
@@ -57307,6 +57443,7 @@ function planDayRow(day) {
     <div class="pl-day-blocks"></div>
     <div class="pl-exs">${(day.exercises && day.exercises.length ? day.exercises : [{}]).map(planExRow).join('')}</div>
     <button type="button" class="btn-ghost btn-sm pl-ex-add">${t('train.f.addEx')}</button>
+    <button type="button" class="btn-ghost pl-day-tpl">${t('edex.saveDayTpl')}</button>
     </div>`;
   wrap._sessionBlocks = Array.isArray(day.sessionBlocks) ? day.sessionBlocks.map(b => ({ ...b })) : [];
   /* DÍA LIBRE ASIGNABLE (2026-11-08, D3): el tipo del día vive en
@@ -57338,6 +57475,7 @@ function planDayRow(day) {
       const x = {}; Object.keys(ex).forEach(k => { if (!PLAN_EX_KNOWN.includes(k)) x[k] = ex[k]; });
       if (Object.keys(x).length) rowEl._extra = x; }); }
   wrap.querySelector('.pl-day-repeat').onclick = () => repeatDayInEditor(wrap);
+  wrap.querySelector('.pl-day-tpl').onclick = () => edexTplOpen(wrap);
   renderDayBlocks(wrap);
   wrap.querySelector('.pl-day-del').onclick = () => wrap.remove();
   wrap.querySelector('.pl-ex-add').onclick = () => {
@@ -57544,7 +57682,7 @@ function openPlanEditor(clientUid, plan) {
      biblioteca no está disponible, el aviso queda visible y el
      editor sigue en texto libre (sin bloquear nada). */
   libRenderNotice();
-  libEnsure().then(() => { libRefreshOpenRows(); if (!planTouched) planBaseline = planSignature(); });
+  libEnsure().then(() => { libRefreshOpenRows(); if (!planTouched) planBaseline = planSignature(); planSaveStatePaint(); });
   /* PLANTILLAS (§4.2): el selector se ofrece en el mismo editor; la
      lectura es única por sesión y el estado de alineación nace
      limpio en cada apertura. */
@@ -57563,6 +57701,10 @@ function openPlanEditor(clientUid, plan) {
      automático y la de fechas, y las deja en su estado de
      nacimiento (hoja cerrada, fechas recogidas con su periodo). */
   pl594Init();
+  /* EDITOR DE EJERCICIOS: el botón fijo nace diciendo la verdad
+     del estado recién abierto (plan existente y sin tocar:
+     «✓ GUARDADO»; borrador nuevo aún no escrito: «GUARDAR»). */
+  planSaveStatePaint();
 }
 /* GUARDAR SIN CERRAR (2026-10-26, instrucción de Ronald): foto del
    estado del editor (campos + días + filas, incluidos los textos de
@@ -57607,7 +57749,12 @@ $('pl-add-day').onclick = () => { const nd = planDayRow(null); $('pl-days').appe
 $('plan-cancel').onclick = () => planRequestClose();
 /* La nota de «guardado» se apaga en cuanto el entrenador vuelve a
    tocar el formulario: ya no describe el estado actual. */
-{ const fp = $('form-plan'); if (fp) fp.addEventListener('input', () => { planTouched = true; const n = $('pl-saved-note'); if (n) n.style.display = 'none'; }); }
+{ const fp = $('form-plan'); if (fp) { fp.addEventListener('input', () => { planTouched = true; const n = $('pl-saved-note'); if (n) n.style.display = 'none'; planSaveStatePaint(); }); fp.addEventListener('change', () => planSaveStatePaint()); } }
+/* EDITOR DE EJERCICIOS: los botones de las filas (steppers,
+   añadir/quitar, plantillas…) no siempre disparan input/change:
+   cualquier toque dentro del editor repinta el estado del botón
+   de guardado al terminar el gesto, con la firma ya actualizada. */
+{ const pm = $('plan-modal'); if (pm) pm.addEventListener('click', () => { setTimeout(() => planSaveStatePaint(), 0); }, true); }
 if ($('ex-media-x')) $('ex-media-x').onclick = exMediaClose;
 if ($('ex-media-pop')) $('ex-media-pop').addEventListener('click', e => { if (e.target.id === 'ex-media-pop') exMediaClose(); });
 if ($('yt-float-x')) $('yt-float-x').onclick = ytClosePlayer;
@@ -57635,8 +57782,31 @@ let planSaveBusy = false;
 function planSaveBtnBusy(on) {
   const b = $('pl-save');
   if (!b) return;
-  b.disabled = !!on;
-  b.textContent = on ? t('train.saving') : t('train.save');
+  if (on) { b.disabled = true; b.classList.remove('pl-save-ok'); b.textContent = t('train.saving'); return; }
+  planSaveStatePaint();
+}
+/* EDITOR DE EJERCICIOS (2026-11-25, pedido de Ronald: «quiero
+   tener un botón que me haga sentir seguro de que la edición de
+   los ejercicios se guardó»): el botón fijo del pie dice la
+   VERDAD del estado — «GUARDAR» cuando la firma del editor
+   difiere de la línea base guardada (o el plan aún no existe en
+   el almacén) y «✓ GUARDADO» en verde cuando coinciden. La
+   firma es la misma foto que usa la guarda de cierre
+   (planSignature/planBaseline): si algo no se ha escrito, el
+   botón NO dice guardado. El guardado sigue siendo el de
+   siempre (el envío del formulario): ninguna edición depende
+   solo de este botón, y tocarlo con todo guardado vuelve a
+   guardar por el mismo camino — la confirmación expresa del
+   mismo guardado. */
+function planSaveStatePaint() {
+  const b = $('pl-save');
+  if (!b) return;
+  if (planSaveBusy) { b.disabled = true; b.classList.remove('pl-save-ok'); b.textContent = t('train.saving'); return; }
+  b.disabled = false;
+  let dirty = true;
+  try { dirty = !planCtx || !planCtx.planId || !planBaseline || planSignature() !== planBaseline; } catch { dirty = true; }
+  if (dirty) { b.textContent = t('edex.save'); b.classList.remove('pl-save-ok'); }
+  else { b.textContent = t('edex.saved'); b.classList.add('pl-save-ok'); }
 }
 $('form-plan').addEventListener('submit', async e => {
   e.preventDefault();
@@ -57837,7 +58007,9 @@ $('form-plan').addEventListener('submit', async e => {
      casilla y el recordatorio). */
   planGateRefresh();
   /* GUARDADO VISIBLE: con la confirmación ya visible, el botón
-     vuelve a «Guardar plan» y queda listo para otro guardado. */
+     vuelve listo para otro guardado — desde el paquete EDITOR
+     DE EJERCICIOS, mostrando «✓ GUARDADO» (la línea base acaba
+     de refrescarse con lo recién escrito). */
   saveDone();
   if ($('client-training')) loadClientTraining(cuid);
   /* AUTH-341: si el detalle de «Mis alumnos» de este alumno está
