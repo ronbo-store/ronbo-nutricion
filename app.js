@@ -36497,9 +36497,19 @@ function sessPillSync(run) {
        degradado honesto, pero diciendo lo que pasa — el día
        está completado (y su cierre vive en la completa, por
        la función única del cierre). La firma conserva el
-       prefijo 'deg|' para que la clase is-deg siga puesta. */
-    sig = 'deg|done|' + (run.label || '') + '|c' + cMin + '|' + dc.di + '|' + dc.eff.length;
-    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}</div>${sessCardioLineHTML('sp-cardio', cMin)}<div class="sp-state"><span class="sp-training">${esc(t('sess.dayDone'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + sessDoorsHTML();
+       prefijo 'deg|' para que la clase is-deg siga puesta.
+       CELEBRACIÓN TRAS EL CARDIO (Ronald, 2026-11-25):
+       mientras el cardio final asignado siga pendiente
+       (ni hecho, ni quitado, ni su temporizador en cero),
+       la píldora tampoco dice «Día completado» — dice
+       «Entrenando» — y su firma usa el prefijo
+       'deg|donep|', así la etiqueta hablada tampoco lo
+       dice y el paso a resuelto repinta una sola vez. */
+    const pET = sessCStageEndT(dc.plan.id);
+    const pCd = (pET && SESS_CSTAGE_CD && SESS_CSTAGE_CD.T === pET) ? SESS_CSTAGE_CD : null;
+    const pPending = !!pET && !(pCd && pCd.f === 1);
+    sig = (pPending ? 'deg|donep|' : 'deg|done|') + (run.label || '') + '|c' + cMin + '|' + dc.di + '|' + dc.eff.length;
+    html = `<div class="sp-main is-deg"><div class="sp-left"><div class="sp-top"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sess-pill-time" id="sess-pill-time">00:00:00</span>${sessTotalTagHTML()}</div>${sessCardioLineHTML('sp-cardio', cMin)}<div class="sp-state"><span class="sp-training">${esc(t(pPending ? 'sess.pillPlain' : 'sess.dayDone'))}</span>${run.label ? `<span class="sp-day">${esc(run.label)}</span>` : ''}</div></div></div>` + sessDoorsHTML();
   } else {
     const ck = st.di + ':' + st.cur;
     const curChk = st.checks[ck] || null;
@@ -38883,10 +38893,41 @@ function sessFullSync(run) {
       try { if (sessDoneCardioPointAfter(dc.plan.id, SESS_DONE_CARDIO_T)) SESS_DONE_CARDIO = 'after'; } catch {}
     }
     const totalD = dc.eff.length;
-    const headDone = `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.dayDone'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}</div>`;
+    /* ═══ LA CELEBRACIÓN ESPERA AL CARDIO FINAL (decisión
+       de Ronald, 2026-11-25 09:53 CST, con su captura al
+       terminar la sesión: la mascota celebraba «Día
+       completado» con el CARDIO FINAL aún corriendo a
+       9:14): el cardio final asignado CUENTA como un
+       ejercicio más del día y la celebración (mascota +
+       «Día completado» + confeti) NO se enciende mientras
+       ese cardio siga pendiente — se enciende al
+       resolverlo: marcado «Hecho» en la etapa, quitado, o
+       con su temporizador en cero; y si el día no trae
+       cardio final, como siempre. Con el temporizador en
+       sus últimos 30 s la mascota aparece antes, pero de
+       AVISO («Faltan 30 segundos para que termine»), sin
+       confeti y sin «Día completado». Mientras el cardio
+       manda, la cabecera dice «Entrenando» y el bloque no
+       lleva el título de completado: el resumen cuenta el
+       cardio en el total (n de m con m = ejercicios + 1).
+       La pregunta de AUTH-516 (cardio OPCIONAL ofrecido
+       tras el día, sin etapa ni temporizador) no es este
+       cardio: su comportamiento queda como está. ═══ */
+    const eT = sessCStageEndT(dc.plan.id);
+    const endCd = (eT && SESS_CSTAGE_CD && SESS_CSTAGE_CD.T === eT) ? SESS_CSTAGE_CD : null;
+    const endZero = !!(endCd && endCd.f === 1);
+    const endPending = !!eT && !endZero;
+    const endAssigned = sessCEndAssigned(dc.plan.id);
+    const endRemain = endCd ? sessCStageCdRemain(endCd) : null;
+    const endWarn = endPending && endRemain != null && endRemain > 0 && endRemain <= 30;
+    const totD = totalD + (endAssigned ? 1 : 0);
+    const doneD = totalD + (endAssigned && !endPending ? 1 : 0);
+    const headDone = endPending
+      ? `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}</div>`
+      : `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.dayDone'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}</div>`;
     const pctD = Math.round(sessDayFracFine(dc.plan, dc.di, dc.checks, dc.eff) * 100);   /* AUTH-526: en el cierre manda la misma fracción fina — con una etapa de cardio asignada aún sin hacer, la barra enseña su rebanada pendiente en vez de un 100 % que todavía no es; sin cardio pendiente (o ya hecho) vale 100, como siempre */
     const flameD = pctD <= 8 ? '13px' : (pctD >= 92 ? 'calc(100% - 13px)' : pctD + '%');
-    const franjaDone = `<div class="sf-franja" aria-hidden="true"><i style="width:${pctD}%"></i>${sessPillTipHTML(flameD)}</div><div class="sf-prog">${esc(t('train.guide.pos', { n: totalD, m: totalD }))} · ${esc(t('sess.ofDay', { p: pctD }))}</div>`;
+    const franjaDone = `<div class="sf-franja" aria-hidden="true"><i style="width:${pctD}%"></i>${sessPillTipHTML(flameD)}</div><div class="sf-prog">${esc(t('train.guide.pos', { n: doneD, m: totD }))} · ${esc(t('sess.ofDay', { p: pctD }))}</div>`;
     /* AUTH-566 (programa «Plegar todo» nº 3): el panel ya no
        despliega el formulario de cierre dentro de su columna —
        pinta SOLO la puerta «Terminar y guardar».
@@ -38902,7 +38943,6 @@ function sessFullSync(run) {
        va sobre la etapa — el cardio cierra la jornada. La
        pregunta de AUTH-516 queda para cuando no hay ningún
        cardio final, asignado ni hecho. */
-    const eT = sessCStageEndT(dc.plan.id);
     let doneInner;
     if (eT) {
       doneInner = sessCStageHTML(dc.plan, eT, 'end');
@@ -38918,8 +38958,17 @@ function sessFullSync(run) {
       doneInner = doneForm;
     }
     const progAnn = progCloseAnnounceHTML(dc);   /* AUTH-544: el anuncio de progresión del cierre, evaluado sobre las marcas de hoy como sesión sintética */
-    const doneBlk = `<div class="sf-done"><div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div><div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: totalD, m: totalD }))} · <span class="sf-done-clock">00:00:00</span></div>${sessCelebHTML()}${progAnn}${doneInner}</div>`;   /* AUTH-521: la celebración vive entre el resumen y la pregunta/el cierre, sin bloquear ninguno */
-    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-'), 'P' + pctD, 'RG' + (moveGenreSelSaved() ? '1' : '0'), 'PG' + progCloseKeys(dc).join(',')].join('|');   /* AUTH-540 */   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma · AUTH-526: el % fino también — cuando la etapa se marca hecha, la barra repinta a su valor */
+    /* La celebración (o su aviso de 30 s) vive entre el
+       resumen y la pregunta/el cierre, sin bloquear
+       ninguno — AUTH-521, con la puerta del cardio final
+       de la decisión de Ronald de 2026-11-25: pendiente el
+       cardio, ni título de completado ni celebración;
+       solo el aviso cuando el temporizador entra en sus
+       últimos 30 s. */
+    const celebBlk = endPending ? (endWarn ? sessCelebWarnHTML() : '') : sessCelebHTML();
+    const doneTitle = endPending ? '' : `<div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div>`;
+    const doneBlk = `<div class="sf-done">${doneTitle}<div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: doneD, m: totD }))} · <span class="sf-done-clock">00:00:00</span></div>${celebBlk}${progAnn}${doneInner}</div>`;
+    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-'), 'P' + pctD, 'CC' + (endPending ? (endWarn ? 'W' : 'P') : 'R'), 'RG' + (moveGenreSelSaved() ? '1' : '0'), 'PG' + progCloseKeys(dc).join(',')].join('|');   /* CC: la puerta de la celebración tras el cardio — pendiente/aviso/resuelta: entrar en los últimos 30 s o resolver el cardio repinta una vez */   /* AUTH-540 */   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma · AUTH-526: el % fino también — cuando la etapa se marca hecha, la barra repinta a su valor */
     if (!SESS_FULL_SIG.startsWith('fdone')) sessDayDoneHook(dc);   /* AUTH-507: la celebración se engancha a la ENTRADA en el estado, no a cada latido */
     html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${msgBlk}${sessReflBlockHTML()}${doneBlk}</div>${minBtn}</div>`;
   } else if (sessCStageWarmT(run.planId)) {
@@ -39990,6 +40039,18 @@ function sessCelebHTML() {
   const url = SESS_CELEB_URLS[sessCelebIdxFor(iso)];
   return `<div class="sf-celeb"><div class="sf-celeb-confetti" aria-hidden="true">${sessCelebConfetti(iso)}</div><div class="sf-celeb-bubble">${esc(t('sess.dayDone'))}</div><button type="button" class="sf-celeb-scene" data-sess-celeb="1" aria-label="${esc(t('sess.dayDone'))}"><img src="${url}" alt="" loading="lazy" onerror="this.remove()"></button><div class="sf-celeb-tap">${esc(t('sess.celebTap'))}</div></div>`;
 }
+/* El AVISO de los últimos 30 s del cardio final (decisión
+   de Ronald, 2026-11-25): la misma mascota del día, con el
+   bocadillo «Faltan 30 segundos para que termine» — sin
+   confeti, sin «Día completado» y sin escena tocable (no
+   hay confeti que repetir todavía). Lo pinta sessFullSync
+   en el sitio de la celebración mientras la etapa final
+   sigue pendiente y su temporizador vive en la zona. */
+function sessCelebWarnHTML() {
+  const iso = todayISO();
+  const url = SESS_CELEB_URLS[sessCelebIdxFor(iso)];
+  return `<div class="sf-celeb sf-celeb-warn"><div class="sf-celeb-bubble">${esc(t('sess.celebWarn30'))}</div><div class="sf-celeb-scene"><img src="${url}" alt="" loading="lazy" onerror="this.remove()"></div></div>`;
+}
 
 /* ═══ AUTH-516 · «¿CARDIO PARA FINALIZAR?» (regla de Ronald,
    2026-11-19 13:25 CST): al completarse el día por los
@@ -40142,6 +40203,16 @@ function sessCStageEndT(planId) {
   for (let i = 0; i < xs.length; i++) if (trainCardio2ViewOf(xs[i]) && trainCardio2StOf(xs[i]) !== 'd') return 'x' + i;
   return '';
 }
+/* ¿El día trae cardio final ASIGNADO? (algún añadido con
+   su vista — máquina y minutos —, esté hecho o no). Es el
+   término «+1» del conteo de la celebración tras el
+   cardio: asignado cuenta en el total; resuelto (sin
+   etapa pendiente o con su temporizador en cero) cuenta
+   en lo hecho. */
+function sessCEndAssigned(planId) {
+  const doc = trainCardio2Read(planId);
+  return (doc.extras || []).some(e => !!trainCardio2ViewOf(e));
+}
 function sessCStageView(planId, T) {
   const doc = trainCardio2Read(planId);
   const e = T === 'warm' ? doc.warm : (doc.extras || [])[Number(String(T).slice(1))];
@@ -40168,6 +40239,7 @@ function sessCStageCdTick() {
   if (cd.f === 1) { el.textContent = '0:00'; el.classList.add('alarm'); return; }
   const rem = sessCStageCdRemain(cd);
   el.textContent = trainTimerFmt(rem);
+  if (rem <= 30 && rem > 0 && !cd.w) { cd.w = 1; try { sessPillTick(); } catch {} }   /* CELEBRACIÓN TRAS EL CARDIO: al entrar la cuenta en sus últimos 30 s, un latido inmediato repinta la completa — nace el aviso de la mascota (la firma CC hace el resto) */
   if (typeof cd.t0 === 'number' && cd.t0 > 0 && rem <= 0) {
     cd.e = cd.goal; cd.t0 = null; cd.f = 1;
     try { swAlertBeep(); } catch {}   /* AUTH-498: la misma alarma de la casa */

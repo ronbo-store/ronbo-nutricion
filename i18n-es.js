@@ -3380,7 +3380,7 @@ export default {
   'sess.auMin': 'Minimizar la mascota', 'sess.auTap': 'Toca la mascota para pausar o seguir',
   'sess.nowLab': 'AHORA', 'sess.exRunning': 'en curso', 'sess.timeGoal': 'Meta de tiempo {t}',
   'sess.ofDay': '{p}% del día',
-  'sess.dayDone': 'Día completado', 'sess.dayDoneSum': '{n} de {m} ejercicios hechos', 'sess.celebTap': 'Toca la mascota para repetir el confeti',
+  'sess.dayDone': 'Día completado', 'sess.dayDoneSum': '{n} de {m} ejercicios hechos', 'sess.celebTap': 'Toca la mascota para repetir el confeti', 'sess.celebWarn30': 'Faltan 30 segundos para que termine',
   'sess.doneCardioQ': '¿Quieres hacer cardio para finalizar?', 'sess.doneCardioYes': 'Sí, hacer cardio', 'sess.doneFinishQ': '¿Finalizamos la jornada por hoy?', 'sess.doneCardioDoing': 'Cardio en curso', 'sess.doneCardioResume': 'Seguir con el cardio',
   'sess.cstage.warmLab': 'Cardio de calentamiento', 'sess.cstage.endLab': 'Cardio final', 'sess.cstage.assigned': 'Asignado: {min} min', 'sess.cstage.do': '✓ Hecho', 'sess.cstage.start': 'Empezar', 'sess.cstage.pause': 'Pausar', 'sess.cstage.endDone': 'Cardio hecho — al finalizar se cierra la jornada.', 'sess.cstage.notYet': 'Asignado — solo cuenta cuando lo haces aquí.',
   'home.start.go': 'EMPEZAR', 'home.start.sub': 'tu entrenamiento de hoy', 'home.start.skip': 'Saltar el día de hoy', 'home.start.aria': 'Empezar tu entrenamiento de hoy',

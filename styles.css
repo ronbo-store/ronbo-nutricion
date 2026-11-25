@@ -7795,6 +7795,10 @@ textarea.gest-in { resize: none; }
 .sf-celeb-scene img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 16px 24px rgba(0,0,0,.45)); }
 @keyframes sfCelebIn { from { transform: translateY(46px) scale(.82); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 .sf-celeb-tap { z-index: 2; margin-top: 10px; color: #8fa6bf; font-size: 12.5px; letter-spacing: .04em; text-align: center; }
+.sf-celeb-warn .sf-celeb-scene { cursor: default; }   /* el aviso de los 30 s no es tocable: no hay confeti que repetir */
+/* El aviso nace COMPACTO (criterio de Ronald, 2026-11-25: la vista en curso maximizada cabe entera sin bajar): su escena es solo imagen — no es un toque, no le aplica el mínimo de 44 px — y a 136 px con márgenes cortos el bloque del aviso deja la etapa de cardio final entera a la vista en un teléfono de 844 px, donde la pila con la celebración de siempre (220 px, AUTH-521, intacta) se pasa 108 px y desplaza dentro de .sf-body. */
+.sf-celeb-warn { padding-top: 4px; }
+.sf-celeb-warn .sf-celeb-scene { width: 136px; height: 136px; margin-top: 8px; }
 @media (prefers-reduced-motion: reduce) { .sf-celeb-cf { display: none; } .sf-celeb-scene, .sf-celeb-bubble { animation: none; } }
 
 /* ===== CAND-530 · «MIS PLANES», PLEGADO EN UNA LÍNEA =====
