@@ -8362,6 +8362,18 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .br-another-cap { text-align: center; font-size: 13px; color: var(--muted, #5b6b66); margin-top: 7px; }
 .br-read-badge { display: inline-block; margin-top: 4px; font-size: 11.5px; font-weight: 800; letter-spacing: .02em; color: #157347; background: #E5F5EC; border: 1px solid #7BC79B; padding: 3px 8px; border-radius: 999px; }
 .br-cmp-btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; margin-top: 14px; font-size: 16px; font-weight: 700; }
+/* INFORMES PLEGADOS (2026-11-25): la línea de datos leídos que
+   nace plegada bajo la tarjeta de su informe — una tarjeta
+   blanca en una línea (puede envolverse a dos renglones, pero
+   es UN solo bloque plegado), con su flecha a la derecha; el
+   detalle editable reutiliza las filas del lector (.air-row) y
+   el formulario de subida desplegado no necesita caja propia:
+   sus piezas son las de siempre (.br-upload, .br-date). */
+.brd-line { display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; margin-top: 8px; background: #fff; border: 1px solid var(--line, #e2e8f0); border-radius: 14px; padding: 12px 14px; font: inherit; font-size: 15px; color: inherit; text-align: left; cursor: pointer; }
+.brd-line-tx { flex: 1; min-width: 0; line-height: 1.4; }
+.brd-chev { flex: none; color: #0d9488; font-size: 22px; font-weight: 800; line-height: 1; transition: transform .15s ease; }
+.brd-line[aria-expanded="true"] .brd-chev { transform: rotate(90deg); }
+.brd-detail { margin-top: 8px; }
 #bcmp-float #bcmp-body { max-width: 780px; margin: 0 auto; }
 .bcmp-stu { font-size: 15px; color: var(--muted, #5b6b66); margin: 4px 0 2px; }
 .bcmp-sellabels { display: flex; gap: 10px; margin-top: 12px; }

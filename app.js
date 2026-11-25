@@ -13190,7 +13190,7 @@ async function breportOpen(uid) {
   const u = ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(x => x.id === uid) || { id: uid };
   const name = stuName(u);
   const tt = $('breport-title'); if (tt) tt.textContent = '📄 ' + t('r10.breportTitle', { name });
-  BREPORT = { uid, name, file: null, prevUrl: '', replaceId: '', date: todayISO(), busy: false, err: '', list: null, reading: false, reads: null };
+  BREPORT = { uid, name, file: null, prevUrl: '', replaceId: '', date: todayISO(), busy: false, err: '', list: null, reading: false, reads: null, upOpen: false, readOpen: '', readVals: null };
   fl.style.display = '';
   /* TARJETAS (2026-11-24): pantalla completa sin ✕ — la única
      salida es el «‹ Volver» fijo de la cabecera. */
@@ -13255,16 +13255,55 @@ function breportSetFile(f) {
   if (!BREPORT || !f) return;
   if (BREPORT.prevUrl) { try { URL.revokeObjectURL(BREPORT.prevUrl); } catch {} BREPORT.prevUrl = ''; }
   BREPORT.file = f; BREPORT.err = '';
+  /* INFORMES PLEGADOS (2026-11-25): elegir un archivo — también
+     por la vía de «Reemplazar» — abre el formulario de subida
+     para que la persona vea la vista previa y pueda guardar. */
+  BREPORT.upOpen = true;
   if (f.type !== 'application/pdf') { try { BREPORT.prevUrl = URL.createObjectURL(f); } catch {} }
   breportPaint();
 }
+/* ═══ INFORMES PLEGADOS (2026-11-25; orden de Ronald de las
+   06:58 con su captura de esta pantalla — «Creo que hay que
+   facilitar esto y cuando el lector haga su trabajo que
+   muestre sus resultados abajo nazca plegado» — y maqueta
+   aprobada por él a las 07:31: «Bien así, constrúyelo») ═══
+   La pantalla se facilita SIN tocar el lector ni los datos:
+   (1) UNA SOLA PUERTA DE SUBIDA — desaparece el bloque siempre
+   abierto de «Cargar resultado externo» con su fecha y su
+   «Guardar informe», y también el botón gemelo que vivía en el
+   aviso verde; queda solo «＋ Ingresar otro informe», que
+   DESPLIEGA el formulario de subida (archivo + «Fecha de la
+   medición» + «Guardar informe») y NACE PLEGADO. La subida
+   guarda por el camino de siempre (breportSave intacto).
+   (2) LA LISTA MANDA: «Informes anteriores» es el contenido
+   principal, justo tras la nota y el aviso verde (que se queda
+   como está, ya sin botón dentro).
+   (3) LOS RESULTADOS DEL LECTOR NACEN PLEGADOS, ABAJO DE SU
+   INFORME: cuando un informe tiene sus datos leídos y
+   guardados en el progreso del alumno (el registro
+   nutrition_weight con source 'ai-report' de su misma fecha,
+   comparable en el sentido de AUTH-609), bajo su tarjeta va
+   UNA línea plegada con los números principales QUE EXISTAN
+   (peso · grasa · agua; el que falta se omite, jamás se
+   inventa ni se pone «—»). Al tocarla se despliega el detalle
+   EDITABLE con las filas del formulario del lector (las mismas
+   AIR_FIELDS, avisos y derivada) y su botón de guardar, que
+   escribe en el progreso del alumno por la MISMA puerta de
+   airSave (airBuildSave → nutrition_weight/{uid}_{fecha},
+   source 'ai-report') y deja el informe marcado como leído.
+   La línea nace plegada SIEMPRE: el estado de apertura vive
+   en BREPORT y nace cerrado en cada apertura de la pantalla,
+   también recién leído un informe (la reapertura encadenada
+   de airSave crea un BREPORT nuevo). */
 function breportPaint() {
   const body = $('breport-body'); if (!body || !BREPORT) return;
   const B = BREPORT;
   const prev = B.file ? `<div class="br-prev">${B.file.type === 'application/pdf'
     ? `<div class="br-prev-name">📄 ${esc(B.file.name)}</div>`
     : `${B.prevUrl ? `<img src="${esc(B.prevUrl)}" alt="">` : ''}<div class="br-prev-name">${esc(B.file.name)}</div>`}</div>` : '';
-  const rows = (B.list || []).map(r => `<div class="br-item"><div class="br-row">
+  const rows = (B.list || []).map(r => {
+    const wdoc = breportReadDoc(r);
+    return `<div class="br-item"><div class="br-row">
     ${r.fileType === 'pdf' ? `<span class="br-row-ic" aria-hidden="true">📄</span>` : `<img src="${esc(r.url || '')}" alt="">`}
     <div class="br-row-main"><b>${esc(shortDate(r.measureDate || ''))}</b><span>${esc(r.fileType === 'pdf' ? t('r10.brPdf') : t('r10.brPhoto'))}</span>${breportIsRead(r) ? `<span class="br-read-badge">${esc(t('bcmp.readBadge'))}</span>` : ''}</div>
     <div class="br-row-acts">
@@ -13272,39 +13311,192 @@ function breportPaint() {
       <button type="button" class="btn-ghost btn-sm" data-br-rep="${esc(r.id)}">${esc(t('r10.brReplace'))}</button>
       <button type="button" class="btn-ghost btn-sm" data-br-del="${esc(r.id)}">${esc(t('r10.brDelete'))}</button>
     </div></div>
-    <button type="button" class="btn-primary br-read-btn" data-br-read="${esc(r.id)}" ${B.busy ? 'disabled' : ''}>${esc(t('r10.brRead'))}</button></div>`).join('');
+    <button type="button" class="btn-primary br-read-btn" data-br-read="${esc(r.id)}" ${B.busy ? 'disabled' : ''}>${esc(t('r10.brRead'))}</button></div>`
+    + (wdoc ? breportReadBlockHTML(r, wdoc) : '');
+  }).join('');
   const lastRead = breportLastReadDate();
-  body.innerHTML = `
-    <p class="r10-prog-note">${esc(t('r10.brNote'))}</p>
-    ${lastRead ? `<div class="br-ok"><span class="br-ok-ic" aria-hidden="true">✅</span><div class="br-ok-tx"><div class="br-ok-t1">${esc(t('bcmp.savedOk'))}</div><div class="br-ok-t2">${esc(t('bcmp.lastRead', { date: dateName(lastRead) }))}</div></div></div>
-    <button type="button" class="btn-primary br-another" id="br-another">＋ ${esc(t('bcmp.another'))}</button>
-    <p class="br-another-cap">${esc(t('bcmp.anotherCap'))}</p>` : ''}
+  const upForm = B.upOpen ? `<div class="br-upform">
     <button type="button" class="btn-primary br-upload" id="br-upload">📄 ${esc(t('bana.uploadBtn'))}</button>
-    <input type="file" id="br-file" accept="image/*,.pdf" style="display:none">
     ${prev}
     <label class="br-date">${esc(t('r10.brDate'))}<input type="date" id="br-date" value="${esc(B.date || todayISO())}"></label>
+    <div class="eval-actions"><button type="button" class="btn-primary" id="br-save" ${B.busy || !B.file ? 'disabled' : ''}>${esc(B.busy ? t('r10.brUploading') : t('r10.brSave'))}</button></div>
+    </div>` : '';
+  body.innerHTML = `
+    <p class="r10-prog-note">${esc(t('r10.brNote'))}</p>
+    ${lastRead ? `<div class="br-ok"><span class="br-ok-ic" aria-hidden="true">✅</span><div class="br-ok-tx"><div class="br-ok-t1">${esc(t('bcmp.savedOk'))}</div><div class="br-ok-t2">${esc(t('bcmp.lastRead', { date: dateName(lastRead) }))}</div></div></div>` : ''}
     ${B.err ? `<p class="br-err">${esc(B.err)}</p>` : ''}
     ${B.reading ? `<p class="muted br-reading">${esc(t('r10.brReading'))}</p>` : ''}
-    <div class="eval-actions"><button type="button" class="btn-primary" id="br-save" ${B.busy || !B.file ? 'disabled' : ''}>${esc(B.busy ? t('r10.brUploading') : t('r10.brSave'))}</button></div>
     <h4 style="margin:16px 0 4px">${esc(t('r10.brListT'))}</h4>
     ${B.list === null ? `<p class="muted">${esc(t('train.loading'))}</p>` : (rows || `<p class="muted">${esc(t('r10.brNone'))}</p>`)}
+    <button type="button" class="btn-primary br-another" id="br-add" aria-expanded="${B.upOpen ? 'true' : 'false'}">＋ ${esc(t('bcmp.another'))}</button>
+    <input type="file" id="br-file" accept="image/*,.pdf" style="display:none">
+    ${upForm}
     <button type="button" class="btn-ghost br-cmp-btn" id="br-cmp">📊 ${esc(t('bcmp.title'))}</button>`;
-  /* ANÁLISIS CORPORAL (2026-11-24): UN solo botón de origen,
-     «Cargar resultado externo», y UN solo selector SIN atributo
-     capture: el aparato ofrece en un paso tomar foto, galería
-     o archivos/PDF (antes eran dos botones y dos selectores:
-     «Tomar una foto» con capture y «Elegir imagen o PDF»). */
+  /* UN solo selector SIN atributo capture, como siempre: el
+     aparato ofrece en un paso tomar foto, galería o archivos/
+     PDF. El selector vive FUERA del pliegue (oculto) para que
+     la vía de «Reemplazar» de cada tarjeta lo alcance también
+     con el formulario plegado; al elegir archivo, el
+     formulario se abre solo (breportSetFile). */
+  const add = $('br-add'); if (add) add.onclick = () => { if (BREPORT) { BREPORT.upOpen = !BREPORT.upOpen; breportPaint(); } };
   const up = $('br-upload'); if (up) up.onclick = () => { const i = $('br-file'); if (i) i.click(); };
   const onFile = inp => { if (inp) inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) breportSetFile(f); }; };
   onFile($('br-file'));
   const dt = $('br-date'); if (dt) dt.onchange = () => { if (BREPORT) BREPORT.date = dt.value; };
   const sv = $('br-save'); if (sv) sv.onclick = () => breportSave();
-  const an = $('br-another'); if (an) an.onclick = () => { const i = $('br-file'); if (i) i.click(); };
   const cm = $('br-cmp'); if (cm) cm.onclick = () => bcmpOpen(BREPORT.uid, BREPORT.name);
   body.querySelectorAll('[data-br-open]').forEach(b => b.onclick = () => { const r = (BREPORT.list || []).find(x => x.id === b.dataset.brOpen); if (r && r.url) window.open(r.url, '_blank'); });
   body.querySelectorAll('[data-br-rep]').forEach(b => b.onclick = () => { BREPORT.replaceId = b.dataset.brRep; BREPORT.err = ''; const i = $('br-file'); if (i) i.click(); });
   body.querySelectorAll('[data-br-del]').forEach(b => b.onclick = () => breportDelete(b.dataset.brDel));
   body.querySelectorAll('[data-br-read]').forEach(b => b.onclick = () => breportRead(b.dataset.brRead));
+  body.querySelectorAll('[data-brd-line]').forEach(b => b.onclick = () => breportReadToggle(b.dataset.brdLine));
+  if (B.readOpen) {
+    body.querySelectorAll('[data-brd-tog]').forEach(b => b.onclick = () => {
+      const row = (BREPORT && BREPORT.readVals) ? BREPORT.readVals[b.dataset.brdTog] : null; if (!row) return;
+      row.on = !row.on;
+      b.classList.toggle('on', row.on); b.setAttribute('aria-checked', row.on ? 'true' : 'false');
+      const wrap = b.closest('.air-row'); if (wrap) wrap.classList.toggle('off', !row.on);
+      brdLiveSync();
+    });
+    body.querySelectorAll('.brd-detail .air-in').forEach(inp => inp.addEventListener('input', () => {
+      const k = inp.id.replace('brd-in-', ''); const row = (BREPORT && BREPORT.readVals) ? BREPORT.readVals[k] : null; if (!row) return;
+      row.v = inp.value;
+      if (inp.value.trim() !== '' && !row.on) {
+        row.on = true;
+        const tb = body.querySelector(`[data-brd-tog="${k}"]`);
+        if (tb) { tb.classList.add('on'); tb.setAttribute('aria-checked', 'true'); }
+        const wrap = inp.closest('.air-row'); if (wrap) wrap.classList.remove('off');
+      }
+      brdLiveSync();
+    }));
+    const dsv = $('brd-save'); if (dsv) dsv.onclick = () => breportReadSave(B.readOpen);
+    brdLiveSync();
+  }
+}
+/* El registro de progreso que guarda los datos leídos DE un
+   informe: el de source 'ai-report' con la fecha de medición
+   del informe (la misma pareja que usa breportIsRead), y solo
+   si es comparable en el sentido de AUTH-609 (peso y al menos
+   un dato de composición). Sin registro no hay línea: no se
+   inventan números. */
+function breportReadDoc(r) {
+  if (!r || !BREPORT) return null;
+  const wdoc = (BREPORT.reads || []).find(w => w && w.source === 'ai-report' && w.date && w.date === r.measureDate) || null;
+  return (wdoc && bcmpComparable(wdoc)) ? wdoc : null;
+}
+function brdHas(rec, k) { const v = rec ? rec[k] : null; return typeof v === 'number' && Number.isFinite(v) && v > 0; }
+/* Los números de la línea se escriben como en la maqueta
+   aprobada (en español, coma decimal: «85,3 kg»), con un
+   decimal como máximo. */
+function brdFmtNum(v) { return Number(v).toLocaleString(LANG === 'es' ? 'es' : 'en-US', { maximumFractionDigits: 1 }); }
+/* La línea plegada bajo la tarjeta del informe (y, si está
+   abierta, su detalle editable). La línea lleva SOLO los
+   números principales que existen — peso, grasa y agua — cada
+   uno con su unidad; el que falta se omite de la línea. */
+function breportReadBlockHTML(r, wdoc) {
+  const B = BREPORT;
+  const segs = [];
+  if (brdHas(wdoc, 'weight')) segs.push(brdFmtNum(massToDisplay(wdoc.weight)) + ' ' + UNIT_PREFS.mass);
+  if (brdHas(wdoc, 'fat')) segs.push(t('brd.fat') + ' ' + brdFmtNum(wdoc.fat) + ' %');
+  if (brdHas(wdoc, 'water')) segs.push(t('brd.water') + ' ' + brdFmtNum(wdoc.water) + ' %');
+  const open = !!(B && B.readOpen === r.id);
+  return `<button type="button" class="brd-line" data-brd-line="${esc(r.id)}" aria-expanded="${open ? 'true' : 'false'}"><span class="brd-line-tx">📄 <b>${esc(t('brd.line', { date: shortDate(r.measureDate || '') }))}</b>${segs.map(s => ' · ' + esc(s)).join('')}</span><span class="brd-chev" aria-hidden="true">›</span></button>`
+    + (open ? breportReadDetailHTML() : '');
+}
+/* El detalle editable: las filas del formulario del lector
+   (AIR_FIELDS con sus interruptores, avisos y derivada) con
+   los valores guardados, en la unidad de quien mira. */
+function breportReadDetailHTML() {
+  const rows = AIR_FIELDS.map(brdRowHTML).join('');
+  return `<div class="brd-detail">
+    <div class="air-rows">${rows}</div>
+    <div class="air-derived"><span>${esc(t('mr.f.fatMass'))}<span class="air-calc">${esc(t('air.derivedNote'))}</span></span><b id="brd-derived-v">—</b></div>
+    <button type="button" class="btn-primary air-big" id="brd-save">${esc(t('air.save'))}</button>
+  </div>`;
+}
+function brdRowHTML(f) {
+  const B = BREPORT;
+  const row = (B && B.readVals && B.readVals[f.k]) || { v: '', on: false, det: false };
+  const unitTxt = f.kind === 'mass' ? UNIT_PREFS.mass : f.kind === 'smi' ? 'kg/m²' : (f.kind === 'pct' ? '%' : '');
+  return `<div class="air-row${row.on ? '' : ' off'}">
+    <div class="air-row-top">
+      <span class="air-rname">${esc(t(f.tk))}${f.isNew ? ` <span class="air-tag">${esc(t('air.new'))}</span>` : ''}${row.det ? '' : ` <span class="air-nodet">${esc(t('air.notDetected'))}</span>`}</span>
+      <span class="air-rctl">
+        <input type="number" inputmode="decimal" step="any" class="air-in" id="brd-in-${f.k}" value="${esc(row.v)}" placeholder="—" aria-label="${esc(t(f.tk))}">
+        <span class="air-unit">${esc(unitTxt)}</span>
+        <span class="air-togwrap"><button type="button" class="air-tog${row.on ? ' on' : ''}" data-brd-tog="${f.k}" role="switch" aria-checked="${row.on ? 'true' : 'false'}" aria-label="${esc(t('air.saveRow'))} ${esc(t(f.tk))}"><span class="air-knob"></span></button><span class="air-toglab">${esc(t('air.saveRow'))}</span></span>
+      </span>
+    </div>
+    <div class="air-warn" id="brd-warn-${f.k}" style="display:none"></div>
+  </div>`;
+}
+function breportReadToggle(id) {
+  const B = BREPORT; if (!B) return;
+  if (B.readOpen === id) { B.readOpen = ''; B.readVals = null; breportPaint(); return; }
+  const r = (B.list || []).find(x => x.id === id); if (!r) return;
+  const wdoc = breportReadDoc(r); if (!wdoc) return;
+  B.readOpen = id;
+  B.readVals = {};
+  for (const f of AIR_FIELDS) {
+    const canon = wdoc[f.k];
+    const has = typeof canon === 'number' && Number.isFinite(canon);
+    const disp = has ? airToDisp(f.kind, canon) : null;
+    B.readVals[f.k] = { v: has ? airFmtNum(disp) : '', on: has, det: has };
+  }
+  breportPaint();
+}
+/* Mapa canónico de lo encendido con número en el detalle
+   (el espejo de airCanonNow sobre el estado de esta hoja). */
+function brdCanonNow() {
+  const c = {};
+  if (!BREPORT || !BREPORT.readVals) return c;
+  for (const f of AIR_FIELDS) {
+    const row = BREPORT.readVals[f.k]; if (!row || !row.on) continue;
+    const disp = parseFloat(row.v); if (!Number.isFinite(disp)) continue;
+    c[f.k] = airFromDisp(f.kind, disp);
+  }
+  return c;
+}
+function brdLiveSync() {
+  if (!BREPORT || !BREPORT.readOpen) return;
+  const c = brdCanonNow();
+  const warns = airWarnings(c);
+  for (const f of AIR_FIELDS) {
+    const el = document.getElementById('brd-warn-' + f.k); if (!el) continue;
+    const w = warns[f.k];
+    if (w) { el.textContent = '⚠ ' + t(w[0], w[1] || undefined); el.style.display = ''; }
+    else { el.textContent = ''; el.style.display = 'none'; }
+  }
+  const dv = document.getElementById('brd-derived-v');
+  if (dv) { const fm = (c.weight != null && c.fat != null) ? c.weight * c.fat / 100 : null; dv.textContent = fm == null ? '—' : fmt(massToDisplay(fm)) + ' ' + UNIT_PREFS.mass; }
+}
+/* Guardar desde el detalle plegado: la MISMA escritura de
+   airSave (airBuildSave con la fecha de medición del informe)
+   sobre nutrition_weight/{alumno}_{fecha} y la misma marca de
+   leído en el documento del informe. Al guardar, la línea
+   vuelve a nacer plegada. */
+async function breportReadSave(id) {
+  const B = BREPORT; if (!B || B.busy) return;
+  const r = (B.list || []).find(x => x.id === id); if (!r) return;
+  const wdoc = breportReadDoc(r);
+  const built = airBuildSave({ date: r.measureDate, time: '', brand: (wdoc && wdoc.reportSrc) || '', viewerUnit: UNIT_PREFS.mass, canComp: airCanComp(B.uid), vals: B.readVals || {} });
+  if (!built) { toast(t(/^\d{4}-\d{2}-\d{2}$/.test(r.measureDate || '') ? 'air.nothingToSave' : 'air.dateNeeded'), true); return; }
+  const uid = B.uid;
+  B.busy = true; breportPaint();
+  try {
+    await setDoc(doc(db, 'nutrition_weight', uid + '_' + built.date), { ownerUid: uid, date: built.date, updatedAt: serverTimestamp(), ...built.fields }, { merge: true });
+  } catch (e) {
+    if (BREPORT) { BREPORT.busy = false; breportPaint(); }
+    if (e && e.code === 'permission-denied' && !airCanComp(uid)) toast(t('err.weightSaveDenied'), true); else failToast(e);
+    return;
+  }
+  try { await setDoc(doc(db, 'nutrition_progress', id), { readAt: serverTimestamp(), readDate: built.date }, { merge: true }); } catch {}
+  if (BREPORT) {
+    BREPORT.busy = false; BREPORT.readOpen = ''; BREPORT.readVals = null;
+    await breportLoadReads();
+    breportPaint();
+  }
+  toast(t('air.saved', { date: dateName(built.date) }));
 }
 /* FIX-INFORME (2026-11-24): el catch genérico culpaba a la
    conexión de fallos que no eran de red — la causa raíz del
@@ -13352,7 +13544,7 @@ async function breportSave() {
         measureDate: date, uploadedBy: (auth.currentUser && auth.currentUser.uid) || '', createdAt: serverTimestamp()
       });
     }
-    B.file = null; B.replaceId = ''; B.busy = false;
+    B.file = null; B.replaceId = ''; B.busy = false; B.upOpen = false;
     if (B.prevUrl) { try { URL.revokeObjectURL(B.prevUrl); } catch {} B.prevUrl = ''; }
     await breportLoadList();
     breportPaint();
@@ -13369,6 +13561,7 @@ async function breportDelete(id) {
   try {
     await deleteDoc(doc(db, 'nutrition_progress', id));
     if (r.path) { try { await deleteObject(sRef(storage, r.path)); } catch {} }
+    if (BREPORT && BREPORT.readOpen === id) { BREPORT.readOpen = ''; BREPORT.readVals = null; }
     await breportLoadList();
   } catch (e) { if (BREPORT) BREPORT.err = breportErrText(e); }
   if (BREPORT) { BREPORT.busy = false; breportPaint(); }
