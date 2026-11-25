@@ -55,19 +55,19 @@
  * app.js). La caché de imágenes NO se borra entre versiones: guarda
  * contenido ya visto, con su tope.
  */
-const SW_VERSION = '20261124-rediseno-selector';
+const SW_VERSION = '20261124-constructor-multiple';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const IMG_CACHE_NAME = 'ronbofit-img-v1';
 const IMG_CACHE_MAX = 300;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261124-rediseno-selector',
-  './app.js?v=20261124-rediseno-selector',
-  './i18n-en.js?v=20261124-rediseno-selector',
-  './i18n-es.js?v=20261124-rediseno-selector',
-  './view-comms.js?v=20261124-rediseno-selector',
-  './view-library.js?v=20261124-rediseno-selector',
+  './styles.css?v=20261124-constructor-multiple',
+  './app.js?v=20261124-constructor-multiple',
+  './i18n-en.js?v=20261124-constructor-multiple',
+  './i18n-es.js?v=20261124-constructor-multiple',
+  './view-comms.js?v=20261124-constructor-multiple',
+  './view-library.js?v=20261124-constructor-multiple',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
