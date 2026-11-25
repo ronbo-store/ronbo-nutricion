@@ -50363,15 +50363,31 @@ const PLANB_SEED_PCT = { pressH: 0.25, squat: 0.33, hinge: 0.40, row: 0.22, pull
 const PLANB_MACHINES = ['treadmill', 'bike', 'elliptical', 'stairs'];
 const planbR1 = x => Math.round(x * 10) / 10;
 
+/* CONSTRUCTOR MÚLTIPLE (paquete 2026-11-24, promoción AUTH-606):
+   en el modo «Por grupos musculares» el día admite VARIOS grupos
+   a la vez (maqueta aprobada por Ronald el 2026-11-24: «Bien así,
+   constrúyelo» — su ejemplo: Pecho + Hombro + Tríceps). El foco
+   pasa de un chip (c.chip) a la lista c.chips; el foco de
+   biblioteca es la UNIÓN de los grupos de los chips elegidos, en
+   el orden de la parrilla, y la etiqueta del día los nombra todos
+   («Pecho · Hombro · Tríceps»), que es lo que se guarda como
+   label del día — el modelo del plan no cambia: el día sigue
+   siendo { label, exercises[] } y cada ejercicio lleva su
+   exerciseId, así que un día de varios grupos se guarda y se
+   reabre con las estructuras de siempre, y los planes viejos de
+   un solo grupo no notan nada. */
 function planbFocusGroups() {
   const c = PLANB_CTX; if (!c) return [];
   if (c.mode === 'parts') return c.part === 'upper' ? PLANB_PART_UPPER : c.part === 'lower' ? PLANB_PART_LOWER : [];
-  const chip = PLANB_CHIPS.find(x => x.key === c.chip);
-  return chip ? chip.groups : [];
+  const out = [];
+  for (const ch of PLANB_CHIPS) if ((c.chips || []).includes(ch.key))
+    for (const g of ch.groups) if (!out.includes(g)) out.push(g);
+  return out;
 }
 function planbFocusLabel() {
   const c = PLANB_CTX; if (!c) return '';
-  return c.mode === 'parts' ? t(c.part === 'upper' ? 'planb.partUpper' : 'planb.partLower') : t('planb.grp.' + c.chip);
+  if (c.mode === 'parts') return t(c.part === 'upper' ? 'planb.partUpper' : 'planb.partLower');
+  return PLANB_CHIPS.filter(ch => (c.chips || []).includes(ch.key)).map(ch => t('planb.grp.' + ch.key)).join(' · ');
 }
 function planbLocMap() {
   const map = {};
@@ -50437,8 +50453,10 @@ function planbPool() {
   return pool.slice().sort((a, b) => ((autoIsIsolation(a) ? 1 : 0) - (autoIsIsolation(b) ? 1 : 0)) || (a.id < b.id ? -1 : 1));
 }
 /* El respaldo determinista que honra el foco: un grupo → sus 5
-   primeras (compuestos primero); una parte → ronda entre sus
-   grupos hasta 6. Series/reps de las bandas de la casa. */
+   primeras (compuestos primero); una parte o VARIOS grupos
+   elegidos → ronda entre sus grupos hasta 6, para que cada
+   grupo elegido quede representado en el día. Series/reps de
+   las bandas de la casa. */
 function planbCompose() {
   const c = PLANB_CTX; const pool = planbPool();
   const byGroup = {};
@@ -50446,7 +50464,7 @@ function planbCompose() {
   const groups = planbFocusGroups().filter(g => byGroup[g] && byGroup[g].length);
   const picked = [];
   if (!groups.length) return [];
-  if (c.mode === 'groups' || groups.length === 1) {
+  if ((c.mode === 'groups' && (c.chips || []).length <= 1) || groups.length === 1) {
     for (const e of byGroup[groups[0]]) { if (picked.length >= 5) break; picked.push(e); }
   } else {
     let round = 0, added = true;
@@ -50505,7 +50523,7 @@ async function planbOpen() {
   const logs = await fetchLogs(uid).catch(() => []);
   const bwKg = await plan21LastWeightKg(uid).catch(() => null);
   PLANB_CTX = { uid, profile, logs, bwKg, step: 1, horizon: null, totalDays: 1, dayIdx: 0, built: [],
-    mode: 'groups', chip: null, part: null, props: [], poolIds: [], usedIds: new Set(), srcAi: false, editingId: null,
+    mode: 'groups', chips: [], part: null, props: [], poolIds: [], usedIds: new Set(), srcAi: false, editingId: null,
     cardioWarm: { machine: 'treadmill', minutes: 10 }, cardioFinal: { machine: 'treadmill', minutes: 10 } };
   planbRender();
 }
@@ -50539,17 +50557,25 @@ function planbRenderWhen(bd) {
 }
 function planbRenderHow(bd) {
   const c = PLANB_CTX;
+  const picked = PLANB_CHIPS.filter(ch => (c.chips || []).includes(ch.key));
+  const strip = picked.length
+    ? `<div class="pb-count"><span class="pb-count-n">${esc(picked.length === 1 ? t('planb.pickedOne') : t('planb.pickedMany', { n: picked.length }))}</span><span class="pb-count-w">${esc(picked.map(ch => t('planb.grp.' + ch.key)).join(' · '))}</span></div><p class="pb-note">${esc(t('planb.pickNote'))}</p>`
+    : '';
   const sel = c.mode === 'groups'
-    ? `<div class="pb-sec">${esc(t('planb.pickGroup'))}</div><div class="pb-chips">${PLANB_CHIPS.map(ch => `<button type="button" class="pb-chip${c.chip === ch.key ? ' sel' : ''}" data-pb-chip="${ch.key}" aria-pressed="${c.chip === ch.key}">${esc(t('planb.grp.' + ch.key))}</button>`).join('')}</div>`
+    ? `<div class="pb-sec">${esc(t('planb.pickGroups'))}</div><div class="pb-chips">${PLANB_CHIPS.map(ch => { const on = (c.chips || []).includes(ch.key); return `<button type="button" class="pb-chip${on ? ' sel' : ''}" data-pb-chip="${ch.key}" aria-pressed="${on}">${esc(t('planb.grp.' + ch.key))}${on ? ' ✓' : ''}</button>`; }).join('')}</div>${strip}`
     : `<div class="pb-sec">${esc(t('planb.pickPart'))}</div><div class="pb-chips"><button type="button" class="pb-chip${c.part === 'upper' ? ' sel' : ''}" data-pb-part="upper" aria-pressed="${c.part === 'upper'}">${esc(t('planb.partUpper'))}</button><button type="button" class="pb-chip${c.part === 'lower' ? ' sel' : ''}" data-pb-part="lower" aria-pressed="${c.part === 'lower'}">${esc(t('planb.partLower'))}</button></div>`;
   bd.innerHTML = `
     ${planbHeadHtml(t('planb.qHow'), false)}
-    <button type="button" class="pb-opt${c.mode === 'groups' ? ' sel' : ''}" data-pb-mode="groups"><span class="pb-opt-t">${esc(t('planb.modeGroups'))}</span></button>
-    <button type="button" class="pb-opt${c.mode === 'parts' ? ' sel' : ''}" data-pb-mode="parts"><span class="pb-opt-t">${esc(t('planb.modeParts'))}</span></button>
+    <button type="button" class="pb-opt has-ck${c.mode === 'groups' ? ' sel' : ''}" data-pb-mode="groups"><span class="pb-opt-tx"><span class="pb-opt-t">${esc(t('planb.modeGroups'))}</span><span class="pb-opt-s">${esc(t('planb.modeGroupsSub'))}</span></span><span class="pb-ck">${c.mode === 'groups' ? '✓' : ''}</span></button>
+    <button type="button" class="pb-opt has-ck${c.mode === 'parts' ? ' sel' : ''}" data-pb-mode="parts"><span class="pb-opt-tx"><span class="pb-opt-t">${esc(t('planb.modeParts'))}</span><span class="pb-opt-s">${esc(t('planb.modePartsSub'))}</span></span><span class="pb-ck">${c.mode === 'parts' ? '✓' : ''}</span></button>
     ${sel}
     <div class="pb-nav"><button type="button" class="btn-ghost" id="pb-back">${esc(t('planb.back'))}</button><button type="button" class="btn-primary" id="pb-go">${esc(t('planb.continue'))}</button></div>`;
   bd.querySelectorAll('[data-pb-mode]').forEach(b => b.onclick = () => { c.mode = b.dataset.pbMode; planbRender(); });
-  bd.querySelectorAll('[data-pb-chip]').forEach(b => b.onclick = () => { c.chip = b.dataset.pbChip; planbRender(); });
+  bd.querySelectorAll('[data-pb-chip]').forEach(b => b.onclick = () => {
+    const k = b.dataset.pbChip; const i = (c.chips || []).indexOf(k);
+    if (i >= 0) c.chips.splice(i, 1); else c.chips.push(k);
+    planbRender();
+  });
   bd.querySelectorAll('[data-pb-part]').forEach(b => b.onclick = () => { c.part = b.dataset.pbPart; planbRender(); });
   $('pb-back').onclick = () => { c.step = 1; planbRender(); };
   $('pb-go').onclick = () => { if (!planbFocusGroups().length) return; planbLoadProps(); };
@@ -50676,7 +50702,7 @@ function planbRenderDone(bd) {
       : `<div class="pb-nav"><button type="button" class="btn-primary" id="pb-next">${esc(t('planb.nextDay'))}</button></div>`}`;
   const nx = $('pb-next');
   if (nx) nx.onclick = () => {
-    c.dayIdx++; c.mode = 'groups'; c.chip = null; c.part = null; c.props = []; c.usedIds = new Set(); c.editingId = null;
+    c.dayIdx++; c.mode = 'groups'; c.chips = []; c.part = null; c.props = []; c.usedIds = new Set(); c.editingId = null;
     c.cardioWarm = { machine: 'treadmill', minutes: 10 }; c.cardioFinal = { machine: 'treadmill', minutes: 10 };
     c.step = 2; planbRender();
   };
