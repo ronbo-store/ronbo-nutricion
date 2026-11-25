@@ -44661,6 +44661,10 @@ function progSuggestionHTML(ex, di, ei) {
     const planEx = insts[0].ex;
     const v = progVerdict(ex, MY_LOGS_ALL, todayISO());
     const vLive = (v && !progSuppressed(planEx, v)) ? v : null;
+    /* Progresión 22 — el freno por molestia (§5.6): con dolor
+       activo en la zona del ejercicio, la subida no se pinta:
+       se pinta la de mantener, con el motivo a la vista. */
+    if (vLive && vLive.kind === 'A') { const pb = prog22PainBrake(ex); if (pb) return prog22PainHTML(ex, di, ei, vLive, pb); }
     if (vLive && vLive.kind !== 'B') return progVerdictHTML(ex, di, ei, vLive);
     const pn = progNextPending(ex, planEx);
     if (pn != null) return progNextLineHTML(ex, pn);
@@ -44705,12 +44709,20 @@ async function progDecide(plan, di, ei, apply) {
   const it = trainEffectiveList(plan, di)[ei];
   if (!it || it.kind !== 'plan') return;
   const ex = it.ex;
-  const v = progVerdict(ex, MY_LOGS_ALL, todayISO());
+  let v = progVerdict(ex, MY_LOGS_ALL, todayISO());
   if (!v || (v.kind !== 'A' && v.kind !== 'C' && v.kind !== 'D')) return;
   if (v.kind === 'A' && v.stepKg == null) return;
   const insts = progPlanInstances(plan, ex);
   if (!insts.length) return;
   if (progSuppressed(insts[0].ex, v)) return;
+  /* Progresión 22 — el freno por molestia también manda al
+     decidir: una subida con dolor activo en la zona se
+     convierte en «mantener» (la decisión se persiste; la
+     carga no se mueve). */
+  const rawKind = v.kind;
+  if (v.kind === 'A' && plan.genSource && plan.genSource.kind === 'prog22') {
+    try { if (trainPainForEx(ex).length) v = { ...v, kind: 'C' }; } catch {}
+  }
   const newKg = v.kind === 'A' ? v.L + v.stepKg : (v.kind === 'D' ? v.L - v.stepKg : v.L);
   const oldPreload = (trainDefaultSets(ex)[0] || {}).loadVal || '';
   const storedLoad = uRound1(massToDisplay(newKg));
@@ -44730,7 +44742,16 @@ async function progDecide(plan, di, ei, apply) {
   }));
   if (!touched) return;
   await addDoc(collection(db, 'training_plans'), { ...prev, isSnapshot: true, sourcePlanId: plan.id, snapshotAt: serverTimestamp(), active: false });
-  await setDoc(ref, { days, updatedAt: serverTimestamp() }, { merge: true });
+  const progWrite = { days, updatedAt: serverTimestamp() };
+  /* Progresión 22: cada decisión queda en el registro del
+     plan (progLog, tope 200) — es la materia del cierre del
+     programa (§5.7). Los demás planes no escriben este
+     campo: comportamiento intacto. */
+  if (plan.genSource && plan.genSource.kind === 'prog22') {
+    const prevLog = Array.isArray(prev.progLog) ? prev.progLog : [];
+    progWrite.progLog = [...prevLog, { exerciseId: ex.exerciseId || '', fromKg: v.L, toKg: apply ? newKg : v.L, verdict: rawKind, accepted: !!apply, date: todayISO() }].slice(-200);
+  }
+  await setDoc(ref, progWrite, { merge: true });
   plan.days = days;
   if (apply && (v.kind === 'A' || v.kind === 'D')) {
     progRefreshTodayChecks(plan, di, key, oldPreload, newPreload);
@@ -44789,6 +44810,9 @@ function progCloseEval(dc) {
       const v = progVerdict(ex, MY_LOGS_ALL, todayISO(), [cls]);
       if (!v || (v.kind !== 'A' && v.kind !== 'C' && v.kind !== 'D')) return;
       if (progSuppressed(insts[0].ex, v)) return;
+      /* Progresión 22: el freno por molestia también calla el
+         anuncio de subida en la banda de cierre. */
+      if (v.kind === 'A' && dc.plan && dc.plan.genSource && dc.plan.genSource.kind === 'prog22') { try { if (trainPainForEx(ex).length) return; } catch {} }
       out.push({ key: progIdentKey(ex), kind: v.kind, name: trainExName(ex) || ex.name || '' });
     });
   } catch {}
@@ -46426,6 +46450,7 @@ async function trainViewPaint(light) {
     `}
     ${weekHtml}
     ${trainTodayHTML}
+    <div id="p22-door-slot"></div>
     <div id="train-align-slot"></div>
     <div id="train-align-store" style="display:none"></div>
     <!-- TARJETA COMPACTA (Ronald, 2026-10-26 07:25 CDT): bajo la
@@ -46440,6 +46465,12 @@ async function trainViewPaint(light) {
      IA vive bajo el mensaje de «sin plan» (la tarjeta y sus dos
      pliegues de la maqueta aprobada). */
   if (!isLoose && plan && plan.genSource && plan.genSource.kind === 'plan21') { try { plan21CardRender(plan); } catch {} }
+  /* Progresión 22: su tarjeta vive en el mismo hueco del Reto
+     (#p21-slot) cuando el plan activo es suyo, y la puerta de
+     transición se pinta en su hueco cuando el plan del Reto
+     terminó o termina pronto y aún no hay Progresión 22. */
+  if (!isLoose && plan && plan.genSource && plan.genSource.kind === 'prog22') { try { prog22CardRender(plan); } catch {} }
+  if (!isLoose && plan && plan.genSource && plan.genSource.kind === 'plan21') { try { prog22TrainDoor(plan); } catch {} }
   if (isLoose && canSelfManage) planAiDoorRender(box);
   /* AUTH-411: el bloque «Mis planes» se pinta y se cablea en
      su nueva casa, #train-custom-plans (index.html, dentro de
@@ -46958,6 +46989,8 @@ function propDetailLine(p) {
     : t('train.repeat.propDayLine', { day: p.dayLabel || '', plan: p.planTitle || '' });
   if (p.type === 'plan21Start') return t('plan21.trayStart');
   if (p.type === 'plan21Next') return t('plan21.trayNext');
+  if (p.type === 'prog22Start') return t('prog22.trayStart', { route: t('prog22.route.' + (p.route || 'standard')), freq: p.freq || '' });
+  if (p.type === 'prog22Review') return t('prog22.trayReview', { n: p.week || '' });
   return p.type === 'change'
     ? t('train.prop.changeLine', { old: p.targetName || '', ex: propExName(p), day: p.dayLabel || '' })
     : t('train.prop.addLine', { ex: propExName(p), day: p.dayLabel || '' });
@@ -47207,6 +47240,7 @@ async function loadClientProposals(uid, plans, host) {
     loadClientProposals(PROP_TRAY.uid, PROP_TRAY.plans, PROP_TRAY.host);
   });
   box.querySelectorAll('[data-prop-p21apply]').forEach(b => b.onclick = async () => { await plan21ApplyForStudent(PROP_TRAY.uid); });
+  box.querySelectorAll('[data-prop-p22apply]').forEach(b => b.onclick = async () => { await prog22ApplyForStudent(PROP_TRAY.uid); });
   box.querySelectorAll('[data-prop-p21next]').forEach(b => b.onclick = () => { openPlanEditor(PROP_TRAY.uid, null); toast(t('plan21.trayNext')); });
   box.querySelectorAll('[data-prop-open]').forEach(b => b.onclick = () => {
     const p = list.find(x => x.id === b.dataset.propOpen); if (!p) return;
@@ -47256,6 +47290,7 @@ function propTrayCardHTML(p) {
     ${p.status === 'approved' ? ((p.type === 'repeatDay' || p.type === 'repeatWeek')
       ? `<button class="btn-primary btn-sm" data-prop-apply="${esc(p.id)}">${t('train.repeat.applyBtn')}</button>`
       : p.type === 'plan21Start' ? `<button class="btn-primary btn-sm" data-prop-p21apply="${esc(p.id)}">${t('plan21.trayApply')}</button>`
+      : p.type === 'prog22Start' ? `<button class="btn-primary btn-sm" data-prop-p22apply="${esc(p.id)}">${t('prog22.trayApply')}</button>`
       : p.type === 'plan21Next' ? `<button class="btn-primary btn-sm" data-prop-p21next="${esc(p.id)}">${t('plan21.trayOpenEditor')}</button>`
       : (plan ? `<button class="btn-ghost btn-sm" data-prop-open="${esc(p.id)}">${t('train.prop.openEditor')}</button>` : `<span class="muted">${t('train.prop.planGone')}</span>`)) : ''}
   </div></div>`;
@@ -47718,7 +47753,12 @@ async function planHoldEvaluate(clientUid, opts) {
   const activated = [];
   for (const p of holds) {
     try {
-      await setDoc(doc(db, 'training_plans', p.id), { active: true, healthHold: false, holdAuto: false, holdAutoOnAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+      /* Progresión 22: al activarse por la puerta de salud, su
+         estado pasa a 'active' como en la activación manual;
+         los demás planes no escriben ese campo. */
+      const holdWrite = { active: true, healthHold: false, holdAuto: false, holdAutoOnAt: serverTimestamp(), updatedAt: serverTimestamp() };
+      if (p.genSource && p.genSource.kind === 'prog22') holdWrite.prog22State = 'active';
+      await setDoc(doc(db, 'training_plans', p.id), holdWrite, { merge: true });
       for (const other of plans) {
         if (other.id !== p.id && other.active === true) {
           try { await setDoc(doc(db, 'training_plans', other.id), { active: false, updatedAt: serverTimestamp() }, { merge: true }); } catch {}
@@ -48897,6 +48937,911 @@ async function plan21ApplyForStudent(uid) {
     if (marked) built = mkdAdjust(built, new Set(marked.blocked), plan21AvailDays(inp));
   } catch {}
   await plan21DumpToEditor(uid, built);
+}
+
+/* ════════════════════════════════════════════════════════════
+   PROGRESIÓN 22 — «Tu siguiente nivel» (autorización específica
+   de Ronald para este módulo, 2026-11-24: construirla Y
+   publicarla; la Fase 6 ya no está reservada). La continuación
+   oficial del Reto de 21 días: 6 semanas / 42 días, frecuencias
+   3/4/5 y ruta reducida de 2 días DENTRO del módulo (D-6),
+   sobre el esqueleto del constructor del Reto (AUTH-503) y el
+   motor de progresión AUTH-544, al que se le añade el freno por
+   molestia del diseño (§5.6). Sin colecciones nuevas y con
+   delta CERO de reglas (D-5): el plan es un training_plans más
+   (genSource.kind 'prog22', sourceRoutineId 'PROG22') y la
+   evaluación de transición vive en nutrition_progress con
+   kind 'prog22Transition', de forma abierta como fitTest.
+   Decisiones de Ronald (2026-11-23): D-1 se crea la ficha del
+   step-up bajo de principiante (E206; su spec viaja en el
+   paquete y el selector solo la usa cuando la ficha exista
+   cargada con foto) y E142 entra más adelante — las semanas
+   1–2 del patrón unilateral usan zancadas E059; D-2: 3 series
+   SOLO en la ruta estándar y SOLO en los 2 primeros compuestos
+   del día en las semanas 3–5 (el resto, 2); D-3: el nombre se
+   queda «Progresión 22»; D-4: con entrenador, la propuesta
+   espera su revisión antes de activarse (nace por la bandeja
+   de propuestas, como el plan21Start); visibilidad: PUERTA
+   FANTASMA para todos los usuarios desde Retos.
+   ════════════════════════════════════════════════════════════ */
+const PROG22_TPL_ID = 'PROG22';
+const PROG22_VERSION = 'v1';
+/* La ficha nueva de D-1: step-up bajo de principiante. */
+const PROG22_STEPUP_LOW_ID = 'E206';
+/* Las sesiones del diseño (§5.4): por sesión, los patrones en
+   orden con su rol y los candidatos por familia en orden de
+   preferencia [familia, exerciseId] — la misma disciplina de
+   PLAN21_SESSIONS. band: banda propia del puesto si no es la
+   de su rol; time: banda de segundos (plank|plankSide|carry);
+   perSide: 'leg'|'side' (la nota «por pierna/por lado»);
+   uni: el patrón unilateral (D-1: semanas 1–2 solo E059). */
+const PROG22_SESSIONS = {
+  A: [
+    { pat: 'knee', role: 'compound', cands: [['maquinas', 'E051'], ['mancuernas', 'E058'], ['kb', 'E058'], ['corporal', 'E189']] },
+    { pat: 'pushH', role: 'compound', cands: [['maquinas', 'E001'], ['mancuernas', 'E006'], ['corporal', 'E009'], ['corporal', 'E010']] },
+    { pat: 'rowH', role: 'compound', cands: [['poleas', 'E112'], ['maquinas', 'E014'], ['mancuernas', 'E022'], ['corporal', 'E123']] },
+    { pat: 'hamstring', role: 'isolation', cands: [['maquinas', 'E061'], ['maquinas', 'E062'], ['corporal', 'E067']] },
+    { pat: 'plank', role: 'time', time: 'plank', cands: [['corporal', 'E087']] } ],
+  B: [
+    { pat: 'hinge', role: 'compound', cands: [['mancuernas', 'E066'], ['kb', 'E066'], ['corporal', 'E074'], ['corporal', 'E124']] },
+    { pat: 'pullV', role: 'compound', cands: [['maquinas', 'E013'], ['poleas', 'E133'], ['corporal', 'E123']] },
+    { pat: 'pushV', role: 'compound', cands: [['maquinas', 'E025'], ['mancuernas', 'E030'], ['mancuernas', 'E032']] },
+    { pat: 'hingeLight', role: 'isolation', cands: [['corporal', 'E074']] },
+    { pat: 'birddog', role: 'core', band: [8, 12], perSide: 'side', cands: [['corporal', 'E125'], ['corporal', 'E093']] } ],
+  C: [
+    { pat: 'kneeUni', role: 'compound', uni: true, perSide: 'leg', cands: [['mancuernas', PROG22_STEPUP_LOW_ID], ['mancuernas', 'E059'], ['corporal', 'E059']] },
+    { pat: 'pushH', role: 'compound', cands: [['mancuernas', 'E006'], ['maquinas', 'E001'], ['corporal', 'E009'], ['corporal', 'E010']] },
+    { pat: 'rowH', role: 'compound', cands: [['maquinas', 'E014'], ['poleas', 'E112'], ['mancuernas', 'E022'], ['corporal', 'E123']] },
+    { pat: 'calves', role: 'calves', cands: [['maquinas', 'E078'], ['mancuernas', 'E081'], ['corporal', 'E081']] },
+    { pat: 'plankSide', role: 'time', time: 'plankSide', perSide: 'side', cands: [['corporal', 'E088']] } ],
+  SA: [
+    { pat: 'pushH', role: 'compound', cands: [['maquinas', 'E001'], ['mancuernas', 'E006'], ['corporal', 'E009'], ['corporal', 'E010']] },
+    { pat: 'rowH', role: 'compound', cands: [['poleas', 'E112'], ['maquinas', 'E014'], ['mancuernas', 'E022'], ['corporal', 'E123']] },
+    { pat: 'pushV', role: 'compound', cands: [['maquinas', 'E025'], ['mancuernas', 'E030'], ['mancuernas', 'E032']] },
+    { pat: 'biceps', role: 'isolation', cands: [['mancuernas', 'E039'], ['poleas', 'E036']] },
+    { pat: 'triceps', role: 'isolation', cands: [['poleas', 'E044'], ['mancuernas', 'E049']] } ],
+  IA: [
+    { pat: 'knee', role: 'compound', cands: [['maquinas', 'E051'], ['mancuernas', 'E058'], ['kb', 'E058'], ['corporal', 'E189']] },
+    { pat: 'hinge', role: 'compound', cands: [['mancuernas', 'E066'], ['kb', 'E066'], ['corporal', 'E074'], ['corporal', 'E124']] },
+    { pat: 'hamstring', role: 'isolation', cands: [['maquinas', 'E061'], ['maquinas', 'E062'], ['corporal', 'E067']] },
+    { pat: 'calves', role: 'calves', cands: [['mancuernas', 'E081'], ['maquinas', 'E078'], ['corporal', 'E081']] },
+    { pat: 'plank', role: 'time', time: 'plank', cands: [['corporal', 'E087']] } ],
+  SB: [
+    { pat: 'pullV', role: 'compound', cands: [['maquinas', 'E013'], ['poleas', 'E133'], ['corporal', 'E123']] },
+    { pat: 'pushH', role: 'compound', cands: [['mancuernas', 'E006'], ['maquinas', 'E001'], ['corporal', 'E009'], ['corporal', 'E010']] },
+    { pat: 'rowChest', role: 'compound', cands: [['mancuernas', 'E113'], ['poleas', 'E136'], ['maquinas', 'E014'], ['corporal', 'E123']] },
+    { pat: 'latRaise', role: 'isolation', cands: [['mancuernas', 'E032'], ['maquinas', 'E026']] },
+    { pat: 'birddog', role: 'core', band: [8, 12], perSide: 'side', cands: [['corporal', 'E125'], ['corporal', 'E093']] } ],
+  IB: [
+    { pat: 'knee', role: 'compound', cands: [['mancuernas', 'E058'], ['kb', 'E058'], ['maquinas', 'E051'], ['corporal', 'E189']] },
+    { pat: 'hingeLight', role: 'isolation', cands: [['corporal', 'E074']] },
+    { pat: 'legExt', role: 'isolation', cands: [['maquinas', 'E052']] },
+    { pat: 'gluteKick', role: 'isolation', cands: [['maquinas', 'E069'], ['poleas', 'E143']] },
+    { pat: 'plankSide', role: 'time', time: 'plankSide', perSide: 'side', cands: [['corporal', 'E088']] } ],
+  C5: [
+    { pat: 'pushTech', role: 'compound', cands: [['corporal', 'E010'], ['corporal', 'E009']] },
+    { pat: 'deadbug', role: 'core', band: [8, 12], perSide: 'side', cands: [['corporal', 'E093']] },
+    { pat: 'carry', role: 'time', time: 'carry', cands: [['mancuernas', 'E103'], ['kb', 'E103']] },
+    { pat: 'superman', role: 'core', band: [10, 15], cands: [['corporal', 'E124']] } ],
+  R1: [
+    { pat: 'knee', role: 'compound', cands: [['maquinas', 'E051'], ['mancuernas', 'E058'], ['kb', 'E058'], ['corporal', 'E189']] },
+    { pat: 'pushH', role: 'compound', cands: [['maquinas', 'E001'], ['mancuernas', 'E006'], ['corporal', 'E009'], ['corporal', 'E010']] },
+    { pat: 'rowH', role: 'compound', cands: [['poleas', 'E112'], ['maquinas', 'E014'], ['mancuernas', 'E022'], ['corporal', 'E123']] },
+    { pat: 'plank', role: 'time', time: 'plank', cands: [['corporal', 'E087']] } ],
+  R2: [
+    { pat: 'hinge', role: 'compound', cands: [['mancuernas', 'E066'], ['kb', 'E066'], ['corporal', 'E074'], ['corporal', 'E124']] },
+    { pat: 'pullV', role: 'compound', cands: [['maquinas', 'E013'], ['poleas', 'E133'], ['corporal', 'E123']] },
+    { pat: 'hingeLight', role: 'isolation', cands: [['corporal', 'E074']] },
+    { pat: 'birddog', role: 'core', band: [8, 12], perSide: 'side', cands: [['corporal', 'E125'], ['corporal', 'E093']] } ]
+};
+const PROG22_SEQS = { 3: ['A', 'B', 'C'], 4: ['SA', 'IA', 'SB', 'IB'], 5: ['SA', 'IA', 'SB', 'IB', 'C5'], 2: ['R1', 'R2'] };
+function prog22TimeBand(kind, step) {
+  if (kind === 'plank') return step === 'suave' ? [15, 25] : [20, 40];
+  if (kind === 'plankSide') return step === 'suave' ? [10, 20] : [15, 30];
+  return [30, 45];   /* carry */
+}
+function prog22BandFor(slot) {
+  if (slot.band) return slot.band;
+  if (slot.role === 'compound') return [8, 12];
+  if (slot.role === 'isolation') return [10, 15];
+  if (slot.role === 'calves') return [12, 20];
+  return [10, 15];   /* core */
+}
+/* El selector de candidatos de Progresión 22: el orden de
+   siempre (primero las familias de la persona, luego el resto
+   de la escalera), el filtro de salud de la casa y la
+   deduplicación dentro de la semana (vía «used», como H10 del
+   Reto). Dos diferencias declaradas frente a plan21Pick: la
+   ficha SIN cargar en la biblioteca no entra (sin entrada no
+   hay nombre ni foto que programar — así E206 solo entra
+   cuando su ficha exista) y no hay filtro de nivel: el diseño
+   incluye fichas Intermedio (E006, E113, E030). Sin foto, la
+   ficha no se programa (E204 queda fuera siempre). */
+function prog22Pick(slot, inp, fams, wk, used) {
+  const famsHas = f => f === 'corporal' || (fams || []).includes(f);
+  let cands = slot.cands || [];
+  if (slot.uni && wk <= 1) cands = cands.filter(c => c[1] === 'E059');   /* D-1: semanas 1–2, zancadas */
+  const ordered = [...cands.filter(c => famsHas(c[0])), ...cands.filter(c => !famsHas(c[0]))];
+  const valid = [];
+  for (const c of ordered) {
+    const cid = c[1];
+    const entry = LIB_BY_ID[cid] || null;
+    if (!entry) continue;
+    if (!entry.foto_url) continue;
+    if (inp.hp && autoHealthExcludes(entry, inp.hp)) continue;
+    if (!valid.includes(cid)) valid.push(cid);
+  }
+  if (!valid.length) return null;
+  for (const cid of valid) if (!used || !used.has(cid)) return cid;
+  return valid[0];
+}
+function prog22StepFor(route, inp) {
+  if (route !== 'standard') return 'suave';
+  if (inp.hp && inp.hp.conservative) return 'suave';
+  return plan21StepOf(inp);
+}
+/* La última carga registrada de cada ejercicio en el plan
+   origen (la sesión más reciente manda; dentro de ella, la
+   serie más pesada). */
+function prog22LastLoads(logs) {
+  const out = {};
+  const sorted = [...(logs || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  for (const l of sorted) {
+    for (const e of (l.exercisesDone || [])) {
+      if (!e || !e.exerciseId || out[e.exerciseId] != null) continue;
+      let best = null;
+      for (const s of (e.sets || [])) { const kg = Number(s && s.loadKg); if (isFinite(kg) && kg > 0 && (best == null || kg > best)) best = kg; }
+      if (best != null) out[e.exerciseId] = best;
+    }
+  }
+  return out;
+}
+/* La semilla de arranque de una fila: la fundada de la casa
+   (plan21SeedFor — solo con batería) y la última carga real
+   del Reto; si están las dos, manda la MENOR (semana 1 es de
+   calibración). Sin datos, sin sugerencia: no se inventa. */
+function prog22SeedFor(ctx, id, entry) {
+  const seed = plan21SeedFor(ctx.inp, entry);
+  const last = ctx.lastLoads ? ctx.lastLoads[id] : null;
+  const vals = [seed, last].filter(v => v != null && v > 0);
+  if (!vals.length) return null;
+  return Math.round(Math.min(...vals) * 100) / 100;
+}
+function prog22SessionDay(code, ctx, wk, used) {
+  const sess = PROG22_SESSIONS[code] || [];
+  const exs = [];
+  let dropped = false, compoundIx = 0;
+  for (const slot of sess) {
+    const id = prog22Pick(slot, ctx.inp, ctx.fams, wk, used);
+    if (!id) { dropped = true; continue; }
+    if (used) used.add(id);
+    const entry = LIB_BY_ID[id] || null;
+    const role = slot.role;
+    /* D-2: 3 series SOLO en ruta estándar, SOLO en las
+       semanas 3–5 y SOLO en los 2 primeros compuestos del
+       día. Todo lo demás nace con 2 (la semana 6 también:
+       es la descarga del diseño). */
+    let sets = 2;
+    if (role === 'compound') {
+      if (ctx.route === 'standard' && wk >= 2 && wk <= 4 && compoundIx < 2) sets = 3;
+      compoundIx++;
+    }
+    let reps, repsMin, repsMax, repsKind;
+    if (role === 'time') { const b = prog22TimeBand(slot.time || 'plank', ctx.step); reps = b[0] + '-' + b[1] + ' seg'; repsMin = b[0]; repsMax = b[1]; repsKind = 'time'; }
+    else { const b = prog22BandFor(slot); reps = b[0] + '-' + b[1]; repsMin = b[0]; repsMax = b[1]; repsKind = 'reps'; }
+    const notes = [];
+    if (wk === 0) notes.push(t('prog22.noteCalib'));
+    else if (wk >= 2) notes.push(t('prog22.noteRir'));
+    if (slot.perSide) notes.push(t(slot.perSide === 'leg' ? 'prog22.perLeg' : 'prog22.perSide'));
+    const ex = {
+      name: entry ? libNameOf(entry) : id, sets, reps, note: notes.join(' · '),
+      exerciseId: id, photoUrl: (entry && entry.foto_url) || '', videoUrl: (entry && (entry.video_youtube_url || entry.video_url)) || '',
+      rest: plan21Rest(role), rest_en: plan21Rest(role), repsMin, repsMax, repsKind,
+      warmup: exs.length === 0 ? (LANG === 'es' ? 'Series de aproximación' : 'Warm-up sets') : '', warmup_en: 'Warm-up sets'
+    };
+    if (role !== 'time') {
+      const seedKg = prog22SeedFor(ctx, id, entry);
+      if (seedKg != null) { ex.dictLoad = seedKg; ex.dictLoadUnit = 'kg'; }
+    }
+    exs.push(ex);
+  }
+  const day = { label: t('prog22.sess' + code), exercises: exs };
+  if (code === 'C5') day.cardioReq = { warm: 15, close: 0 };   /* el cardio moderado del día suave, por el mecanismo de siempre */
+  return { day, dropped };
+}
+/* El constructor del calendario cerrado de 42 días: el mismo
+   resolvedor de días del Reto (días disponibles de la persona,
+   sin más de 2 sesiones seguidas salvo necesidad declarada). */
+function prog22Build(inp, opts) {
+  const route = opts.route, freq = opts.freq;
+  const step = prog22StepFor(route, inp);
+  const fam = plan21Families(inp);
+  let avail = plan21AvailDays(inp);
+  if (!avail.length) avail = [1, 2, 4, 5];
+  const startISO = opts.startISO || plan21StartISO(inp);
+  const seq = PROG22_SEQS[freq] || PROG22_SEQS[4];
+  const ctx = { inp, fams: fam.fams, route, step, lastLoads: prog22LastLoads(opts.logs || []) };
+  const days = [], notes = [];
+  let sessIx = 0, consec = 0, degraded = false, healthDropped = false;
+  let used = null, usedWk = -1;
+  for (let i = 0; i < 42; i++) {
+    const iso = planISOAddDays(startISO, i);
+    const wk = Math.floor(i / 7);
+    if (wk !== usedWk) { used = new Set(); usedWk = wk; }
+    const isAvail = avail.includes(plan21Weekday(iso));
+    let place = false;
+    if (isAvail) {
+      const sessThisWeek = days.slice(wk * 7).filter(d => !d.freeDay).length;
+      let availLeft = 0;
+      for (let j = i + 1; j < (wk + 1) * 7; j++) if (avail.includes(plan21Weekday(planISOAddDays(startISO, j)))) availLeft++;
+      const need = freq - sessThisWeek;
+      /* La frecuencia de Progresión 22 son SESIONES por semana
+         (3/4/5 o la reducida de 2): la semana se topa en la
+         frecuencia elegida — a diferencia del Reto, donde la
+         «forma» nombra la rotación y se entrena en todos los
+         días disponibles. */
+      if (sessThisWeek < freq && (consec < 2 || need > availLeft)) place = true;
+      if (place && consec >= 2) degraded = true;
+    }
+    if (place) {
+      const built = prog22SessionDay(seq[sessIx % seq.length], ctx, wk, used);
+      sessIx++;
+      if (built.dropped) { healthDropped = true; built.day.healthShort = true; }
+      days.push(built.day);
+      consec++;
+    } else {
+      days.push({ label: t('plan21.restDay'), exercises: [], freeDay: true });
+      consec = 0;
+    }
+  }
+  if (fam.assumed) notes.push(t('plan21.noteAssumedGym'));
+  if (degraded) notes.push(t('plan21.noteDegraded'));
+  if ((inp.hp && inp.hp.programMarks && inp.hp.programMarks.length) || healthDropped) notes.push(t('plan21.noteHealthAdj'));
+  if (!plan21HasTests(inp)) notes.push(t('plan21.noteSeedNoTest'));
+  else if (!inp.hasWeight) notes.push(t('plan21.noteSeedNoWeight'));
+  return { days, startsAt: startISO, endsAt: planISOAddDays(startISO, 41), route, freq, step,
+    notes: notes.join(' · '), hp: inp.hp, equipAssumed: fam.assumed };
+}
+/* Los dolores activos desde los registros de bienestar, con
+   LA MISMA derivación de mpActivePains (el registro más
+   reciente manda; la ventana es de 3 días) pero pura, sobre
+   los documentos dados — sirve en la sesión del alumno y en
+   la del entrenador. */
+function prog22ActivePainsFromDocs(docs) {
+  const sorted = [...(docs || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  if (!sorted.length) return [];
+  const latest = sorted[0];
+  if (!latest || !Array.isArray(latest.pain) || !latest.pain.length) return [];
+  const age = mpPainDaysBetween(latest.date, todayISO());
+  if (age < 0 || age > PAIN_ALERT_DAYS) return [];
+  return latest.pain.filter(p => p && p.zone && Math.round(num(p.intensity)) >= 1)
+    .map(p => ({ zone: p.zone, intensity: Math.round(num(p.intensity)), date: latest.date }));
+}
+/* Insumos de la transición: los del Reto (plan21FetchInputs)
+   más planes, bienestar/dolores y evaluaciones previas. */
+async function prog22FetchInputs(uid) {
+  const inp = await plan21FetchInputs(uid);
+  inp.plans = []; inp.originPlan = null; inp.originLogs = []; inp.pains = []; inp.well = null; inp.transitions = [];
+  try { inp.plans = await fetchPlans(uid); } catch {}
+  try {
+    const snap = await getDocs(query(collection(db, 'progress_wellness'), where('ownerUid', '==', uid)));
+    const docs = []; snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+    docs.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+    inp.well = docs[0] || null;
+    inp.pains = prog22ActivePainsFromDocs(docs);
+  } catch {}
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid), where('kind', '==', 'prog22Transition')));
+    snap.forEach(d => inp.transitions.push({ id: d.id, ...d.data() }));
+  } catch {}
+  return inp;
+}
+function prog22OriginOf(inp, originPlanId) {
+  const plans = (inp.plans || []).filter(p => p && !p.retoLeft && ((p.genSource && (p.genSource.kind === 'plan21' || p.genSource.kind === 'prog22')) || p.sourceRoutineId === PLAN21_TPL_ID));
+  if (originPlanId) return plans.find(p => p.id === originPlanId) || null;
+  plans.sort((a, b) => String(b.startsAt || '').localeCompare(String(a.startsAt || '')));
+  return plans[0] || null;
+}
+/* LA EVALUACIÓN DE TRANSICIÓN (diseño §5.2): función pura de
+   sus insumos. Adherencia con la ponderación de la casa
+   (hecha 1 · parcial 0,5) contada por fecha contra el plan
+   origen — nunca por índice (riesgo R-3 del informe) —;
+   tolerancia por RPE, dolores activos y bienestar; control
+   motor SOLO como lo que los registros muestran (variantes de
+   la batería); rendimiento = la batería vigente. Sin 1RM, sin
+   diagnósticos: los motivos de omisión no se registran hoy y
+   no se inventan. Las 4 rutas con sus umbrales declarados. */
+function prog22Evaluate(inp, freq) {
+  const origin = inp.originPlan || null;
+  const logs = inp.originLogs || [];
+  let adh = null;
+  if (origin && origin.startsAt) {
+    let total = 0, done = 0, partial = 0;
+    const upto = todayISO() < String(origin.endsAt || '') ? todayISO() : String(origin.endsAt || todayISO());
+    (origin.days || []).forEach((d, i) => {
+      if (!d || d.freeDay || !(d.exercises || []).length) return;
+      const iso = planISOAddDays(origin.startsAt, i);
+      if (iso > upto) return;
+      total++;
+      const log = logs.find(l => l.date === iso);
+      const st = log ? trainLogStatus(log) : 'none';
+      if (st === 'done') done++; else if (st === 'partial') partial++;
+    });
+    if (total) adh = { total, done, partial, missed: total - done - partial, pct: Math.round((done + 0.5 * partial) / total * 100) };
+  }
+  let rpeSum = 0, rpeN = 0;
+  for (const l of logs) for (const e of (l.exercisesDone || [])) { const r = Number(e && e.rpe); if (isFinite(r) && r > 0) { rpeSum += r; rpeN++; } }
+  const rpeAvg = rpeN ? Math.round((rpeSum / rpeN) * 10) / 10 : null;
+  const pains = inp.pains || [];
+  const fx = fitEffects(inp.conditions || []);
+  const pu = inp.tests && inp.tests.pushup, pl = inp.tests && inp.tests.plank;
+  const softVariants = !!((pu && pu.variant && pu.variant !== 'std') || (pl && pl.variant && pl.variant !== 'std'));
+  const wellLow = !!(inp.well && ((inp.well.energy != null && Number(inp.well.energy) <= 2) || (inp.well.sleepQuality != null && Number(inp.well.sleepQuality) <= 2)));
+  const why = [];
+  let route;
+  const strongPain = pains.find(p => p.intensity >= 8);
+  if (fx.blockedAll) { route = 'professional_review'; why.push('blocked'); }
+  else if (strongPain) { route = 'professional_review'; why.push('painStrong'); }
+  else if (freq === 2) { route = 'adapted'; why.push('freq2'); if (adh && adh.pct < 50) why.push('adhLow'); }
+  else if (adh && adh.pct < 50) { route = 'adapted'; why.push('adhLow'); }
+  else if ((adh && adh.pct < 75) || (rpeAvg != null && rpeAvg > 8) || softVariants || !inp.batteryComplete || wellLow || pains.length) {
+    route = 'conservative';
+    if (adh) why.push(adh.pct >= 50 ? 'adhMid' : 'adhLow');
+    if (rpeAvg != null && rpeAvg > 8) why.push('rpeHigh');
+    if (pains.length) why.push('painActive');
+    if (softVariants) why.push('softVariants');
+    if (!inp.batteryComplete) why.push('battIncomplete');
+    if (!adh) why.push('noData');
+  } else {
+    route = 'standard';
+    if (adh) why.push('adhHigh');
+    if (inp.batteryComplete) why.push('battStd');
+  }
+  return { route, routeWhy: why, adherence: adh,
+    tolerance: { rpeAvg, pains: pains.map(p => ({ zone: p.zone, intensity: p.intensity })), wellLow },
+    motor: { softVariants },
+    performance: { batteryComplete: !!inp.batteryComplete, tests: inp.tests || {} },
+    preferences: { freq, availDays: plan21AvailDays(inp) } };
+}
+
+/* La evaluación de transición como documento: id
+   determinista por (alumno, plan origen) — reabrir la puerta
+   no duplica evaluaciones (idempotencia del diseño §5.8). */
+async function prog22WriteTransition(uid, origin, ev, status) {
+  const id = `${uid}_p22trans_${origin ? origin.id : 'first'}`;
+  const data = { kind: 'prog22Transition', ownerUid: uid, date: todayISO(), originPlanId: origin ? origin.id : '',
+    adherence: ev.adherence || null, tolerance: ev.tolerance || null, motor: ev.motor || null,
+    performance: { batteryComplete: ev.performance.batteryComplete }, preferences: ev.preferences || null,
+    batteryRef: ev.performance.tests || {}, route: ev.route, routeWhy: ev.routeWhy || [], status,
+    updatedAt: serverTimestamp() };
+  await setDoc(doc(db, 'nutrition_progress', id), data, { merge: true });
+  return id;
+}
+/* El nacimiento (autogestión): la MISMA puerta de salud del
+   proyecto (AUTH-493). El plan nace en 'proposed' — la
+   persona lo revisa y lo activa ella (diseño §5.8); si la
+   puerta no está válida nace en espera (healthHold +
+   holdAuto) y planHoldEvaluate lo activa solo, como todos. */
+async function prog22CreatePlan(uid, built, meta) {
+  const gate = await planGateState(uid);
+  const hold = gate !== 'valid';
+  const data = {
+    clientUid: uid, title: t('prog22.planTitle'), notes: built.notes, days: built.days,
+    active: false, startsAt: built.startsAt, endsAt: built.endsAt, sessionsPerWeek: 7, durationPreset: null,
+    createdBy: (meta && meta.createdBy) || uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    healthHold: hold, holdAuto: hold,
+    sourceRoutineId: PROG22_TPL_ID, sourceRoutineVersion: PROG22_VERSION,
+    genSource: { kind: 'prog22', version: PROG22_VERSION, originPlanId: (meta && meta.originPlanId) || '', originKind: (meta && meta.originKind) || 'plan21', route: built.route, freq: built.freq, transitionId: (meta && meta.transitionId) || '' },
+    prog22State: 'proposed', weekReviews: [], progLog: []
+  };
+  if (meta && meta.assignedBy) data.assignedBy = meta.assignedBy;
+  if (hold) data.holdSince = serverTimestamp();
+  const ref = await addDoc(collection(db, 'training_plans'), data);
+  return { id: ref.id, hold };
+}
+/* La activación de la persona: la semántica de siempre — este
+   plan activo y los demás apagados (el anterior queda
+   guardado, jamás se borra). */
+async function prog22Activate(planId, uid) {
+  await setDoc(doc(db, 'training_plans', planId), { active: true, prog22State: 'active', healthHold: false, holdAuto: false, updatedAt: serverTimestamp() }, { merge: true });
+  const others = await fetchPlans(uid);
+  for (const o of others) if (o.id !== planId && o.active === true) {
+    try { await setDoc(doc(db, 'training_plans', o.id), { active: false, updatedAt: serverTimestamp() }, { merge: true }); } catch {}
+  }
+}
+/* El estado de Progresión 22 de una persona, para la puerta:
+   con plan → su momento; sin plan → elegible si su Reto
+   terminó o termina en ≤7 días (planEndInfo, la definición
+   única); si no, la puerta queda fantasma. */
+async function prog22StateOf(uid) {
+  let plans = [];
+  try { plans = await fetchPlans(uid); } catch {}
+  const p22s = plans.filter(p => p && p.genSource && p.genSource.kind === 'prog22');
+  if (p22s.length) {
+    p22s.sort((a, b) => String(b.startsAt || '').localeCompare(String(a.startsAt || '')));
+    const plan = p22s[0];
+    const raw = plan.prog22State || (plan.genSource && plan.genSource.state) || 'proposed';
+    const st = plan.active === true ? 'active' : (plan.healthHold ? 'hold' : (raw === 'coach_review' ? 'review' : 'proposed'));
+    return { state: st, plan, plans };
+  }
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid), where('kind', '==', 'prog22Transition')));
+    let review = null;
+    snap.forEach(d => { const v = d.data(); if (v && v.status === 'coach_review') review = { id: d.id, ...v }; });
+    if (review) return { state: 'review', transition: review, plans };
+  } catch {}
+  const origins = plans.filter(p => p && !p.retoLeft && ((p.genSource && p.genSource.kind === 'plan21') || p.sourceRoutineId === PLAN21_TPL_ID));
+  if (origins.length) {
+    origins.sort((a, b) => String(b.startsAt || '').localeCompare(String(a.startsAt || '')));
+    const origin = origins[0];
+    const endInfo = planEndInfo(origin, plans, todayISO());
+    if (endInfo) return { state: 'eligible', origin, endInfo, plans };
+    return { state: 'locked', origin, plans };
+  }
+  return { state: 'locked', plans };
+}
+/* Volcado al editor (D-4: el entrenador prepara la propuesta
+   del alumno y la revisa antes de activarla — el mismo patrón
+   de plan21DumpToEditor; nada se guarda hasta que el
+   entrenador guarda, y el estado coach_review viaja en el
+   genSource que el guardado del editor conserva). */
+async function prog22DumpToEditor(uid, built, meta) {
+  openPlanEditor(uid, null);
+  await libEnsure();
+  const daysBox = $('pl-days');
+  if (daysBox) { daysBox.innerHTML = ''; built.days.forEach(d => daysBox.appendChild(planDayRow(d))); }
+  if ($('pl-title')) $('pl-title').value = t('prog22.planTitle');
+  if ($('pl-notes')) $('pl-notes').value = built.notes || '';
+  if ($('pl-start')) $('pl-start').value = built.startsAt;
+  if ($('pl-end')) $('pl-end').value = built.endsAt;
+  planCtx.genSource = { kind: 'prog22', version: PROG22_VERSION, originPlanId: (meta && meta.originPlanId) || '', originKind: (meta && meta.originKind) || 'plan21', route: built.route, freq: built.freq, transitionId: (meta && meta.transitionId) || '', state: 'coach_review' };
+  planCtx.tplSource = { id: PROG22_TPL_ID, version: PROG22_VERSION };
+  planCtx.plan21Spw = 7;
+  planTouched = true;
+}
+/* Aplicar desde la bandeja la propuesta prog22Start aprobada:
+   se construye con la ruta y la frecuencia que la evaluación
+   del alumno dejó guardadas. */
+async function prog22ApplyForStudent(uid) {
+  await libEnsure();
+  const inp = await prog22FetchInputs(uid);
+  const origin = prog22OriginOf(inp, null);
+  inp.originPlan = origin;
+  if (origin) { try { inp.originLogs = (await fetchLogs(uid)).filter(l => l.planId === origin.id); } catch {} }
+  const trans = (inp.transitions || []).slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))[0] || null;
+  const freq = (trans && trans.preferences && trans.preferences.freq) || plan21FormOf(inp);
+  const route = trans && trans.route && trans.route !== 'professional_review' ? trans.route : 'conservative';
+  const built = prog22Build(inp, { route, freq, logs: inp.originLogs });
+  await prog22DumpToEditor(uid, built, { originPlanId: origin ? origin.id : '', originKind: origin && origin.genSource ? origin.genSource.kind : 'plan21', transitionId: trans ? trans.id : '' });
+}
+
+/* ── LA PUERTA FANTASMA (Retos): visible para TODOS los
+   usuarios aunque aún no les corresponda entrar — la persona
+   entra cuando le corresponde (decisión de visibilidad de
+   Ronald, 2026-11-23). El estado lo calcula chalLoad en
+   CHAL.p22 vía prog22StateOf. ── */
+function prog22DoorHTML() {
+  const st = (typeof CHAL !== 'undefined' && CHAL.p22) || { state: 'locked' };
+  let inner = '';
+  if (st.state === 'active' && st.plan) {
+    const dayIx = Math.round((Date.parse(todayISO() + 'T12:00:00') - Date.parse(String(st.plan.startsAt) + 'T12:00:00')) / 86400000);
+    const wk = Math.max(1, Math.min(6, Math.floor(Math.max(dayIx, 0) / 7) + 1));
+    inner = `<p class="p21-progress"><b>${esc(t('prog22.stateActive', { n: wk }))}</b></p><div class="chal-actions"><button type="button" class="btn-primary" data-chal-act="p22view">${esc(t('prog22.viewBtn'))}</button></div>`;
+  } else if (st.state === 'proposed') {
+    inner = `<p class="progress-hint">${esc(t('prog22.stateProposed'))}</p><div class="chal-actions"><button type="button" class="btn-primary" data-chal-act="p22open">${esc(t('prog22.activateBtn'))}</button></div>`;
+  } else if (st.state === 'review') {
+    inner = `<p class="progress-hint">${esc(t('prog22.stateReview'))}</p>`;
+  } else if (st.state === 'hold') {
+    inner = `<p class="progress-hint">${esc(t('prog22.stateHold'))}</p>`;
+  } else if (st.state === 'eligible') {
+    inner = `<p class="chal-metric">${esc(t(st.endInfo && st.endInfo.state === 'ending' ? 'prog22.doorEnding' : 'prog22.doorDone'))}</p><div class="chal-actions"><button type="button" class="btn-primary" data-chal-act="p22open">${esc(t('prog22.enterBtn'))}</button></div>`;
+  } else {
+    inner = `<p class="chal-metric">${esc(t('prog22.ghostNote'))}</p><p><span class="chal-tag">${esc(t('prog22.ghostChip'))}</span></p>`;
+  }
+  return `<div class="chal-item chal-p22"><div class="chal-item-head"><span class="chal-head-l"><b>${esc(t('prog22.name'))} · ${esc(t('prog22.tagline'))}</b></span></div><p class="chal-metric">${esc(t('prog22.subtitle'))}</p>${inner}</div>`;
+}
+/* La puerta en la vista de Entrenamiento: vive en su propio
+   hueco (#p22-door-slot) y solo se pinta cuando el plan del
+   Reto terminó o termina pronto y aún no hay Progresión 22. */
+async function prog22TrainDoor(plan) {
+  const host = $('p22-door-slot'); if (!host) return;
+  const me = auth.currentUser && auth.currentUser.uid; if (!me || !plan) return;
+  let plans = [];
+  try { plans = await fetchPlans(me); } catch {}
+  if (plans.some(p => p && p.genSource && p.genSource.kind === 'prog22')) { host.innerHTML = ''; return; }
+  const endInfo = planEndInfo(plan, plans, todayISO());
+  if (!endInfo) { host.innerHTML = ''; return; }
+  host.innerHTML = `<div class="train-blank-door p22-door"><h4>${esc(t('prog22.name'))} · ${esc(t('prog22.tagline'))}</h4><p class="progress-hint">${esc(t(endInfo.state === 'ending' ? 'prog22.doorEnding' : 'prog22.doorDone'))}</p><div class="train-door-btns"><button type="button" class="btn-primary train-door-btn" id="p22-door-btn">${esc(t('prog22.enterBtn'))}</button></div></div>`;
+  const b = $('p22-door-btn'); if (b) b.onclick = () => prog22Open();
+}
+
+/* ── LA PANTALLA DE PROGRESIÓN 22 (#p22-float): una sola
+   pantalla propia con «Volver» fijo (la regla de navegación
+   de la casa) y tres pinturas: la evaluación de transición,
+   la revisión semanal y el cierre del programa. ── */
+let P22_UI = null;
+function prog22Close() { const fl = $('p22-float'); if (fl) fl.style.display = 'none'; P22_UI = null; }
+async function prog22Open(originPlanId) {
+  const fl = $('p22-float'); if (!fl) return;
+  fl.style.display = '';
+  const bk = $('p22-back'); if (bk) bk.onclick = () => prog22Close();
+  const body = $('p22-body'); if (body) body.innerHTML = `<div class="wempty compact">${esc(t('train.loading'))}</div>`;
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  await libEnsure();
+  const inp = await prog22FetchInputs(me);
+  const origin = prog22OriginOf(inp, originPlanId || null);
+  inp.originPlan = origin;
+  if (origin) { try { inp.originLogs = (await fetchLogs(me)).filter(l => l.planId === origin.id); } catch {} }
+  const st = await prog22StateOf(me);
+  P22_UI = { mode: 'eval', inp, origin, freq: plan21FormOf(inp), openStep: 1, ev: null, state: st, created: null };
+  P22_UI.ev = prog22Evaluate(inp, P22_UI.freq);
+  prog22Paint();
+}
+function prog22SetTitle(txt) { const el = $('p22-title'); if (el) el.textContent = txt; }
+function prog22Paint() {
+  const body = $('p22-body'); if (!body || !P22_UI) return;
+  if (P22_UI.mode === 'review') return prog22ReviewPaint();
+  if (P22_UI.mode === 'close') return prog22ClosePaint();
+  const U = P22_UI, st = U.state || { state: 'locked' };
+  prog22SetTitle(t('prog22.evalTitle'));
+  if (st.state === 'proposed' && st.plan) {
+    body.innerHTML = `<div class="p22-box"><p class="p22-route-n">${esc(t('prog22.planTitle'))}</p>
+      <p class="wiz-body">${esc(t('prog22.proposedBody', { freq: (st.plan.genSource || {}).freq || U.freq, route: t('prog22.route.' + ((st.plan.genSource || {}).route || 'standard')) }))}</p>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button type="button" class="btn-primary" id="p22-activate">${esc(t('prog22.activateBtn'))}</button></div></div>`;
+    const ab = $('p22-activate');
+    if (ab) ab.onclick = async () => { ab.disabled = true; const me = auth.currentUser && auth.currentUser.uid; try { await prog22Activate(st.plan.id, me); toast(t('prog22.activatedOk')); prog22Close(); try { loadMyTraining(); } catch {} try { if (typeof NAV_TAB !== 'undefined' && NAV_TAB === 'challenges') { await chalLoad(true); chalRenderPaint(); } } catch {} } catch { toast(t('train.saveError'), true); ab.disabled = false; } };
+    return;
+  }
+  if (st.state === 'review') { body.innerHTML = `<div class="p22-box"><p class="wiz-body">${esc(t('prog22.sentReview'))}</p></div>`; return; }
+  if (st.state === 'hold') { body.innerHTML = `<div class="p22-box"><p class="wiz-body">${esc(t('plan21.startedHold'))}</p></div>`; return; }
+  if (st.state === 'active' && st.plan) { prog22Close(); try { navOpenPage('train'); } catch {} return; }
+  /* La evaluación, en 3 pasos plegados (la regla de
+     crecimiento de la casa: todo bloque nace en una línea). */
+  const ev = U.ev || prog22Evaluate(U.inp, U.freq);
+  const adh = ev.adherence;
+  const step1 = adh
+    ? `<p class="wiz-body">${esc(t('prog22.adhLine', { done: adh.done, partial: adh.partial, missed: adh.missed, total: adh.total }))}</p>
+       <p class="wiz-body"><b>${esc(t('prog22.adhPct', { p: adh.pct }))}</b></p>
+       <p class="wiz-body">${esc(t('prog22.noMotives'))}</p>`
+    : `<p class="wiz-body">${esc(t('prog22.noOrigin'))}</p>`;
+  const tol = ev.tolerance || {};
+  const tolLines = [
+    tol.rpeAvg != null ? `<p class="wiz-body">${esc(t('prog22.rpeLine', { rpe: tol.rpeAvg }))}</p>` : '',
+    ...(tol.pains || []).map(p => `<p class="wiz-body" style="color:#b45309">⚠ ${esc(t('prog22.painLine', { zone: mpPainZoneLbl(p.zone), n: p.intensity }))}</p>`),
+    U.inp.well && (U.inp.well.energy != null || U.inp.well.sleepQuality != null) ? `<p class="wiz-body">${esc(t('prog22.wellLine', { e: U.inp.well.energy != null ? U.inp.well.energy : '—', s: U.inp.well.sleepQuality != null ? U.inp.well.sleepQuality : '—' }))}</p>` : ''
+  ].join('');
+  const tests = U.inp.tests || {};
+  const testRows = FIT_TEST_ORDER.filter(k => tests[k]).map(k => `<p class="wiz-body">${esc(t('fit.t.' + k))}: <b>${esc(fitValTxt({ test: k, value: tests[k].value, variant: tests[k].variant }))}</b> · ${esc(plan21DateLabel(tests[k].date || ''))}</p>`).join('');
+  const lastBattDate = FIT_TEST_ORDER.map(k => tests[k] && tests[k].date).filter(Boolean).sort().pop();
+  const step2 = (testRows
+    ? `<p class="wiz-body">${esc(t('prog22.battLast', { date: plan21DateLabel(lastBattDate || '') }))}</p>${testRows}`
+    : `<p class="wiz-body">${esc(t('prog22.battNone'))}</p>`)
+    + `<div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap"><button type="button" class="btn-ghost" id="p22-batt-repeat">${esc(t('prog22.battRepeat'))}</button></div>`;
+  const freqBtns = [3, 4, 5, 2].map(f => `<button type="button" class="wiz-chip${U.freq === f ? ' sel' : ''}" data-p22-freq="${f}" aria-pressed="${U.freq === f}">${esc(t('prog22.freq' + f))}</button>`).join('');
+  const step3 = `<h3 class="wiz-h">${esc(t('prog22.freqQ'))}</h3><div class="wiz-chips">${freqBtns}</div>`;
+  const fold = (n, title, inner) => `<button type="button" class="prog569-line p22-line" data-p22-step="${n}" aria-expanded="${U.openStep === n ? 'true' : 'false'}"><span class="p569-tx">${esc(title)}</span><span class="p569-chev" aria-hidden="true">${U.openStep === n ? '▴' : '▾'}</span></button><div data-p22-stepbody="${n}"${U.openStep === n ? '' : ' style="display:none"'}>${inner}</div>`;
+  const whyList = (ev.routeWhy || []).map(k => `<li>${esc(t('prog22.why.' + k, { n: (tol.pains || []).map(p => p.intensity).sort((a, b) => b - a)[0] || '' }))}</li>`).join('');
+  const routeBox = `<div class="p22-route"><div class="p22-route-t">${esc(t('prog22.routeTitle'))}</div><div class="p22-route-n">${esc(t('prog22.route.' + ev.route))}</div>${whyList ? `<p class="wiz-body">${esc(t('prog22.routeWhyIntro'))}</p><ul class="p22-why">${whyList}</ul>` : ''}</div>`;
+  const isProf = ev.route === 'professional_review';
+  body.innerHTML = `
+    <p class="wiz-body">${esc(t(U.origin ? 'prog22.doorDone' : 'prog22.subtitle'))}</p>
+    ${fold(1, t('prog22.step1T'), step1 + tolLines)}
+    ${fold(2, t('prog22.step2T'), step2)}
+    ${fold(3, t('prog22.step3T'), step3)}
+    ${routeBox}
+    ${isProf ? `<p class="wiz-body">${esc(t('prog22.profBody'))}</p>` : `<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button type="button" class="btn-primary" id="p22-create">${esc(t('prog22.createBtn'))}</button></div>`}`;
+  body.querySelectorAll('[data-p22-step]').forEach(b => b.onclick = () => { const n = Number(b.dataset.p22Step); U.openStep = U.openStep === n ? 0 : n; prog22Paint(); });
+  body.querySelectorAll('[data-p22-freq]').forEach(b => b.onclick = () => { U.freq = Number(b.dataset.p22Freq); U.ev = prog22Evaluate(U.inp, U.freq); prog22Paint(); });
+  const rb = $('p22-batt-repeat'); if (rb) rb.onclick = () => { try { mpFitOpen(); } catch {} };
+  const cb = $('p22-create'); if (cb) cb.onclick = () => prog22Create();
+}
+async function prog22Create() {
+  const U = P22_UI; if (!U) return;
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  const btn = $('p22-create'); if (btn) { btn.disabled = true; btn.textContent = t('prog22.creating'); }
+  try {
+    const ev = prog22Evaluate(U.inp, U.freq);
+    U.ev = ev;
+    if (ev.route === 'professional_review') {
+      await prog22WriteTransition(me, U.origin, ev, 'professional_review');
+      U.state = { state: 'locked' };
+      toast(t('prog22.route.professional_review'));
+      prog22Paint();
+      return;
+    }
+    if (!plan21SelfManaged()) {
+      /* D-4: con entrenador la propuesta espera su revisión —
+         viaja por la bandeja de propuestas, como el
+         plan21Start; el plan actual sigue activo. */
+      const tid = await prog22WriteTransition(me, U.origin, ev, 'coach_review');
+      await setDoc(doc(db, 'nutrition_progress', `${me}_p22start_${Date.now()}`), {
+        kind: 'planProposal', ownerUid: me, uid: me, planId: U.origin ? U.origin.id : '', planTitle: t('prog22.planTitle'),
+        type: 'prog22Start', sourceTemplateId: PROG22_TPL_ID, transitionId: tid, route: ev.route, freq: U.freq,
+        note: '', status: 'pending', createdAt: serverTimestamp()
+      });
+      U.state = { state: 'review' };
+      toast(t('prog22.sentReview'));
+      prog22Paint();
+      return;
+    }
+    const tid = await prog22WriteTransition(me, U.origin, ev, 'completed');
+    const built = prog22Build(U.inp, { route: ev.route, freq: U.freq, logs: U.inp.originLogs });
+    const res = await prog22CreatePlan(me, built, { originPlanId: U.origin ? U.origin.id : '', originKind: U.origin && U.origin.genSource ? U.origin.genSource.kind : 'plan21', transitionId: tid });
+    try { await setDoc(doc(db, 'nutrition_progress', tid), { planId: res.id }, { merge: true }); } catch {}
+    U.state = { state: res.hold ? 'hold' : 'proposed', plan: { id: res.id, genSource: { freq: U.freq, route: ev.route } } };
+    prog22Paint();
+  } catch { toast(t('train.saveError'), true); if (btn) { btn.disabled = false; btn.textContent = t('prog22.createBtn'); } }
+}
+
+/* ── LA TARJETA DE PROGRESIÓN 22 en Entrenamiento (se pinta
+   en el mismo hueco del Reto, #p21-slot, cuando el plan
+   activo es de Progresión 22): semana, objetivo, sesiones y
+   la siguiente — y, cuando la semana se cierra sin revisión,
+   el botón de la revisión semanal (§5.5). ── */
+function prog22WeekComplete(plan, logs, wk) {
+  const days = plan.days || [];
+  let total = 0, done = 0;
+  for (let i = wk * 7; i < Math.min(wk * 7 + 7, days.length); i++) {
+    const d = days[i];
+    if (!d || d.freeDay || !(d.exercises || []).length) continue;
+    total++;
+    const iso = planISOAddDays(plan.startsAt, i);
+    const log = logs.find(l => l.date === iso);
+    const st = log ? trainLogStatus(log) : 'none';
+    if (st === 'done' || st === 'partial') done++;
+  }
+  return total > 0 && done >= total;
+}
+async function prog22CardRender(plan) {
+  const host = $('p21-slot'); if (!host || !plan) return;
+  const today = todayISO();
+  const dayIx = Math.round((Date.parse(today + 'T12:00:00') - Date.parse(String(plan.startsAt) + 'T12:00:00')) / 86400000);
+  const logs = (typeof MY_LOGS_ALL !== 'undefined' && Array.isArray(MY_LOGS_ALL)) ? MY_LOGS_ALL.filter(l => l.planId === plan.id) : [];
+  const doneN = logs.filter(l => { const s = trainLogStatus(l); return s === 'done' || s === 'partial'; }).length;
+  let h = '<div class="p21-card p22-card">';
+  h += `<p class="p21-progress"><b>${esc(t('prog22.planTitle'))}</b></p>`;
+  if (dayIx < 0) {
+    h += `<p class="progress-hint">${esc(t('plan21.sheetStart', { date: plan21DateLabel(plan.startsAt), date2: plan21DateLabel(plan.endsAt) }))}</p>`;
+  } else if (dayIx <= 41) {
+    const wk = Math.min(5, Math.floor(Math.max(dayIx, 0) / 7));
+    h += `<p class="progress-hint">${esc(t('prog22.cardWeek', { n: wk + 1, name: t('prog22.week' + (wk + 1)) }))}</p>`;
+    h += `<p class="progress-hint">${esc(t('prog22.cardObj', { obj: t('prog22.weekObj' + (wk + 1)) }))}</p>`;
+    h += `<p class="progress-hint">${esc(t('prog22.cardSessions', { n: doneN }))}</p>`;
+    const nx = (plan.days || []).findIndex((d, i) => i >= Math.max(dayIx, 0) && d && !d.freeDay && (d.exercises || []).length);
+    if (nx >= 0) h += `<p class="progress-hint">${esc(t('prog22.cardNext', { label: (plan.days[nx] || {}).label || '' }))}</p>`;
+    const reviews = Array.isArray(plan.weekReviews) ? plan.weekReviews : [];
+    const reviewDue = (prog22WeekComplete(plan, logs, wk) || dayIx >= (wk + 1) * 7) && !reviews.some(r => r && r.week === wk);
+    if (reviewDue) h += `<div style="margin-top:8px"><button type="button" class="btn-primary" id="p22-review-open">${esc(t('prog22.reviewBtn'))}</button></div>`;
+  } else {
+    h += `<p class="p21-progress"><b>${esc(t('plan21.finished'))}</b></p>`;
+    h += `<div style="margin-top:8px"><button type="button" class="btn-primary" id="p22-close-open">${esc(t('prog22.closeBtn'))}</button></div>`;
+  }
+  h += '</div>';
+  host.innerHTML = h;
+  const rb = $('p22-review-open'); if (rb) rb.onclick = () => prog22OpenReview(plan);
+  const cb = $('p22-close-open'); if (cb) cb.onclick = () => prog22OpenClose(plan);
+}
+/* ── LA REVISIÓN SEMANAL (§5.5): automática, en su pantalla,
+   con los veredictos del motor AUTH-544 de la semana y las
+   decisiones cerradas del diseño. Ninguna acción muta el
+   historial: las de futuro reescriben SOLO días futuros sin
+   entrenar, con la foto previa de la casa (isSnapshot). ── */
+async function prog22OpenReview(plan) {
+  const fl = $('p22-float'); if (!fl) return;
+  fl.style.display = '';
+  const bk = $('p22-back'); if (bk) bk.onclick = () => prog22Close();
+  const body = $('p22-body'); if (body) body.innerHTML = `<div class="wempty compact">${esc(t('train.loading'))}</div>`;
+  const today = todayISO();
+  const dayIx = Math.round((Date.parse(today + 'T12:00:00') - Date.parse(String(plan.startsAt) + 'T12:00:00')) / 86400000);
+  const wk = Math.max(0, Math.min(5, Math.floor(Math.max(dayIx, 0) / 7)));
+  const me = auth.currentUser && auth.currentUser.uid;
+  let logs = [];
+  if (me) { try { logs = (await fetchLogs(me)).filter(l => l.planId === plan.id); } catch {} }
+  P22_UI = { mode: 'review', plan, wk, logs, busy: false };
+  prog22ReviewPaint();
+}
+function prog22ReviewPaint() {
+  const body = $('p22-body'); if (!body || !P22_UI || P22_UI.mode !== 'review') return;
+  const { plan, wk, logs } = P22_UI;
+  prog22SetTitle(t('prog22.reviewTitle'));
+  let total = 0, doneN = 0;
+  const counts = { A: 0, C: 0, D: 0 };
+  const wkEndIso = planISOAddDays(plan.startsAt, (wk + 1) * 7);
+  for (let i = wk * 7; i < Math.min(wk * 7 + 7, (plan.days || []).length); i++) {
+    const d = plan.days[i];
+    if (!d || d.freeDay || !(d.exercises || []).length) continue;
+    total++;
+    const iso = planISOAddDays(plan.startsAt, i);
+    const log = logs.find(l => l.date === iso);
+    const st = log ? trainLogStatus(log) : 'none';
+    if (st === 'done' || st === 'partial') doneN++;
+    /* Los veredictos del motor (AUTH-544) tal como quedaban al
+       cerrar la semana revisada: se excluyen las sesiones de
+       la semana siguiente en adelante. */
+    if (log) for (const ex of d.exercises) { const v = progVerdict(ex, logs, wkEndIso); if (v && v.kind && counts[v.kind] != null) counts[v.kind]++; }
+  }
+  const hasTrainer = !plan21SelfManaged();
+  const acts = [
+    ['keep', t('prog22.revKeep')], ['continue', t('prog22.revContinue')], ['reduce', t('prog22.revReduce')], ['reschedule', t('prog22.revReschedule')],
+    ...(hasTrainer ? [['askTrainer', t('prog22.revAskTrainer')]] : [])
+  ];
+  body.innerHTML = `<p class="wiz-body">${esc(t('prog22.revSessions', { done: doneN, total }))}</p>
+    <p class="wiz-body">${esc(t('prog22.revVerdicts', { up: counts.A, keep: counts.C, down: counts.D }))}</p>
+    <div class="p22-acts">${acts.map(([a, lbl]) => `<button type="button" class="btn-ghost p22-act" data-p22-rev="${a}">${esc(lbl)}</button>`).join('')}</div>`;
+  body.querySelectorAll('[data-p22-rev]').forEach(b => b.onclick = () => prog22ReviewAct(b.dataset.p22Rev));
+}
+function prog22RescheduleDays(plan, avail) {
+  const days = JSON.parse(JSON.stringify(plan.days || []));
+  const today = todayISO();
+  const startIx = Math.max(0, Math.round((Date.parse(today + 'T12:00:00') - Date.parse(String(plan.startsAt) + 'T12:00:00')) / 86400000) + 1);
+  if (startIx >= days.length) return null;
+  const future = [];
+  for (let i = startIx; i < days.length; i++) { const d = days[i]; if (d && !d.freeDay && (d.exercises || []).length) future.push(d); }
+  if (!future.length) return null;
+  const av = avail && avail.length ? avail : [1, 2, 4, 5];
+  let fi = 0;
+  for (let i = startIx; i < days.length && fi < future.length; i++) {
+    const iso = planISOAddDays(plan.startsAt, i);
+    if (av.includes(plan21Weekday(iso))) days[i] = future[fi++];
+    else days[i] = { label: t('plan21.restDay'), exercises: [], freeDay: true };
+  }
+  let guard = 0;
+  while (fi < future.length && guard++ < 21) {
+    const iso = planISOAddDays(plan.startsAt, days.length);
+    if (av.includes(plan21Weekday(iso))) days.push(future[fi++]);
+    else days.push({ label: t('plan21.restDay'), exercises: [], freeDay: true });
+  }
+  return days;
+}
+function prog22ReduceNextWeek(days, wk) {
+  const out = JSON.parse(JSON.stringify(days || []));
+  const from = (wk + 1) * 7, to = Math.min(from + 7, out.length);
+  for (let i = from; i < to; i++) {
+    const d = out[i];
+    if (!d || d.freeDay) continue;
+    (d.exercises || []).forEach(ex => {
+      if (Number(ex.sets) > 2) ex.sets = 2;
+      if (ex.repsKind === 'time') { const b = prog22TimeBand(ex.exerciseId === 'E088' ? 'plankSide' : 'plank', 'suave'); ex.reps = b[0] + '-' + b[1] + ' seg'; ex.repsMin = b[0]; ex.repsMax = b[1]; }
+    });
+    d.prog22Reduced = true;
+  }
+  return out;
+}
+async function prog22ReviewAct(action) {
+  const U = P22_UI; if (!U || U.busy) return;
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  U.busy = true;
+  try {
+    const snap = await getDoc(doc(db, 'training_plans', U.plan.id));
+    if (!snap.exists()) throw new Error('plan-missing');
+    const prev = snap.data();
+    const entry = { week: U.wk, action, date: todayISO() };
+    const write = { weekReviews: [...(Array.isArray(prev.weekReviews) ? prev.weekReviews : []), entry], updatedAt: serverTimestamp() };
+    if (action === 'reduce') write.days = prog22ReduceNextWeek(prev.days, U.wk);
+    if (action === 'reschedule') {
+      const inp = await prog22FetchInputs(me);
+      const nd = prog22RescheduleDays({ ...prev, id: U.plan.id }, plan21AvailDays(inp));
+      if (nd) { write.days = nd; write.endsAt = planISOAddDays(prev.startsAt, nd.length - 1); }
+    }
+    if (action === 'reduce' || action === 'reschedule') {
+      await addDoc(collection(db, 'training_plans'), { ...prev, isSnapshot: true, clientUid: me, snapshotOf: U.plan.id, snapshotReason: 'prog22Review', createdAt: serverTimestamp(), active: false });
+    }
+    await setDoc(doc(db, 'training_plans', U.plan.id), write, { merge: true });
+    if (action === 'askTrainer') {
+      await setDoc(doc(db, 'nutrition_progress', `${me}_p22rev_${Date.now()}`), {
+        kind: 'planProposal', ownerUid: me, uid: me, planId: U.plan.id, planTitle: t('prog22.planTitle'),
+        type: 'prog22Review', sourceTemplateId: PROG22_TPL_ID, week: U.wk + 1,
+        note: '', status: 'pending', createdAt: serverTimestamp()
+      });
+      toast(t('prog22.revSentTrainer'));
+    } else toast(t(action === 'reduce' ? 'prog22.revReduced' : action === 'reschedule' ? 'prog22.revReschedDone' : 'prog22.revDone'));
+    prog22Close();
+    try { loadMyTraining(); } catch {}
+  } catch { U.busy = false; toast(t('train.saveError'), true); }
+}
+/* ── EL CIERRE DEL PROGRAMA (§5.7): cuatro campos calculados
+   de los registros reales — batería inicial (la guardada en
+   la transición) contra la vigente en la misma variante,
+   anclas de carga primera contra última, adherencia del
+   ciclo, decisiones y RPE — y la recomendación de la etapa
+   siguiente. Lo que no mejoró en números no se viste de
+   logro: se dice y se propone consolidar. ── */
+async function prog22OpenClose(plan) {
+  const fl = $('p22-float'); if (!fl) return;
+  fl.style.display = '';
+  const bk = $('p22-back'); if (bk) bk.onclick = () => prog22Close();
+  const body = $('p22-body'); if (body) body.innerHTML = `<div class="wempty compact">${esc(t('train.loading'))}</div>`;
+  const me = auth.currentUser && auth.currentUser.uid; if (!me) return;
+  const inp = await prog22FetchInputs(me);
+  let logs = [];
+  try { logs = (await fetchLogs(me)).filter(l => l.planId === plan.id); } catch {}
+  logs.sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+  let trans = null;
+  const tid = plan.genSource && plan.genSource.transitionId;
+  if (tid) { try { const s = await getDoc(doc(db, 'nutrition_progress', tid)); if (s.exists()) trans = s.data(); } catch {} }
+  /* Anclas: primera y última carga registrada por ejercicio. */
+  const anchorIds = ['E051', 'E001', 'E013', 'E066', 'E058'];
+  const anchors = {};
+  for (const l of logs) for (const e of (l.exercisesDone || [])) {
+    if (!e || !anchorIds.includes(e.exerciseId)) continue;
+    let best = null;
+    for (const s of (e.sets || [])) { const kg = Number(s && s.loadKg); if (isFinite(kg) && kg > 0 && (best == null || kg > best)) best = kg; }
+    if (best == null) continue;
+    if (!anchors[e.exerciseId]) anchors[e.exerciseId] = { first: best, last: best };
+    else anchors[e.exerciseId].last = best;
+  }
+  let total = 0, done = 0, partial = 0;
+  (plan.days || []).forEach((d, i) => {
+    if (!d || d.freeDay || !(d.exercises || []).length) return;
+    total++;
+    const log = logs.find(l => l.date === planISOAddDays(plan.startsAt, i));
+    const st = log ? trainLogStatus(log) : 'none';
+    if (st === 'done') done++; else if (st === 'partial') partial++;
+  });
+  const adhPct = total ? Math.round((done + 0.5 * partial) / total * 100) : 0;
+  let rpeSum = 0, rpeN = 0, stdVariants = 0;
+  for (const l of logs) for (const e of (l.exercisesDone || [])) {
+    const r = Number(e && e.rpe); if (isFinite(r) && r > 0) { rpeSum += r; rpeN++; }
+    const ex = (plan.days || []).flatMap(d => d.exercises || []).find(x => x.exerciseId === e.exerciseId);
+    if (ex && (e.exerciseId === 'E009' || e.exerciseId === 'E087')) stdVariants++;
+  }
+  const progN = Array.isArray(plan.progLog) ? plan.progLog.length : 0;
+  const rpeAvg = rpeN ? Math.round((rpeSum / rpeN) * 10) / 10 : null;
+  const improved = Object.values(anchors).some(a => a.last > a.first);
+  const route = (plan.genSource && plan.genSource.route) || 'standard';
+  const stage = (route === 'adapted' || adhPct < 60 || !improved) ? 'consolidate' : 'strength';
+  P22_UI = { mode: 'close', plan, inp, trans, anchors, adh: { total, done, partial, pct: adhPct }, progN, rpeAvg, stdVariants, stage, improved };
+  prog22ClosePaint();
+}
+function prog22ClosePaint() {
+  const body = $('p22-body'); if (!body || !P22_UI || P22_UI.mode !== 'close') return;
+  const U = P22_UI;
+  prog22SetTitle(t('prog22.closeTitle'));
+  const init = (U.trans && U.trans.batteryRef) || {};
+  const now = (U.inp && U.inp.tests) || {};
+  const battLines = FIT_TEST_ORDER.filter(k => init[k] && now[k] && init[k].variant === now[k].variant)
+    .map(k => `<p class="wiz-body">${esc(t('prog22.closeBatt', { test: t('fit.t.' + k), a: fitValTxt({ test: k, value: init[k].value, variant: init[k].variant }), b: fitValTxt({ test: k, value: now[k].value, variant: now[k].variant }) }))}</p>`).join('');
+  const anchorLines = Object.keys(U.anchors).map(id => {
+    const a = U.anchors[id];
+    const entry = LIB_BY_ID[id] || null;
+    return `<p class="wiz-body">${esc(t('prog22.closeLoad', { ex: entry ? libNameOf(entry) : id, a: a.first, b: a.last }))}</p>`;
+  }).join('');
+  body.innerHTML = `
+    ${battLines ? `<h3 class="wiz-h">${esc(t('prog22.closeF1'))}</h3>${battLines}` : ''}
+    ${anchorLines ? `<h3 class="wiz-h">${esc(t('prog22.closeF2'))}</h3>${anchorLines}` : ''}
+    <h3 class="wiz-h">${esc(t('prog22.closeF3'))}</h3>
+    <p class="wiz-body">${esc(t('prog22.closeAdh', { p: U.adh.pct, done: U.adh.done, total: U.adh.total }))}</p>
+    <h3 class="wiz-h">${esc(t('prog22.closeF4'))}</h3>
+    <p class="wiz-body">${esc(t('prog22.closeDecisions', { n: U.progN }))}</p>
+    <p class="wiz-body">${esc(t('prog22.closeVariants', { n: U.stdVariants }))}</p>
+    ${U.rpeAvg != null ? `<p class="wiz-body">${esc(t('prog22.rpeLine', { rpe: U.rpeAvg }))}</p>` : ''}
+    ${U.improved ? '' : `<p class="wiz-body">${esc(t('prog22.closeKeep'))}</p>`}
+    <h3 class="wiz-h">${esc(t('prog22.nextStageT'))}</h3>
+    <p class="wiz-body">${esc(t('prog22.stage.' + U.stage))}</p>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button type="button" class="btn-primary" id="p22-next">${esc(t('prog22.nextBtn'))}</button></div>`;
+  const nb = $('p22-next'); if (nb) nb.onclick = () => prog22Open(U.plan.id);
+}
+/* ── EL FRENO POR MOLESTIA del motor AUTH-544 (diseño §5.6):
+   si el ejercicio del día cae en una zona con dolor ACTIVO
+   (la misma derivación de la casa: el registro de bienestar
+   más reciente, dentro de 3 días), la sugerencia de SUBIR no
+   se pinta ni se aplica: se pinta la de mantener, con el
+   motivo a la vista. Solo actúa en planes de Progresión 22 —
+   el Reto y los demás planes quedan intactos. ── */
+function prog22PainBrake(ex) {
+  try {
+    if (typeof MY_PLAN === 'undefined' || !MY_PLAN || !(MY_PLAN.genSource && MY_PLAN.genSource.kind === 'prog22')) return null;
+    const hits = trainPainForEx(ex);
+    return hits.length ? hits[0] : null;
+  } catch { return null; }
+}
+function prog22PainHTML(ex, di, ei, v, pain) {
+  const keyDE = di + ':' + ei;
+  const open = PROG_OPEN.has(progIdentKey(ex));
+  const fold = `<button type="button" class="prog-fold" data-prog-toggle="${keyDE}" aria-expanded="${open ? 'true' : 'false'}"><span>${esc(t('prog22.painFold'))}</span><span class="prog-chev" aria-hidden="true">${open ? '⌄' : '›'}</span></button>`;
+  if (!open) return `<div class="prog-sug">${fold}</div>`;
+  const body = `<div class="prog-open"><div class="prog-tag">${esc(t('prog.tag'))}</div><div class="prog-title">${esc(t('prog22.painTitle'))}</div><p class="prog-why">${esc(t('prog22.painWhy', { zone: mpPainZoneLbl(pain.zone), n: pain.intensity }))}</p><div class="prog-btns"><button type="button" class="prog-apply" data-prog-apply="${keyDE}">${esc(t('prog.repeatBtn', { load: fmtMass(v.L) }))}</button><button type="button" class="prog-no" data-prog-no="${keyDE}">${esc(t('prog.notNow'))}</button></div><div class="prog-never">${esc(t('prog.neverAuto'))}</div></div>`;
+  return `<div class="prog-sug">${fold}${body}</div>`;
 }
 
 /* --- La hoja de arranque del alumno (desde su catálogo, D6) --- */
@@ -69922,6 +70867,11 @@ async function chalLoad(force) {
     }
     CHAL.groups = groups;
     try { CHAL.p21 = await chalPlan21State(me); } catch { CHAL.p21 = null; }
+    /* Progresión 22: el estado de la puerta fantasma (visible
+       para todos los usuarios; la persona entra cuando le
+       corresponde). Si la lectura falla, la puerta queda
+       fantasma y la pestaña nunca se rompe por ella. */
+    try { CHAL.p22 = await prog22StateOf(me); } catch { CHAL.p22 = { state: 'locked' }; }
     /* AUTH-586 (puntos 1 y 7): la inscripción de SOLO
        alimentación no crea plan de entrenamiento y el estado
        del plan no la veía: la tarjeta enseñaba «Empezar» a
@@ -71076,7 +72026,7 @@ function chalRenderPaint() {
      no se pinta como caja suelta debajo: va INTEGRADO dentro
      de la tarjeta del reto (chalP21CardDecorate), solo para
      admin/entrenador, como antes. */
-  body.innerHTML = chalActiveHTML(chalCanManage() ? retoShareCardHTML('plan-21') : '');
+  body.innerHTML = chalActiveHTML(chalCanManage() ? retoShareCardHTML('plan-21') : '') + prog22DoorHTML();
   const st = CHAL.p21;
   if (st && st.state === 'active') chalP21AskPaint();
   if (st && st.state === 'done') chalP21DonePaint();
@@ -71198,6 +72148,11 @@ function chalActDispatch(el) {
   else if (act === 'p21info') { r21ProgramOpen({}); }
   else if (act === 'p21leave') { r21ProgramOpen({ leave: true }); }
   else if (act === 'p21view') { Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} try { trainSheetOpen('plan'); } catch {} }); }   /* AUTH-585: «Ver mi plan» abre la pantalla del plan («Mi plan»), ya no salta a Entrenamiento a secas */
+  /* Progresión 22: la puerta fantasma — «Entrar» abre su
+     pantalla de evaluación; «Ver mi plan» va a la pantalla
+     del plan, como el Reto. */
+  else if (act === 'p22open') { prog22Open(); }
+  else if (act === 'p22view') { Promise.resolve(loadMyTraining()).catch(() => {}).finally(() => { try { navOpenPage('train'); } catch {} try { trainSheetOpen('plan'); } catch {} }); }
   else if (act === 'leave') chalLeave(id);
   else if (act === 'abandon') chalAbandon(id);
   else if (act === 'delcreated') chalDeleteCreated(id);

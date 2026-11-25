@@ -8246,3 +8246,23 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .mkd-mark-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #EFEAE0;font-size:15px}
 .mkd-adm-row{padding:10px 0;border-bottom:1px solid #EFEAE0;font-size:16px}
 .mkd-geo-panel .mkd-geo{margin-top:4px}
+
+/* ═══ Progresión 22 (módulo de continuación del Reto 21) ═══
+   La puerta fantasma en Retos, la caja de la ruta en la
+   evaluación, las líneas de pliegue de sus pasos y las
+   acciones de la revisión semanal. Controles ≥44 px. */
+.chal-p22 { border: 1.5px dashed var(--border, #cbd5e1); }
+.p22-door { margin: 12px 0; }
+.p22-box { padding: 4px 2px; }
+.p22-line { width: 100%; min-height: 48px; margin-top: 10px; }
+.p22-route { margin-top: 16px; padding: 14px; border: 1.5px solid var(--border, #cbd5e1); border-radius: 14px; background: var(--card, #fff); }
+.p22-route-t { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .65; }
+.p22-route-n { font-size: 19px; font-weight: 800; margin: 4px 0 6px; }
+.p22-why { margin: 6px 0 2px; padding-left: 20px; }
+.p22-why li { margin: 3px 0; }
+.p22-acts { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.p22-act { min-height: 48px; text-align: left; padding: 10px 14px; }
+.p22-card .btn-primary { min-height: 48px; }
+#p22-float .btn-primary { min-height: 48px; }
+#p22-float .btn-ghost { min-height: 48px; }
+#p22-float .wiz-chip { min-height: 44px; }
