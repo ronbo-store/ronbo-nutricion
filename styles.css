@@ -5154,6 +5154,68 @@ body.swap-sheet-open .asst-fab { display: none !important; }
    discreto a propósito — gris, imposible de confundir con
    el disco. Ocupa solo su línea bajo el anillo. */
 .hs-skip { display: inline-block; margin-top: 8px; font-size: 11.5px; font-weight: 600; color: #94a3b8; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 999px; padding: 3px 11px; cursor: pointer; }
+/* ═══ BURBUJA DE INICIO (diseño de Ronald, 2026-11-25;
+   maqueta animada aprobada tal cual): la pantalla de entrada
+   que muestra SOLO el fondo de Inicio — el mismo tratamiento
+   de la maqueta: degradado claro azulado/crema con los
+   lavados suaves de la casa — y la burbuja redonda flotante
+   en el centro. Sin cabecera, sin tarjetas, sin barra
+   inferior: el flotante lo cubre todo (z 60, sobre el dock y
+   las hojas; bajo los avisos del sistema). El escenario
+   interior se acota a 430 px centrado, como las hojas de la
+   casa, y dentro de él viven el recorrido del arrastre, las
+   insinuaciones de los bordes, la sombra de apoyo, el anillo
+   del destello y la burbuja. TODO el color y el movimiento
+   los pinta el módulo BUB de app.js fotograma a fotograma
+   (las paletas naranja/verde/rojo de la maqueta); aquí solo
+   vive la geometría. ═══ */
+#bubble-float { position: fixed; inset: 0; z-index: 60; overflow: hidden;
+  background:
+    radial-gradient(560px 380px at 12% -6%, rgba(23,160,150,.13), rgba(23,160,150,0) 62%),
+    radial-gradient(520px 420px at 108% 104%, rgba(255,166,40,.10), rgba(255,166,40,0) 60%),
+    radial-gradient(430px 430px at 50% 47%, rgba(255,255,255,.55), rgba(255,255,255,0) 70%),
+    linear-gradient(180deg, #d7e8eb 0%, #e6f1f2 24%, #f2f7f7 55%, #fafcfc 100%); }
+.bub-stage { position: absolute; inset: 0; max-width: 430px; margin: 0 auto; }
+/* Recorrido (rastro) del arrastre: pastilla tenue que solo
+   aparece al arrastrar; su relleno nace del centro hacia el
+   lado del arrastre y lo tiñe el módulo. */
+.bub-track { position: absolute; left: 6%; top: 47%; width: 88%; height: 232px;
+  transform: translateY(-50%); border-radius: 999px;
+  background: rgba(255,255,255,.34); border: 1.5px solid rgba(255,255,255,.65);
+  box-shadow: inset 0 2px 14px rgba(90,120,125,.10); opacity: 0; }
+.bub-fill { position: absolute; top: 0; height: 100%; border-radius: 999px; opacity: 0; }
+/* Insinuaciones de los bordes */
+.bub-hint { position: absolute; top: 47%; transform: translateY(-50%);
+  font-size: 16.5px; font-weight: 800; letter-spacing: .4px; white-space: nowrap;
+  display: flex; align-items: center; gap: 2px; z-index: 1; }
+.bub-hint .bub-chev { font-size: 22px; font-weight: 900; line-height: 1; }
+.bub-hint-l { left: 13px; color: rgba(206,62,44,.62); }
+.bub-hint-r { right: 13px; color: rgba(13,148,90,.62); }
+/* Sombra de apoyo de la burbuja */
+.bub-shadow { position: absolute; left: 50%; top: calc(47% + 128px); width: 190px; height: 26px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(70,60,30,.20), rgba(70,60,30,0) 68%);
+  border-radius: 50%; }
+/* Anillo de confirmación (el destello al iniciar) */
+.bub-ringfx { position: absolute; left: 50%; top: 47%; width: 232px; height: 232px;
+  margin-left: -116px; margin-top: -116px; border-radius: 50%; z-index: 2;
+  border: 4px solid rgba(24,190,110,.85); opacity: 0; pointer-events: none; }
+/* La burbuja: el control — grande, táctil, arrastrable. */
+.bub-bubble { position: absolute; left: 50%; top: 47%; width: 232px; height: 232px;
+  margin-left: -116px; margin-top: -116px; border-radius: 50%; z-index: 3;
+  display: flex; align-items: center; justify-content: center;
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent; will-change: transform; }
+.bub-bubble:active { cursor: grabbing; }
+.bub-face { position: absolute; inset: 0; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 0 18px; pointer-events: none; }
+.bub-play { font-size: 34px; color: #fff; line-height: 1; margin-bottom: 5px; }
+.bub-go { font-size: 25px; font-weight: 900; color: #fff; letter-spacing: .7px; line-height: 1.08; }
+.bub-of { font-size: 13px; font-weight: 700; color: #fff; opacity: .96; margin-top: 4px; line-height: 1.25; }
+.bub-dot { position: absolute; top: 9px; left: 50%; width: 11px; height: 11px; margin-left: -5.5px;
+  border-radius: 50%; background: rgba(255,255,255,.85);
+  box-shadow: 0 0 6px rgba(255,255,255,.8); pointer-events: none; }
 .fused-at { display: block; margin-top: 8px; font-size: 14.5px; font-weight: 600; color: #475569; }
 .fused-note { display: block; margin-top: 4px; font-size: 13.5px; color: #64748b; line-height: 1.4; }
 .fused-nullhead { display: block; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 2px; }

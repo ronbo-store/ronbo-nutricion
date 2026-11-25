@@ -6741,6 +6741,10 @@ onAuthStateChanged(auth, async user => {
        sin acceso) se pintan DESPUÉS de esta rama, en su propio
        flujo, y no se tocan. */
     doorGateErase();
+    /* BURBUJA DE INICIO: sin sesión, su pantalla se va y su
+       marca de entrada se borra (la próxima entrada decide
+       de nuevo). */
+    try { bubbleReset(); } catch {}
     stopUserDocWatch();
     /* AUTH-070: sin sesión también se capturan los enlaces de la
        URL y se pinta el aviso de confirmación pendiente, para que
@@ -6944,6 +6948,13 @@ onAuthStateChanged(auth, async user => {
      libera aquí (en provisional, gateFlush no hace nada y la
      liberación la dispara la propia confirmación). */
   try { gateFlush(); } catch {}
+  /* BURBUJA DE INICIO: con la sesión ya cargada (plan y
+     registros en memoria tras loadAll) y los enlaces de
+     entrada ya consumidos, si el entrenamiento de hoy está
+     pendiente la entrada se presenta con la pantalla de la
+     burbuja — bubbleEntryMaybeShow decide con la condición
+     del disco de Inicio y no la repite en la misma entrada. */
+  try { bubbleEntryMaybeShow(); } catch {}
 });
 
 /* ================= REACCIÓN EN VIVO DE LA SESIÓN (H-C2) =================
@@ -19589,6 +19600,263 @@ function homeSkipPress() {
       try { renderGoalsEngine(); } catch {}
     }
   });
+}
+/* ═══ BURBUJA DE INICIO · LA PANTALLA DE ENTRADA CON LA
+   BURBUJA ARRASTRABLE (diseño de Ronald, 2026-11-25;
+   maqueta animada aprobada «Bien así, constrúyelo»): tras
+   iniciar sesión, si el entrenamiento de hoy está PENDIENTE
+   — LA MISMA condición del disco de Inicio (homeStartState),
+   ni una más ni una menos —, la entrada se presenta con
+   esta pantalla: SOLO el fondo de Inicio y la burbuja
+   redonda de EMPEZAR flotando en el centro, con sus
+   insinuaciones de borde («‹ Saltar» a la izquierda,
+   «Iniciar ›» a la derecha). En descanso, sin plan, con la
+   sesión ya iniciada o el día ya hecho/saltado, no hay
+   pantalla: se entra directo al Inicio normal, como
+   siempre (homeStartState devuelve null en esos casos).
+   EL GESTO (puntero/táctil, con captura del puntero):
+   - Arrastrar a la DERECHA: la burbuja se tiñe de verde
+     poco a poco (y el recorrido también) y, al llegar al
+     extremo, su cara pasa a «A ENTRENAR» con el destello
+     de confirmación y la sesión INICIA por la vía de
+     siempre (homeStartPress: la misma del disco de Inicio
+     y del «Iniciar» del día — la versión automática con el
+     panel activo), aterrizando donde esa vía aterriza.
+   - Arrastrar a la IZQUIERDA: se tiñe de rojo poco a poco
+     y, al llegar al extremo, su cara pasa a «SALTAR ·
+     queda en espera» y se aterriza en el Inicio normal SIN
+     iniciar nada y SIN marcar el día como saltado en los
+     datos (decisión de Ronald, 2026-11-25): el día queda
+     pendiente, iniciable a mano como siempre. NO es la
+     puerta de saltar el día (trainSkipDayApply): aquí no
+     se escribe nada.
+   - Soltar antes del extremo: la burbuja regresa al
+     centro y no pasa nada. Un toque sin arrastre tampoco
+     inicia: solo manda el arrastre completo.
+   UNA VEZ POR ENTRADA: resuelta la pantalla (o presentada),
+   no vuelve a salir en esta misma entrada a la app
+   (BUB.seenUid); en una entrada nueva puede volver a
+   salir mientras el día siga pendiente. Al cerrar sesión,
+   la marca se borra (bubbleReset en la rama sin sesión).
+   Teclado: Enter inicia por la misma vía; Escape deja el
+   día en espera, como el arrastre a la izquierda.
+   Los colores, las paletas, los umbrales de la cara y los
+   efectos son los de la maqueta aprobada (su escena.html),
+   pintados fotograma a fotograma. Única adaptación de
+   tiempos: el regreso al centro tras un arrastre parcial
+   dura 350 ms en vez de los 0,8 s del bucle de la maqueta,
+   porque un gesto real no espera al bucle; la estancia en
+   el extremo con su destello dura los 0,5 s de la maqueta. */
+const BUB_PALS = {
+  orange: [[255, 210, 62], [255, 157, 10], [255, 106, 0], [255, 110, 0], [255, 120, 0], [120, 30, 0]],
+  green: [[168, 242, 186], [47, 191, 113], [10, 157, 95], [18, 178, 108], [16, 168, 102], [0, 84, 42]],
+  red: [[255, 186, 158], [242, 96, 76], [216, 42, 28], [222, 52, 30], [224, 60, 36], [110, 16, 4]]
+};
+let BUB = null;
+function bubEls() {
+  return {
+    root: $('bubble-float'),
+    stage: document.querySelector('#bubble-float .bub-stage'),
+    track: document.querySelector('#bubble-float .bub-track'),
+    fill: document.querySelector('#bubble-float .bub-fill'),
+    hintL: document.querySelector('#bubble-float .bub-hint-l'),
+    hintR: document.querySelector('#bubble-float .bub-hint-r'),
+    shadow: document.querySelector('#bubble-float .bub-shadow'),
+    ring: document.querySelector('#bubble-float .bub-ringfx'),
+    bubble: $('bub-bubble'),
+    faceA: document.querySelector('#bubble-float .bub-face-a'),
+    faceB: document.querySelector('#bubble-float .bub-face-b'),
+    playB: $('bub-play-b'), goB: $('bub-go-b'), ofB: $('bub-of-b')
+  };
+}
+const bubClamp01 = v => Math.max(0, Math.min(1, v));
+const bubEaseO = x => 1 - Math.pow(1 - x, 3);
+function bubMix(a, b, k) { return a.map((s, i) => s.map((v, j) => Math.round(v + (b[i][j] - v) * k))); }
+function bubRGBA(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+/* El recorrido máximo del arrastre: el de la maqueta a su
+   ancho (86 px en un escenario de 430) — el borde de la
+   burbuja se detiene a 13 px del borde del escenario — y
+   proporcional en pantallas más estrechas. */
+function bubMaxDx(stage) { return Math.max(36, (stage && stage.clientWidth ? stage.clientWidth : 430) / 2 - 129); }
+/* La decisión de entrada: la condición del disco de Inicio
+   y las guardas de la casa — una sola vez por entrada, con
+   el Inicio debajo (sin página abierta encima ni la
+   portada del Reto 21 en pantalla). */
+function bubbleEntryMaybeShow() {
+  const me = auth.currentUser;
+  if (!me) return;
+  if (BUB && BUB.seenUid === me.uid) return;
+  if (NAV_PAGE) return;
+  if (NAV_TAB !== 'track') return;
+  const r21 = $('reto21-float');
+  if (r21 && r21.style.display !== 'none') return;
+  if (!homeStartState()) return;
+  bubbleShow(me.uid);
+}
+function bubbleShow(uid) {
+  const E = bubEls();
+  if (!E.root || !E.bubble) return;
+  BUB = { seenUid: uid, open: true, mode: 'idle', dx: 0, dir: 0, faceDir: 0,
+    maxDx: bubMaxDx(E.stage), dragId: null, startX: 0, fxT0: 0, backT0: 0, backFrom: 0,
+    raf: 0, prevOverflow: document.body.style.overflow || '', E };
+  $('bub-go-a').textContent = t('home.start.go');
+  $('bub-of-a').textContent = t('home.start.sub');
+  $('bub-hint-skip').textContent = t('bub.hintSkip');
+  $('bub-hint-start').textContent = t('bub.hintStart');
+  E.bubble.setAttribute('aria-label', t('bub.aria'));
+  bubWire(E);
+  E.root.style.display = '';
+  document.body.style.overflow = 'hidden';
+  try { E.bubble.focus({ preventScroll: true }); } catch {}
+  const loop = now => { if (!BUB || !BUB.open) return; bubFrame(now); if (BUB && BUB.open) BUB.raf = requestAnimationFrame(loop); };
+  BUB.raf = requestAnimationFrame(loop);
+}
+function bubbleHide() {
+  const E = bubEls();
+  if (E.root) E.root.style.display = 'none';
+  if (BUB) {
+    BUB.open = false;
+    if (BUB.raf) cancelAnimationFrame(BUB.raf);
+    document.body.style.overflow = BUB.prevOverflow || '';
+  }
+}
+/* Cerrar sesión: la pantalla se va y la marca de entrada
+   se borra — la próxima entrada vuelve a decidir. */
+function bubbleReset() { bubbleHide(); BUB = null; }
+function bubWire(E) {
+  const b = E.bubble;
+  if (!b || b.dataset.bubWired) return;
+  b.dataset.bubWired = '1';
+  b.addEventListener('pointerdown', e => {
+    if (!BUB || !BUB.open || BUB.mode === 'done') return;
+    e.preventDefault();
+    BUB.mode = 'drag';
+    BUB.dragId = e.pointerId;
+    BUB.startX = e.clientX - BUB.dx;
+    try { b.setPointerCapture(e.pointerId); } catch {}
+  });
+  b.addEventListener('pointermove', e => {
+    if (!BUB || !BUB.open || BUB.mode !== 'drag' || e.pointerId !== BUB.dragId) return;
+    const m = BUB.maxDx;
+    BUB.dx = Math.max(-m, Math.min(m, e.clientX - BUB.startX));
+  });
+  const release = e => {
+    if (!BUB || !BUB.open || BUB.mode !== 'drag' || (e && e.pointerId !== BUB.dragId)) return;
+    BUB.dragId = null;
+    if (Math.abs(BUB.dx) >= BUB.maxDx - 1) bubbleComplete(BUB.dx > 0 ? 1 : -1);
+    else { BUB.mode = 'back'; BUB.backFrom = BUB.dx; BUB.backT0 = performance.now(); }
+  };
+  b.addEventListener('pointerup', release);
+  b.addEventListener('pointercancel', release);
+  b.addEventListener('keydown', e => {
+    if (!BUB || !BUB.open || BUB.mode === 'done') return;
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); BUB.dx = BUB.maxDx; bubbleComplete(1); }
+    else if (e.key === 'Escape') { e.preventDefault(); BUB.dx = -BUB.maxDx; bubbleComplete(-1); }
+  });
+  window.addEventListener('resize', () => {
+    if (BUB && BUB.open) BUB.maxDx = bubMaxDx(BUB.E ? BUB.E.stage : null);
+  });
+}
+/* Llegar al extremo: la cara de confirmación y su destello
+   se quedan los 0,5 s de la maqueta (el bucle de fotogramas
+   los pinta) y al cumplirse, bubFinish resuelve. */
+function bubbleComplete(dir) {
+  if (!BUB || !BUB.open || BUB.mode === 'done') return;
+  BUB.mode = 'done';
+  BUB.dir = dir;
+  BUB.dx = dir * BUB.maxDx;
+  BUB.fxT0 = performance.now();
+}
+function bubFinish() {
+  const dir = BUB ? BUB.dir : 0;
+  bubbleHide();
+  if (dir > 0) { try { homeStartPress(); } catch {} }
+  /* dir < 0: aterrizar en el Inicio normal es solo quitar
+     la pantalla — el Inicio ya está pintado debajo. No se
+     inicia nada y no se escribe nada: el día queda
+     pendiente, exactamente como estaba. */
+}
+function bubFrame(now) {
+  const B = BUB;
+  if (!B || !B.open) return;
+  const E = B.E || bubEls();
+  if (!E.bubble) return;
+  if (B.mode === 'back') {
+    const u = Math.min(1, (now - B.backT0) / 350);
+    B.dx = B.backFrom * (1 - bubEaseO(u));
+    if (u >= 1) { B.dx = 0; B.mode = 'idle'; }
+  }
+  let fxU = -1;
+  if (B.mode === 'done') {
+    fxU = Math.min(1, (now - B.fxT0) / 500);
+    if (fxU >= 1) { bubFinish(); return; }
+  }
+  const reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const pulse = reduced ? 1 : 1 + 0.018 * Math.sin(now * Math.PI * 2 / 1600);
+  bubPaint(E, pulse, fxU);
+}
+/* El pintado de cada fotograma: las fórmulas de la escena
+   de la maqueta, tal cual — paletas que se mezclan con el
+   avance (potencia .85), el resplandor que crece, la cara
+   que se cruza en sus umbrales (derecha .78/.18, izquierda
+   .55/.25), el recorrido que se tiñe desde el centro, las
+   insinuaciones que se encienden/apagan y la sombra que
+   sigue a la burbuja. */
+function bubPaint(E, pulse, fxU) {
+  const B = BUB;
+  const dx = B.dx, max = B.maxDx, a = max ? Math.min(1, Math.abs(dx) / max) : 0;
+  const pal = bubMix(BUB_PALS.orange, dx > 0 ? BUB_PALS.green : BUB_PALS.red, Math.pow(a, .85));
+  const glow = a * (dx >= 0 ? .6 : .5);
+  /* La cara B dice lo del lado hacia el que se va (o se
+     llegó); se reescribe solo cuando el lado cambia. */
+  const dir = B.mode === 'done' ? B.dir : (dx > 0 ? 1 : (dx < 0 ? -1 : B.faceDir));
+  if (dir !== 0 && dir !== B.faceDir) {
+    B.faceDir = dir;
+    if (dir > 0) { E.playB.textContent = '✓'; E.goB.textContent = t('bub.train'); E.ofB.textContent = t('bub.trainSub'); }
+    else { E.playB.textContent = '»'; E.goB.textContent = t('bub.skip'); E.ofB.textContent = t('bub.skipSub'); }
+  }
+  let swap;
+  if (B.mode === 'done') swap = 1;
+  else if (dx > 0) swap = bubClamp01((a - .78) / .18);
+  else if (dx < 0) swap = bubClamp01((a - .55) / .25);
+  else swap = 0;
+  let pop = 1, ring = 0;
+  if (B.mode === 'done' && B.dir > 0 && fxU >= 0) { ring = Math.sin(fxU * Math.PI); pop = 1 + .05 * ring; }
+  const scale = pulse * pop;
+  E.bubble.style.background = `radial-gradient(circle at 50% 38%, ${bubRGBA(pal[0], .97)} 0%, ${bubRGBA(pal[1], .97)} 55%, ${bubRGBA(pal[2], .98)} 100%)`;
+  E.bubble.style.border = `3px solid ${bubRGBA(pal[4], .95)}`;
+  E.bubble.style.boxShadow = `0 0 ${44 + 34 * glow}px ${14 + 10 * glow}px ${bubRGBA(pal[3], .52 + .2 * glow)}, inset 0 0 30px ${bubRGBA(pal[2], .40)}`;
+  E.bubble.style.transform = `translateX(${dx}px) scale(${scale})`;
+  E.faceA.style.textShadow = `0 2px 10px ${bubRGBA(pal[5], .55)}`;
+  E.faceB.style.textShadow = `0 2px 10px ${bubRGBA(pal[5], .55)}`;
+  E.faceA.style.opacity = String(1 - swap);
+  E.faceB.style.opacity = String(swap);
+  E.faceA.style.transform = `scale(${1 - .06 * swap})`;
+  E.faceB.style.transform = `scale(${.94 + .06 * swap})`;
+  E.shadow.style.transform = `translateX(calc(-50% + ${dx}px)) scaleX(${2 - scale})`;
+  E.shadow.style.opacity = String(.9 - .25 * (scale - 1) * 8);
+  E.track.style.opacity = String((dx !== 0 || B.mode === 'done') ? Math.min(1, a * 3) * .9 : 0);
+  if (a > 0) {
+    const w = (a * max + 116) + 'px';
+    if (dx > 0 || (B.mode === 'done' && B.dir > 0)) {
+      E.fill.style.left = '50%'; E.fill.style.right = 'auto'; E.fill.style.width = w;
+      E.fill.style.background = `linear-gradient(90deg, ${bubRGBA(BUB_PALS.green[1], 0)}, ${bubRGBA(BUB_PALS.green[1], .85)})`;
+    } else {
+      E.fill.style.left = 'auto'; E.fill.style.right = '50%'; E.fill.style.width = w;
+      E.fill.style.background = `linear-gradient(270deg, ${bubRGBA(BUB_PALS.red[1], 0)}, ${bubRGBA(BUB_PALS.red[1], .85)})`;
+    }
+    E.fill.style.opacity = '.68';
+  } else E.fill.style.opacity = '0';
+  E.ring.style.transform = `translateX(${dx}px) scale(${1 + .55 * ring})`;
+  E.ring.style.opacity = String(ring * .9);
+  let hintRO = .62, hintLO = .62;
+  if (dx > 0) { hintRO = .62 + .38 * a; hintLO = .62 * (1 - a * .7); }
+  else if (dx < 0) { hintLO = .62 + .38 * a; hintRO = .62 * (1 - a * .7); }
+  const coverR = bubClamp01((dx - 52) / 34), coverL = bubClamp01((-dx - 52) / 34);
+  E.hintR.style.opacity = String(hintRO * (1 - coverR));
+  E.hintL.style.opacity = String(hintLO * (1 - coverL));
+  E.hintR.style.transform = `translateY(-50%) scale(${1 + .06 * (hintRO - .62)})`;
+  E.hintL.style.transform = `translateY(-50%) scale(${1 + .06 * (hintLO - .62)})`;
 }
 let FUSED_WATER = { date: '', ml: 0 };
 async function fusedWaterPaint() {

@@ -3365,6 +3365,7 @@ export default {
   'sess.doneCardioQ': 'Do you want to finish with cardio?', 'sess.doneCardioYes': 'Yes, do cardio', 'sess.doneFinishQ': 'Shall we wrap up for today?', 'sess.doneCardioDoing': 'Cardio in progress', 'sess.doneCardioResume': 'Continue with cardio',
   'sess.cstage.warmLab': 'Warm-up cardio', 'sess.cstage.endLab': 'Final cardio', 'sess.cstage.assigned': 'Assigned: {min} min', 'sess.cstage.do': '✓ Done', 'sess.cstage.start': 'Start', 'sess.cstage.pause': 'Pause', 'sess.cstage.endDone': 'Cardio done — finishing now closes the day.', 'sess.cstage.notYet': 'Assigned — it only counts when you do it here.',
   'home.start.go': 'START', 'home.start.sub': "today's workout", 'home.start.skip': 'Skip today', 'home.start.aria': "Start today's workout",
+  'bub.train': "LET'S TRAIN", 'bub.trainSub': "Let's go!", 'bub.skip': 'SKIP', 'bub.skipSub': 'stays pending', 'bub.hintSkip': 'Skip', 'bub.hintStart': 'Start', 'bub.aria': "Start today's workout. Drag the bubble to the right to start, or to the left to leave it pending.",
   'sess.barLabel': 'Session bar', 'sess.fullLabel': 'Session panel', 'sess.barFinish': 'Finish',
   'sess.totalTag': 'SESSION TOTAL', 'sess.totalTagShort': 'TOTAL', 'sess.exPaused': 'paused',
   'sess.cardioIncl': 'includes {min} min of cardio',

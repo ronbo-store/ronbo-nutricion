@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261125-comunicacion">
+<link rel="stylesheet" href="styles.css?v=20261125-burbuja-inicio">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -3323,6 +3323,39 @@ cuando no hay declaración legible (decisión 5). -->
      (app.js): propuesta validada como borrador editable, con
      [Aprobar y usar] y [Editar primero]. Nada se guarda desde
      aquí sin el toque de la persona. -->
+<!-- BURBUJA DE INICIO (diseño de Ronald, 2026-11-25; maqueta
+     animada aprobada «Bien así, constrúyelo»): pantalla de
+     entrada tras iniciar sesión — SOLO el fondo de Inicio y la
+     burbuja redonda de EMPEZAR en el centro. Arrastrarla a la
+     derecha la tiñe de verde e INICIA por la vía de siempre
+     (homeStartPress); a la izquierda se tiñe de rojo hasta
+     «SALTAR» y aterriza en el Inicio normal SIN iniciar nada
+     y SIN marcar el día como saltado. La condición de
+     aparición es la del disco de Inicio (homeStartState). La
+     pinta y la mueve el módulo BUB de app.js; sus estilos, en
+     styles.css junto a los del disco AUTH-524. -->
+<div id="bubble-float" style="display:none" role="dialog" aria-modal="true">
+  <div class="bub-stage">
+    <div class="bub-track"><div class="bub-fill"></div></div>
+    <div class="bub-hint bub-hint-l"><span class="bub-chev">‹</span><span class="bub-hint-tx" id="bub-hint-skip"></span></div>
+    <div class="bub-hint bub-hint-r"><span class="bub-hint-tx" id="bub-hint-start"></span><span class="bub-chev">›</span></div>
+    <div class="bub-shadow"></div>
+    <div class="bub-ringfx"></div>
+    <div class="bub-bubble" id="bub-bubble" role="button" tabindex="0">
+      <div class="bub-face bub-face-a">
+        <div class="bub-play">▶</div>
+        <div class="bub-go" id="bub-go-a"></div>
+        <div class="bub-of" id="bub-of-a"></div>
+      </div>
+      <div class="bub-face bub-face-b" style="opacity:0">
+        <div class="bub-play" id="bub-play-b">✓</div>
+        <div class="bub-go" id="bub-go-b"></div>
+        <div class="bub-of" id="bub-of-b"></div>
+      </div>
+      <div class="bub-dot"></div>
+    </div>
+  </div>
+</div>
 <!-- AUTH-503 · PLAN 21 DÍAS: hoja de arranque del alumno
      desde su catálogo (D6). La pinta plan21SheetPaint (app.js);
      con entrenador asignado la hoja envía la propuesta por el
@@ -3633,6 +3666,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261125-comunicacion"></script>
+<script type="module" src="app.js?v=20261125-burbuja-inicio"></script>
 </body>
 </html>
