@@ -18516,8 +18516,12 @@ function goalsDayIsDemanding(day, libById) {
    MISMO mapa que pinta la tarjeta del día — decisión de Ronald
    2026-10-27). En modo «rotation» la fecha no está fijada a ninguna
    sesión: señal ambigua → día normal ('base'). Sin sesión ese día
-   con ancla real → 'descanso'. Sin plan → 'base' (no hay plan del
-   que descansar; no se inventa variación). */
+   con ancla real → 'descanso' — SALVO que la persona haya armado
+   la sesión de esa fecha en la capa de sesión (base traída o
+   entrenada, o el día ya entrenado): eso lo resuelve
+   goalsDayConfiguredLevel, justo debajo, y manda sobre el
+   descanso del mapa (2026-11-25). Sin plan → 'base' (no hay plan
+   del que descansar; no se inventa variación). */
 const GM_WD_EN = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const GM_WD_ES = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
 function gmWeekdayPairs(days) {
@@ -18532,6 +18536,67 @@ function gmWeekdayPairs(days) {
     pairs[found] = di;
   }
   return Object.keys(pairs).length ? pairs : null;
+}
+/* DÍA CONFIGURADO: LA SESIÓN MANDA SOBRE EL DESCANSO DEL MAPA
+   (2026-11-25, reporte en vivo de Ronald: «No es día de descanso,
+   yo ayer configuré mis ejercicios para hoy» — preparó la sesión
+   de hoy el día anterior y el Inicio la trató como descanso, con
+   los carbohidratos reducidos, mientras el disco EMPEZAR sí la
+   veía). El mapa del plan no es la única verdad de «ese día hay
+   entrenamiento»: la capa de sesión — la base traída/entrenada y
+   las ediciones de la fecha, en localStorage por plan y fecha —
+   es la que la vista del día (effDiForDate) y el disco resuelven
+   desde 2026-11-08 («preparar un día futuro escribe su base con
+   su fecha y esta resolución la honra en cualquier día visto»).
+   Este resolvedor de metas no la consultaba: un día armado a mano
+   sobre un descanso del mapa salía 'descanso'. Desde aquí, antes
+   de declarar el descanso se pregunta a la sesión con la MISMA
+   resolución de la vista (mapa ?? base, y la lista efectiva de
+   ese día): si trae ejercicios, el día cuenta como entrenamiento
+   — exigente si el día efectivo lo es, con la vara de siempre
+   (goalsDayIsDemanding) —. Y si la fecha ya se entrenó (registro
+   cerrado hecho o parcial: al cerrar, las ediciones se retiran y
+   la sesión vive en el registro), también cuenta; el día saltado
+   no (su registro es 'skipped'). La capa vive en el aparato de la
+   persona y sus claves llevan SU uid: en las réplicas con datos
+   de otro (anillos y alertas del entrenador) no hay borradores
+   que leer y la comprobación no encuentra nada, como la vista del
+   día tampoco ve la sesión sin cerrar de otro aparato. La
+   anulación expresa del tipo de día (goalsDayOverrides) se
+   resuelve antes, en quien llama, y sigue mandando sobre esto.
+   El día entrenado suelto (índice −1) devuelve dayIndex null: no
+   es un día del plan y ningún consumidor espera un −1 aquí. */
+function goalsDayConfiguredLevel(plan, iso, mappedDi, libById) {
+  try {
+    if (!plan || !plan.id || !iso) return null;
+    if (typeof trainBaseRead !== 'function' || typeof trainEffectiveList !== 'function') return null;
+    const lib = libById || (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {});
+    if (mappedDi != null) {
+      const md = (plan.days || [])[mappedDi];
+      if (!(md && md.freeDay === true)) return null;   /* día mapeado de entreno: no es este caso */
+    }
+    let di = null;
+    const bf = trainBaseRead(plan.id, iso);
+    if (bf) di = bf.kind === 'brought' ? bf.di : -1;
+    if (di != null) {
+      const eff = trainEffectiveList(plan, di, iso);
+      if (eff && eff.length) {
+        const dayObj = di === -1 ? { exercises: eff.map(it => (it && it.ex) || null).filter(Boolean) } : (plan.days || [])[di];
+        return { dayLevel: (dayObj && goalsDayIsDemanding(dayObj, lib)) ? 'exigente' : 'base', dayIndex: di >= 0 ? di : null };
+      }
+    }
+    const logs = (typeof MY_LOGS_ALL !== 'undefined' && Array.isArray(MY_LOGS_ALL)) ? MY_LOGS_ALL
+      : ((typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : null);
+    if (logs && typeof trainLogStatus === 'function') {
+      const lg = logs.find(l => l && l.planId === plan.id && l.date === iso && (trainLogStatus(l) === 'done' || trainLogStatus(l) === 'partial'));
+      if (lg) {
+        const ldi = Number.isInteger(lg.dayIndex) ? lg.dayIndex : -1;
+        const dayObj = (ldi >= 0 && (plan.days || [])[ldi]) || { exercises: Array.isArray(lg.exercisesDone) ? lg.exercisesDone : [] };
+        return { dayLevel: goalsDayIsDemanding(dayObj, lib) ? 'exigente' : 'base', dayIndex: ldi >= 0 ? ldi : null };
+      }
+    }
+    return null;
+  } catch { return null; }
 }
 function goalsDayLevelForDate(iso, plan, cfg, libById) {
   if (!iso || !plan || !Array.isArray(plan.days) || !plan.days.length) return { dayLevel: 'base', dayIndex: null, mode: 'none' };
@@ -18550,16 +18615,30 @@ function goalsDayLevelForDate(iso, plan, cfg, libById) {
        plan (no por día de semana): fecha en blanco → 'descanso';
        fecha con sesión → exigente si SU rutina lo es. */
     const diC = planCalDayIndex(plan, iso);
-    if (diC == null) return { dayLevel: 'descanso', dayIndex: null, mode };
     const libC = libById || (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {});
-    return { dayLevel: (plan.days[diC] && plan.days[diC].freeDay === true) ? 'descanso' : (goalsDayIsDemanding(plan.days[diC], libC) ? 'exigente' : 'base'), dayIndex: diC, mode };
+    if (diC == null) {
+      const ro = goalsDayConfiguredLevel(plan, iso, null, libC);
+      return ro ? { dayLevel: ro.dayLevel, dayIndex: ro.dayIndex, mode } : { dayLevel: 'descanso', dayIndex: null, mode };
+    }
+    if (plan.days[diC] && plan.days[diC].freeDay === true) {
+      const ro = goalsDayConfiguredLevel(plan, iso, diC, libC);
+      return ro ? { dayLevel: ro.dayLevel, dayIndex: ro.dayIndex, mode } : { dayLevel: 'descanso', dayIndex: diC, mode };
+    }
+    return { dayLevel: goalsDayIsDemanding(plan.days[diC], libC) ? 'exigente' : 'base', dayIndex: diC, mode };
   }
   if (!pairs) return { dayLevel: 'base', dayIndex: null, mode };
   const wd = new Date(iso + 'T12:00:00').getDay();
   const di = pairs[wd];
-  if (di == null) return { dayLevel: 'descanso', dayIndex: null, mode };
   const lib = libById || (typeof LIB_BY_ID !== 'undefined' ? LIB_BY_ID : {});
-  return { dayLevel: (plan.days[di] && plan.days[di].freeDay === true) ? 'descanso' : (goalsDayIsDemanding(plan.days[di], lib) ? 'exigente' : 'base'), dayIndex: di, mode };
+  if (di == null) {
+    const ro = goalsDayConfiguredLevel(plan, iso, null, lib);
+    return ro ? { dayLevel: ro.dayLevel, dayIndex: ro.dayIndex, mode } : { dayLevel: 'descanso', dayIndex: null, mode };
+  }
+  if (plan.days[di] && plan.days[di].freeDay === true) {
+    const ro = goalsDayConfiguredLevel(plan, iso, di, lib);
+    return ro ? { dayLevel: ro.dayLevel, dayIndex: ro.dayIndex, mode } : { dayLevel: 'descanso', dayIndex: di, mode };
+  }
+  return { dayLevel: goalsDayIsDemanding(plan.days[di], lib) ? 'exigente' : 'base', dayIndex: di, mode };
 }
 /* Metas del día VISUALIZADO: base guardada + variación §K de esa
    fecha. Con carb retenido (§E) no hay variación. Sin procedencia del
