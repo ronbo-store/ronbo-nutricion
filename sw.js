@@ -55,19 +55,19 @@
  * app.js). La caché de imágenes NO se borra entre versiones: guarda
  * contenido ya visto, con su tope.
  */
-const SW_VERSION = '20261124-anadir-simplificado';
+const SW_VERSION = '20261124-analisis-corporal';
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const IMG_CACHE_NAME = 'ronbofit-img-v1';
 const IMG_CACHE_MAX = 300;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261124-anadir-simplificado',
-  './app.js?v=20261124-anadir-simplificado',
-  './i18n-en.js?v=20261124-anadir-simplificado',
-  './i18n-es.js?v=20261124-anadir-simplificado',
-  './view-comms.js?v=20261124-anadir-simplificado',
-  './view-library.js?v=20261124-anadir-simplificado',
+  './styles.css?v=20261124-analisis-corporal',
+  './app.js?v=20261124-analisis-corporal',
+  './i18n-en.js?v=20261124-analisis-corporal',
+  './i18n-es.js?v=20261124-analisis-corporal',
+  './view-comms.js?v=20261124-analisis-corporal',
+  './view-library.js?v=20261124-analisis-corporal',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

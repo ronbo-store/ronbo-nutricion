@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261124-anadir-simplificado">
+<link rel="stylesheet" href="styles.css?v=20261124-analisis-corporal">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1146,6 +1146,28 @@
     <div id="stu-sheet-body"></div>
   </div>
 
+  <!-- «Análisis corporal» del detalle de «Mis alumnos» (paquete
+       2026-11-24, orden directa de Ronald): la ficha deja de
+       llevar dos puertas sueltas («Tomar medidas» y «Subir
+       informe corporal») y lleva UNA, «Análisis corporal», que
+       abre esta pantalla propia con «Volver» fijo y dos botones
+       grandes: «📏 Tomar medidas» (el flujo de AUTH-571, sin
+       cambios) y «📄 Cargar resultado externo» (la pantalla de
+       informes de AUTH-586/602/609, sin cambios). Va ANTES de
+       #tmeas-float y #breport-float en el documento: esas dos
+       pantallas se abren ENCIMA de esta y al volver se regresa
+       a ella. La pintan y la mueven banaOpen / banaClose.
+       TARJETAS (2026-11-24, maqueta aprobada por Ronald): los dos
+       botones son ahora TARJETAS con el estilo de las de
+       «Progreso en este plan» (.reorg-tile en rejilla de dos). -->
+  <div class="pend-float pend-consult r10-screen" id="bana-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <button type="button" class="pend-back" id="bana-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
+      <h2><span id="bana-title" data-i18n="bana.title">Análisis corporal</span></h2>
+    </div>
+    <div id="bana-body"></div>
+  </div>
+
   <!-- TOMAR MEDIDAS DEL ENTRENADOR (AUTH-2026-11-23-571): la hoja
        propia del formulario con el que el entrenador/admin le toma
        las medidas a un alumno EN PERSONA desde su detalle (AUTH-565):
@@ -1153,13 +1175,17 @@
        medidas y la grasa corporal) y la escritura por las mismas
        puertas del alumno (nutrition_weight y su documento de
        evaluación de hoy), con la marca de origen de la casa. La
-       pintan y la mueven tmeasOpen / tmeasClose (app.js). -->
-  <div class="pend-float pend-consult" id="tmeas-float" style="display:none" role="dialog">
+       pintan y la mueven tmeasOpen / tmeasClose (app.js).
+       TARJETAS (2026-11-24, maqueta aprobada por Ronald): deja de
+       ser hoja flotante y pasa a PANTALLA COMPLETA propia
+       (r10-screen, el patrón de #bana-float / #bcmp-float) con el
+       «‹ Volver» fijo en la cabecera — sin ✕: la única salida es
+       el Volver, que regresa a «Análisis corporal». -->
+  <div class="pend-float pend-consult r10-screen" id="tmeas-float" style="display:none" role="dialog">
     <div class="pend-head">
+      <button type="button" class="pend-back" id="tmeas-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
       <h2><span id="tmeas-title"></span></h2>
-      <button type="button" class="pend-close" id="tmeas-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
-    <button type="button" class="back-row" id="tmeas-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="tmeas-body"></div>
     <div class="p4-foot" id="tmeas-foot" style="display:none"></div>
   </div>
@@ -1167,14 +1193,18 @@
   <!-- AUTH-586 (punto 10): los informes de composición corporal del
        alumno — foto, imagen o PDF guardados como archivo en su
        historial, junto a «Tomar medidas». El contenido lo pinta
-       breportPaint (app.js); la ✕ y el ‹ Volver cierran sin tocar
-       nada. -->
-  <div class="pend-float pend-consult" id="breport-float" style="display:none" role="dialog">
+       breportPaint (app.js).
+       TARJETAS (2026-11-24, maqueta aprobada por Ronald): como la
+       de medidas, pasa a PANTALLA COMPLETA propia (r10-screen)
+       con el «‹ Volver» fijo en la cabecera — sin ✕ — y al volver
+       se regresa a «Análisis corporal». Su flujo encadenado de la
+       AUTH-609 y la lectura de la AUTH-602 viven dentro, sin
+       cambios. -->
+  <div class="pend-float pend-consult r10-screen" id="breport-float" style="display:none" role="dialog">
     <div class="pend-head">
+      <button type="button" class="pend-back" id="breport-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
       <h2><span id="breport-title"></span></h2>
-      <button type="button" class="pend-close" id="breport-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
     </div>
-    <button type="button" class="back-row" id="breport-back">‹ <span data-i18n="pendact.back">Back</span></button>
     <div id="breport-body"></div>
     <div class="p4-foot" id="breport-foot" style="display:none"></div>
   </div>
@@ -3539,6 +3569,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261124-anadir-simplificado"></script>
+<script type="module" src="app.js?v=20261124-analisis-corporal"></script>
 </body>
 </html>
