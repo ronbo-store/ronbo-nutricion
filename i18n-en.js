@@ -109,7 +109,7 @@ export default {
   'sw.lap': 'Lap', 'sw.reset': 'Reset', 'sw.lapN': 'LAP {n}', 'sw.split': 'split',
   'sw.currentLap': 'Current lap', 'sw.totalLaps': 'Total · {n} laps', 'sw.totalLaps1': 'Total · 1 lap',
   'sw.foot': 'FREE TOOL · NOTHING IS SAVED',
-  'sw.alertEvery': 'Alert every', 'sw.alertNever': 'Never', 'sw.alertMin': '{n} min', 'sw.alertPlus': '+5',
+  'sw.alertEvery': 'Countdown', 'sw.alertNever': 'Never', 'sw.alertMin': '{n} min', 'sw.alertPlus': '+5',
   'sw.closeLab': 'CLOSE', 'sw.minLab': 'MINIMIZE', 'sw.minimize': 'Minimize stopwatch', 'sw.miniOpen': 'Stopwatch running: reopen',
   'health.specHelp': 'In plain words: you allow your trainer to see the health answers you write in this declaration, only so he can adapt your program and take care of you. Nobody else can see them, and you can withdraw this whenever you want.',
   'health.panelTitle': '🏥 My health declaration',

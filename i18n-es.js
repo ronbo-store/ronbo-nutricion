@@ -109,7 +109,7 @@ export default {
   'sw.lap': 'Vuelta', 'sw.reset': 'Reiniciar', 'sw.lapN': 'VUELTA {n}', 'sw.split': 'parcial',
   'sw.currentLap': 'Vuelta actual', 'sw.totalLaps': 'Total · {n} vueltas', 'sw.totalLaps1': 'Total · 1 vuelta',
   'sw.foot': 'HERRAMIENTA LIBRE · NO SE GUARDA',
-  'sw.alertEvery': 'Avisar cada', 'sw.alertNever': 'Nunca', 'sw.alertMin': '{n} min', 'sw.alertPlus': '+5',
+  'sw.alertEvery': 'Cuenta atrás', 'sw.alertNever': 'Nunca', 'sw.alertMin': '{n} min', 'sw.alertPlus': '+5',
   'sw.closeLab': 'CERRAR', 'sw.minLab': 'MINIMIZAR', 'sw.minimize': 'Minimizar el cronómetro', 'sw.miniOpen': 'Cronómetro en marcha: reabrir',
   'health.specHelp': 'En palabras simples: permites que tu entrenador vea las respuestas de salud que escribas en esta declaración, solo para que adapte tu programa y te cuide. Nadie más puede verlas, y puedes retirar este permiso cuando quieras.',
   'health.panelTitle': '🏥 Mi declaración de salud',

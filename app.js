@@ -71682,15 +71682,22 @@ async function faqEdAdd() {
    cada múltiplo del tiempo total; la elección vive en su propia
    clave de localStorage y el detalle de los bordes, junto a
    swAlertCheck.
+   (RETIRADO el 2026-11-25 por la especificación confirmada de
+   Ronald de las 10:15 CST: la fila de pastillas ya no programa
+   un aviso periódico — ARMA LA CUENTA ATRÁS. El detalle
+   vigente, junto a swAlertCheck y swArmSet/swArmPlus.)
    ============================================================ */
-const STOPW = { open: false, running: false, startAt: 0, acc: 0, laps: [], raf: 0, alertMin: 0, alertK: 0, alertPend: 0 };
+const STOPW = { open: false, running: false, startAt: 0, acc: 0, laps: [], raf: 0, armMs: 0, fin: false, finPend: 0, marks: [], markPend: 0, lastRem: null };
 const SW_LS_KEY = 'ronbofit-stopwatch-v1';
+/* Las marcas de aviso de la cuenta atrás (el restante al que
+   suena el aviso): 5 min, 1 min y 30 s, además del cero final. */
+const SW_MARKS = [300000, 60000, 30000];
 function swSave() {
   try {
-    if (!STOPW.running && STOPW.acc <= 0 && !STOPW.laps.length) { localStorage.removeItem(SW_LS_KEY); return; }
+    if (!STOPW.running && STOPW.acc <= 0 && !STOPW.laps.length && !STOPW.armMs) { localStorage.removeItem(SW_LS_KEY); return; }
     localStorage.setItem(SW_LS_KEY, JSON.stringify({
       running: STOPW.running, startAt: STOPW.startAt, acc: STOPW.acc,
-      laps: STOPW.laps, day: todayISO() }));
+      laps: STOPW.laps, armMs: STOPW.armMs, day: todayISO() }));
   } catch {}
 }
 function swRestore() {
@@ -71703,6 +71710,25 @@ function swRestore() {
     STOPW.laps = Array.isArray(v.laps) ? v.laps.filter(l => l && typeof l.lapMs === 'number' && typeof l.totalMs === 'number') : [];
     if (v.running && typeof v.startAt === 'number') { STOPW.running = true; STOPW.startAt = v.startAt; }
     else { STOPW.running = false; STOPW.startAt = 0; }
+    /* Cuenta atrás (corrección 2026-11-25): lo armado también
+       viaja en el sello. Si la cuenta terminó mientras la app
+       estaba cerrada, se restaura cumplida — a cero, detenida —
+       y su aviso queda pendiente de entrega al abrir la
+       herramienta, por el camino de siempre (swAlertPrime). */
+    STOPW.armMs = (typeof v.armMs === 'number' && isFinite(v.armMs) && v.armMs > 0) ? v.armMs : 0;
+    STOPW.fin = false; STOPW.finPend = 0;
+    if (STOPW.armMs > 0 && swElapsed() >= STOPW.armMs) {
+      STOPW.acc = STOPW.armMs; STOPW.startAt = 0; STOPW.running = false;
+      STOPW.fin = true; STOPW.finPend = 1;
+    }
+    /* Las marcas no viajan en el sello: al volver, el primer
+       chequeo pone la línea base en el restante actual y nada
+       suena retroactivo (la doctrina de la casa); las marcas
+       que queden por debajo cruzarán — y sonarán — durante
+       la cuenta, como debe ser. */
+    STOPW.marks = [];
+    STOPW.markPend = 0;
+    STOPW.lastRem = null;
   } catch {}
 }
 /* AVISOS SONOROS POR INTERVALO (2026-11-11, diseño aprobado por
@@ -71733,6 +71759,13 @@ function swRestore() {
    verdad — alertPend + swAlertPrime — porque el código original
    consumía el múltiplo en silencio y ningún gesto posterior lo
    entregaba; abrir la herramienta también ceba el audio.)
+   (CIERRE, 2026-11-25: el aviso por intervalo quedó retirado
+   por la especificación confirmada de Ronald — la fila arma la
+   cuenta atrás, con sus marcas de 5 min, 1 min y 30 s y su
+   aviso final a cero. El pitido doble, el armado del sonido
+   dentro del gesto y la entrega pendiente de este bloque
+   SIGUEN vigentes: son el mecanismo de sonido de la cuenta
+   atrás, con markPend/finPend en vez de alertPend.)
    MINIMIZAR DE VERDAD (AUTH-457, decisiones de Ronald del
    2026-11-13 23:00–23:01 CST): la pantalla gana el botón gemelo
    «⌄ MINIMIZAR» junto a la ✕, que queda rotulada «CERRAR» y
@@ -71744,8 +71777,11 @@ function swRestore() {
    pausa de 44 px); tocar la pieza fuera del botón reabre la
    pantalla con todo intacto. El disco de Inicio cede mientras
    la pieza vive: son el mismo reflejo, nunca dos. */
-const SW_ALERT_KEY = 'ronbofit-stopwatch-alert-v1';
-const SW_ALERT_OPTS = [0, 1, 2, 3, 5];
+/* (La preferencia de intervalo de AUTH-455 — su clave
+   «ronbofit-stopwatch-alert-v1» y sus opciones — quedó
+   retirada por la especificación confirmada de Ronald del
+   2026-11-25: la fila de pastillas arma la cuenta atrás.
+   swInit retira la clave vieja del dispositivo una vez.) */
 let SW_ACTX = null;
 /* ═══ AUTH-532 · LA PASTILLA «+5» (orden literal de Ronald,
    2026-11-20: «al lado derecho del cinco quiero un botón que
@@ -71765,22 +71801,16 @@ let SW_ACTX = null;
    data-sw-alert sigue valiendo 5 aunque enseñe otro número.
    SIN TOPE: ninguna presión deja de sumar. La persistencia
    es la de la fila de siempre (su clave de localStorage): el
-   valor acumulado persiste igual que persistía el 5. ═══ */
-function swAlertValid(v) {
-  return SW_ALERT_OPTS.includes(v) || (Number.isInteger(v) && v >= 10 && v % 5 === 0);
-}
-function swAlertLoad() {
-  try {
-    const v = parseInt(localStorage.getItem(SW_ALERT_KEY) || '0', 10);
-    STOPW.alertMin = swAlertValid(v) ? v : 0;
-  } catch { STOPW.alertMin = 0; }
-}
-function swAlertSave() {
-  try { localStorage.setItem(SW_ALERT_KEY, String(STOPW.alertMin)); } catch {}
-}
-function swAlertBase() {
-  STOPW.alertK = STOPW.alertMin ? Math.floor(swElapsed() / (STOPW.alertMin * 60000)) : 0;
-}
+   valor acumulado persiste igual que persistía el 5.
+   (CORREGIDO el 2026-11-25 por la especificación confirmada
+   de Ronald: el «+5» ya NO acumula ningún intervalo — suma
+   5 minutos al tiempo armado de la CUENTA ATRÁS, y la
+   pastilla del 5 enseña ese total armado con la misma
+   lectura de siempre. El aviso por intervalo de AUTH-455
+   quedó retirado en el mismo movimiento.) ═══ */
+/* (swAlertValid/swAlertLoad/swAlertSave/swAlertBase, la
+   maquinaria de la preferencia de intervalo, se retiró con
+   ella el 2026-11-25; ver la nota junto a SW_ACTX.) */
 function swAlertAudio() {
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -71872,9 +71902,14 @@ function swAlertBeep() {
    Pausar y elegir intervalo. */
 function swAlertPrime() {
   const ctx = swAlertArm();
-  if (ctx && ctx.state === 'running' && STOPW.alertPend) {
-    if (swAlertBeep()) STOPW.alertPend = 0;
-  }
+  if (!ctx || ctx.state !== 'running') return;
+  /* Cuenta atrás: los avisos pendientes (una marca cruzada o
+     el final, con el contexto aún bloqueado, o una cuenta que
+     terminó con la app cerrada) se entregan en el mismo
+     gesto, una sola vez cada uno; si hay marca y final a la
+     vez, suena el final y la marca se da por entregada. */
+  if (STOPW.finPend) { if (swAlertBeep()) { STOPW.finPend = 0; STOPW.markPend = 0; } }
+  else if (STOPW.markPend) { if (swAlertBeep()) STOPW.markPend = 0; }
 }
 function swAlertPulse() {
   const ring = $('sw-ring'); if (!ring) return;
@@ -71884,50 +71919,116 @@ function swAlertPulse() {
   setTimeout(() => ring.classList.remove('pulse'), 750);
 }
 function swAlertCheck() {
-  if (!STOPW.running || !STOPW.alertMin) return;
-  /* AUTH-498: si un aviso quedó pendiente y el contexto ya
-     puede sonar (se recuperó tras el cruce), se entrega en el
-     propio latido, sin esperar a otro gesto. */
-  if (STOPW.alertPend && swAlertBeep()) STOPW.alertPend = 0;
-  const k = Math.floor(swElapsed() / (STOPW.alertMin * 60000));
-  if (k > STOPW.alertK) {
-    STOPW.alertK = k;
-    /* El pulso visual siempre se produce en el cruce. Si el
-       pitido no pudo sonar (contexto aún bloqueado), el múltiplo
-       NO se da por avisado: queda pendiente para el próximo
-       gesto (swAlertPrime), solo el más reciente. */
-    if (!swAlertBeep()) STOPW.alertPend = k;
+  /* ═══ CUENTA ATRÁS (especificación confirmada de Ronald,
+     2026-11-25 10:15 CST; sustituye el aviso periódico de
+     AUTH-455 y la acumulación de AUTH-532): con tiempo
+     armado (armMs), el contador grande enseña el RESTANTE
+     y suenan avisos al cruzar cada marca que quede: 5 min,
+     1 min y 30 s de restante, y el aviso final a cero. Cada
+     marca suena UNA vez por cuenta (STOPW.marks guarda las
+     ya cruzadas); una marca solo aplica si es menor que el
+     total armado (armando 2 min no hay aviso de 5 min;
+     armando 1 min, solo el de 30 s y el final). Un salto
+     grande del reloj (segundo plano) produce como máximo
+     UN sonido — el de la marca más cercana a cero — y las
+     demás cruzadas se dan por avisadas, la doctrina de la
+     casa. El cruce se detecta por TRANSICIÓN: STOPW.lastRem
+     guarda el restante de la última observación y una marca
+     suena cuando el restante pasa de estar sobre ella a
+     estar en ella o bajo ella — así, sumar «+5» a mitad de
+     cuenta no dispara ninguna marca por el salto hacia
+     arriba, y una marca que no aplicaba con el total viejo
+     suena al cruzarla de verdad con el total nuevo. El
+     sonido es el pitido doble de AUTH-498
+     (swAlertBeep) con el pulso visual del círculo; si el
+     contexto de audio aún no puede sonar, el aviso queda
+     pendiente (markPend / finPend) y lo entrega el próximo
+     gesto o el propio latido cuando el contexto ya suene.
+     Al llegar a cero, la cuenta se detiene en 00:00 (el
+     transcurrido queda sellado en el total armado). ═══ */
+  if (STOPW.finPend && swAlertBeep()) { STOPW.finPend = 0; STOPW.markPend = 0; }
+  else if (STOPW.markPend && swAlertBeep()) STOPW.markPend = 0;
+  if (!STOPW.running || !STOPW.armMs || STOPW.fin) return;
+  const rem = STOPW.armMs - swElapsed();
+  if (rem <= 0) {
+    STOPW.fin = true;
+    STOPW.running = false;
+    STOPW.acc = STOPW.armMs; STOPW.startAt = 0;
+    STOPW.lastRem = rem;
+    if (!swAlertBeep()) STOPW.finPend = 1; else STOPW.markPend = 0;
+    swAlertPulse();
+    swSave();
+    swTickSync();
+    return;
+  }
+  if (STOPW.lastRem == null) { STOPW.lastRem = rem; return; }
+  const crossed = SW_MARKS.filter(th => th < STOPW.armMs && STOPW.lastRem > th && th >= rem && !STOPW.marks.includes(th));
+  if (crossed.length) {
+    STOPW.marks.push(...crossed);
+    if (!swAlertBeep()) STOPW.markPend = Math.min(...crossed);
     swAlertPulse();
   }
+  STOPW.lastRem = rem;
 }
-function swAlertSet(min) {
-  if (!swAlertValid(min)) return;
-  STOPW.alertMin = min;
-  swAlertSave();
-  swAlertBase();
-  STOPW.alertPend = 0;
+/* ═══ EL ARMADO DIRECTO DE LAS PASTILLAS (especificación
+   confirmada de Ronald, 2026-11-25): tocar 1, 2, 3 o 5 min
+   arma la cuenta atrás con ese total y pone el conteo a
+   cero — listo para Iniciar —; es el armado corto para
+   probar rápido. Tocar «Nunca» desarma: la herramienta
+   vuelve a ser el cronómetro hacia adelante de siempre,
+   con su conteo intacto. Armar ceba el sonido dentro del
+   gesto (swAlertPrime), sella el estado y repinta. ═══ */
+function swArmSet(min) {
+  if (min > 0) {
+    STOPW.armMs = min * 60000;
+    STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = [];
+  } else STOPW.armMs = 0;
+  STOPW.fin = false; STOPW.finPend = 0; STOPW.markPend = 0; STOPW.marks = [];
+  STOPW.lastRem = null;
+  swSave();
   swAlertPrime();
-  swAlertPaint();
+  swPaint();
+  swTickSync();
 }
-/* AUTH-532: la presión del «+5» — desde una selección menor
-   que 5 (o Nunca) la primera presión cae en 10 (el 5 de la
-   pastilla madre más los 5 que suma); desde 5 o desde un
-   acumulado, suma 5 más. Todo el efecto pasa por swAlertSet,
-   el camino de siempre: guarda, reprograma desde el múltiplo
-   siguiente y ceba el sonido dentro del gesto. */
-function swAlertPlus() {
-  swAlertSet(STOPW.alertMin >= 5 ? STOPW.alertMin + 5 : 10);
+/* ═══ LA PRESIÓN DEL «+5» SUMA AL RESTANTE (especificación
+   confirmada de Ronald, 2026-11-25: «armo mi tiempo
+   tocando +5 varias veces: 5, 5, 5 = 15»): cada presión
+   suma 5 minutos al tiempo armado. Sin nada armado, el
+   restante pasa a ser 5:00 desde el transcurrido actual (a
+   cero, el contador grande enseña 05:00 al instante); con
+   algo armado — en reposo, en pausa o con la cuenta ya
+   corriendo — el total crece en 5 y el restante sube en
+   5:00 en el acto. Las marcas ya cruzadas no se repiten;
+   las que aún no se cruzan se reevalúan contra el nuevo
+   total (una marca que no aplicaba puede pasar a aplicar).
+   Si la cuenta ya había terminado, el «+5» la revive con
+   las marcas frescas (las de la cuenta cumplida no cuentan
+   para la nueva). El gesto ceba
+   el sonido por el camino de AUTH-498 (swAlertPrime),
+   sella el estado en el dispositivo y repinta. SIN TOPE,
+   como mandaba AUTH-532. ═══ */
+function swArmPlus() {
+  STOPW.armMs = STOPW.armMs > 0 ? STOPW.armMs + 300000 : swElapsed() + 300000;
+  if (STOPW.fin) STOPW.marks = [];
+  STOPW.fin = false; STOPW.finPend = 0; STOPW.markPend = 0;
+  swSave();
+  swAlertPrime();
+  swPaint();
+  swTickSync();
 }
-function swAlertPaint() {
+/* El pintado de la fila de armado: «Nunca» es la activa sin
+   nada armado; la pastilla de cada minuto, si el total
+   armado es ese; la del 5 enseña el total armado cuando
+   pasa de 5 min (la lectura de AUTH-532, ahora sobre la
+   cuenta atrás: 10, 15, 20… según se suma con «+5») y es
+   la activa para cualquier armado desde 5 min. */
+function swArmPaint() {
   const box = $('sw-alert'); if (!box) return;
+  const armMin = Math.round(STOPW.armMs / 60000);
   box.querySelectorAll('[data-sw-alert]').forEach(b => {
     const v = Number(b.dataset.swAlert);
-    /* AUTH-532: la pastilla del 5 enseña el valor acumulado
-       cuando la selección pasa de 5, y es la activa para
-       cualquier selección desde 5; sin acumulación, la fila
-       se pinta exactamente como siempre. */
-    const shown = v === 5 && STOPW.alertMin > 5 ? STOPW.alertMin : v;
-    const isOn = v === 5 ? STOPW.alertMin >= 5 : v === STOPW.alertMin;
+    const shown = v === 5 && STOPW.armMs > 300000 ? armMin : v;
+    const isOn = v === 0 ? !STOPW.armMs : (v === 5 ? STOPW.armMs >= 300000 : STOPW.armMs === v * 60000);
     b.textContent = v === 0 ? t('sw.alertNever') : t('sw.alertMin', { n: shown });
     b.classList.toggle('on', isOn);
     b.setAttribute('aria-pressed', isOn ? 'true' : 'false');
@@ -71936,6 +72037,10 @@ function swAlertPaint() {
   if (plus) plus.textContent = t('sw.alertPlus');
 }
 function swElapsed() { return STOPW.acc + (STOPW.running ? Date.now() - STOPW.startAt : 0); }
+/* Lo que enseña el contador grande: con tiempo armado, el
+   RESTANTE de la cuenta atrás (nunca bajo cero); sin armar,
+   el transcurrido de siempre, subiendo desde 00:00. */
+function swDispMs() { const el = swElapsed(); return STOPW.armMs > 0 ? Math.max(0, STOPW.armMs - el) : el; }
 function swPad2(n) { return String(n).padStart(2, '0'); }
 function swFmtParts(ms) {
   const cs = Math.floor(ms / 10) % 100, s = Math.floor(ms / 1000) % 60, m = Math.floor(ms / 60000);
@@ -71950,8 +72055,8 @@ function swSetBtn(el, label, cls, disabled) {
 }
 function swPaint() {
   const ov = $('sw-overlay'); if (!ov) return;
-  const el = swElapsed(), f = swFmtParts(el);
   swAlertCheck();
+  const el = swElapsed(), f = swFmtParts(swDispMs());
   const main = $('sw-time-main'), csEl = $('sw-time-cs');
   if (main) main.textContent = f.main;
   if (csEl) csEl.textContent = f.cs;
@@ -71990,7 +72095,7 @@ function swPaint() {
     swSetBtn(M, t('sw.start'), 'main green', false);
     swSetBtn(R, t('sw.lap'), 'side', true);
   }
-  swAlertPaint();
+  swArmPaint();
 }
 function swTick() {
   if (!STOPW.open) { STOPW.raf = 0; return; }
@@ -72000,7 +72105,7 @@ function swTick() {
 function swKick() { if (STOPW.open && STOPW.running && !STOPW.raf) STOPW.raf = requestAnimationFrame(swTick); }
 function swMainAction() {
   if (STOPW.running) { STOPW.acc += Date.now() - STOPW.startAt; STOPW.running = false; swAlertPrime(); }
-  else { STOPW.startAt = Date.now(); STOPW.running = true; swAlertBase(); swAlertPrime(); swKick(); }
+  else { STOPW.startAt = Date.now(); STOPW.running = true; STOPW.lastRem = null; /* la línea base del cruce se pone en el primer chequeo: armar 1 min no avisa «queda 1 min» al arrancar */ swAlertPrime(); swKick(); }
   swSave();
   swPaint();
   swTickSync();
@@ -72013,7 +72118,12 @@ function swLapAction() {
   swPaint();
 }
 function swResetAction() {
-  STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = []; STOPW.alertK = 0; STOPW.alertPend = 0;
+  STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = [];
+  /* Cuenta atrás: Reiniciar vuelve al TOTAL ARMADO (el contador
+     enseña otra vez el tiempo completo, listo para iniciar) y
+     las marcas quedan frescas para la nueva cuenta. Desarmar
+     del todo es la ✕ (CERRAR = terminar) o la pastilla «Nunca». */
+  STOPW.fin = false; STOPW.finPend = 0; STOPW.markPend = 0; STOPW.marks = []; STOPW.lastRem = null;
   swSave();
   swPaint();
   swTickSync();
@@ -72050,10 +72160,12 @@ function swMinimizeTool() {
    2026-11-13): la ✕ detiene el cronómetro y lo pone a cero —
    el equivalente a Pausar + Reiniciar, con su sellado: al
    quedar a cero, swSave retira el sello del dispositivo, como
-   al Reiniciar. La elección de «Avisar cada» es una preferencia
-   del dispositivo con su propia clave y NO se toca. */
+   al Reiniciar. (Actualizado el 2026-11-25: CERRAR también
+   desarma la cuenta atrás — la fila ya no guarda ninguna
+   preferencia aparte desde que arma el temporizador.) */
 function swTerminateTool() {
-  STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = []; STOPW.alertK = 0; STOPW.alertPend = 0;
+  STOPW.running = false; STOPW.acc = 0; STOPW.startAt = 0; STOPW.laps = [];
+  STOPW.armMs = 0; STOPW.fin = false; STOPW.finPend = 0; STOPW.markPend = 0; STOPW.marks = []; STOPW.lastRem = null;   /* CERRAR también desarma la cuenta atrás: terminar es terminar */
   swSave();
   swHideTool();
   swPaint();
@@ -72069,11 +72181,10 @@ function swTerminateTool() {
    crece) y su botón redondo de 44 px de pausa/seguir. Tocar la
    pieza fuera del botón reabre la pantalla grande con todo
    intacto (swOpenTool: el estado nunca vivió en la pantalla).
-   La pieza NO lleva el control «Avisar cada»: elegir el
-   intervalo sigue siendo cosa de la pantalla grande; la
-   campana solo REFLEJA la elección (STOPW.alertMin, la misma
-   que pinta swAlertPaint — la maquinaria de avisos de AUTH-455
-   no se toca). */
+   La pieza NO lleva el control de armado: armar la cuenta
+   atrás sigue siendo cosa de la pantalla grande; la campana
+   solo REFLEJA lo armado (STOPW.armMs, lo mismo que pinta
+   swArmPaint en la fila de pastillas). */
 let SW_MINI_LAST = '', SW_MINI_BELL = '';
 function swMiniAlive() { return !STOPW.open && (STOPW.running || swElapsed() > 0); }
 function swMiniPaint() {
@@ -72081,12 +72192,12 @@ function swMiniPaint() {
   if (!swMiniAlive()) { if (mini.style.display !== 'none') mini.style.display = 'none'; return; }
   if (mini.style.display === 'none') mini.style.display = '';
   mini.classList.toggle('paused', !STOPW.running);
-  const txt = swFmtParts(swElapsed()).main;
+  const txt = swFmtParts(swDispMs()).main;
   const tm = $('sw-mini-time');
   if (tm && SW_MINI_LAST !== txt) { tm.textContent = txt; SW_MINI_LAST = txt; }
   const bell = $('sw-mini-bell');
   if (bell) {
-    const bt = STOPW.alertMin ? '🔔 ' + t('sw.alertMin', { n: STOPW.alertMin }) : '';
+    const bt = STOPW.armMs ? '🔔 ' + t('sw.alertMin', { n: Math.round(STOPW.armMs / 60000) }) : '';
     if (SW_MINI_BELL !== bt) { SW_MINI_BELL = bt; bell.textContent = bt; bell.style.display = bt ? '' : 'none'; }
   }
   const pz = $('sw-mini-pause');
@@ -72149,8 +72260,8 @@ function swFabPaint() {
   const fab = $('btn-stopwatch'); if (!fab) return;
   const el = swElapsed();
   let cls = 'sw-fab', txt = '';
-  if (STOPW.running) { cls = 'sw-fab live'; txt = swFmtParts(el).main; }
-  else if (el > 0) { cls = 'sw-fab paused'; txt = '❚❚ ' + swFmtParts(el).main; }
+  if (STOPW.running) { cls = 'sw-fab live'; txt = swFmtParts(swDispMs()).main; }
+  else if (el > 0) { cls = 'sw-fab paused'; txt = '❚❚ ' + swFmtParts(swDispMs()).main; }
   if (fab.className !== cls) fab.className = cls;
   const lab = $('sw-fab-time');
   if (lab && SW_FAB_LAST !== txt) { lab.textContent = txt; SW_FAB_LAST = txt; }
@@ -72184,10 +72295,10 @@ function swTickSync() {
 }
 (function swInit() {
   swRestore();
-  swAlertLoad();
+  try { localStorage.removeItem('ronbofit-stopwatch-alert-v1'); } catch {}   /* la preferencia de intervalo retirada (2026-11-25) se retira también del dispositivo */
   const fab = $('btn-stopwatch'); if (fab) fab.addEventListener('click', swOpenTool);
-  document.querySelectorAll('[data-sw-alert]').forEach(b => b.addEventListener('click', () => swAlertSet(Number(b.dataset.swAlert))));
-  document.querySelectorAll('[data-sw-alert-plus]').forEach(b => b.addEventListener('click', swAlertPlus));
+  document.querySelectorAll('[data-sw-alert]').forEach(b => b.addEventListener('click', () => swArmSet(Number(b.dataset.swAlert))));
+  document.querySelectorAll('[data-sw-alert-plus]').forEach(b => b.addEventListener('click', swArmPlus));
   swFabPaint(); swMiniPaint();
   swTickSync();
   const x = $('sw-close'); if (x) x.addEventListener('click', swTerminateTool);
