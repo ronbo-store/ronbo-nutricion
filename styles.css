@@ -3107,6 +3107,45 @@ body.nav-lock .sw-fab, body.nav-lock .help-fab, body.nav-lock .share-fab, body.n
 .ficha-focus-hl { box-shadow: 0 0 0 3px rgba(13,148,136,.55); border-radius: 14px; }
 .btn-ficha { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 14px; background: #fff; color: #0d9488; border: 1.5px solid #0d9488; border-radius: 10px; padding: 12px 16px; font-size: 14.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
 .btn-ficha svg { width: 18px; height: 18px; }
+/* COMUNICACIÓN DE UN TOQUE (2026-11-25, maquetas aprobadas por
+   Ronald): el botón grande de la tarjeta del alumno, ENCIMA del
+   de ver su ficha — el verde de la casa RELLENO, como la
+   maqueta 1; su pantalla (#smsg-float) con las tarjetas de
+   mensaje de la maqueta 2 (icono en círculo, nombre, el texto
+   exacto entre comillas y el toque «🕐 Programar» abajo a la
+   derecha) y la hoja «¿Cuándo lo envío?» de la maqueta 3 con
+   sus opciones grandes seleccionables. Controles ≥44 px. */
+.btn-smsg { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 14px; min-height: 52px; background: #0d9488; color: #fff; border: 1.5px solid #0d9488; border-radius: 10px; padding: 12px 16px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; }
+.btn-smsg:active { opacity: .85; }
+.smsg-name { font-size: 19px; font-weight: 800; color: #0f172a; margin: 2px 0 2px; }
+.smsg-hint { color: #64748b; font-size: 14.5px; margin: 0 0 14px; }
+.smsg-card { background: #fff; border: 1px solid rgba(15,23,42,.10); border-radius: 16px; padding: 12px 14px 10px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(15,23,42,.05); }
+.smsg-main { display: flex; gap: 12px; align-items: flex-start; width: 100%; background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; text-align: left; }
+.smsg-ic { flex: none; width: 52px; height: 52px; border-radius: 50%; background: #f0fdfa; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+.smsg-tx { flex: 1 1 auto; min-width: 0; padding-top: 2px; }
+.smsg-tname { display: block; font-size: 17.5px; font-weight: 800; color: #0f766e; }
+.smsg-ttext { display: block; font-size: 15px; color: #334155; line-height: 1.4; margin-top: 2px; overflow-wrap: break-word; }
+.smsg-card.sending { opacity: .55; pointer-events: none; }
+.smsg-foot { display: flex; justify-content: flex-end; margin-top: 8px; }
+.smsg-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 6px 14px; border-radius: 999px; border: 1px solid #99e5dd; background: #f0fdfa; color: #0f766e; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.smsg-chip:active { opacity: .75; }
+.smsg-sched-h { font-size: 17px; font-weight: 800; color: #0f172a; margin: 20px 0 10px; }
+.smsg-sched-row { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid rgba(15,23,42,.10); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; }
+.smsg-sched-row .smsg-ic { width: 46px; height: 46px; font-size: 23px; }
+.smsg-sched-tx { flex: 1 1 auto; min-width: 0; }
+.smsg-cancel { flex: none; min-height: 40px; padding: 8px 16px; border-radius: 999px; border: 1.5px solid #f0b8b0; background: #fff5f3; color: #c2410c; font-size: 14.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.smsg-when-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 1px solid #99e5dd; background: #f0fdfa; color: #0f766e; font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+.smsg-when-h { font-size: 21px; font-weight: 800; color: #0f172a; margin: 0 0 14px; }
+.smsg-opt { display: flex; gap: 12px; align-items: flex-start; width: 100%; background: #fff; border: 1.5px solid rgba(15,23,42,.10); border-radius: 16px; padding: 13px 14px; margin-bottom: 12px; cursor: pointer; font-family: inherit; text-align: left; box-sizing: border-box; }
+.smsg-opt.on { border-color: #0d9488; box-shadow: 0 0 0 2px rgba(13,148,136,.25); }
+.smsg-opt .smsg-tname { color: #0f172a; }
+.smsg-picks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+.smsg-picks input[type="time"], .smsg-picks input[type="date"] { min-height: 44px; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 10px; font: inherit; font-size: 15.5px; background: #fff; color: #0f172a; }
+.smsg-wd { min-width: 44px; min-height: 44px; padding: 8px 10px; border-radius: 10px; border: 1.5px solid #cbd5e1; background: #fff; color: #334155; font-size: 14.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.smsg-wd.on { background: #0d9488; border-color: #0d9488; color: #fff; }
+.smsg-when-err { color: #b91c1c; font-size: 14.5px; font-weight: 600; margin: 2px 0 10px; }
+.smsg-confirm { width: 100%; min-height: 52px; margin-top: 4px; }
+.smsg-cancelrow { width: 100%; min-height: 52px; margin-top: 10px; background: #fff; border: 1.5px solid #f0b8b0; border-radius: 12px; color: #c2410c; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; }
 /* AUTH-571: el botón «📏 Tomar medidas» del detalle del alumno
    (ancho completo, ≥48 px, el verde de la casa en contorno, como
    la maqueta aprobada) y la marca de origen en el historial. */

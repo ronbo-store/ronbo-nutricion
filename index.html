@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261125-analisis-cuerpo">
+<link rel="stylesheet" href="styles.css?v=20261125-comunicacion">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -1240,6 +1240,37 @@
     </div>
     <div id="breport-body"></div>
     <div class="p4-foot" id="breport-foot" style="display:none"></div>
+  </div>
+
+  <!-- COMUNICACIÓN DE UN TOQUE (2026-11-25, maquetas aprobadas
+       por Ronald el mismo día): la pantalla que abre el botón
+       «💬 Comunicación» de la tarjeta del alumno en «Mis
+       alumnos» — siete mensajes listos que se envían con un
+       toque por el canal interno de siempre (los comentarios
+       del entrenador en «Mi progreso»: progress_comments) y su
+       programación de envíos. PANTALLA COMPLETA propia
+       (r10-screen, el patrón de #bana-float) con el «‹ Volver»
+       fijo en la cabecera y sin ✕. La pintan y la mueven
+       smsgOpen / smsgClose (app.js). -->
+  <div class="pend-float pend-consult r10-screen" id="smsg-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <button type="button" class="pend-back" id="smsg-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
+      <h2>💬 <span id="smsg-title"></span></h2>
+    </div>
+    <div id="smsg-body"></div>
+  </div>
+
+  <!-- LA HOJA «¿CUÁNDO LO ENVÍO?» de la Comunicación de un
+       toque: se abre ENCIMA de #smsg-float (el patrón de
+       #tmeas-float sobre #bana-float) y su «‹ Volver» regresa
+       a la pantalla de Comunicación. La pintan y la mueven
+       smsgWhenOpen / smsgWhenClose (app.js). -->
+  <div class="pend-float pend-consult r10-screen" id="smsg-when-float" style="display:none" role="dialog">
+    <div class="pend-head">
+      <button type="button" class="pend-back" id="smsg-when-back">‹ <span data-i18n="r10.backLbl">Volver</span></button>
+      <h2><span id="smsg-when-title"></span></h2>
+    </div>
+    <div id="smsg-when-body"></div>
   </div>
 
   <!-- AUTH-586 (punto 3): la confirmación de «Dejar de ser su
@@ -3602,6 +3633,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261125-analisis-cuerpo"></script>
+<script type="module" src="app.js?v=20261125-comunicacion"></script>
 </body>
 </html>

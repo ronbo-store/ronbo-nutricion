@@ -12720,6 +12720,380 @@ function blaSectionHTML() {
   }
   return h;
 }
+/* ════════════════════════════════════════════════════════════
+   COMUNICACIÓN DE UN TOQUE (2026-11-25; maquetas aprobadas por
+   Ronald el mismo día — «Bien así, constrúyelo», 02:11 CST).
+   El botón «💬 Comunicación» de la tarjeta del alumno en «Mis
+   alumnos» (encima del de ver su ficha) abre su pantalla
+   propia (#smsg-float) con SIETE mensajes listos: el toque en
+   el cuerpo de la tarjeta ENVÍA AHORA y el toque «🕐
+   Programar» abre la hoja «¿Cuándo lo envío?» (#smsg-when-
+   float: ahora · hoy más tarde · otro día y hora · cada
+   semana).
+   EL CANAL ES EL DE SIEMPRE, sin nada nuevo: el mensaje es un
+   comentario del entrenador en progress_comments — la misma
+   escritura del cuadro de comentarios de «Mi progreso»
+   (mpTrainerPaintComments: {clientUid, authorUid, authorRole,
+   field 'general', text, date, createdAt}) — y el alumno lo ve
+   en SU «Mi progreso», en su bloque «Comentarios del
+   entrenador» (mpStudentPaint, #mp-comments), con su distintivo
+   «Comentario de tu entrenador». Nada de correo ni de canales
+   externos. El texto sale EN EL IDIOMA DEL ALUMNO
+   (nudgeMailLangOf, el resolvedor de la casa), compuesto desde
+   los diccionarios smsg.* — el entrenador ve en cada tarjeta el
+   texto exacto que el alumno recibirá, entre comillas.
+   «TE FALTA ALGO» solo se pinta si el alumno tiene un
+   pendiente DE SU LADO con texto del banco cerrado (el mapa
+   smsgMissKeyOf sobre los pendientes vivos de la ficha; los
+   que dependen del entrenador no improvisan texto, la doctrina
+   del banco de AUTH-133) y el mensaje nombra el PRIMERO.
+   «SUS MÉTRICAS» solo se pinta si hay un análisis comparable
+   (la noción de la AUTH-609: peso + composición en
+   nutrition_weight) y su texto se compone AL ENVIAR con el
+   último análisis de ese momento, solo con las métricas que
+   ese registro tenga.
+   LO PROGRAMADO vive en nutrition_progress con kind
+   'schedMsg' (la casa de datos de la AUTH-607: delta de reglas
+   CERO — el entrenador asignado crea, lista y borra los de su
+   alumno por las ramas vigentes) y lo ENTREGA el despertador
+   del Worker (bloque SM de ronbo-nutri-m8, con su cron de 30
+   min): escribe el mismo progress_comments a su hora, sin que
+   el entrenador tenga la app abierta. Los textos fijos viajan
+   compuestos en los dos idiomas al programar; el de métricas
+   NO viaja: el Worker lo compone al entregar, con el último
+   análisis de ese momento.
+   LA PUERTA del botón es la del canal: solo su entrenador
+   asignado (users.trainerUid == quien mira), que es quien las
+   reglas dejan escribir progress_comments de ese alumno. En la
+   rejilla no hay botón por celda: tocar la celda abre el
+   detalle, y ahí vive el botón, como el de su ficha. */
+const SMSG_ORDER = ['cheer', 'train', 'feel', 'food', 'missing', 'congrats', 'metrics'];
+const SMSG_ICONS = { cheer: '💪', train: '🏋️', feel: '🙂', food: '🍽️', missing: '⚠️', congrats: '🎉', metrics: '📊' };
+let SMSG = null;       // { uid, name, user, lang, dictEs, dictEn, dict, missKey, ready, metricsRec, sched, sending }
+let SMSG_WHEN = null;  // { msgKey, mode, laterTime, otherDate, otherTime, weeklyDay, weeklyTime, saving }
+
+function smsgDoorHTML(u) {
+  const me = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : null;
+  if (!me || !u || String(u.trainerUid || '') !== me) return '';
+  return `<button type="button" class="btn-smsg" data-stu-smsg="${esc(u.id)}">💬 ${esc(t('smsg.btn'))}</button>`;
+}
+/* El diccionario de UN idioma (para componer en el idioma del
+   alumno aunque la interfaz esté en el otro): los diccionarios
+   van en la precarga del service worker, así que pedir el otro
+   no espera a la red. */
+async function smsgDictFor(lang) {
+  try { await i18nLoad(lang); } catch {}
+  return (typeof STR !== 'undefined' && STR && (STR[lang] || STR.en)) || {};
+}
+function smsgStr(dict, k, vars) {
+  let s = dict && dict[k] !== undefined ? dict[k] : (typeof STR !== 'undefined' && STR && STR.en ? STR.en[k] : undefined);
+  if (s === undefined) s = k;
+  if (vars) for (const key in vars) s = String(s).split('{' + key + '}').join(vars[key]);
+  return s;
+}
+/* El banco cerrado de «Te falta algo»: del pendiente vivo del
+   alumno a la clave de su texto. Solo pendientes que dependen
+   DEL ALUMNO; el resto (foto por revisar, solicitud en curso…)
+   depende del entrenador y no lleva mensaje. */
+function smsgMissKeyOf(it) {
+  if (!it) return null;
+  if (it.kind === 'req') {
+    if (it.reqKey === 'eval') return 'eval';
+    if (it.reqKey === 'goals') return 'goals';
+    if (it.reqKey === 'consent') return 'consent';
+    if (it.reqKey === 'parq') return 'parq';
+    if (it.reqKey === 'meals') return 'meals';
+    return null;
+  }
+  if (it.kind === 'weight') return 'weight';
+  if (it.kind === 'eval') return 'periodic';
+  if (it.kind === 'body') return 'body';
+  return null;
+}
+function smsgMissKeyFor(uid) {
+  const items = pendActDataOf(uid).items || [];
+  for (const it of items) { const k = smsgMissKeyOf(it); if (k) return k; }
+  return null;
+}
+/* El último análisis comparable del alumno (la misma fuente y
+   la misma noción que el comparador de la AUTH-609). */
+async function smsgLatestAnalysis(uid) {
+  let best = null;
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_weight'), where('ownerUid', '==', uid)));
+    snap.forEach(d => { const v = { id: d.id, ...(d.data() || {}) }; if (bcmpComparable(v) && (!best || String(v.date) > String(best.date))) best = v; });
+  } catch {}
+  return best;
+}
+function smsgNum(v, dec, lang) {
+  const r = Math.round(Number(v) * Math.pow(10, dec)) / Math.pow(10, dec);
+  const s = String(r);
+  return lang === 'es' ? s.replace('.', ',') : s;
+}
+function smsgDateShort(iso, lang) {
+  const m = String(iso || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return String(iso || '');
+  const d = parseInt(m[3], 10), mi = parseInt(m[2], 10) - 1;
+  return lang === 'es' ? `${d} de ${MESES_ES[mi]}` : `${MESES_EN[mi]} ${d}`;
+}
+function smsgMetricsText(dict, lang, rec) {
+  if (!rec) return '';
+  const parts = [];
+  if (num(rec.weight) > 0) parts.push(smsgStr(dict, 'smsg.met.weight', { v: smsgNum(rec.weight, 2, lang) }));
+  if (num(rec.fat) > 0) parts.push(smsgStr(dict, 'smsg.met.fat', { v: smsgNum(rec.fat, 1, lang) }));
+  if (num(rec.muscle) > 0) parts.push(smsgStr(dict, 'smsg.met.muscle', { v: smsgNum(rec.muscle, 2, lang) }));
+  if (num(rec.water) > 0) parts.push(smsgStr(dict, 'smsg.met.water', { v: smsgNum(rec.water, 1, lang) }));
+  if (!parts.length) return '';
+  return smsgStr(dict, 'smsg.msg.metrics', { date: smsgDateShort(rec.date, lang), parts: parts.join(' · ') });
+}
+/* El texto exacto de un mensaje, en el idioma y con el
+   diccionario dados. Para 'metrics' hace falta su registro;
+   sin registro (o sin pendiente para 'missing') devuelve ''. */
+function smsgTextFor(dict, lang, msgKey, missKey, metricsRec) {
+  if (msgKey === 'metrics') return smsgMetricsText(dict, lang, metricsRec);
+  if (msgKey === 'missing') return missKey ? smsgStr(dict, 'smsg.miss.' + missKey) : '';
+  return smsgStr(dict, 'smsg.msg.' + msgKey);
+}
+async function smsgLoadSched(uid) {
+  const me = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : null;
+  const out = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'nutrition_progress'), where('ownerUid', '==', uid)));
+    snap.forEach(d => { const v = { id: d.id, ...(d.data() || {}) }; if (v.kind === 'schedMsg' && v.status === 'pending' && v.trainerUid === me) out.push(v); });
+  } catch { return null; }
+  out.sort((a, b) => (Number(a.dueMs) || 0) - (Number(b.dueMs) || 0));
+  return out;
+}
+async function smsgOpen(uid) {
+  const fl = $('smsg-float'), body = $('smsg-body');
+  if (!fl || !body) return;
+  const u = ((typeof STUDENTS_LAST !== 'undefined' && STUDENTS_LAST && STUDENTS_LAST.clients) || []).find(x => x.id === uid) || nudgeStudentDoc(uid) || { id: uid };
+  const lang = nudgeMailLangOf(u);
+  SMSG = { uid, name: stuName(u), user: u, lang, dictEs: null, dictEn: null, dict: null, missKey: smsgMissKeyFor(uid), ready: false, metricsRec: null, sched: null, sending: false };
+  const bk = $('smsg-back'); if (bk) bk.onclick = () => smsgClose();
+  const tt = $('smsg-title'); if (tt) tt.textContent = t('smsg.title');
+  fl.style.display = '';
+  smsgPaint();
+  try { coverSync(); } catch {}
+  const [dEs, dEn, rec, sched] = await Promise.all([smsgDictFor('es'), smsgDictFor('en'), smsgLatestAnalysis(uid), smsgLoadSched(uid)]);
+  if (!SMSG || SMSG.uid !== uid) return;
+  SMSG.dictEs = dEs; SMSG.dictEn = dEn; SMSG.dict = lang === 'es' ? dEs : dEn;
+  SMSG.metricsRec = rec; SMSG.sched = sched; SMSG.ready = true;
+  smsgPaint();
+}
+function smsgClose() {
+  smsgWhenClose();
+  SMSG = null;
+  const fl = $('smsg-float'); if (fl) fl.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+function smsgCardHTML(key) {
+  const dict = SMSG.dict || {};
+  const text = SMSG.ready ? smsgTextFor(dict, SMSG.lang, key, SMSG.missKey, SMSG.metricsRec) : '';
+  return `<div class="smsg-card${SMSG.sending ? ' sending' : ''}">
+    <button type="button" class="smsg-main" data-smsg-send="${key}">
+      <span class="smsg-ic" aria-hidden="true">${SMSG_ICONS[key]}</span>
+      <span class="smsg-tx"><span class="smsg-tname">${esc(t('smsg.t.' + key))}</span><span class="smsg-ttext">«${esc(text)}»</span></span>
+    </button>
+    <div class="smsg-foot"><button type="button" class="smsg-chip" data-smsg-when="${key}">🕐 ${esc(t('smsg.schedBtn'))}</button></div>
+  </div>`;
+}
+function smsgTimeFmt(ms) {
+  try { return new Intl.DateTimeFormat(LANG === 'es' ? 'es' : 'en', { hour: 'numeric', minute: '2-digit' }).format(new Date(ms)); } catch { return ''; }
+}
+function smsgISOof(ms) { const d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function smsgDayName(wd, lang) {
+  const base = new Date(2024, 0, 1 + ((Number(wd) || 1) - 1));   /* 2024-01-01 fue lunes */
+  try { return new Intl.DateTimeFormat(lang === 'es' ? 'es' : 'en', { weekday: 'long' }).format(base); } catch { return ''; }
+}
+function smsgSchedWhen(v) {
+  const time = smsgTimeFmt(Number(v.dueMs) || Date.now());
+  if (v.recur === 'weekly') return t('smsg.sched.weekly', { day: smsgDayName(v.weekday, LANG), time: smsgTimeFmt(smsgTimeOnDate(new Date(), v.time)) });
+  return t('smsg.sched.once', { date: dateName(smsgISOof(Number(v.dueMs) || Date.now())), time });
+}
+/* La hora de pared 'HH:MM' de un programado, como instante de
+   HOY, solo para pintarla con el formato del idioma. */
+function smsgTimeOnDate(base, hhmm) {
+  const d = new Date(base); const p = String(hhmm || '00:00').split(':');
+  d.setHours(Number(p[0]) || 0, Number(p[1]) || 0, 0, 0);
+  return d.getTime();
+}
+function smsgPaint() {
+  const body = $('smsg-body'); if (!body || !SMSG) return;
+  let h = `<p class="smsg-name">${esc(SMSG.name)}</p><p class="smsg-hint">${esc(t('smsg.hint'))}</p>`;
+  if (!SMSG.ready) {
+    body.innerHTML = h + `<div class="wempty">${esc(t('access.loading'))}</div>`;
+    return;
+  }
+  for (const key of SMSG_ORDER) {
+    if (key === 'missing' && !SMSG.missKey) continue;
+    if (key === 'metrics' && SMSG.ready && !SMSG.metricsRec) continue;
+    h += smsgCardHTML(key);
+  }
+  if (SMSG.ready) {
+    if (SMSG.sched === null) {
+      h += `<p class="progress-hint">${esc(t('smsg.sched.err'))}</p>`;
+    } else if (SMSG.sched.length) {
+      h += `<h3 class="smsg-sched-h">${esc(t('smsg.sched.title'))}</h3>` + SMSG.sched.map(v => `
+      <div class="smsg-sched-row">
+        <span class="smsg-ic" aria-hidden="true">${SMSG_ICONS[v.msgKey] || '💬'}</span>
+        <span class="smsg-sched-tx"><span class="smsg-tname">${esc(t('smsg.t.' + (v.msgKey || '')))}</span><span class="smsg-ttext">${esc(smsgSchedWhen(v))}</span></span>
+        <button type="button" class="smsg-cancel" data-smsg-unsched="${esc(v.id)}">${esc(t('smsg.sched.cancel'))}</button>
+      </div>`).join('');
+    }
+    /* Sin nada programado, la sección no se pinta: su estado
+       honesto es la ausencia (declarado en el informe). */
+  }
+  body.innerHTML = h;
+  body.querySelectorAll('[data-smsg-send]').forEach(b => b.onclick = () => smsgSendNow(b.dataset.smsgSend));
+  body.querySelectorAll('[data-smsg-when]').forEach(b => b.onclick = () => smsgWhenOpen(b.dataset.smsgWhen));
+  body.querySelectorAll('[data-smsg-unsched]').forEach(b => b.onclick = () => smsgSchedCancel(b.dataset.smsgUnsched));
+}
+/* EL ENVÍO DE AHORA: la misma escritura de los comentarios del
+   entrenador de siempre — el alumno lo ve en su «Mi progreso». */
+async function smsgSendNow(msgKey) {
+  if (!SMSG || SMSG.sending) return;
+  const me = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : null;
+  if (!me) return;
+  SMSG.sending = true; smsgPaint();
+  try {
+    let rec = null;
+    if (msgKey === 'metrics') rec = await smsgLatestAnalysis(SMSG.uid);   /* se compone al momento de enviar */
+    const dict = SMSG.dict || (SMSG.lang === 'es' ? SMSG.dictEs : SMSG.dictEn) || {};
+    const text = smsgTextFor(dict, SMSG.lang, msgKey, SMSG.missKey, rec);
+    if (!text) { toast(t('smsg.sendErr'), true); return; }
+    await addDoc(collection(db, 'progress_comments'), {
+      clientUid: SMSG.uid, authorUid: me, authorRole: (typeof ROLE !== 'undefined' ? ROLE : 'trainer'),
+      field: 'general', text, date: todayISO(), createdAt: serverTimestamp()
+    });
+    toast(t('smsg.sent'));
+  } catch { toast(t('smsg.sendErr'), true); }
+  finally { if (SMSG) { SMSG.sending = false; smsgPaint(); } }
+}
+async function smsgSchedCancel(id) {
+  if (!id) return;
+  try {
+    await deleteDoc(doc(db, 'nutrition_progress', id));
+    if (SMSG && SMSG.sched) { SMSG.sched = SMSG.sched.filter(x => x.id !== id); smsgPaint(); }
+    toast(t('smsg.sched.cancelled'));
+  } catch { toast(t('smsg.schedErr'), true); }
+}
+/* ── LA HOJA «¿CUÁNDO LO ENVÍO?» (maqueta 3) ── */
+function smsgWhenOpen(msgKey) {
+  if (!SMSG) return;
+  const now = new Date();
+  const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
+  SMSG_WHEN = {
+    msgKey, mode: 'later',
+    laterTime: '18:00',
+    otherDate: smsgISOof(tomorrow.getTime()), otherTime: '09:00',
+    weeklyDay: ((tomorrow.getDay() + 6) % 7) + 1, weeklyTime: '06:00',
+    saving: false
+  };
+  const fl = $('smsg-when-float'); if (!fl) return;
+  const bk = $('smsg-when-back'); if (bk) bk.onclick = () => smsgWhenClose();
+  const tt = $('smsg-when-title'); if (tt) tt.textContent = t('smsg.when.title');
+  fl.style.display = '';
+  smsgWhenPaint();
+  try { coverSync(); } catch {}
+}
+function smsgWhenClose() {
+  SMSG_WHEN = null;
+  const fl = $('smsg-when-float'); if (fl) fl.style.display = 'none';
+  try { coverSync(); } catch {}
+}
+function smsgWhenDue() {
+  const W = SMSG_WHEN; if (!W) return null;
+  const now = Date.now();
+  const at = (base, hhmm) => smsgTimeOnDate(base, hhmm);
+  if (W.mode === 'later') return at(new Date(), W.laterTime);
+  if (W.mode === 'other') {
+    const p = String(W.otherDate || '').split('-').map(Number);
+    if (p.length !== 3 || p.some(isNaN)) return null;
+    return at(new Date(p[0], p[1] - 1, p[2]), W.otherTime);
+  }
+  for (let i = 0; i < 8; i++) {
+    const d = new Date(); d.setDate(d.getDate() + i);
+    if (((d.getDay() + 6) % 7) + 1 !== W.weeklyDay) continue;
+    const ms = at(d, W.weeklyTime);
+    if (ms > now) return ms;
+  }
+  return null;
+}
+function smsgWhenPaint() {
+  const body = $('smsg-when-body'); if (!body || !SMSG_WHEN || !SMSG) return;
+  const W = SMSG_WHEN;
+  const wdNames = (typeof DAYNAMES !== 'undefined' && DAYNAMES[LANG]) || DAYNAMES.en;
+  const opt = (mode, icon, title, sub, picks) => `
+    <div class="smsg-opt${W.mode === mode ? ' on' : ''}" data-smsg-mode="${mode}" role="button" tabindex="0">
+      <span class="smsg-ic" aria-hidden="true">${icon}</span>
+      <span class="smsg-tx"><span class="smsg-tname">${esc(title)}</span><span class="smsg-ttext">${esc(sub)}</span>${picks || ''}</span>
+    </div>`;
+  body.innerHTML = `
+    <span class="smsg-when-chip">${SMSG_ICONS[W.msgKey] || '💬'} ${esc(t('smsg.t.' + W.msgKey))}</span>
+    <h3 class="smsg-when-h">${esc(t('smsg.when.title'))}</h3>
+    <button type="button" class="smsg-opt" id="smsg-when-now">
+      <span class="smsg-ic" aria-hidden="true">⚡</span>
+      <span class="smsg-tx"><span class="smsg-tname">${esc(t('smsg.when.now'))}</span><span class="smsg-ttext">${esc(t('smsg.when.nowSub'))}</span></span>
+    </button>
+    ${opt('later', '🌇', t('smsg.when.later'), t('smsg.when.todayAt', { time: smsgTimeFmt(smsgTimeOnDate(new Date(), W.laterTime)) }),
+      `<span class="smsg-picks"><input type="time" id="smsg-when-later-time" value="${esc(W.laterTime)}"></span>`)}
+    ${opt('other', '📅', t('smsg.when.other'), t('smsg.when.otherSub'),
+      `<span class="smsg-picks"><input type="date" id="smsg-when-other-date" value="${esc(W.otherDate)}" min="${esc(todayISO())}"><input type="time" id="smsg-when-other-time" value="${esc(W.otherTime)}"></span>`)}
+    ${opt('weekly', '🔁', t('smsg.when.weekly'), t('smsg.when.weeklySub', { day: smsgDayName(W.weeklyDay, LANG), time: smsgTimeFmt(smsgTimeOnDate(new Date(), W.weeklyTime)) }),
+      `<span class="smsg-picks">${wdNames.map((n, i) => `<button type="button" class="smsg-wd${W.weeklyDay === i + 1 ? ' on' : ''}" data-smsg-wd="${i + 1}">${esc(n)}</button>`).join('')}<input type="time" id="smsg-when-weekly-time" value="${esc(W.weeklyTime)}"></span>`)}
+    <p class="smsg-when-err" id="smsg-when-err" hidden></p>
+    <button type="button" class="btn-primary smsg-confirm" id="smsg-when-confirm">${esc(t('smsg.when.confirm'))}</button>
+    <button type="button" class="smsg-cancelrow" id="smsg-when-cancel">${esc(t('smsg.sched.cancel'))}</button>`;
+  const nowBtn = $('smsg-when-now');
+  if (nowBtn) nowBtn.onclick = () => { const k = W.msgKey; smsgWhenClose(); smsgSendNow(k); };
+  body.querySelectorAll('[data-smsg-mode]').forEach(el => {
+    el.onclick = e => { if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON')) return; W.mode = el.dataset.smsgMode; smsgWhenPaint(); };
+  });
+  const lt = $('smsg-when-later-time'); if (lt) lt.onchange = () => { W.laterTime = lt.value || W.laterTime; W.mode = 'later'; smsgWhenPaint(); };
+  const od = $('smsg-when-other-date'); if (od) od.onchange = () => { W.otherDate = od.value || W.otherDate; W.mode = 'other'; smsgWhenPaint(); };
+  const ot = $('smsg-when-other-time'); if (ot) ot.onchange = () => { W.otherTime = ot.value || W.otherTime; W.mode = 'other'; smsgWhenPaint(); };
+  const wt = $('smsg-when-weekly-time'); if (wt) wt.onchange = () => { W.weeklyTime = wt.value || W.weeklyTime; W.mode = 'weekly'; smsgWhenPaint(); };
+  body.querySelectorAll('[data-smsg-wd]').forEach(b => b.onclick = e => { e.stopPropagation(); W.weeklyDay = Number(b.dataset.smsgWd); W.mode = 'weekly'; smsgWhenPaint(); });
+  const cf = $('smsg-when-confirm'); if (cf) cf.onclick = () => smsgWhenConfirm();
+  const cx = $('smsg-when-cancel'); if (cx) cx.onclick = () => smsgWhenClose();
+}
+async function smsgWhenConfirm() {
+  const W = SMSG_WHEN; if (!W || !SMSG || W.saving) return;
+  const errEl = $('smsg-when-err');
+  const dueMs = smsgWhenDue();
+  if (!dueMs || dueMs <= Date.now() + 30000) {
+    if (errEl) { errEl.hidden = false; errEl.textContent = t('smsg.when.past'); }
+    return;
+  }
+  W.saving = true;
+  try {
+    const me = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : null;
+    if (!me) throw new Error('no-user');
+    const weekly = W.mode === 'weekly';
+    const data = {
+      kind: 'schedMsg', ownerUid: SMSG.uid, trainerUid: me,
+      authorRole: (typeof ROLE !== 'undefined' ? ROLE : 'trainer'),
+      msgKey: W.msgKey, status: 'pending', recur: weekly ? 'weekly' : 'once',
+      dueMs, weekday: weekly ? W.weeklyDay : null,
+      time: weekly ? W.weeklyTime : (W.mode === 'later' ? W.laterTime : W.otherTime),
+      tz: (function () { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { return ''; } })(),
+      createdAt: serverTimestamp()
+    };
+    if (W.msgKey === 'missing') data.missKey = SMSG.missKey || '';
+    if (W.msgKey !== 'metrics') {
+      data.textEs = smsgTextFor(SMSG.dictEs || {}, 'es', W.msgKey, SMSG.missKey, null);
+      data.textEn = smsgTextFor(SMSG.dictEn || {}, 'en', W.msgKey, SMSG.missKey, null);
+      if (!data.textEs || !data.textEn) throw new Error('no-text');
+    }
+    await setDoc(doc(db, 'nutrition_progress', 'schedmsg_' + me + '_' + SMSG.uid + '_' + Date.now()), data);
+    smsgWhenClose();
+    if (SMSG) { SMSG.sched = await smsgLoadSched(SMSG.uid); smsgPaint(); }
+    toast(t('smsg.scheduled'));
+  } catch {
+    if (errEl) { errEl.hidden = false; errEl.textContent = t('smsg.schedErr'); }
+  } finally { if (SMSG_WHEN) SMSG_WHEN.saving = false; }
+}
 /* ═══ AUTH-586 (punto 10) · EL INFORME DE COMPOSICIÓN CORPORAL ═══
    Junto a «Tomar medidas» (AUTH-571), en la ficha del alumno:
    el entrenador sube el informe de composición corporal — foto
@@ -13353,6 +13727,13 @@ function studentsDetailHTML(u) {
     h += stuAssignFoldHTML(u, { trainerUid: u.trainerUid || null, coachUid: (L.coachByUid || {})[u.id] || null, coachKnown: !!(L.coachByUid && (u.id in L.coachByUid)) });
     if (!pend.items.length && !pend.traces.length) h += `<p class="pend-none">${esc(t('students.detailClear'))}</p>`;
   }
+  /* COMUNICACIÓN DE UN TOQUE (2026-11-25, maqueta 1 aprobada
+     por Ronald): el botón grande «💬 Comunicación» va ENCIMA
+     del de ver su ficha, al pie de la tarjeta — solo para su
+     entrenador asignado, que es quien puede enviarle por el
+     canal interno (la misma puerta de los comentarios del
+     entrenador en «Mi progreso»). */
+  h += smsgDoorHTML(u);
   h += `<button type="button" class="btn-ficha" data-stu-ficha="${u.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>${esc(t('students.viewFull'))}</button>
   </div>`;
   return h;
@@ -13465,7 +13846,11 @@ function renderStudentsBody() {
   const dHead = fb ? fb.querySelector('.detail-head') : null;
   if (dHead) dHead.onclick = () => studentsCloseDetail();
   fbq('[data-stu-ficha]').forEach(b => b.onclick = () => studentsGoFicha(b.dataset.stuFicha));
+  /* COMUNICACIÓN DE UN TOQUE (2026-11-25): el botón de la
+     tarjeta abre su pantalla propia. */
+  fbq('[data-stu-smsg]').forEach(b => b.onclick = () => smsgOpen(b.dataset.stuSmsg));
   fbq('[data-stu-act]').forEach(b => b.onclick = () => studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''));
+
   /* AUTH-208 (punto 129): la fila «Su ecuación» es un DIV-puerta
      (sin botón): el teclado entra por aquí — solo elementos que
      NO son botón, para no duplicar el click nativo de los demás. */
