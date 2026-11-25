@@ -8364,3 +8364,30 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 #p22-float .btn-primary { min-height: 48px; }
 #p22-float .btn-ghost { min-height: 48px; }
 #p22-float .wiz-chip { min-height: 44px; }
+
+/* ═══ FICHA DEL ALUMNO COMO PANTALLA PROPIA (orden de Ronald,
+   2026-11-25 01:57 CST) ═══
+   La cabecera fija lleva el «‹ Volver a mis alumnos» a la
+   izquierda y el nombre del alumno EN MEDIO: rejilla de tres
+   columnas (1fr auto 1fr) para que el título quede centrado de
+   verdad, no empujado por el botón. El cuerpo se acota como las
+   demás pantallas de la casa en pantallas anchas. */
+#stu-ficha-float .pend-head { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; }
+#stu-ficha-float .pend-back { justify-self: start; min-width: 0; white-space: normal; line-height: 1.15; text-align: left; }
+#stu-ficha-float .stu-ficha-title { justify-self: center; text-align: center; min-width: 0; overflow-wrap: anywhere; }
+#stu-ficha-body { max-width: 780px; margin: 0 auto; }
+
+/* ═══ LÍNEA «EN CURSO / POR EJECUTAR» DE LA FICHA (añadido de
+   Ronald, 2026-11-25 02:00 CST) ═══
+   Debajo de la quema y encima de «Metas del alumno»: el ejercicio
+   que el alumno está ejecutando y el que tiene por ejecutar hoy,
+   leídos de su plan activo y de su registro de hoy. Cada ejercicio
+   es un botón que abre su editor en el plan del alumno. */
+.stu-now { margin-top: 12px; }
+.stu-now-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 9px 12px; background: #eef6ff; border: 1px solid #c7ddf7; border-radius: 12px; font: inherit; color: #173f38; text-align: left; cursor: pointer; }
+.stu-now-row + .stu-now-row { margin-top: 8px; }
+.stu-now-tag { flex: none; font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #1d4ed8; }
+.stu-now-name { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.stu-now-row .sx { flex: none; color: #1d4ed8; font-weight: 800; }
+.stu-now-line { display: flex; align-items: center; gap: 8px; background: #f4f6f8; border: 1px solid #dde3e8; border-radius: 12px; padding: 10px 12px; font-size: 15px; color: #475569; }
+.stu-now-line + .stu-now-row, .stu-now-row + .stu-now-line { margin-top: 8px; }

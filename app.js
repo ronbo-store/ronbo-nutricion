@@ -10691,6 +10691,134 @@ function stuBurnHTML(actByDate, logs) {
   });
   return `<div class="stu-burn-line"><span aria-hidden="true">🔥</span><span><b>${fmt(total)}</b> ${esc(t('act.kcalUnit'))} ${esc(t('act.flameBurned'))}</span></div>`;
 }
+/* ═══ LA LÍNEA «EN CURSO / POR EJECUTAR» DE LA FICHA (añadido
+   de Ronald, 2026-11-25 02:00 CST) ═══
+   Debajo de la quema y encima de «Metas del alumno»: el
+   ejercicio que el alumno está ejecutando y el que tiene por
+   ejecutar HOY. LA FUENTE es el estado compartido real: su
+   plan ACTIVO (el documento canónico training_plans que leen
+   todas las vistas) y su registro de hoy en training_logs —
+   el mismo par de fuentes con que stuTrainTodayState lee su
+   día. LA REGLA, caso por caso:
+   · El registro de hoy DE ESE PLAN (planId coincidente y
+     dayIndex válido) manda: su dayIndex es el día y su
+     exercisesDone marca lo ya hecho (emparejado por
+     exerciseId y, en su defecto, por el nombre resuelto).
+     – status «skipped» → «Día saltado hoy», sin en curso ni
+       siguiente.
+     – status «done», o sin ejercicios pendientes → «Día
+       terminado».
+     – con pendientes → EN CURSO = el primer pendiente y
+       POR EJECUTAR = el segundo pendiente (si lo hay).
+   · Sin registro de hoy, el día se resuelve como en la Home
+     del propio alumno (homeStartState): mapa de días
+     (trainDayMap + planCalDayIndex) y trainTodayDiEffective;
+     en rotación, trainRotationNext con sus registros.
+     – Sin plan activo, sin día resuelto o día libre
+       (freeDay) → «Hoy no le toca entrenar».
+     – Día con ejercicios y nada registrado → sin ejercicio
+       en curso y POR EJECUTAR = el primero del día.
+   LO QUE ESTA LÍNEA NO VE (declarado): las marcas de la sesión
+   en curso (TRAIN_CHECKS) y las ediciones de sesión viven SOLO
+   en el aparato del alumno — el registro compartido nace al
+   cerrar el día, al saltarlo o al borrarlo —; la lista del día
+   es la del documento del plan, sin los cambios de sesión de
+   su aparato; y trainTodayDiEffective consulta la base de
+   sesión (trainBaseRead) del aparato local, que en el del
+   entrenador no existe para el plan del alumno. Los registros
+   de sesiones sueltas (dayIndex −1 u otro plan) no alimentan
+   esta línea. */
+function stuNowEntryMatches(entry, ex) {
+  if (!entry || !ex) return false;
+  if (ex.exerciseId && entry.exerciseId) return entry.exerciseId === ex.exerciseId;
+  if (entry.name) { const n = trainExName(ex) || ex.name || ''; return n !== '' && entry.name === n; }
+  return false;
+}
+function stuNowCompute(plan, logs, cfg) {
+  const hoy = todayISO();
+  if (!plan || !Array.isArray(plan.days) || !plan.days.length) return { state: 'rest' };
+  const all = (logs || []).filter(l => l && l.status !== 'deleted');
+  const dayLog = all.find(l => l.date === hoy && l.planId === plan.id && Number.isInteger(l.dayIndex) && l.dayIndex >= 0) || null;
+  if (dayLog && dayLog.status === 'skipped') return { state: 'skipped', di: dayLog.dayIndex };
+  let di = null;
+  if (dayLog) di = dayLog.dayIndex;
+  else {
+    const tmap = trainDayMap(plan, cfg);
+    if (tmap.pairs || tmap.mode === 'plancal') {
+      let mapped = null;
+      if (tmap.pairs) mapped = (tmap.pairs[new Date(hoy + 'T12:00:00').getDay()] ?? planCalDayIndex(plan, hoy));
+      else mapped = planCalDayIndex(plan, hoy);
+      di = trainTodayDiEffective(plan, mapped);
+    } else {
+      di = trainRotationNext(plan, all, hoy);
+    }
+  }
+  if (di == null || di < 0) return { state: 'rest' };
+  const day = plan.days[di];
+  if (!day || day.freeDay === true) return { state: 'rest', di };
+  const exs = Array.isArray(day.exercises) ? day.exercises : [];
+  if (!exs.length) return { state: 'rest', di };
+  const nameOf = ex => (trainExName(ex) || ex.name || '');
+  const items = exs.map((ex, slot) => ({ slot, name: nameOf(ex), done: false }));
+  if (dayLog && Array.isArray(dayLog.exercisesDone)) {
+    const pool = dayLog.exercisesDone.slice();
+    for (const it of items) {
+      const ix = pool.findIndex(e => stuNowEntryMatches(e, exs[it.slot]));
+      if (ix >= 0) { it.done = true; pool.splice(ix, 1); }
+    }
+  }
+  const pending = items.filter(x => !x.done);
+  if (dayLog && dayLog.status === 'done') return { state: 'done', di };
+  if (!pending.length) return { state: 'done', di };
+  if (dayLog) return { state: 'current', di, cur: pending[0], next: pending[1] || null };
+  return { state: 'notstarted', di, first: pending[0] };
+}
+function stuNowHTML(uid, plan, logs, cfg) {
+  const r = stuNowCompute(plan, logs, cfg);
+  const row = (tagKey, x) => `<button type="button" class="stu-now-row" data-stu-now="${esc(uid)}" data-stu-now-di="${r.di}" data-stu-now-slot="${x.slot}"><span class="stu-now-tag">${esc(t(tagKey))}</span><span class="stu-now-name">${esc(x.name)}</span><span class="sx" aria-hidden="true">›</span></button>`;
+  const line = txt => `<div class="stu-now-line"><span>${esc(txt)}</span></div>`;
+  let inner = '';
+  if (r.state === 'rest') inner = line(t('students.nowRest'));
+  else if (r.state === 'skipped') inner = line(t('students.nowSkipped'));
+  else if (r.state === 'done') inner = line(t('students.nowDone'));
+  else if (r.state === 'current') inner = row('students.nowCur', r.cur)
+    + (r.next ? row('students.nowNext', r.next) : line(t('students.nowLast')));
+  else inner = line(t('students.nowNone')) + row('students.nowNext', r.first);
+  return `<div class="stu-now">${inner}</div>`;
+}
+/* El cableado de los botones de la línea: vive en su punto de
+   pintado (loadStuDay) porque la línea nace asíncrona, cuando
+   aterrizan el plan y los registros — el cableado del detalle
+   (renderStudentsBody) corre antes y no la alcanzaría. */
+function stuNowWire(box) {
+  if (!box) return;
+  box.querySelectorAll('[data-stu-now]').forEach(b => b.onclick = () => stuNowEdit(b.dataset.stuNow, Number(b.dataset.stuNowDi), Number(b.dataset.stuNowSlot)));
+}
+/* El toque en un ejercicio de la línea abre el EDITOR DE
+   SIEMPRE de ese ejercicio en ese día del plan de ese alumno
+   (la misma ruta de stuQDayEdit: plan fresco, openPlanEditor
+   y el día desplegado solo), llevando además la vista a la
+   fila de ESE ejercicio y marcándola. El editor guarda el
+   documento canónico del plan: lo guardado se lee igual en
+   todas las vistas, y al aterrizar loadStudentPlans repinta
+   esta línea con el plan fresco. */
+async function stuNowEdit(uid, di, slot) {
+  if (!uid || !Number.isInteger(di) || !Number.isInteger(slot)) return;
+  let plan = null;
+  try { const plans = await fetchPlans(uid); plan = (plans || []).find(p => p.active === true) || null; } catch {}
+  if (!plan || !plan.days || !plan.days[di]) { toast(t('train.noPlan'), true); return; }
+  openPlanEditor(uid, plan);
+  const wraps = document.querySelectorAll('#pl-days .pl-day');
+  const wrap = wraps[di];
+  if (!wrap) return;
+  planDayOpenOnly(wrap);
+  const rows = wrap.querySelectorAll('.pl-exs .pl-ex-row');
+  const rowEl = rows[slot];
+  if (rowEl) {
+    try { rowEl.scrollIntoView({ block: 'center' }); } catch {}
+    rowEl.classList.add('ficha-focus-hl');
+  }
+}
 async function loadStuDay(uid, u) {
   const rBox = $('stu-rings'), bBox = $('stu-burn');
   if (!rBox && !bBox) return;
@@ -10722,6 +10850,12 @@ async function loadStuDay(uid, u) {
   const r2 = $('stu-rings'), b2 = $('stu-burn');
   if (r2 && r2.dataset.stuDay === uid) r2.innerHTML = stuRingsHTML(state);
   if (b2 && b2.dataset.stuDay === uid) b2.innerHTML = stuBurnHTML(actByDate, logs || []);
+  /* LA LÍNEA «EN CURSO / POR EJECUTAR» se pinta con los mismos
+     datos que esta carga ya trae (su plan activo, sus registros
+     y su configuración de días) y se cablea al pintarla: sus
+     botones nacen en esta pasada asíncrona, no en el detalle. */
+  const n2 = $('stu-now');
+  if (n2 && n2.dataset.stuDay === uid) { n2.innerHTML = stuNowHTML(uid, state.plan, logs || [], state.cfg); stuNowWire(n2); }
 }
 /* H-07 (AUTH-2026-11-10-392; auditoría de espacio 2026-11-09 §H-07 (a),
    aprobado por Ronald 2026-11-10): las filas del bloque de planes
@@ -11786,6 +11920,12 @@ async function loadStudentPlans(uid) {
   if (brs) { brs.innerHTML = stuFichaTopHTML({ id: uid }); stuPlansWireCurrent(uid); }
   stuPlanHubSync(uid);
   stuFoldSync();
+  /* LÍNEA «EN CURSO / POR EJECUTAR» (2026-11-25): con el plan
+     fresco recién aterrizado, la zona del día se recarga para
+     que la línea enseñe ya lo editado y guardado en el editor
+     (la ida y vuelta que pidió Ronald: guardar en el editor se
+     ve al volver a la ficha sin recargar nada a mano). */
+  try { const u2 = (STUDENTS_LAST && STUDENTS_LAST.clients || []).find(x => x.id === uid); if (u2) loadStuDay(uid, u2); } catch {}
 }
 
 /* ══ AUTH-559 · BLOQUE «RETOS» DE LA FICHA DEL ALUMNO ══════════
@@ -13007,12 +13147,13 @@ function studentsDetailHTML(u) {
   const name = stuName(u);
   const err = !!L.pendErrByUid[u.id];
   const pend = L.pendByUid[u.id] || { items: [], traces: [] };
-  const fromLabel = STUDENTS_DETAIL_FROM === 'pendientes' ? t('students.pillPending')
-    : STUDENTS_DETAIL_FROM === 'asignados' ? t('students.pillAssigned')
-    : STUDENTS_DETAIL_FROM === 'filtros' ? t('students.moreFilters')
-    : clientCatLabel(STUDENTS_DETAIL_FROM);
-  let h = `<button type="button" class="back-row" id="stu-back">‹ ${esc(fromLabel)}</button>
-  <div class="detail-card">
+  /* PANTALLA PROPIA (2026-11-25): la fila «‹ volver» del marco
+     viejo desaparece de aquí — la navegación de regreso vive
+     ahora en la cabecera fija de la pantalla (#stu-ficha-back,
+     «‹ Volver a mis alumnos»); el contenido de la ficha no
+     cambia: la cabecera del alumno conserva su avatar y su
+     aviso de pendiente en rojo. */
+  let h = `<div class="detail-card">
     <div class="detail-head">${stuAvatarHTML(u, name)}<span class="detail-main"><span class="detail-name">${esc(name)}</span>${alertChipHTML((L.alertsByUid || {})[u.id])}<span class="detail-sub">${err ? esc(t('students.pendLoadError')) : pend.items.length ? esc(t('students.pendToResolve', { n: pend.items.length })) : esc(t('students.upToDate'))}</span></span></div>`;
   /* AUTH-565 (programa «Plegar todo» nº 2): los tres bloques
      (plan AUTH-341, retos AUTH-559, entrenamiento AUTH-352)
@@ -13054,6 +13195,13 @@ function studentsDetailHTML(u) {
      que una lectura tardía no pinte sobre otro alumno). */
   h += `<div id="stu-rings" data-stu-day="${esc(u.id)}"><div class="wempty">${esc(t('access.loading'))}</div></div>`;
   h += `<div id="stu-burn" data-stu-day="${esc(u.id)}"></div>`;
+  /* LA LÍNEA «EN CURSO / POR EJECUTAR» (añadido de Ronald,
+     2026-11-25 02:00 CST): debajo de la quema y encima de
+     «Metas del alumno», el ejercicio que el alumno está
+     ejecutando y el que tiene por ejecutar hoy, leídos de su
+     plan activo y de su registro de hoy (stuNowHTML, pintada
+     por loadStuDay con los mismos datos que ya carga). */
+  h += `<div id="stu-now" data-stu-day="${esc(u.id)}"></div>`;
   /* EL BLOQUE «METAS DEL ALUMNO» (añadido de Ronald, 2026-11-24
      23:09 CST, opción A): de su propio users, ya pintado. */
   h += stuGoalsHTML(u);
@@ -13090,10 +13238,51 @@ function studentsDetailHTML(u) {
   </div>`;
   return h;
 }
+/* ═══ LA FICHA COMO PANTALLA PROPIA (orden de Ronald, 2026-11-25
+   01:57 CST) ═══
+   El detalle del alumno ya no se despliega bajo la cabecera de
+   «Mis alumnos»: vive en su pantalla completa (#stu-ficha-float),
+   con cabecera fija — «‹ Volver a mis alumnos» a la izquierda y
+   el nombre del alumno EN MEDIO. stuFichaSync pinta el detalle
+   en el cuerpo de la pantalla y la muestra u oculta según haya
+   detalle y estemos en la vista de alumnos; la lista se pinta
+   siempre en su sitio, intacta (filtros, buscador y posición
+   viven en el estado de la vista, que esta pasada no toca),
+   para que al volver esté tal como estaba. El cuerpo conserva
+   la clase .students-col-detail: los selectores del detalle de
+   siempre (stuFoldSync, la cabecera AUTH-186) siguen
+   resolviendo sin tocarlos. */
+let STU_FICHA_SHOWN = null;
+function stuFichaSync(du) {
+  const fl = $('stu-ficha-float'), body = $('stu-ficha-body');
+  if (!fl || !body) return;
+  if (!du) {
+    STU_FICHA_SHOWN = null;
+    body.innerHTML = '';
+    if (fl.style.display !== 'none') { fl.style.display = 'none'; try { coverSync(); } catch {} }
+    return;
+  }
+  if (typeof NAV_TAB !== 'undefined' && NAV_TAB !== 'students') { stuFichaHide(); return; }
+  body.innerHTML = studentsDetailHTML(du);
+  const nm = $('stu-ficha-name'); if (nm) nm.textContent = stuName(du);
+  const bk = $('stu-ficha-back'); if (bk) bk.onclick = () => studentsCloseDetail();
+  if (STU_FICHA_SHOWN !== du.id) { fl.scrollTop = 0; STU_FICHA_SHOWN = du.id; }
+  fl.style.display = '';
+  try { coverSync(); } catch {}
+}
+/* Oculta la pantalla SIN soltar el detalle: los saltos a la
+   ficha completa de «Clientes» (studentsGoFicha /
+   studentsOpenRecord) conservan STUDENTS_DETAIL para que el
+   regreso (STUDENTS_RESTORE) reabra esta pantalla tal cual. */
+function stuFichaHide() {
+  const fl = $('stu-ficha-float');
+  if (fl && fl.style.display !== 'none') { fl.style.display = 'none'; try { coverSync(); } catch {} }
+}
 function renderStudentsBody() {
   const el = $('students-list');
   if (!el) return;
   if (STUDENTS_LOAD_ERROR) {
+    stuFichaHide();
     el.innerHTML = `<div class="stu-err">${esc(t('students.loadError'))}<br><button type="button" class="btn-primary btn-sm" id="stu-retry" style="margin-top:8px">${esc(t('students.retry'))}</button></div>`;
     $('stu-retry').onclick = () => loadStudents();
     return;
@@ -13118,9 +13307,11 @@ function renderStudentsBody() {
   const keepHubUid = (typeof STU_HUB !== 'undefined' && STU_HUB && du && STU_HUB.uid === du.id) ? du.id : null;
   stuSheetReset();
   stuPlanHubReset();
-  el.innerHTML = du
-    ? `<div class="students-split"><div class="students-col-list">${studentsListSectionHTML()}</div><div class="students-col-detail">${studentsDetailHTML(du)}</div></div>`
-    : studentsListSectionHTML();
+  /* PANTALLA PROPIA: la lista se pinta siempre en su sitio y el
+     detalle, si lo hay, en el cuerpo de su pantalla. */
+  el.innerHTML = studentsListSectionHTML();
+  stuFichaSync(du);
+  const fb = $('stu-ficha-body');
   el.querySelectorAll('[data-stu]').forEach(b => b.onclick = () => studentsRowTap(b.dataset.stu));
   /* AUTH-586 (punto 3): la acción de dejar de ser su entrenador
      no abre el detalle: abre su confirmación. */
@@ -13135,8 +13326,12 @@ function renderStudentsBody() {
      el entrenador la dejó al navegar entre pastillas. */
   const fnb = $('stu589-fnote-btn');
   if (fnb) fnb.onclick = () => { STU589_FNOTE_OPEN = !STU589_FNOTE_OPEN; renderStudentsBody(); };
-  const back = $('stu-back');
-  if (back) back.onclick = studentsCloseDetail;
+  /* PANTALLA PROPIA: el regreso vive en la cabecera fija de la
+     pantalla (#stu-ficha-back, cableado en stuFichaSync); la
+     fila «‹ volver» del marco viejo ya no existe en el detalle.
+     El cableado del DETALLE se busca desde aquí en el cuerpo de
+     la pantalla (fb), no en la lista. */
+  const fbq = sel => (fb || el).querySelectorAll(sel);
   /* AUTH-2026-11-02-186 (punto 109 de la cola; correo de Ronald
      2026-11-02 19:54 CST, id 1a19f1de03974a9b): la CABECERA del
      alumno en su detalle abierto TAMBIÉN pliega — «cuando
@@ -13145,18 +13340,20 @@ function renderStudentsBody() {
      en la fila de la lista, que en el teléfono queda oculta tras
      el detalle; la cabecera (.detail-head) es la que sí se ve
      con el detalle abierto, en todos los anchos. La fila de
-     regreso sigue cerrando igual. */
-  const dHead = el.querySelector('.students-col-detail .detail-head');
+     regreso sigue cerrando igual. PANTALLA PROPIA (2026-11-25):
+     la cabecera sigue cerrando la ficha — ahora cierra la
+     pantalla y vuelve a la lista, como su botón «Volver». */
+  const dHead = fb ? fb.querySelector('.detail-head') : null;
   if (dHead) dHead.onclick = () => studentsCloseDetail();
-  el.querySelectorAll('[data-stu-ficha]').forEach(b => b.onclick = () => studentsGoFicha(b.dataset.stuFicha));
-  el.querySelectorAll('[data-stu-act]').forEach(b => b.onclick = () => studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''));
+  fbq('[data-stu-ficha]').forEach(b => b.onclick = () => studentsGoFicha(b.dataset.stuFicha));
+  fbq('[data-stu-act]').forEach(b => b.onclick = () => studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''));
   /* AUTH-208 (punto 129): la fila «Su ecuación» es un DIV-puerta
      (sin botón): el teclado entra por aquí — solo elementos que
      NO son botón, para no duplicar el click nativo de los demás. */
-  el.querySelectorAll('[data-stu-act]:not(button)').forEach(b => b.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''); } });
+  fbq('[data-stu-act]:not(button)').forEach(b => b.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); studentsOpenRecord(b.dataset.stuUid, b.dataset.stuAct, b.dataset.stuReq || ''); } });
   /* AUTH-2026-11-01-133: el botón «✉ Avisar» de las filas del
      detalle abre la hoja del aviso con el título de SU fila. */
-  el.querySelectorAll('[data-stu-nudge]').forEach(b => b.onclick = () => {
+  fbq('[data-stu-nudge]').forEach(b => b.onclick = () => {
     const row = b.closest('.stu-pend-item');
     const tt = row ? row.querySelector('.stu-pend-title') : null;
     const title = tt && tt.childNodes[0] ? tt.childNodes[0].textContent.trim() : '';
@@ -13164,20 +13361,20 @@ function renderStudentsBody() {
   });
   /* MENSAJE COMBINADO (este paquete): la barra del alumno abre
      la hoja del correo con TODOS sus pendientes. */
-  el.querySelectorAll('[data-stu-pendlist]').forEach(b => b.onclick = () => pendListOpen(b.dataset.stuPendlist));
+  fbq('[data-stu-pendlist]').forEach(b => b.onclick = () => pendListOpen(b.dataset.stuPendlist));
   /* AUTH-562: el botón «Pendientes activos» del detalle abre la
      pantalla del paquete. */
-  el.querySelectorAll('[data-pendact]').forEach(b => b.onclick = () => pendActOpen(b.dataset.pendact));
+  fbq('[data-pendact]').forEach(b => b.onclick = () => pendActOpen(b.dataset.pendact));
   /* ANÁLISIS CORPORAL (2026-11-24): la única puerta de la
      ficha abre su pantalla propia, con «Tomar medidas»
      (AUTH-571) y «Cargar resultado externo» (AUTH-586) dentro.
      TARJETAS (2026-11-24): la puerta es ahora la tercera
      tarjeta de la rejilla (stuDoorsGridHTML) — el mismo
      atributo y el mismo destino. */
-  el.querySelectorAll('[data-stu-bana]').forEach(b => b.onclick = () => banaOpen(b.dataset.stuBana));
+  fbq('[data-stu-bana]').forEach(b => b.onclick = () => banaOpen(b.dataset.stuBana));
   /* METAS DEL ALUMNO (2026-11-24): su línea plegada despliega
      y recoge el detalle de los cuatro números. */
-  el.querySelectorAll('[data-stu-goals-fold]').forEach(b => b.onclick = () => {
+  fbq('[data-stu-goals-fold]').forEach(b => b.onclick = () => {
     const det = b.parentElement ? b.parentElement.querySelector('[data-stu-goals-det]') : null;
     if (!det) return;
     const open = det.style.display !== 'none';
@@ -13185,32 +13382,36 @@ function renderStudentsBody() {
     b.setAttribute('aria-expanded', open ? 'false' : 'true');
     const sx = b.querySelector('.sx'); if (sx) sx.textContent = open ? '▾' : '▴';
   });
-  el.querySelectorAll('[data-stu-qprog]').forEach(b => b.onclick = () => stuQProgOpen(b.dataset.stuQprog));
+  fbq('[data-stu-qprog]').forEach(b => b.onclick = () => stuQProgOpen(b.dataset.stuQprog));
+  /* LÍNEA «EN CURSO / POR EJECUTAR» (añadido de Ronald,
+     2026-11-25 02:00 CST): sus botones nacen con la pintura
+     asíncrona de loadStuDay, no con este detalle — su cableado
+     vive allí, en el punto de pintado (stuNowWire). */
   /* REORG-FICHA: las puertas de la zona superior de la ficha —
      «Plan de entrenamiento» abre su pantalla y «Progreso» la
      vista de siempre (las recablea además stuPlansWireCurrent
      cuando aterrizan los estados). */
-  el.querySelectorAll('[data-stu-planhub]').forEach(b => b.onclick = () => stuPlanHubOpen(b.dataset.stuPlanhub));
-  el.querySelectorAll('[data-plan-progress]').forEach(b => b.onclick = () => stuPlanProgressOpen(b.dataset.planProgress));
+  fbq('[data-stu-planhub]').forEach(b => b.onclick = () => stuPlanHubOpen(b.dataset.stuPlanhub));
+  fbq('[data-plan-progress]').forEach(b => b.onclick = () => stuPlanProgressOpen(b.dataset.planProgress));
   /* AUTH-565: las líneas plegadas del detalle abrían la hoja
      propia de su bloque; REORG-FICHA las retiró de la ficha —
      la hoja sigue viva para el bloque de entrenamiento, que se
      abre desde la parrilla de «Progreso». */
-  el.querySelectorAll('[data-stu-line]').forEach(b => b.onclick = () => stuSheetOpen(b.dataset.stuLine));
+  fbq('[data-stu-line]').forEach(b => b.onclick = () => stuSheetOpen(b.dataset.stuLine));
   /* ASIGNACIONES (este paquete): el botón de gestión del detalle
      abre la hoja de asignaciones (solo se pinta al administrador). */
-  el.querySelectorAll('[data-assign-open]').forEach(b => b.onclick = () => assignOpen(b.dataset.assignOpen, 'students'));
+  fbq('[data-assign-open]').forEach(b => b.onclick = () => assignOpen(b.dataset.assignOpen, 'students'));
   /* H-07 (AUTH-2026-11-10-392): el toque de la línea plegable de asignaciones
      del detalle rápido despliega/pliega el bloque íntegro (su
      botón de gestión ya quedó cableado por la pasada
      [data-assign-open] de arriba, que también alcanza lo que nace
      oculto). */
-  el.querySelectorAll('[data-stu-assign-fold]').forEach(b => b.onclick = () => {
-    const det = el.querySelector('[data-stu-assign-fold-det]');
+  fbq('[data-stu-assign-fold]').forEach(b => b.onclick = () => {
+    const det = fb ? fb.querySelector('[data-stu-assign-fold-det]') : null;
     if (det) det.style.display = det.style.display === 'none' ? '' : 'none';
   });
-  el.querySelectorAll('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
-  el.querySelectorAll('[data-stu-retry]').forEach(b => b.onclick = () => { STUDENTS_RESTORE = true; loadStudents(); });
+  fbq('[data-stu-admin-meals]').forEach(b => b.onclick = () => stuGoAdminMeals());
+  fbq('[data-stu-retry]').forEach(b => b.onclick = () => { STUDENTS_RESTORE = true; loadStudents(); });
   /* AUTH-341: con un detalle abierto, el bloque de su plan se
      cablea desde la caché o se pide (la respuesta repinta solo
      el bloque; el resto del detalle no espera). */
@@ -13303,9 +13504,10 @@ function studentsRowTap(uid) {
   STUDENTS_DETAIL = uid;
   STUDENTS_DETAIL_FROM = STUDENTS_FILTERS ? 'filtros' : STUDENTS_SEL;
   STUDENTS_SCROLL = window.scrollY || 0;
+  /* PANTALLA PROPIA (2026-11-25): la ficha se abre como pantalla
+     completa sobre la lista — la sección ya no se desplaza: la
+     lista queda exactamente donde estaba para el regreso. */
   renderStudentsBody();
-  const sec = $('students-section');
-  if (sec) sec.scrollIntoView({ block: 'start' });
 }
 function studentsCloseDetail() {
   STUDENTS_DETAIL = null;
@@ -13383,6 +13585,9 @@ function openFichaFromClients(uid) {
 function studentsGoFicha(uid) {
   STUDENTS_RESTORE = true;
   STUDENTS_SCROLL = window.scrollY || 0;
+  /* PANTALLA PROPIA: la pantalla de la ficha se oculta para el
+     salto (el detalle queda puesto: el regreso lo reabre). */
+  stuFichaHide();
   fichaSetMode('students', 'ficha');
   openStudent(uid);
 }
@@ -13822,6 +14027,10 @@ function fichaPendAct(uid, kind, reqKey) {
 }
 function studentsOpenRecord(uid, kind, reqKey) {
   STUDENTS_RESTORE = true;
+  /* PANTALLA PROPIA: la pantalla de la ficha se oculta para el
+     salto a la ficha completa (el detalle queda puesto: el
+     regreso por STUDENTS_RESTORE la reabre tal cual). */
+  stuFichaHide();
   if (kind === 'chaljoin') {
     pendConsultTeardown();
     fichaSetMode('students', 'ficha');
