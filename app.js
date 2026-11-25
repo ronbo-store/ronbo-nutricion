@@ -49633,7 +49633,7 @@ async function plan21ApplyForStudent(uid) {
    evaluación de transición vive en nutrition_progress con
    kind 'prog22Transition', de forma abierta como fitTest.
    Decisiones de Ronald (2026-11-23): D-1 se crea la ficha del
-   step-up bajo de principiante (E206; su spec viaja en el
+   step-up bajo de principiante (E218; su spec viaja en el
    paquete y el selector solo la usa cuando la ficha exista
    cargada con foto) y E142 entra más adelante — las semanas
    1–2 del patrón unilateral usan zancadas E059; D-2: 3 series
@@ -49646,8 +49646,13 @@ async function plan21ApplyForStudent(uid) {
    ════════════════════════════════════════════════════════════ */
 const PROG22_TPL_ID = 'PROG22';
 const PROG22_VERSION = 'v1';
-/* La ficha nueva de D-1: step-up bajo de principiante. */
-const PROG22_STEPUP_LOW_ID = 'E206';
+/* La ficha nueva de D-1: step-up bajo de principiante.
+   Corrección 2026-11-25 (decisión de Ronald, opción A): será
+   E218 — la E206 resultó ser el «Press con giro de pie con
+   mancuernas» (línea Biblioteca) y no se toca. Mientras la
+   ficha E218 no exista cargada con foto, el selector repliega
+   a las zancadas E059, como en las semanas 1–2. */
+const PROG22_STEPUP_LOW_ID = 'E218';
 /* Las sesiones del diseño (§5.4): por sesión, los patrones en
    orden con su rol y los candidatos por familia en orden de
    preferencia [familia, exerciseId] — la misma disciplina de
@@ -49733,7 +49738,7 @@ function prog22BandFor(slot) {
    deduplicación dentro de la semana (vía «used», como H10 del
    Reto). Dos diferencias declaradas frente a plan21Pick: la
    ficha SIN cargar en la biblioteca no entra (sin entrada no
-   hay nombre ni foto que programar — así E206 solo entra
+   hay nombre ni foto que programar — así E218 solo entra
    cuando su ficha exista) y no hay filtro de nivel: el diseño
    incluye fichas Intermedio (E006, E113, E030). Sin foto, la
    ficha no se programa (E204 queda fuera siempre). */
