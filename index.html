@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RONBO FIT">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="stylesheet" href="styles.css?v=20261125-propuesta-cantidades">
+<link rel="stylesheet" href="styles.css?v=20261125-editor-ejercicios">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a29706d4-44a2-47cf-900a-5f74d74abfa8"></script>
 <script type="importmap">
 {
@@ -3417,7 +3417,12 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="plan-modal" class="modal-backdrop" style="display:none">
   <div class="modal">
     <button type="button" class="pend-close modal-x" id="btn-plan-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
-    <h2 data-i18n="train.editorTitle">Training plan</h2>
+    <!-- EDITOR DE EJERCICIOS (2026-11-25, pedido de Ronald): el
+         título del editor, grande y visible al entrar, sin
+         desplazamiento. Es el mismo editor de planes de siempre
+         (#plan-modal, openPlanEditor): aquí se editan los
+         ejercicios de cada día. -->
+    <h2 class="pl-ed-title" data-i18n="edex.title">EXERCISE EDITOR</h2>
     <form id="form-plan">
       <!-- AUTH-493 · COMIENZO CLARO: tira de 3 pasos y caja
            «Empieza aquí» que envuelve la sección de plantillas
@@ -3524,6 +3529,21 @@ cuando no hay declaración legible (decisión 5). -->
         <button type="submit" class="btn-primary" id="pl-save" data-i18n="train.save">Save plan</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ============ GUARDAR EL DÍA COMO PLANTILLA (editor de ejercicios, 2026-11-25) ============ -->
+<div id="edex-tpl-sheet" class="edex-sheet" style="display:none" role="dialog" aria-modal="true">
+  <div class="edex-sheet-card">
+    <button type="button" class="ex-media-x" id="edex-tpl-x" aria-label="Close" data-i18n-aria="client.close">✕</button>
+    <h3 data-i18n="edex.tplTitle">Save as a template</h3>
+    <p class="progress-hint" data-i18n="edex.tplNote">This day’s exercises are saved with their sets, reps and weight, exactly as they are now, into the personal templates.</p>
+    <label><span data-i18n="edex.tplName">Template name</span> <input type="text" id="edex-tpl-name" maxlength="80" autocomplete="off"></label>
+    <p class="addx-err" id="edex-tpl-err" style="display:none"></p>
+    <div class="frow" style="margin-top:10px">
+      <button type="button" class="btn-ghost" id="edex-tpl-cancel" data-i18n="form.cancel">Cancel</button>
+      <button type="button" class="btn-primary" id="edex-tpl-save" data-i18n="edex.tplSave">Save template</button>
+    </div>
   </div>
 </div>
 
@@ -3666,6 +3686,6 @@ cuando no hay declaración legible (decisión 5). -->
 <div id="toast" class="toast"></div>
 <div id="print-card" aria-hidden="true"></div>
 
-<script type="module" src="app.js?v=20261125-propuesta-cantidades"></script>
+<script type="module" src="app.js?v=20261125-editor-ejercicios"></script>
 </body>
 </html>
