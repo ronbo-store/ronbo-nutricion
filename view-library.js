@@ -110,7 +110,11 @@ async function renderLibrary() {
     nb.onclick = () => libOpenEditor(null, ROLE === 'administrador' ? 'admin' : 'mine');
   }
   const q = $('lib-admin-q');
-  if (q && !q.dataset.wired) { q.dataset.wired = '1'; q.addEventListener('input', () => libAdminListReset()); }
+  /* AUTH-629 (V3): el buscador repintaba la lista en CADA tecla;
+     ahora espera una pausa de ~150 ms sin teclear antes de
+     repintar (240 fichas: el repintado de 40 filas por tecla se
+     notaba en aparatos justos). */
+  if (q && !q.dataset.wired) { q.dataset.wired = '1'; let qt = 0; q.addEventListener('input', () => { if (qt) clearTimeout(qt); qt = setTimeout(() => { qt = 0; libAdminListReset(); }, 150); }); }
   await libEnsure();
   LIBADM_SHOWN = LIB_CHUNK;
   libRenderTray();
