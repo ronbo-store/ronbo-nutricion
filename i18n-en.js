@@ -3356,6 +3356,7 @@ export default {
   'train.flow.removeShort': 'Remove',
   'train.flow.finishEdit': 'Finish editing',
   'train.flow.editExercise': 'Edit exercise',
+  'train.editFocus.back': 'Back to the session',
   'train.flow.removedToday': 'Removed today: {name}',
   'train.flow.beginDay': '▶ Start the workout',
   'train.flow.beginNote': 'Tap it: the timer starts and the focus lands on stop 1. There is no mode to turn on — the day is born this way.',

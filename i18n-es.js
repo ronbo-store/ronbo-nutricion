@@ -3353,6 +3353,7 @@ export default {
   'train.flow.removeShort': 'Quitar',
   'train.flow.finishEdit': 'Terminar edición',
   'train.flow.editExercise': 'Editar ejercicio',
+  'train.editFocus.back': 'Volver a la sesión',
   'train.flow.removedToday': 'Quitado hoy: {name}',
   'train.flow.beginDay': '▶ Comenzar el entrenamiento',
   'train.flow.beginNote': 'Al tocarlo arranca el cronómetro y el foco cae en la parada 1. No hay ningún modo que encender: el día nace así.',
