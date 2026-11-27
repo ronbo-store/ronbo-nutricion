@@ -3383,7 +3383,7 @@ export default {
   'sess.auMin': 'Minimize the mascot', 'sess.auTap': 'Tap the mascot to pause or resume',
   'sess.nowLab': 'NOW', 'sess.exRunning': 'in progress', 'sess.timeGoal': 'Time goal {t}',
   'sess.ofDay': '{p}% of the day',
-  'sess.dayDone': 'Day completed', 'sess.dayDoneSum': '{n} of {m} exercises done', 'sess.celebTap': 'Tap the mascot to replay the confetti',
+  'sess.dayDone': 'Day completed', 'sess.dayDoneSum': '{n} of {m} exercises done', 'sess.celebTap': 'Tap the mascot to replay the confetti', 'sess.celebWarn30': '30 seconds left to finish',
   'sess.doneCardioQ': 'Do you want to finish with cardio?', 'sess.doneCardioYes': 'Yes, do cardio', 'sess.doneFinishQ': 'Shall we wrap up for today?', 'sess.doneCardioDoing': 'Cardio in progress', 'sess.doneCardioResume': 'Continue with cardio',
   'sess.cstage.warmLab': 'Warm-up cardio', 'sess.cstage.endLab': 'Final cardio', 'sess.cstage.assigned': 'Assigned: {min} min', 'sess.cstage.do': '✓ Done', 'sess.cstage.start': 'Start', 'sess.cstage.pause': 'Pause', 'sess.cstage.endDone': 'Cardio done — finishing now closes the day.', 'sess.cstage.notYet': 'Assigned — it only counts when you do it here.',
   'home.start.go': 'START', 'home.start.sub': "today's workout", 'home.start.skip': 'Skip today', 'home.start.aria': "Start today's workout",
