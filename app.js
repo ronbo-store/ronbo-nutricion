@@ -54942,6 +54942,110 @@ async function libRevalidate() {
   } catch {}
   LIB_REVALIDATING = false;
 }
+/* VELOCIDAD DE LA BIBLIOTECA (AUTH-629, auditoría del 2026-11-27):
+   V1 — DOCUMENTO DE VERSIÓN DEL MANIFIESTO. La revalidación de
+   arriba volvía a descargar el manifiesto ENTERO (1,2 MB) para
+   comparar la firma DESPUÉS y casi siempre concluir que nada
+   cambió. Ahora la fábrica se sirve, tras la primera lectura, de
+   una CACHÉ EN MEMORIA de la sesión, y antes de volver a bajar el
+   manifiesto se consulta un documento diminuto,
+   app_settings/library_manifest_version { sig, count, updatedAt }
+   (~100 B): si su huella coincide con la de la caché, el
+   manifiesto NO se descarga (las consultas pequeñas de aprobados,
+   propios y bandeja corren como siempre: la aprobación de un
+   aporte comunitario no vive en el manifiesto y sigue llegando
+   en la misma vuelta). La huella es SOLO de la fábrica: un hash
+   FNV-1a-64 de su firma (ids ordenados, id|nombre_es|nombre_en|
+   foto_url unidos por ';' y '#'+nº de fichas), calculada igual
+   en la app y en el script de refresco (refresh_manifest.py).
+   QUIÉN ESCRIBE LA VERSIÓN: el mismo proceso que regenera el
+   manifiesto — libManifestWrite la escribe tras cada regeneración
+   en la app, y refresh_manifest.py tras la suya; si una carga
+   por script la deja vieja, la primera sesión del propietario
+   que descargue el manifiesto la repone sola (autorreparación,
+   el mismo patrón del sondeo). Si el documento de versión no
+   existe o su lectura se deniega, se cae al comportamiento de
+   siempre (descargar el manifiesto): nunca peor que antes de
+   este paquete. NOTA DE REGLAS: la lectura con sesión y la
+   escritura del propietario de este documento nuevo necesitan
+   su docId en las listas de app_settings de las reglas — delta
+   aparte, declarado en el informe del paquete; sin él, esta
+   vía queda inerte y manda el respaldo. */
+let LIB_FACTORY_CACHE = null;   // { vsig, count, docs } de la última lectura del manifiesto
+function libFactorySignature(docs) {
+  const arr = (docs || []).filter(x => x && x.id && !x.estado)
+    .slice().sort((a, b) => String(a.id) < String(b.id) ? -1 : String(a.id) > String(b.id) ? 1 : 0);
+  return arr.map(x => x.id + '|' + (x.nombre_es || '') + '|' + (x.nombre_en || '') + '|' + (x.foto_url || '')).join(';') + '#' + arr.length;
+}
+/* La HUELLA que viaja en el documento de versión: un hash
+   FNV-1a de 64 bits (hex, 16 caracteres) de la firma de fábrica
+   — el documento queda en ~100 B como pide la auditoría, en vez
+   de cargar con la firma entera (~20 KB con 240 fichas). La
+   misma función, byte a byte sobre UTF-8, vive en
+   refresh_manifest.py: app y script calculan la misma huella. */
+function libFnv1a64(str) {
+  let h = 0xcbf29ce484222325n;
+  const p = 0x100000001b3n, m = 0xffffffffffffffffn;
+  const bytes = new TextEncoder().encode(str);
+  for (let i = 0; i < bytes.length; i++) { h ^= BigInt(bytes[i]); h = (h * p) & m; }
+  return h.toString(16).padStart(16, '0');
+}
+function libFactoryVersionSig(docs) { return libFnv1a64(libFactorySignature(docs)); }
+async function libManifestVersionRead() {
+  try {
+    const s = await getDoc(doc(db, 'app_settings', 'library_manifest_version'));
+    if (s.exists()) {
+      const d = s.data() || {};
+      if (typeof d.sig === 'string' && d.sig) return d;
+    }
+  } catch {}
+  return null;
+}
+async function libManifestVersionWrite(sig, count) {
+  try {
+    await setDoc(doc(db, 'app_settings', 'library_manifest_version'),
+      { sig, count, updatedAt: serverTimestamp() });
+  } catch {}
+}
+/* V5 — EL GUARDADO DEL EDITOR YA NO REESCRIBE EL MANIFIESTO EN
+   EL ACTO (auditoría del 2026-11-27: subir 1,2 MB por edición).
+   Guardar una ficha de fábrica marca el manifiesto como SUCIO
+   (bandera persistente en localStorage: sobrevive a un cierre
+   brusco de la pestaña) y la regeneración ocurre UNA vez: a los
+   20 s sin otro guardado (cada guardado reinicia la cuenta, así
+   una tanda de ediciones seguidas paga UNA sola regeneración),
+   al ocultarse la página o al salir (pagehide, mejor esfuerzo).
+   NO se regenera al cerrar el editor a propósito: el guardado
+   ya cierra la hoja, y regenerar ahí sería pagar lo mismo que
+   hoy en cada edición, sin juntar la tanda.
+   Si nada de eso llega (cierre brusco), la bandera queda puesta
+   y la PRÓXIMA sesión del propietario fuerza el sondeo de la
+   colección y regenera desde el dato vivo (ver libFetchClassDocs):
+   la regeneración nunca se pierde en silencio — como mucho se
+   retrasa hasta esa sesión, y mientras tanto la vía del
+   manifiesto sirve la versión anterior, como si la edición
+   aún no se hubiera hecho. */
+const LIB_MANIFEST_DIRTY_KEY = 'ronbofit-lib-manifest-dirty';
+let LIB_MANIFEST_FLUSH_TIMER = 0;
+function libManifestMarkDirty() {
+  try { localStorage.setItem(LIB_MANIFEST_DIRTY_KEY, '1'); } catch {}
+  if (LIB_MANIFEST_FLUSH_TIMER) clearTimeout(LIB_MANIFEST_FLUSH_TIMER);
+  LIB_MANIFEST_FLUSH_TIMER = setTimeout(() => { LIB_MANIFEST_FLUSH_TIMER = 0; libManifestFlush(); }, 20000);
+}
+function libManifestDirty() {
+  try { return localStorage.getItem(LIB_MANIFEST_DIRTY_KEY) === '1'; } catch { return false; }
+}
+function libManifestFlush() {
+  if (LIB_MANIFEST_FLUSH_TIMER) { clearTimeout(LIB_MANIFEST_FLUSH_TIMER); LIB_MANIFEST_FLUSH_TIMER = 0; }
+  if (!libManifestDirty()) return;
+  /* libManifestWrite quita la bandera SOLO si la escritura sale
+     bien; si se deniega (quien edita no es el propietario), la
+     bandera queda y la regeneración la recoge la próxima sesión
+     del propietario, como la autorreparación de siempre. */
+  libManifestWrite(Object.values(LIB_BY_ID));
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { try { libManifestFlush(); } catch {} } });
+window.addEventListener('pagehide', () => { try { libManifestFlush(); } catch {} });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') libRevalidate(); });
 window.addEventListener('pageshow', () => { libRevalidate(); });
 /* LECTURA POR CLASES de exercise_library (Biblioteca comunitaria,
@@ -54995,14 +55099,44 @@ async function libFetchClassDocs() {
      administrador (libSaveEditor) y en las cargas versionadas por
      script (refresh_manifest.py del paquete AUTH-258). */
   let factoryDocs = null;
-  try {
-    const msnap = await getDoc(doc(db, 'app_settings', 'library_manifest'));
-    if (msnap.exists()) {
-      const mdocs = (msnap.data() || {}).docs;
-      if (mdocs && typeof mdocs === 'object' && !Array.isArray(mdocs))
-        factoryDocs = Object.keys(mdocs).map(id => ({ id, ...mdocs[id] }));
+  /* AUTH-629 (V1+V5): con la bandera de manifiesto sucio puesta y
+     sesión del propietario, la fábrica se lee por el SONDEO (el
+     dato vivo de la colección) y la autorreparación de abajo
+     regenera el manifiesto: así una regeneración perdida por un
+     cierre brusco se recoge sola. Sin esa bandera, la vía normal
+     consulta primero el documento de versión (si hay caché de la
+     sesión) y solo descarga el manifiesto cuando la versión no
+     coincide o no se puede leer. */
+  const forceProbe = (typeof IS_OWNER !== 'undefined' && IS_OWNER) && libManifestDirty();
+  if (!forceProbe) {
+    /* La versión se lee siempre (~100 B): con caché de la sesión
+       decide si el manifiesto se puede servir de memoria; sin
+       caché, su valor es el que la autorreparación compara tras
+       la descarga para no reescribirla sin necesidad. */
+    const ver = await libManifestVersionRead();
+    let useCache = false;
+    if (LIB_FACTORY_CACHE && ver && ver.sig === LIB_FACTORY_CACHE.vsig && Number(ver.count) === LIB_FACTORY_CACHE.count) useCache = true;
+    if (useCache) {
+      factoryDocs = LIB_FACTORY_CACHE.docs;
+    } else {
+      try {
+        const msnap = await getDoc(doc(db, 'app_settings', 'library_manifest'));
+        if (msnap.exists()) {
+          const mdocs = (msnap.data() || {}).docs;
+          if (mdocs && typeof mdocs === 'object' && !Array.isArray(mdocs)) {
+            factoryDocs = Object.keys(mdocs).map(id => ({ id, ...mdocs[id] }));
+            LIB_FACTORY_CACHE = { vsig: libFactoryVersionSig(factoryDocs), count: factoryDocs.length, docs: factoryDocs };
+            /* Autorreparación de la versión: si el documento de
+               versión faltaba o quedó viejo tras una carga por
+               script, el propietario lo repone desde el
+               manifiesto que acaba de descargar. */
+            if (typeof IS_OWNER !== 'undefined' && IS_OWNER && (!ver || ver.sig !== LIB_FACTORY_CACHE.vsig))
+              libManifestVersionWrite(LIB_FACTORY_CACHE.vsig, LIB_FACTORY_CACHE.count);
+          }
+        }
+      } catch {}
     }
-  } catch {}
+  }
   if (factoryDocs) {
     LIB_SRC = 'manifest';
     factoryDocs.forEach(put);
@@ -55058,6 +55192,16 @@ async function libManifestWrite(docs) {
     if (!ids.length) return;
     await setDoc(doc(db, 'app_settings', 'library_manifest'),
       { v: 1, count: ids.length, generatedAt: serverTimestamp(), docs: map });
+    /* AUTH-629: regenerado el manifiesto, la bandera de sucio se
+       quita (la regeneración pendiente ya no existe) y el
+       documento de versión se escribe con la huella del MISMO
+       mapa que se acaba de escribir — versión y manifiesto
+       nacen del mismo proceso y nunca se desincronizan entre sí.
+       La caché de la sesión también se actualiza con lo escrito. */
+    try { localStorage.removeItem(LIB_MANIFEST_DIRTY_KEY); } catch {}
+    const written = ids.map(id => ({ id, ...map[id] }));
+    LIB_FACTORY_CACHE = { vsig: libFactoryVersionSig(written), count: ids.length, docs: written };
+    libManifestVersionWrite(LIB_FACTORY_CACHE.vsig, ids.length);
   } catch {}
 }
 /* El estado de un documento de la biblioteca: sin campo = fábrica. */
@@ -56254,18 +56398,21 @@ function libOpenEditor(id, ctx) {
    al guardar (y antes de cualquier re-pintado por añadir/quitar/
    mover), así un solo armado sirve a los 4 caminos de guardado.
    URLs vacías = clave ausente en el objeto guardado. */
-function libVarRowHTML(v, i) {
-  const locked = i < LIB_EDIT_VARS_LOCKED;
-  const ctrls = locked ? '' : (LIB_EDIT_VARS_LOCKED === 0
-    ? `<button type="button" class="btn-ghost btn-sm" data-lv-up="${i}" title="↑">↑</button><button type="button" class="btn-ghost btn-sm" data-lv-down="${i}" title="↓">↓</button><button type="button" class="btn-ghost btn-sm" data-lv-del="${i}" title="×">🗑</button>`
-    : `<button type="button" class="btn-ghost btn-sm" data-lv-del="${i}" title="×">🗑</button>`);
+/* AUTH-629 (V4): el CUERPO de una variante (sus campos) se
+   construye SOLO cuando su pliegue se abre — al abrir el editor,
+   las variantes plegadas ya no pagan el armado de todos sus
+   campos (en fichas con muchas variantes era un bloque grande
+   de HTML de un solo golpe). La fila y su cabecera se pintan
+   siempre; el cuerpo nace vacío y libVarsWire lo construye al
+   desplegar, desde LIB_EDIT_VARS. La cosecha (libVarsHarvest)
+   respalda las filas sin cuerpo construido con su valor en
+   LIB_EDIT_VARS: guardar sin haber desplegado una variante
+   conserva su contenido intacto. */
+function libVarBodyHTML(v, i) {
   const fld = (key, label, val, ta) => ta
     ? `<div class="eval-field"><label>${esc(t(label))}</label><textarea data-lv="${key}" rows="2">${esc(val || '')}</textarea></div>`
     : `<div class="eval-field"><label>${esc(t(label))}</label><input type="text" data-lv="${key}" value="${esc(val || '')}"></div>`;
-  const vOpen = LIB592_VAR_OPEN.has(i);
-  return `<div class="eval-block libv-row" data-lv-row="${i}">
-    <div class="frow"><button type="button" class="lib592-varfold" data-lv-fold="${i}" aria-expanded="${vOpen ? 'true' : 'false'}"><span class="lib592-varname">${esc(libField(v, 'nombre') || ('#' + (i + 1)))}</span><span class="p569-chev" aria-hidden="true">${vOpen ? '▴' : '▾'}</span></button>${ctrls}</div>
-    <div data-lv-body="${i}"${vOpen ? '' : ' style="display:none"'}>
+  return `
     ${fld('nombre_es', 'libv.nameEs', v.nombre_es)}${fld('nombre_en', 'libv.nameEn', v.nombre_en)}
     <div class="eval-field"><label><input type="radio" name="la-v-std" data-lv="std"${v.es_estandar ? ' checked' : ''}> ${esc(t('libv.standard'))}</label></div>
     <div class="eval-field"><label>${esc(t('libg.title'))}</label><div class="grip-pills">${gripPillsHTML(gripTypeOf(v), 'data-lv-grip')}</div>
@@ -56275,7 +56422,17 @@ function libVarRowHTML(v, i) {
     ${fld('enfasis_es', 'libv.emphEs', v.enfasis_es)}${fld('enfasis_en', 'libv.emphEn', v.enfasis_en)}
     ${fld('nota_es', 'libv.noteEs', v.nota_es, 1)}${fld('nota_en', 'libv.noteEn', v.nota_en, 1)}
     ${fld('foto_url', 'libv.photo', v.foto_url)}${fld('video_youtube_url', 'libv.video', v.video_youtube_url)}
-    </div>
+    `;
+}
+function libVarRowHTML(v, i) {
+  const locked = i < LIB_EDIT_VARS_LOCKED;
+  const ctrls = locked ? '' : (LIB_EDIT_VARS_LOCKED === 0
+    ? `<button type="button" class="btn-ghost btn-sm" data-lv-up="${i}" title="↑">↑</button><button type="button" class="btn-ghost btn-sm" data-lv-down="${i}" title="↓">↓</button><button type="button" class="btn-ghost btn-sm" data-lv-del="${i}" title="×">🗑</button>`
+    : `<button type="button" class="btn-ghost btn-sm" data-lv-del="${i}" title="×">🗑</button>`);
+  const vOpen = LIB592_VAR_OPEN.has(i);
+  return `<div class="eval-block libv-row" data-lv-row="${i}">
+    <div class="frow"><button type="button" class="lib592-varfold" data-lv-fold="${i}" aria-expanded="${vOpen ? 'true' : 'false'}"><span class="lib592-varname">${esc(libField(v, 'nombre') || ('#' + (i + 1)))}</span><span class="p569-chev" aria-hidden="true">${vOpen ? '▴' : '▾'}</span></button>${ctrls}</div>
+    <div data-lv-body="${i}"${vOpen ? '' : ' style="display:none"'}>${vOpen ? libVarBodyHTML(v, i) : ''}</div>
   </div>`;
 }
 function libVarsSectionHTML() {
@@ -56294,6 +56451,15 @@ function libVarsHarvest() {
   if (!list) return LIB_EDIT_VARS;
   const out = [];
   list.querySelectorAll('[data-lv-row]').forEach(row => {
+    /* AUTH-629 (V4): una fila cuyo cuerpo nunca se construyó (su
+       pliegue no se abrió) aporta su valor guardado en
+       LIB_EDIT_VARS, intacto — cosecharla desde un DOM vacío la
+       dejaría en blanco al guardar. */
+    if (!row.querySelector('[data-lv="nombre_es"]')) {
+      const prev = LIB_EDIT_VARS[Number(row.dataset.lvRow)];
+      out.push(prev ? JSON.parse(JSON.stringify(prev)) : { nombre_es: '', nombre_en: '', cambio_es: '', cambio_en: '', enfasis_es: '', enfasis_en: '', nota_es: '', nota_en: '', agarre_tipo: '', agarre_es: '', agarre_en: '', es_estandar: false });
+      return;
+    }
     const g = k => { const el = row.querySelector(`[data-lv="${k}"]`); return el ? String(el.value || '').trim() : ''; };
     const gb = row.querySelector('[data-lv-grip].sel');
     const v = {
@@ -56343,6 +56509,15 @@ function libVarsWire() {
     const open = LIB592_VAR_OPEN.has(i);
     if (open) LIB592_VAR_OPEN.delete(i); else LIB592_VAR_OPEN.add(i);
     const body = list.querySelector(`[data-lv-body="${i}"]`);
+    /* AUTH-629 (V4): al desplegar por primera vez, el cuerpo se
+       construye ahora — antes se cosecha lo tecleado en las
+       demás filas para que LIB_EDIT_VARS[i] sea el valor vivo, y
+       las píldoras de agarre del cuerpo nuevo se cablean aquí. */
+    if (!open && body && !body.querySelector('[data-lv="nombre_es"]')) {
+      libVarsHarvest();
+      body.innerHTML = libVarBodyHTML(LIB_EDIT_VARS[i] || {}, i);
+      body.querySelectorAll('[data-lv-grip]').forEach(x => x.onclick = () => { const row = x.closest('[data-lv-row]'); if (row) { row.querySelectorAll('[data-lv-grip]').forEach(y => y.classList.toggle('sel', y === x)); const pn = row.querySelector('[data-lv-grip-pend]'); if (pn) pn.style.display = 'none'; } });
+    }
     if (body) body.style.display = open ? 'none' : '';
     b.setAttribute('aria-expanded', open ? 'false' : 'true');
     const ch = b.querySelector('.p569-chev'); if (ch) ch.textContent = open ? '▾' : '▴';
@@ -56421,12 +56596,16 @@ async function libSaveEditor() {
       const patch = { ...data, updatedAt: serverTimestamp(), updatedBy: uid };
       await setDoc(doc(db, 'exercise_library', id), patch, { merge: true });
       libMemPut({ ...(LIB_BY_ID[id] || {}), ...data, id, updatedBy: uid });
-      /* Si la ficha editada es de FÁBRICA, el manifiesto se
-         refresca con el catálogo ya actualizado en memoria
+      /* Si la ficha editada es de FÁBRICA, el manifiesto debe
+         refrescarse con el catálogo ya actualizado en memoria
          (AUTH-2026-11-05-258): sin esto, la edición quedaría
-         invisible para la vía del manifiesto. Su fallo no
-         deshace el guardado (libManifestWrite se protege solo). */
-      if (wasFactory) libManifestWrite(Object.values(LIB_BY_ID));
+         invisible para la vía del manifiesto. AUTH-629 (V5): ya
+         NO se reescribe en el acto (subir 1,2 MB por edición);
+         se marca sucio y la regeneración ocurre UNA vez — a los
+         20 s sin otro guardado o al ocultarse la página — con
+         red de seguridad si la pestaña se cierra de golpe (ver
+         libManifestMarkDirty). */
+      if (wasFactory) libManifestMarkDirty();
       closeEditor();
       toast(t('libadm.saved'));
     } else if (!id) {
