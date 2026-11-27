@@ -55,7 +55,7 @@
  * app.js). La caché de imágenes NO se borra entre versiones: guarda
  * contenido ya visto, con su tope.
  */
-const SW_VERSION = '20261125-celebracion-cardio';
+const SW_VERSION = '20261125-teleprompter-cardio';
 
 const CACHE_NAME = 'ronbofit-shell-' + SW_VERSION;
 const IMG_CACHE_NAME = 'ronbofit-img-v1';
@@ -63,12 +63,12 @@ const IMG_CACHE_MAX = 300;
 const SHELL_URLS = [
   './',
   './index.html',
-  './styles.css?v=20261125-celebracion-cardio',
-  './app.js?v=20261125-celebracion-cardio',
-  './i18n-en.js?v=20261125-celebracion-cardio',
-  './i18n-es.js?v=20261125-celebracion-cardio',
-  './view-comms.js?v=20261125-celebracion-cardio',
-  './view-library.js?v=20261125-celebracion-cardio',
+  './styles.css?v=20261125-teleprompter-cardio',
+  './app.js?v=20261125-teleprompter-cardio',
+  './i18n-en.js?v=20261125-teleprompter-cardio',
+  './i18n-es.js?v=20261125-teleprompter-cardio',
+  './view-comms.js?v=20261125-teleprompter-cardio',
+  './view-library.js?v=20261125-teleprompter-cardio',
 
   './manifest.json',
   './icons/icon-192.png',
