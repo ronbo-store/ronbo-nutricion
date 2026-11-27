@@ -36937,6 +36937,15 @@ function sessReflHeadline(r) {
 let SESS_MSG_OPEN = false;
 let SESS_REFL_OPEN = false;
 let SESS_REFL_LISTEN = false;
+/* VISTA EN UNA PANTALLA (2026-11-27) · L1: la puerta única
+   «Del día» que funde las tres tarjetas plegadas del panel
+   (mensaje · reflexión · lecturas) en una sola línea de
+   50 px mientras la sesión manda; desplegada, las tres
+   tarjetas se pintan como siempre, cada una con su gesto.
+   Solo pantalla, como sus hermanas: nace plegada cada día
+   (sessFoldDaySync) y su término DD entra en las firmas
+   de sessFullSync. */
+let SESS_DAYDOOR_OPEN = false;
 /* AUTH-500 · EL ESTADO DEL BOTÓN DE VOZ: solo pantalla — la
    escucha en curso (st/ck/si), su reconocimiento vivo, el
    recibo o aviso nacido del último dictado (note, con la
@@ -36949,7 +36958,7 @@ let SESS_VOICE = { st: 'idle', ck: '', si: -1, seq: 0, note: null, rec: null, ca
 let SESS_FOLD_DAY = '';
 function sessFoldDaySync() {
   const hoy = todayISO();
-  if (SESS_FOLD_DAY !== hoy) { SESS_FOLD_DAY = hoy; SESS_MSG_OPEN = false; SESS_REFL_OPEN = false; if (SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { moveAudioStop(); } catch {} } }
+  if (SESS_FOLD_DAY !== hoy) { SESS_FOLD_DAY = hoy; SESS_MSG_OPEN = false; SESS_REFL_OPEN = false; SESS_DAYDOOR_OPEN = false; if (SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { moveAudioStop(); } catch {} } }
 }
 function sessReflHTML() {
   const r = sessReflOfDay();
@@ -38833,6 +38842,34 @@ function sessDayFracFine(plan, di, checks, eff) {
   }
   return slices ? Math.min(1, sum / slices) : 0;
 }
+/* ═══ VISTA EN UNA PANTALLA · L1 (diagnóstico cerrado del
+   2026-11-25, §5): las tres tarjetas plegadas del día — el
+   Mensaje (50), la Reflexión (50) y la puerta de «Mis
+   lecturas» (50), con sus huecos 166 px, el 26 % de la
+   vista en curso — se funden en UNA sola puerta plegada
+   de 50: «📚 Del día: mensaje · reflexión · lecturas ›».
+   Mientras hay sesión, son lectura del día, no controles
+   de la sesión. Plegada, la puerta nombra solo lo que ese
+   día sí se pinta (sin mensaje no lo nombra; sin puerta
+   de géneros — selección ya guardada — no nombra las
+   lecturas). Desplegada, su cabecera la repliega y las
+   tres piezas se pintan BYTE A BYTE como hasta hoy
+   (msgBlk + sessReflBlockHTML, con sus estados y gestos
+   propios intactos: el Mensaje y la Reflexión se siguen
+   desplegando en el sitio y el artículo sigue abriendo
+   su hoja). La puerta manda en las CUATRO composiciones
+   del panel (sin estado, en curso, etapa de calentamiento
+   y día completo). ═══ */
+function sessDayDoorHTML(msgBlk) {
+  if (!SESS_DAYDOOR_OPEN) {
+    const parts = [];
+    if (msgBlk) parts.push(t('sess.dayDoorMsg'));
+    parts.push(t('sess.dayDoorRefl'));
+    if (sessGenreDoorHTML()) parts.push(t('sess.dayDoorRead'));
+    return `<button type="button" class="sf-card sf-foldcard sf-daydoor" data-sess-daydoor="1"><span class="sf-fold-ic" aria-hidden="true">📚</span><span class="sf-fold-lab">${esc(t('sess.dayDoorLab'))}</span><span class="sf-fold-txt">${esc(parts.join(' · '))}</span><span class="sf-fold-chev" aria-hidden="true">›</span></button>`;
+  }
+  return `<div class="sf-card"><button type="button" class="sf-fold-head" data-sess-daydoor="1"><span class="sf-card-lab">📚 ${esc(t('sess.dayDoorLab'))}</span><span class="sf-fold-chev" aria-hidden="true">⌃</span></button></div>` + msgBlk + sessReflBlockHTML();
+}
 function sessFullSync(run) {
   const full = $('sess-full'); if (!full) return;
   sessFoldDaySync();   /* AUTH-491/494/504: cada día el Mensaje y la Reflexión nacen plegados */
@@ -38855,11 +38892,12 @@ function sessFullSync(run) {
   const msgBlk = sessMsgHTML(msg);   /* AUTH-491: el mensaje nace plegado en una línea (sessMsgHTML) */
   const minBtn = `<button type="button" class="sf-min" data-sess-view="bar">⌄ ${esc(t('sess.minimize'))}</button>`;
   let sig, html;
+  let l8On = false;   /* VISTA EN UNA PANTALLA · L8: la composición de cardio final pendiente a ≤740 px de alto lleva la hora total en la cabecera y no la fila del reloj grande — la clase la lee el CSS; esta función la pone y la quita en cada sincronización */
   if (!st && !dc) {
     /* Sin estado del día: reloj, día, mensaje y reflexión —
        ningún ejercicio inventado. */
-    sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', 'AU' + SESS_AUDIO.seq + ':' + SESS_AUDIO.st, 'RG' + (moveGenreSelSaved() ? '1' : '0')].join('|');   /* AUTH-540: la puerta de géneros entra en la firma */
-    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${msgBlk}${sessReflBlockHTML()}</div>${minBtn}</div>`;
+    sig = ['fdeg', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', 'AU' + SESS_AUDIO.seq + ':' + SESS_AUDIO.st, 'RG' + (moveGenreSelSaved() ? '1' : '0'), 'DD' + (SESS_DAYDOOR_OPEN ? '1' : '0')].join('|');   /* AUTH-540: la puerta de géneros entra en la firma · VISTA EN UNA PANTALLA: el término DD trae la puerta única «Del día» (L1) */
+    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${sessDayDoorHTML(msgBlk)}</div>${minBtn}</div>`;
   } else if (!st) {
     /* AUTH-507 · DÍA COMPLETO: el nulo de trainBarState es
        porque el día está HECHO, no porque falte estado — el
@@ -38920,11 +38958,21 @@ function sessFullSync(run) {
     const endAssigned = sessCEndAssigned(dc.plan.id);
     const endRemain = endCd ? sessCStageCdRemain(endCd) : null;
     const endWarn = endPending && endRemain != null && endRemain > 0 && endRemain <= 30;
+    /* L8 cubre la composición de cierre ENTERA (con el
+       cardio pendiente y ya en celebración): el título
+       fundido de L3 conserva el resumen completo — el
+       texto que la 627 dejó verificado — y a 360–430 px
+       ese resumen no cabe en la línea del título, así
+       que la fusión no libera sus 19 px; sin el reloj
+       en la cabecera, la celebración con la pregunta
+       del cardio se pasa 11 px a 667 px de alto. Medido
+       en la batería de este paquete. */
+    l8On = true;
     const totD = totalD + (endAssigned ? 1 : 0);
     const doneD = totalD + (endAssigned && !endPending ? 1 : 0);
     const headDone = endPending
-      ? `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}</div>`
-      : `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.dayDone'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}</div>`;
+      ? `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.pillPlain'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}<span class="sf-head-clock" aria-hidden="true">00:00:00</span></div>`
+      : `<div class="sf-head"><span class="sess-pill-dot" aria-hidden="true"></span><span class="sf-training">${esc(t('sess.dayDone'))}</span>${run.label ? `<span class="sf-day">${esc(run.label)}</span>` : ''}<span class="sf-head-clock" aria-hidden="true">00:00:00</span></div>`;
     const pctD = Math.round(sessDayFracFine(dc.plan, dc.di, dc.checks, dc.eff) * 100);   /* AUTH-526: en el cierre manda la misma fracción fina — con una etapa de cardio asignada aún sin hacer, la barra enseña su rebanada pendiente en vez de un 100 % que todavía no es; sin cardio pendiente (o ya hecho) vale 100, como siempre */
     const flameD = pctD <= 8 ? '13px' : (pctD >= 92 ? 'calc(100% - 13px)' : pctD + '%');
     const franjaDone = `<div class="sf-franja" aria-hidden="true"><i style="width:${pctD}%"></i>${sessPillTipHTML(flameD)}</div><div class="sf-prog">${esc(t('train.guide.pos', { n: doneD, m: totD }))} · ${esc(t('sess.ofDay', { p: pctD }))}</div>`;
@@ -38973,11 +39021,18 @@ function sessFullSync(run) {
        la celebración de siempre. Línea de composición
        declarada en el informe del paquete teleprompter. */
     const celebBlk = endPending ? (endWarn ? sessCelebWarnHTML() : sessTpHTML(dc)) : sessCelebHTML();
-    const doneTitle = endPending ? '' : `<div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))}</div>`;
-    const doneBlk = `<div class="sf-done">${doneTitle}<div class="sf-done-sum">${esc(t('sess.dayDoneSum', { n: doneD, m: totD }))} · <span class="sf-done-clock">00:00:00</span></div>${celebBlk}${progAnn}${doneInner}</div>`;
-    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-'), 'P' + pctD, 'CC' + (endPending ? (endWarn ? 'W' : 'P') : 'R'), 'RG' + (moveGenreSelSaved() ? '1' : '0'), 'PG' + progCloseKeys(dc).join(',')].join('|');   /* CC: la puerta de la ranura tras el cardio — pendiente con teleprompter (P) / ventana del aviso de 30 s (W) / resuelta con celebración (R): entrar en los últimos 30 s o resolver el cardio repinta una vez */   /* AUTH-540 */   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma · AUTH-526: el % fino también — cuando la etapa se marca hecha, la barra repinta a su valor */
+    /* VISTA EN UNA PANTALLA · L3: título y resumen del cierre
+       en UNA línea («🎉 Día completado · 2 de 2 · 00:00:11»);
+       el resumen conserva su clase y su reloj (la copia de
+       sessFullPaint y el latido los siguen encontrando) y,
+       con el cardio pendiente, la línea del resumen queda
+       como estaba — ahí no hay título que fundir. */
+    const doneSumIn = `${esc(t('sess.dayDoneSum', { n: doneD, m: totD }))} · <span class="sf-done-clock">00:00:00</span>`;
+    const doneTitle = endPending ? '' : `<div class="sf-done-title">🎉 ${esc(t('sess.dayDone'))} · <span class="sf-done-sum">${doneSumIn}</span></div>`;
+    const doneBlk = `<div class="sf-done">${doneTitle}${endPending ? `<div class="sf-done-sum">${doneSumIn}</div>` : ''}${celebBlk}${progAnn}${doneInner}</div>`;
+    sig = ['fdone', dc.di, totalD, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', SESS_DONE_FORM ? 'F' : 'f', 'K' + (SESS_DONE_CARDIO || '-') + (cardioValid ? 'V' : 'v'), 'CE' + sessCStageSig(dc.plan.id, eT) + '/' + (SESS_CSTAGE_END_DONE || '-'), 'P' + pctD, 'CC' + (endPending ? (endWarn ? 'W' : 'P') : 'R'), 'RG' + (moveGenreSelSaved() ? '1' : '0'), 'PG' + progCloseKeys(dc).join(','), 'DD' + (SESS_DAYDOOR_OPEN ? '1' : '0')].join('|');   /* CC: la puerta de la ranura tras el cardio — pendiente con teleprompter (P) / ventana del aviso de 30 s (W) / resuelta con celebración (R): entrar en los últimos 30 s o resolver el cardio repinta una vez */   /* AUTH-540 */   /* CAND-523: la etapa final (su punto, su máquina, sus minutos y la fase de su cuenta) entra en la firma · AUTH-526: el % fino también — cuando la etapa se marca hecha, la barra repinta a su valor */
     if (!SESS_FULL_SIG.startsWith('fdone')) sessDayDoneHook(dc);   /* AUTH-507: la celebración se engancha a la ENTRADA en el estado, no a cada latido */
-    html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${msgBlk}${sessReflBlockHTML()}${doneBlk}</div>${minBtn}</div>`;
+    html = `<div class="sf-col"><div class="sf-body">${headDone}${clockBlk}${franjaDone}${sessDayDoorHTML(msgBlk)}${doneBlk}</div>${minBtn}</div>`;
   } else if (sessCStageWarmT(run.planId)) {
     /* CAND-523 · LA ETAPA DE CALENTAMIENTO: con cardio de
        calentamiento ASIGNADO, el panel lo trae DE UNA VEZ
@@ -38986,8 +39041,8 @@ function sessFullSync(run) {
        edición ahí mismo. Solo su «✓ Hecho» (o quitarlo)
        devuelve el panel a los ejercicios. */
     const planCS = (typeof MY_PLAN !== 'undefined' && MY_PLAN && MY_PLAN.id === run.planId) ? MY_PLAN : { id: run.planId };
-    sig = ['cstage', 'warm', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', 'CW' + sessCStageSig(run.planId, 'warm'), 'RG' + (moveGenreSelSaved() ? '1' : '0')].join('|');   /* AUTH-540 */
-    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${sessCStageHTML(planCS, 'warm', 'warm')}${msgBlk}${sessReflBlockHTML()}</div>${minBtn}</div>`;
+    sig = ['cstage', 'warm', run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', 'CW' + sessCStageSig(run.planId, 'warm'), 'RG' + (moveGenreSelSaved() ? '1' : '0'), 'DD' + (SESS_DAYDOOR_OPEN ? '1' : '0')].join('|');   /* AUTH-540 · VISTA EN UNA PANTALLA: DD, la puerta «Del día» (L1) */
+    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${sessCStageHTML(planCS, 'warm', 'warm')}${sessDayDoorHTML(msgBlk)}</div>${minBtn}</div>`;
   } else {
     const ck = st.di + ':' + st.cur;
     const curChk = st.checks[ck] || null;
@@ -39021,8 +39076,13 @@ function sessFullSync(run) {
       ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-paused">${esc(t('sess.exPaused'))}</span>${goalBlk}`
       : (curChk && flowSt !== 'closing' ? `<span class="sess-full-exclock">⏱ 0:00</span><span class="sf-running">${esc(t('sess.exRunning'))}</span>${goalBlk}` : '');
     const dotsBlk = sessDotsHTML(curChk, ck, flowSt, st.eff[st.cur].ex);   /* AUTH-485: los círculos de series del ejercicio en curso · AUTH-502: el ejercicio entra para detectar el tiempo sin leer la biblioteca */
-    const nowBlk = `<div class="sf-now"><div class="sf-now-lab">${esc(t('sess.nowLab'))} · ${esc(pos)}</div><div class="sf-name">${esc(curName)}</div>`
-      + (exState ? `<div class="sf-exrow">${exState}</div>` : '')
+    /* VISTA EN UNA PANTALLA · L2: la línea de estado del
+       ejercicio se funde en el rótulo — «AHORA · Ejercicio
+       1 de 2 · ⏱ 0:00 en curso», una línea al tamaño del
+       rótulo — y la fila .sf-exrow desaparece; el reloj del
+       ejercicio conserva su clase (la copia de sessFullPaint
+       y el latido en sitio lo siguen pintando ahí). */
+    const nowBlk = `<div class="sf-now"><div class="sf-now-lab">${esc(t('sess.nowLab'))} · ${esc(pos)}${exState ? ` · ${exState}` : ''}</div><div class="sf-name">${esc(curName)}</div>`
       + dotsBlk
       + sessWarmDoorHTML(curChk, ck, flowSt)   /* PAQUETE «APROXIMACIÓN EN CURSO» (2026-11-25): la puerta Sí/No del bloque y su añadir, en la completa */
       + sessVoiceNoteHTML(ck)   /* AUTH-500: el recibo y los avisos de la voz, bajo la línea — fuera de ella, para que el recibo se siga viendo si el dictado finalizó el ejercicio y nacen las caras */
@@ -39043,9 +39103,10 @@ function sessFullSync(run) {
     const cdTerm = cdLive ? 'C' + cdLive.si + ':' + (cdLive.cd.f === 1 ? 'z' : (sessCdElapsed(cdLive.cd) < SESS_CD_PREP ? 'p' : 'r')) : '';
     const warmTerm = curChk && curChk.warmup && curChk.warmup.on === true && Array.isArray(curChk.warmup.sets) ? 'W' + curChk.warmup.sets.map(s2 => (s2 && s2.dot === true ? 1 : 0) + ':' + (s2 && s2.loadVal != null ? String(s2.loadVal) : '')).join(',') : 'W-';   /* AUTH-505: la aproximación entra en la firma — encender el bloque, cambiar su lista o tocar una marca «A» repinta la línea una vez · AUTH-511: sus cargas también — lo que la rueda escriba en una fila de aproximación repinta su cara */
     const loadTerm = curChk && Array.isArray(curChk.sets) ? 'L' + curChk.sets.map(s2 => (s2 && s2.loadVal != null ? String(s2.loadVal) : '') + (s2 && s2.clr === true ? 'c' : '')).join(',') : 'L-';   /* AUTH-511: las cargas de las series de trabajo entran en la firma — son la cara de los círculos y la referencia del cálculo de la aproximación: lo que la rueda o la tarjeta escriban repinta la línea en el siguiente latido */
-    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm, warmTerm, loadTerm, 'G' + goalSec, 'AU' + SESS_AUDIO.seq + ':' + SESS_AUDIO.st + ':' + (SESS_AUDIO.key || '-'), 'RG' + (moveGenreSelSaved() ? '1' : '0')].join('|');   /* AUTH-540 */   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace · AUTH-516: el término G trae la meta de tiempo del ejercicio en curso — si cambia el ejercicio o su criterio, la línea repinta una vez; el segundo a segundo lo sigue pintando el tick en sitio, sin tocar la meta · AUTH-518: el término AU trae el estado del audio — sonar, pausar, terminar o detenerse repintan una vez; el segundo a segundo del tiempo lo pinta sessAudioRowPaint en sitio, sin repintar */
-    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${msgBlk}${sessReflBlockHTML()}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
+    sig = ['full', st.di, st.cur, st.nxt, curChk ? 1 : 0, flowSt, doneN, total, run.label || '', msg ? msg.text : '', refl ? refl.e.id : '', LANG, todayISO(), cMin, curChk && Array.isArray(curChk.sets) ? curChk.sets.map(s2 => sessSetDone(s2) ? 1 : 0).join('') : '', SESS_MSG_OPEN ? 'M' : 'm', SESS_REFL_OPEN ? 'R' : 'r', SESS_REFL_LISTEN ? 'L' : 'l', sessEditVisible() ? 'E' : 'e', 'V' + SESS_VOICE.st + ':' + SESS_VOICE.seq, trainExPhoto(st.eff[st.cur].ex), cdTerm, warmTerm, loadTerm, 'G' + goalSec, 'AU' + SESS_AUDIO.seq + ':' + SESS_AUDIO.st + ':' + (SESS_AUDIO.key || '-'), 'RG' + (moveGenreSelSaved() ? '1' : '0'), 'DD' + (SESS_DAYDOOR_OPEN ? '1' : '0')].join('|');   /* AUTH-540 */   /* AUTH-499: la puerta de «Editar» entra en la firma — si la relación con el entrenador se conoce o cambia, el panel repinta una vez y la pastilla nace o desaparece · AUTH-500: el término V trae el estado de la voz — entrar o salir de la escucha y cada recibo o aviso repintan una vez · AUTH-501: la foto resuelta del ejercicio en curso entra en la firma — si la biblioteca termina de cargar tras el primer pintado, el panel repinta una vez y la imagen de la fila nace · AUTH-516: el término G trae la meta de tiempo del ejercicio en curso — si cambia el ejercicio o su criterio, la línea repinta una vez; el segundo a segundo lo sigue pintando el tick en sitio, sin tocar la meta · AUTH-518: el término AU trae el estado del audio — sonar, pausar, terminar o detenerse repintan una vez; el segundo a segundo del tiempo lo pinta sessAudioRowPaint en sitio, sin repintar */
+    html = `<div class="sf-col"><div class="sf-body">${head}${clockBlk}${franja}${sessDayDoorHTML(msgBlk)}${nowBlk}${nxtBlk}</div>${minBtn}</div>`;
   }
+  full.classList.toggle('sf-l8', l8On);   /* L8: la clase marca la composición de cardio pendiente; el CSS (≤740 px) esconde la fila del reloj grande y enseña la hora de la cabecera */
   if (sig !== SESS_FULL_SIG) {
     SESS_FULL_SIG = sig;
     sessFullPaint(full, html);   /* AUTH-579: el panel se pinta por bloques en el sitio — la columna y su .sf-body NO se recrean: el desplazamiento se conserva y el círculo tocado no se desprende */
@@ -39053,6 +39114,8 @@ function sessFullSync(run) {
   }
   const tEl = $('sess-full-time');
   if (tEl) tEl.textContent = sessFmtClock(Date.now() - run.start + Math.round(cMin * 60000));   /* AUTH-482: vivo + cardio incluido */
+  const hEls = full.querySelectorAll('.sf-head-clock');
+  if (hEls.length) { const hTx = sessFmtClock(Date.now() - run.start + Math.round(cMin * 60000)); hEls.forEach(el => { el.textContent = hTx; }); }   /* L8: la hora de la cabecera (visible solo a ≤740 px en la composición de cardio) corre con el mismo latido */
   const dEl = full.querySelector('.sf-done-clock');
   if (dEl) dEl.textContent = sessFmtClock(Date.now() - run.start + Math.round(cMin * 60000));   /* AUTH-507: el total del resumen de día completado, en el sitio como el reloj */
   if (st) {
@@ -39157,7 +39220,7 @@ function sessFullPaint(full, html) {
     const o = full.querySelectorAll(sel), n = newCol.querySelectorAll(sel);
     o.forEach((el, i) => { if (n[i]) n[i].textContent = el.textContent; });
   };
-  cp('#sess-full-time'); cp('.sf-done-clock'); cp('.sess-full-exclock');
+  cp('#sess-full-time'); cp('.sf-done-clock'); cp('.sess-full-exclock'); cp('.sf-head-clock');
   sessMorphKids(oldCol, newCol);
 }
 /* ── LA PUERTA «VER CÓMO SE HACE» (R2): abre la ficha
@@ -39558,6 +39621,19 @@ function sessPanelWire(el, surface) {
          escucha en el sitio, si la hubiera. */
       if (fld.dataset.sessFold === 'msg') SESS_MSG_OPEN = !SESS_MSG_OPEN;
       else if (fld.dataset.sessFold === 'refl') { SESS_REFL_OPEN = !SESS_REFL_OPEN; if (!SESS_REFL_OPEN && SESS_REFL_LISTEN) { SESS_REFL_LISTEN = false; try { moveAudioStop(); } catch {} } }
+      try { sessPillTick(); } catch {}
+      return;
+    }
+    const dd = ev.target.closest ? ev.target.closest('[data-sess-daydoor]') : null;
+    if (dd) {
+      /* VISTA EN UNA PANTALLA · L1: desplegar o replegar la
+         puerta única «Del día» — solo pantalla, como los
+         pliegues de arriba: se voltea su estado y el latido
+         repinta con la firma nueva (término DD). Plegarla
+         NO detiene la escucha de la Reflexión ni toca los
+         estados propios de cada tarjeta, que quedan como
+         estaban para cuando la puerta se vuelva a abrir. */
+      SESS_DAYDOOR_OPEN = !SESS_DAYDOOR_OPEN;
       try { sessPillTick(); } catch {}
       return;
     }
@@ -40492,10 +40568,13 @@ function sessCStageHTML(plan, T, kind) {
     : (cd && typeof cd.t0 === 'number' && cd.t0 > 0
       ? `<button type="button" class="sf-btn stop" data-sess-cstage-cd="pause">${esc(t('sess.cstage.pause'))}</button>`
       : `<button type="button" class="sf-btn ini" data-sess-cstage-cd="start">${esc(t('sess.cstage.start'))}</button>`);
+  /* VISTA EN UNA PANTALLA · L4: la etiqueta y lo asignado
+     van en UNA línea («🏁 Cardio final · Asignado: 10 min»)
+     y la nota queda fundida bajo la cuenta, sin margen
+     propio (su CSS pierde el margin-bottom). */
   return `<div class="sf-cstage" data-sess-cstage="${esc(T)}">`
-    + `<div class="sf-cstage-lab">${kind === 'warm' ? '🔥' : '🏁'} ${esc(lab)}</div>`
+    + `<div class="sf-cstage-lab">${kind === 'warm' ? '🔥' : '🏁'} ${esc(lab)} · ${esc(t('sess.cstage.assigned', { min: fmt(v.minutes) }))}</div>`
     + `<div class="sf-cstage-name">${meta && meta.icon ? meta.icon + ' ' : ''}${esc(t('train.cardio2.machine.' + v.machine))}</div>`
-    + `<div class="sf-cstage-min">${esc(t('sess.cstage.assigned', { min: fmt(v.minutes) }))}</div>`
     + `<div class="sf-cstage-left${cd && cd.f === 1 ? ' alarm' : ''}" data-sess-cstage-left>${left}</div>`
     + `<div class="sf-cstage-note">${esc(t('sess.cstage.notYet'))}</div>`
     + `<div class="sf-btnrow">${cdBtn}<button type="button" class="sf-btn fin" data-sess-cstage-done="${esc(T)}">${esc(t('sess.cstage.do'))}</button></div>`

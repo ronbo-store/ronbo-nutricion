@@ -3372,6 +3372,7 @@ export default {
   'sess.viewBar': 'Bar', 'sess.viewFull': 'Full',
   'sess.barExpand': 'EXPAND', 'sess.minimize': 'MINIMIZE',
   'sess.dayMsg': 'MESSAGE OF THE DAY', 'sess.reflToday': "TODAY'S REFLECTION",
+  'sess.dayDoorLab': "TODAY'S", 'sess.dayDoorMsg': 'message', 'sess.dayDoorRefl': 'reflection', 'sess.dayDoorRead': 'readings',
   'sess.articleLine': 'Article · read it or listen to it',
   'sess.seeHow': 'See how it’s done', 'sess.seeHowSub': 'Video · muscles · grip',
   'sess.seeHowSubShort': 'Video · muscles',

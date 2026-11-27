@@ -7692,7 +7692,7 @@ textarea.gest-in { resize: none; }
 .sf-cstage-min { font-size: 15px; font-weight: 700; color: #cfe8ff; margin-top: 2px; }
 .sf-cstage-left { font-size: 52px; font-weight: 900; color: #fff; line-height: 1.1; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
 .sf-cstage-left.alarm { color: #ff6b5e; }
-.sf-cstage-note { font-size: 13px; color: #a9c6de; margin-bottom: 10px; }
+.sf-cstage-note { font-size: 13px; color: #a9c6de; margin-bottom: 0; }   /* VISTA EN UNA PANTALLA · L4: la nota va fundida bajo la cuenta, sin margen propio */
 .sf-cstage .sf-btnrow { margin-top: 8px; }
 /* CAND-523 · LA ETIQUETA DE ESTADO EN LA VISTA DEL DÍA:
    asignado (ámbar suave, aún no hecho) o hecho (verde de
@@ -8688,3 +8688,51 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .sf-warmdoor .tf-warm-tog { margin-left: 0; background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .45); color: #fff; }
 .sf-warmdoor .tf-warm-tog.is-on { background: #0d9488; border-color: #0d9488; color: #fff; }
 .sf-warm-add { min-height: 44px; padding: 8px 14px; border-radius: 999px; border: 1.5px dashed rgba(255, 255, 255, .5); background: transparent; color: #fff; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+
+/* ═══ VISTA EN CURSO EN UNA SOLA PANTALLA (2026-11-27; diagnóstico
+   cerrado del 2026-11-25, §5 — las palancas L2/L3/L5/L6/L7/L8 y la
+   condición de ventana del aviso; L1 y L4 viven en el HTML que pinta
+   app.js y en la nota de la etapa): la vista completa cabe entera en
+   la pantalla del teléfono sin bajar. Ningún toque baja de 44 px
+   (MINIMIZAR baja a 52 solo a ≤740 px de alto, como manda el
+   diagnóstico); el espacio se gana plegando y fundiendo líneas,
+   nunca achicando controles ni la tipografía. ═══ */
+/* L2 · «SIGUE» en UNA línea con puntos suspensivos (a 360/383 el
+   nombre envolvía y la línea medía 42; en una línea mide ~19). */
+.sf-next { flex-wrap: nowrap; }
+.sf-next-name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sf-next-pos { flex: none; }
+/* L2 · la parte de estado fundida en el rótulo va sin el tracking
+   ancho del rótulo, para que la línea entera quepa en una sola. */
+.sf-now-lab .sess-full-exclock, .sf-now-lab .sf-running, .sf-now-lab .sf-paused, .sf-now-lab .sf-goal { letter-spacing: normal; }
+/* L3 · el resumen fundido en la línea del título no se parte. */
+.sf-done-title .sf-done-sum { display: inline-block; margin-top: 0; }
+/* L8 · la hora de la cabecera: nace oculta; solo la enseña la
+   composición de cardio pendiente (clase .sf-l8 en #sess-full)
+   a ≤740 px de alto, al tamaño de la píldora minimizada (20 px). */
+.sf-head-clock { display: none; margin-left: auto; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .01em; color: #fff; }
+@media (max-height: 740px) {
+  /* L5 · el cromo: MINIMIZAR 68 → 52 y rellenos 18/20 → 12/12
+     (116 → 86). El botón sigue muy por encima del mínimo de 44. */
+  .sf-col { padding-top: calc(env(safe-area-inset-top, 0px) + 12px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); }
+  .sf-min { height: 52px; }
+  /* L6 · la escena de la mascota 220 → 176 (imagen decorada; su
+     botón queda en 176). La celebración pasa de 326 a 282. El
+     aviso de los 30 s conserva su escena propia (136) por su
+     regla más específica, y cumple su ventana de ≤162 con la
+     escena a 96 y la burbuja pequeña (condición del §4 del
+     diagnóstico, aplicada a la pieza que AUTH-627 construyó
+     después del diagnóstico). */
+  .sf-celeb-scene { width: 176px; height: 176px; }
+  .sf-celeb-warn .sf-celeb-scene { width: 96px; height: 96px; margin-top: 6px; }
+  .sf-celeb-warn .sf-celeb-bubble { font-size: 16px; padding: 8px 14px; }
+  /* L7 · el teleprompter en ventana corta: solo la línea actual
+     y los puntos, sin las atenuadas (las líneas siguen rotando
+     igual; el cuadro conserva su altura fija de 162). */
+  .sf-tp-line.side { display: none; }
+  .sf-tp-view { justify-content: center; }
+  /* L8 · durante el cardio final pendiente, la fila del reloj
+     grande sale y la hora vive en la cabecera. */
+  #sess-full.sf-l8 .sf-clockrow { display: none; }
+  #sess-full.sf-l8 .sf-head-clock { display: inline; }
+}
