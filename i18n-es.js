@@ -3369,6 +3369,7 @@ export default {
   'sess.viewBar': 'Barra', 'sess.viewFull': 'Completa',
   'sess.barExpand': 'AMPLIAR', 'sess.minimize': 'MINIMIZAR',
   'sess.dayMsg': 'MENSAJE DEL DÍA', 'sess.reflToday': 'REFLEXIÓN DE HOY',
+  'sess.dayDoorLab': 'DEL DÍA', 'sess.dayDoorMsg': 'mensaje', 'sess.dayDoorRefl': 'reflexión', 'sess.dayDoorRead': 'lecturas',
   'sess.articleLine': 'Artículo · leerlo o escucharlo',
   'sess.seeHow': 'Ver cómo se hace', 'sess.seeHowSub': 'Video · músculos · agarre',
   'sess.seeHowSubShort': 'Video · músculos',
