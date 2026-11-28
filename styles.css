@@ -631,6 +631,15 @@ table.whist { min-width: 640px; }
 .train-ex:last-child { border-bottom: none; }
 .train-ex .sx { color: #666; white-space: nowrap; }
 .pl-day { border: 1px solid #e9ecef; border-radius: 10px; padding: 10px; margin: 10px 0; }
+/* AUTH-658 · LOS DÍAS EXTRA EN EL EDITOR DEL PLAN: filas de
+   solo lectura bajo los días del plan, con su puerta a la
+   tarjeta del día. */
+.pl-extras { border: 1px dashed #c9d4e3; border-radius: 10px; padding: 10px; margin: 10px 0; }
+.pl-extras-t { font-weight: 800; font-size: .95rem; margin-bottom: 6px; }
+.pl-extra-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid #eef1f5; }
+.pl-extra-row:first-of-type { border-top: none; }
+.pl-extra-d { font-weight: 700; }
+.pl-extra-l { flex: 1 1 auto; color: #5b6b82; }
 /* REDISEÑO DE LA FILA (2026-10-24): una sola línea compacta —
    miniatura · nombre · SE · REP · nota · ⋯ · × — sin desborde a
    360 px: el nombre cede (min-width: 0) y la nota tiene tope.
@@ -7091,6 +7100,15 @@ body.sess-on.sess-view-bar #pend-back-chip { bottom: calc(env(safe-area-inset-bo
 .sb-ico.stop { background: #e8930c; }
 .sb-ico.fin { background: #b3261e; }
 .sb-how { flex: none; height: 44px; padding: 0 13px; border: none; border-radius: 12px; font-size: 14.5px; font-weight: 800; color: #fff; background: rgba(255,255,255,.16); cursor: pointer; font-family: inherit; white-space: nowrap; }
+/* AUTH-658 · LA TARJETA EN CURSO NO QUEDA BAJO LA BARRA
+   (auditoría Q4b): con la sesión viva (body.sess-on), el
+   contenido de la tarjeta del día reserva al pie la banda
+   que ocupa la barra flotante (su alto más su sombra), y
+   las tarjetas de ejercicio y su línea «Última vez»
+   aterrizan cualquier desplazamiento por encima de esa
+   banda: la línea se lee entera, sin la barra encima. */
+body.sess-on .train-dressed-content { padding-bottom: 84px; }
+body.sess-on .train-ex-card, body.sess-on .train-ex-last { scroll-margin-bottom: 196px; }
 /* AUTH-464 · LA PANTALLA COMPLETA DEL PANEL: tapa de pantalla
    entera (doctrina AUTH-338) con la columna topada a 640 px
    centrada en bandas anchas (precedente AUTH-420). */

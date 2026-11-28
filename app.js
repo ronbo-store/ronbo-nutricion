@@ -31001,6 +31001,58 @@ function trainTodayDiEffective(plan, mappedDi) {
   if (!base) return null;
   return base.kind === 'brought' ? base.di : -1;
 }
+/* ═══ AUTH-658 · EL RESOLVEDOR ÚNICO DE LA SESIÓN DE HOY
+   (auditoría de sesión en curso 2026-11-27, Q2 — ALTO): la
+   barra y el cuadro de sesión resuelven el día de hoy con la
+   MISMA semántica que la vista del día (mapa ?? base de
+   sesión, vía trainTodayDiEffective), aceptando di=−1 (día
+   extra) con su lista efectiva. Antes emparejaban el rótulo
+   del cronómetro contra plan.days: con un plan de un solo día
+   ya vencido, todo lo entrenado después es extra, el rótulo
+   «Día entrenado» no casa con ningún día del plan y el cuadro
+   caía a «sin estado» (reloj y mensaje, sin ejercicio ni
+   series). El rótulo queda SOLO como texto de cabecera.
+   Devuelve null cuando no hay resolución fiable (rotación,
+   que se resuelve por registros): quien llama cae entonces
+   al emparejamiento por rótulo de siempre. ═══ */
+function sessTodayDi(plan) {
+  if (!plan) return null;
+  if (plan.__loose) return -1;
+  const cfg = (typeof PEND_CFG !== 'undefined' && PEND_CFG && !PEND_CFG.__error) ? PEND_CFG : null;
+  let tmap = null;
+  try { tmap = trainDayMap(plan, cfg); } catch {}
+  if (!tmap || tmap.mode === 'rotation') return null;
+  const iso = todayISO();
+  const mapped = tmap.pairs ? tmap.pairs[new Date(iso + 'T12:00:00').getDay()] : planCalDayIndex(plan, iso);
+  return trainTodayDiEffective(plan, mapped != null ? mapped : null);
+}
+/* ═══ AUTH-658 · EL NOMBRE DEL DÍA EXTRA SALE DE SUS
+   EJERCICIOS (auditoría Q5): «Día entrenado · {zona
+   dominante según la biblioteca}» — la zona que más
+   ejercicios aporta a la lista, leída de la ficha
+   (grupo_muscular en el idioma de la interfaz). Sin zona
+   legible, el apellido solo. El nombre es TEXTO de
+   presentación y de sello al cerrar: ningún emparejamiento
+   lo usa, y los registros viejos guardados con «Día
+   entrenado» a secas quedan intactos. ═══ */
+function trainTrainedLabel(exs) {
+  const base = t('train.trained.label');
+  try {
+    const counts = new Map();
+    for (const ex of (exs || [])) {
+      const entry = ex && ex.exerciseId ? LIB_BY_ID[ex.exerciseId] : null;
+      const zone = entry ? libField(entry, 'grupo_muscular') : '';
+      if (zone) counts.set(zone, (counts.get(zone) || 0) + 1);
+    }
+    let best = '', bestN = 0;
+    for (const [z, n] of counts) if (n > bestN) { best = z; bestN = n; }
+    return best ? base + ' · ' + best : base;
+  } catch { return base; }
+}
+function trainTrainedLabelFor(plan, di, iso) {
+  try { return trainTrainedLabel(trainEffectiveList(plan, di, iso).map(it => it.ex)); }
+  catch { return t('train.trained.label'); }
+}
 /* PUERTA DE «ENTRENAR HOY» (2026-11-06; orden de Ronald en el chat
    RONBO.NUTRI 12:14 CST, sobre el diagnóstico entregado minutos
    antes): en un día en blanco la puerta deja de ser un botón
@@ -40306,8 +40358,17 @@ function trainBarState() {
   if (!run || !plan || !run.planId || run.planId !== plan.id) return null;
   let di = -1;
   if (!plan.__loose) {
-    (plan.days || []).forEach((d, i) => { if (di < 0 && trainDayLabelOf(plan, i) === run.label) di = i; });
-    if (di < 0) return null;
+    /* AUTH-658: manda el resolvedor único de la vista del día
+       (mapa ?? base de sesión, con el día extra di=−1 aceptado
+       y su lista efectiva); el emparejamiento por rótulo queda
+       solo de respaldo cuando el resolvedor no puede decidir
+       (rotación). */
+    const diR = sessTodayDi(plan);
+    if (diR != null) di = diR;
+    else {
+      (plan.days || []).forEach((d, i) => { if (di < 0 && trainDayLabelOf(plan, i) === run.label) di = i; });
+      if (di < 0) return null;
+    }
   }
   const checks = trainChecksRead(plan.id);
   const eff = trainEffectiveList(plan, di);
@@ -40379,8 +40440,15 @@ function sessDayCompleteState(run) {
   if (!run || !plan || !run.planId || run.planId !== plan.id) return null;
   let di = -1;
   if (!plan.__loose) {
-    (plan.days || []).forEach((d, i) => { if (di < 0 && trainDayLabelOf(plan, i) === run.label) di = i; });
-    if (di < 0) return null;
+    /* AUTH-658: el mismo resolvedor único que trainBarState
+       (mapa ?? base de sesión, día extra aceptado); el rótulo
+       solo respalda el caso sin resolución (rotación). */
+    const diR = sessTodayDi(plan);
+    if (diR != null) di = diR;
+    else {
+      (plan.days || []).forEach((d, i) => { if (di < 0 && trainDayLabelOf(plan, i) === run.label) di = i; });
+      if (di < 0) return null;
+    }
   }
   const checks = trainChecksRead(plan.id);
   const eff = trainEffectiveList(plan, di);
@@ -41434,7 +41502,7 @@ async function trainCloseConfirm(plan, di) {
       removedEntries.push(entry);
     });
   }
-  const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: di === -1 ? t('train.trained.label') : (day.label || ''),
+  const data = { clientUid: uid, planId: plan.id, date: today, dayIndex: di, dayLabel: di === -1 ? trainTrainedLabel(trainEffectiveList(plan, di).map(it => it.ex)) : (day.label || ''),
     done: status === 'done', schemaVersion: 2, status, exercisesDone: doneList, updatedAt: serverTimestamp(),
     durationMin: durMin,
     warmupMin: durMin == null ? null : warmMin,
@@ -41838,7 +41906,7 @@ function week5Model() {
        preparado); una base vieja sin registro en un día pasado no
        pinta sesión: ese día no se entrenó. */
     const isExtra = isFree && (!!prim || iso >= ctx.today);
-    const label = prim ? (prim.dayLabel || '') : (isExtra ? t('train.trained.label') : (di != null && !isFree ? ((ctx.plan.days || [])[di] || {}).label || '' : ''));
+    const label = prim ? (prim.dayLabel || '') : (isExtra ? trainTrainedLabelFor(ctx.plan, -1, iso) : (di != null && !isFree ? ((ctx.plan.days || [])[di] || {}).label || '' : ''));
     const fc = (!isFree && di != null) ? week5Focus(label, di) : { dayWord: '', focus: '', short: '' };
     let state, icon;
     if (st) { state = st; icon = WEEK5_ICON[st]; }
@@ -41853,14 +41921,25 @@ function week5Model() {
   }
   return { mon, sun: addDaysISO(mon, 6), days, counts };
 }
+/* AUTH-658: ¿el día extra de hoy está EN CURSO? — cronómetro
+   corriendo o marcas del día en el borrador de marcas. */
+function week5InCourse() {
+  try { if (sessRunning()) return true; } catch {}
+  try { return typeof TRAIN_CHECKS !== 'undefined' && !!TRAIN_CHECKS && Object.keys(TRAIN_CHECKS).length > 0; } catch {}
+  return false;
+}
 function week5DetailText(m) {
   const head = m.isToday ? t('train.today.todayWord') : `${weekdayName(m.iso)} ${new Date(m.iso + 'T12:00:00').getDate()}`;
   let mid = '';
   if (m.state === 'rest' && !m.isFree) mid = t('train.today.restDay');
-  else if (m.isFree) mid = (m.isExtra || m.prim) ? t('train.trained.label') + ' · ' + t('train.trained.extra') : '';
+  else if (m.isFree) mid = (m.isExtra || m.prim) ? (m.label || t('train.trained.label')) + ' · ' + t('train.trained.extra') : '';
   else if (m.di != null) mid = m.focus ? `${m.dayWord} — ${m.focus}` : m.dayWord;
   let tail = '';
   if (m.st) tail = t('train.d.status' + m.st[0].toUpperCase() + m.st.slice(1));
+  /* AUTH-658 (auditoría Q3): el día extra de hoy con la sesión
+     viva o con marcas no es «aún sin registrar»: está en
+     curso, sin cerrar. */
+  else if (m.state === 'pend' && m.isToday && m.isFree && week5InCourse()) tail = t('train.d.inCourse');
   else if (m.state === 'pend') tail = t('train.d.notYet');
   else if (m.state === 'future') tail = t('train.today.scheduled');
   else if (m.state === 'missed' || m.state === 'none') tail = t('train.d.statusNone');
@@ -41892,7 +41971,7 @@ function renderWeek5Block() {
      (.wk5-i) y los conteos del modelo se siguen calculando igual;
      el párrafo «Sesiones completadas esta semana: {n}» que iba
      bajo la tarjeta del día también se retiró. */
-  return `<div class="wk5"><div class="wk5-head"><span class="wk5-titlebox"><span class="wk5-title">${esc(t('train.d.weekTitle'))}</span><span class="wk5-range">${esc(range)}</span></span><span class="wk5-navbox"><button type="button" class="train-nav" data-wk5-week="-1" aria-label="‹">‹</button><button type="button" class="btn-ghost btn-sm" data-wk5-today="1">${esc(t('train.today.btnToday'))}</button><button type="button" class="train-nav" data-wk5-week="1" aria-label="›">›</button></span>${ctx.sumHide ? '' : `<span class="train-week-sum">${esc(t('train.today.weekSummary', { x: ctx.sumX || 0, y: ctx.sumY || 0 }))}</span>`}</div>`
+  return `<div class="wk5"><div class="wk5-head"><span class="wk5-titlebox"><span class="wk5-title">${esc(t('train.d.weekTitle'))}</span><span class="wk5-range">${esc(range)}</span></span><span class="wk5-navbox"><button type="button" class="train-nav" data-wk5-week="-1" aria-label="‹">‹</button><button type="button" class="btn-ghost btn-sm" data-wk5-today="1">${esc(t('train.today.btnToday'))}</button><button type="button" class="train-nav" data-wk5-week="1" aria-label="›">›</button></span>${ctx.sumHide ? '' : `<span class="train-week-sum">${esc(ctx.sumExtra > 0 ? t('train.today.weekSummaryX', { x: ctx.sumX || 0, y: ctx.sumPlan || 0 }) : t('train.today.weekSummary', { x: ctx.sumX || 0, y: ctx.sumY || 0 }))}</span>`}</div>`
     + `<div class="wk5-row">${cells}</div>`
     + `<button type="button" class="wk5-detail" data-wk5-go="${selM.iso}"><span class="wk5-detail-t">${esc(week5DetailText(selM))}</span><span class="wk5-chev" aria-hidden="true">›</span></button></div>`;
 }
@@ -43954,7 +44033,7 @@ function trainShareModel(plan, logs, di, iso) {
   let warmupShare = null;
   if (log) warmupShare = trainCardioFromLog(log.cardioWarmup);
   else if (iso === today) warmupShare = trainCardioViewOf(trainCardioRead(plan.id, iso));
-  return { label: di === -1 ? t('train.trained.label') : (day.label || ('Día ' + (di + 1))), dateISO: iso, exercises: doneExercises,
+  return { label: di === -1 ? ((log && log.dayLabel) || trainTrainedLabel(rowExs)) : (day.label || ('Día ' + (di + 1))), dateISO: iso, exercises: doneExercises,
     doneCount: exercises.filter(e => e.done).length, total: exercises.length,
     burnedKcal, warmup: warmupShare,
     /* COMPLETADO HONESTO (aprobado por Ronald, chat 2026-10-27
@@ -46226,7 +46305,22 @@ const MASCOT_CELEB_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/avata
 const MASCOT_EXPECT_URL = 'https://ronbo-store.github.io/ronbo-nutri-assets/avatar-coach-virtual/web/expectante.webp';
 function trainDressedHeadHTML(plan, logs, di, iso) {
   const m = trainShareModel(plan, logs, di, iso);
-  const pct = m.total ? Math.round(100 * m.doneCount / m.total) : 0;
+  let pct = m.total ? Math.round(100 * m.doneCount / m.total) : 0;
+  /* AUTH-658 · EL ANILLO DE HOY EN CURSO CUENTA FINO
+     (auditoría Q3): sin registro cerrado, el anillo de hoy
+     sale de la fracción fina por series (sessDayFracFine, la
+     misma del cuadro de sesión) en vez de contar solo
+     ejercicios marcados Hecho al 100 %: el ejercicio en
+     curso con su primera serie marcada ya mueve el anillo, y
+     el día en curso deja de leerse «Aún sin registrar» con un
+     0 % falso. Solo en la vista propia: TRAIN_CHECKS son las
+     marcas del plan en curso de este aparato. */
+  if (m.closedStatus === 'none' && iso === todayISO() && typeof MY_PLAN !== 'undefined' && MY_PLAN && MY_PLAN.id === plan.id) {
+    try {
+      const effR = trainEffectiveList(plan, di, iso);
+      if (effR.length) pct = Math.round(100 * sessDayFracFine(plan, di, TRAIN_CHECKS, effR));
+    } catch {}
+  }
   const C = 2 * Math.PI * 24;
   /* AUTH-407 · LA FRANJA CAMBIA DE CASA: la barra de
      avance (.train-dressed-bar) ya no se pinta en esta cabecera
@@ -47356,12 +47450,59 @@ function trainHistLoadsHTML(ex, allLogs) {
    se pinta — jamás se afirma «primera vez» sin haberlos leído. No
    confundir con trainLastTimeHTML (AUTH-257): aquella es el
    detalle por serie de la ficha; esta es el total en la tarjeta. */
+/* ═══ AUTH-658 · EL ESCANEO DEL AVISO DE OTRA FORMA
+   (auditoría Q4a): el mismo trainHistLoadsRows de la
+   decisión D2, corrido con la clave de forma de CADA otra
+   forma de la ficha (la estándar y cada variante distinta
+   de la vista), hasta dar con la primera que sí trae
+   sesiones. No cambia qué cuenta como historial de la
+   vista — D2 queda intacta —: solo encuentra cómo nombrar
+   el historial que existe en otra forma, con su fecha y
+   sus totales, para que la línea «Última vez» lo diga en
+   vez de un «primera vez» que esconde lo ya hecho. ═══ */
+function trainHistOtherForm(ex) {
+  const id = ex && ex.exerciseId ? String(ex.exerciseId) : null;
+  if (!id) return '';
+  const entryH = LIB_BY_ID[id] || null;
+  const varsH = entryH && Array.isArray(entryH.variantes) && entryH.variantes.length ? entryH.variantes : null;
+  if (!varsH) return '';
+  const viEx = Number.isInteger(ex.variantIndex) ? ex.variantIndex : null;
+  const viewKey = trainHistFormKey(varsH, viEx);
+  const cand = [];
+  if (viewKey !== -1) cand.push(null);
+  varsH.forEach((v, vi) => { const k = trainHistFormKey(varsH, vi); if (k !== viewKey && !cand.some(c => trainHistFormKey(varsH, c) === k)) cand.push(vi); });
+  for (const cvi of cand) {
+    const exAlt = { ...ex };
+    if (cvi == null) delete exAlt.variantIndex; else exAlt.variantIndex = cvi;
+    const rows = trainHistLoadsRows(exAlt, MY_LOGS_ALL);
+    if (!rows.length) continue;
+    const r = rows.find(x => !x.legacy) || rows[0];
+    const form = cvi == null ? t('train.lastTime.stdForm') : t('train.lastTime.varForm', { name: libField(varsH[cvi], 'nombre') || '' });
+    let totals;
+    if (r.legacy) totals = t('train.lastTime.legacy');
+    else {
+      const segs = [`${r.n} ${t('train.histRec.sets').toLowerCase()}`];
+      if (r.totalReps != null) segs.push(`${r.totalReps} reps`);
+      else if (r.totalSec != null) segs.push(trainTimerFmt(r.totalSec));
+      if (r.maxKg != null) segs.push(`${fmtMass(r.maxKg)} ${t('train.lastTime.max')}`);
+      totals = segs.join(' · ');
+    }
+    return t('train.lastTime.firstInForm', { form, date: r.dateShort, totals });
+  }
+  return '';
+}
 function trainLastTimeCardHTML(ex, mode) {
   if (mode !== 'edit' && mode !== 'ficha') return '';
   if (typeof MY_LOGS_ALL === 'undefined' || !Array.isArray(MY_LOGS_ALL)) return '';
   const rows = trainHistLoadsRows(ex, MY_LOGS_ALL);
   const head = `<span class="train-ex-last-lab">${t('train.lastTime.card')}</span>`;
-  if (!rows.length) return `<div class="train-ex-last">${head}: ${t('train.lastTime.first')}</div>`;
+  if (!rows.length) {
+    /* AUTH-658: sin historial en ESTA forma, el aviso de
+       otra forma manda sobre el «primera vez» a secas. */
+    const oth = trainHistOtherForm(ex);
+    if (oth) return `<div class="train-ex-last">${head}: ${esc(oth)}</div>`;
+    return `<div class="train-ex-last">${head}: ${t('train.lastTime.first')}</div>`;
+  }
   const r = rows.find(x => !x.legacy);
   if (!r) {
     /* AUTH-509: sin sesión con detalle, la última vez es la
@@ -49137,7 +49278,7 @@ async function trainViewPaint(light) {
   if (tmap.pairs || isCal) {
     const selDi = effDiForDate(sel);
     if (selDi != null) {
-      const day = selDi === -1 ? { label: t('train.trained.label'), exercises: [] } : ((plan.days || [])[selDi] || {});
+      const day = selDi === -1 ? { label: trainTrainedLabelFor(plan, -1, sel), exercises: [] } : ((plan.days || [])[selDi] || {});
       const logSelDi = logs.find(l => l.date === sel && l.dayIndex === selDi) || null;
       if (day.freeDay === true && !logSelDi) {
         /* DÍA LIBRE ASIGNADO (2026-11-08, D3): el descanso lo
@@ -49217,7 +49358,7 @@ async function trainViewPaint(light) {
     const looseBase = trainBaseRead(plan.id, sel);
     const logsSelL = logs.filter(l => l.date === sel).sort((a, b) => a.dayIndex - b.dayIndex);
     if (sel === today) {
-      if (logByDay[-1] || looseBase) selCard = dressedTodayCard({ label: t('train.trained.label'), exercises: [] }, -1) + (SESS_EDIT_FOCUS ? '' : trainShareRowHTML(-1, sel));   /* EDITAR ENFOCADO: sin fila de compartir bajo el editor */
+      if (logByDay[-1] || looseBase) selCard = dressedTodayCard({ label: trainTrainedLabelFor(plan, -1, sel), exercises: [] }, -1) + (SESS_EDIT_FOCUS ? '' : trainShareRowHTML(-1, sel));   /* EDITAR ENFOCADO: sin fila de compartir bajo el editor */
       else selCard = `<div class="train-day train-rest"><img class="train-rest-face" src="${PLAN_FACE_REST}" alt="" onerror="this.remove()"><h4>${t('train.today.restToday')}</h4></div>` + blankDoorHTML(sel);
     } else if (sel < today) {
       selCard = logsSelL.length
@@ -49225,7 +49366,7 @@ async function trainViewPaint(light) {
         : `<div class="train-day is-readonly"><div>${trainStatusBadge('none')}</div></div>`;
     } else if (looseBase) {
       const effL = trainEffectiveList(plan, -1, sel);
-      const innerL = `<h4>${esc(t('train.trained.label'))}</h4>` + dressExRows(effL.map((it, ei) => trainExCompactHTML(it.ex, -1, ei, 'ficha', null)).join(''), -1, 'ficha') + `<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
+      const innerL = `<h4>${esc(trainTrainedLabelFor(plan, -1, sel))}</h4>` + dressExRows(effL.map((it, ei) => trainExCompactHTML(it.ex, -1, ei, 'ficha', null)).join(''), -1, 'ficha') + `<div style="margin-top:8px"><span class="train-status st-skipped">● ${t('train.today.scheduled')}</span></div>`;
       selCard = trainDressedCardHTML(plan, logs, -1, sel, innerL, 'is-readonly') + trainShareRowHTML(-1, sel);
     } else {
       selCard = `<div class="train-day train-rest"><img class="train-rest-face" src="${PLAN_FACE_REST}" alt="" onerror="this.remove()"><h4>${t('train.today.restDay')}</h4></div>` + blankDoorHTML(sel);
@@ -49363,7 +49504,21 @@ async function trainViewPaint(light) {
      semana modelada, con la regla de siempre. El bloque se
      pinta sobre los mismos datos, sin lecturas nuevas, y va
      SOBRE la tarjeta del día: es el selector. */
-  WEEK5_CTX = { plan, logs, today, sel, sumX: wkDone, sumY: (plan.days || []).length, sumHide: !!isLoose, mapped: !!(tmap.pairs || isCal), effDiForDate };
+  /* AUTH-658 · TITULAR SEMANAL SIN FRACCIÓN IMPOSIBLE
+     (auditoría Q5: el titular decía «2 de 1» — el numerador
+     contaba también los días extra y el denominador era el
+     largo del plan): el denominador pasa a ser lo que el plan
+     PIDE en la semana vista (días mapeados que no son
+     descanso asignado; en rotación, sus días por semana) y,
+     cuando hay sesiones extra hechas, el contexto lleva
+     además el reparto (sumPlan/sumExtra) para el titular sin
+     fracción de renderWeek5Block. */
+  const wkDonePlan = wkLogs.filter(l => l.dayIndex !== -1 && (trainLogStatus(l) === 'done' || trainLogStatus(l) === 'partial')).length;
+  const wkDoneExtra = wkLogs.filter(l => l.dayIndex === -1 && (trainLogStatus(l) === 'done' || trainLogStatus(l) === 'partial')).length;
+  let wkAsked;
+  if (tmap.mode === 'rotation') wkAsked = Math.min(7, (plan.days || []).length);
+  else { wkAsked = 0; for (let k2 = 0; k2 < 7; k2++) { const mdi = diForDate(addDaysISO(mon, k2)); if (mdi != null) { const pd2 = (plan.days || [])[mdi]; if (!(pd2 && pd2.freeDay === true)) wkAsked++; } } }
+  WEEK5_CTX = { plan, logs, today, sel, sumX: wkDone, sumY: wkAsked, sumPlan: wkDonePlan, sumExtra: wkDoneExtra, sumHide: !!isLoose, mapped: !!(tmap.pairs || isCal), effDiForDate };
   WEEK5_SEL = sel;
   const weekHtml = renderWeek5Block();
   /* AUTH-349 (decisión C de Ronald, 2026-11-09): la cabecera de
@@ -59092,6 +59247,55 @@ async function planCurrentInit(clientUid) {
   if (btn) btn.onclick = () => { tpl.style.display = ''; btn.style.display = 'none'; tpl.scrollIntoView({ block: 'nearest' }); };
 }
 
+/* ═══ AUTH-658 · EL EDITOR VE LOS DÍAS EXTRA (auditoría Q1
+   — ALTO): las fechas con base de sesión «extra» de ESTE
+   plan en ESTE aparato se listan bajo los días del plan,
+   rotuladas como lo que son («Día extra — no está en tu
+   plan»), con su puerta a la tarjeta del día, donde la
+   sesión se ve y se edita con las herramientas de siempre.
+   La capa de sesión NO escribe el plan ni el mapa
+   (invariante «DÍA ACCIONABLE»): la sección es de solo
+   lectura, vive FUERA de #pl-days (la firma del editor ni
+   la nota) y su puerta pasa por el cierre con guarda de
+   cambios sin guardar. Solo en el plan PROPIO: las bases
+   viven en el aparato de quien entrena. ═══ */
+function planExtrasPaint(clientUid, plan) {
+  const old = $('pl-extras'); if (old) old.remove();
+  if (!plan || !plan.id) return;
+  const uid = auth.currentUser ? auth.currentUser.uid : '';
+  if (!uid || clientUid !== uid) return;
+  let isos = [];
+  try {
+    const pre = 'ronbofit-session-base-' + uid + '|' + plan.id + '|';
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || k.indexOf(pre) !== 0) continue;
+      let b = null; try { b = JSON.parse(localStorage.getItem(k) || 'null'); } catch {}
+      if (b && (b.kind === 'extra' || b.kind === 'free')) isos.push(k.slice(pre.length));
+    }
+  } catch {}
+  isos = [...new Set(isos)].sort();
+  if (!isos.length) return;
+  const isActive = typeof MY_PLAN !== 'undefined' && MY_PLAN && MY_PLAN.id === plan.id;
+  const box = document.createElement('div');
+  box.id = 'pl-extras'; box.className = 'pl-extras';
+  box.innerHTML = `<div class="pl-extras-t">${esc(t('train.extra.editorTitle'))}</div>` + isos.map(iso => {
+    let n = 0; try { n = trainEffectiveList(plan, -1, iso).length; } catch {}
+    return `<div class="pl-extra-row"><span class="pl-extra-d">${esc(dateName(iso))}</span><span class="pl-extra-l">${esc(trainTrainedLabelFor(plan, -1, iso))} · ${esc(t('train.extra.notInPlan'))}${n ? ' · ' + esc(t('train.extra.count', { n })) : ''}</span>${isActive ? `<button type="button" class="btn-ghost btn-sm" data-pl-extra-open="${iso}">${esc(t('train.extra.viewCard'))}</button>` : ''}</div>`;
+  }).join('');
+  const daysBox = $('pl-days');
+  if (daysBox && daysBox.parentNode) daysBox.parentNode.insertBefore(box, daysBox.nextSibling);
+  box.querySelectorAll('[data-pl-extra-open]').forEach(b => {
+    b.onclick = () => {
+      const iso = b.dataset.plExtraOpen;
+      planRequestClose();
+      if (planCtx) return;   /* el cierre se canceló: hay cambios sin guardar por decidir */
+      TRAIN_VIEW = { planId: plan.id, sel: iso };
+      try { navOpenPage('train'); } catch {}
+      loadMyTraining();
+    };
+  });
+}
 function openPlanEditor(clientUid, plan) {
   planCtx = { clientUid, planId: plan ? plan.id : null, tplSource: null, planData: plan ? JSON.parse(JSON.stringify(plan)) : null };
   $('pl-title').value = plan ? (plan.title || '') : '';
@@ -59114,6 +59318,7 @@ function openPlanEditor(clientUid, plan) {
   const daysBox = $('pl-days'); daysBox.innerHTML = '';
   const days = plan && plan.days && plan.days.length ? plan.days : [{ label: '', exercises: [{}] }];
   days.forEach(d => daysBox.appendChild(planDayRow(d)));
+  planExtrasPaint(clientUid, plan);   /* AUTH-658: los días extra armados de este plan, bajo sus días */
   $('plan-modal').style.display = '';
   planGateRefresh();
   /* AUTH-493: «Empezar en blanco» de la caja de comienzo — baja al
