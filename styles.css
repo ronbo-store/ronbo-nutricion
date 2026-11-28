@@ -8677,6 +8677,19 @@ button.rcard-head.reco-fold-head { width: 100%; box-sizing: border-box; backgrou
 .stu-now-row .sx { flex: none; color: #1d4ed8; font-weight: 800; }
 .stu-now-line { display: flex; align-items: center; gap: 8px; background: #f4f6f8; border: 1px solid #dde3e8; border-radius: 12px; padding: 10px 12px; font-size: 15px; color: #475569; }
 .stu-now-line + .stu-now-row, .stu-now-row + .stu-now-line { margin-top: 8px; }
+/* ═══ AUTH-634 · LA FILA EN VIVO DE LA FICHA: el nombre
+   corto del ejercicio en curso en UNA línea (con elipsis si
+   ni así cabe — nunca partido en varias) y la banda oscura
+   de los círculos, con el fondo exacto de la vista en curso
+   (#sess-full, #1b2a4a) y los .sf-dot genuinos a 44×44; la
+   banda envuelve si un ejercicio trae muchas series, sin
+   encoger jamás un toque. Las filas en vivo no son botones:
+   no llevan cursor de mano ni la flecha de las de siempre. ═══ */
+.stu-live-head, .stu-live-next { cursor: default; }
+.stu-now-name.stu-live-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.stu-live-band { background: #1b2a4a; border-radius: 12px; padding: 4px 10px; margin-top: 8px; }
+.stu-live-band .sf-dots { flex-wrap: wrap; height: auto; min-height: 52px; row-gap: 6px; }
+.stu-live-band + .stu-now-row, .stu-live-band + .stu-now-line { margin-top: 8px; }
 /* ═══ PAQUETE «APROXIMACIÓN EN CURSO» (2026-11-25) · LA PUERTA
    DE APROXIMACIÓN EN LA VISTA COMPLETA DE LA SESIÓN: su línea
    — título, la píldora Sí/No de siempre (familia .tf-warm-tog,

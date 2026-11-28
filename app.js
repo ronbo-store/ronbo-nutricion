@@ -10852,6 +10852,171 @@ function stuNowWire(box) {
   if (!box) return;
   box.querySelectorAll('[data-stu-now]').forEach(b => b.onclick = () => stuNowEdit(b.dataset.stuNow, Number(b.dataset.stuNowDi), Number(b.dataset.stuNowSlot)));
 }
+/* ═══ AUTH-634 · LA FILA EN VIVO DE LA FICHA (el espejo
+   training_live del alumno) ═══
+   Mientras la ficha está abierta, una suscripción al espejo
+   de la sesión del alumno alimenta esta variante: si el
+   documento es de HOY y del plan activo que la ficha ya
+   cargó, la fila enseña el ejercicio EN CURSO de verdad —
+   su nombre CORTO de biblioteca (libNameOf, sin el sufijo
+   de variante) en UNA línea — y los círculos genuinos de la
+   sesión (.sf-dot de 44×44, caras por sessSetFace, series
+   en cero fuera por sessSetIsZero) sobre la banda oscura
+   #1b2a4a, el fondo exacto de la vista en curso. El toque
+   en un círculo aplica la semántica de frontera de
+   sessDotTap sobre el documento compartido (marcar hasta
+   ahí / desmarcar desde ahí), con el sello by/at de quien
+   marca: la app del alumno funde esa marca en su borrador
+   al recibirla — una sola fuente de verdad, el mismo
+   documento. Sin documento (o de otro día u otro plan), la
+   fila queda BYTE A BYTE como siempre: la pinta stuNowHTML
+   y el caso sin sesión sigue diciendo «Sin ejercicio en
+   curso». Sin claves i18n nuevas. */
+let STU_LIVE = { uid: '', unsub: null, doc: null, plan: null, logs: [], cfg: null, shown: false };
+function stuLiveStop() {
+  if (STU_LIVE.unsub) { try { STU_LIVE.unsub(); } catch {} }
+  STU_LIVE = { uid: '', unsub: null, doc: null, plan: null, logs: [], cfg: null, shown: false };
+}
+function stuLiveWatch(uid, plan, logs, cfg) {
+  try {
+    if (STU_LIVE.uid !== uid) {
+      if (STU_LIVE.unsub) { try { STU_LIVE.unsub(); } catch {} STU_LIVE.unsub = null; }
+      STU_LIVE.uid = uid; STU_LIVE.doc = null; STU_LIVE.shown = false;
+    }
+    STU_LIVE.plan = plan; STU_LIVE.logs = logs || []; STU_LIVE.cfg = cfg;
+    if (!STU_LIVE.unsub) {
+      STU_LIVE.unsub = onSnapshot(doc(db, 'training_live', uid), {
+        next: snap => { try { STU_LIVE.doc = (snap && snap.exists()) ? snap.data() : null; stuLivePaint(); } catch {} },
+        error: () => {}
+      });
+    } else stuLivePaint();
+  } catch {}
+}
+function stuLiveDocOk(d) {
+  const plan = STU_LIVE.plan;
+  return !!(d && plan && d.date === todayISO() && d.planId === plan.id
+    && typeof d.cur === 'string' && /^-?\d+:\d+$/.test(d.cur)
+    && d.checks && typeof d.checks === 'object' && d.checks[d.cur]
+    && Array.isArray(d.list) && d.list.length);
+}
+/* El ejercicio «de juguete» que las caras y la regla de la
+   serie en cero necesitan en la ficha: el de la lista del
+   espejo (su exerciseId manda para el criterio por tiempo y
+   su texto reps es el respaldo de trainSetCriterion, como
+   en la sesión; el criterio que manda, el de cada serie,
+   viaja en repsPlanned dentro del propio documento). */
+function stuLiveExOf(item) {
+  if (!item) return null;
+  return { exerciseId: item.exerciseId || null, name: item.name || '', reps: item.reps || '' };
+}
+/* El nombre CORTO: el de la biblioteca (libNameOf sobre la
+   ficha cargada), sin sufijo de variante; si la biblioteca
+   aún no cargó esa ficha, el nombre que el espejo trae. */
+function stuLiveNameOf(item) {
+  if (!item) return '';
+  if (item.exerciseId && typeof LIB_BY_ID !== 'undefined' && LIB_BY_ID && LIB_BY_ID[item.exerciseId]) {
+    const n = libNameOf(LIB_BY_ID[item.exerciseId]);
+    if (n) return n;
+  }
+  return item.name || '';
+}
+function stuLiveDotsHTML(d) {
+  const chk = d.checks[d.cur];
+  if (!chk || !Array.isArray(chk.sets) || !chk.sets.length) return '';
+  const item = (d.list || [])[Number(d.cur.split(':')[1])] || null;
+  const ex = stuLiveExOf(item);
+  const sets = chk.sets;
+  const flags = sets.map(s => sessSetDone(s));
+  const zeroF = sets.map(s => sessSetIsZero(ex, s));
+  const nextI = flags.findIndex((f, i) => !f && !zeroF[i]);
+  return sets.map((s, si) => {
+    if (zeroF[si]) return '';   /* la serie en cero no pinta círculo, como en la sesión */
+    /* La serie que está CONTANDO en el teléfono del alumno
+       (su cd vivo): la ficha enseña su número, sin anillo —
+       el anillo corre en su aparato; aquí basta la foto. */
+    if (s.cd && typeof s.cd === 'object') return `<button type="button" class="sf-dot ${si === nextI ? 'next' : 'todo'}" data-stu-live-dot="${si}" aria-label="${esc(t('train.d.set'))} ${si + 1}">${si + 1}</button>`;
+    if (flags[si]) return `<button type="button" class="sf-dot ok" data-stu-live-dot="${si}" aria-label="${esc(t('train.d.set'))} ${si + 1}">✓</button>`;
+    const face = sessSetFace(s, ex);
+    const clsF = si === nextI ? 'next' : 'todo';
+    if (face.t === 'load') return `<button type="button" class="sf-dot ${clsF}" data-stu-live-dot="${si}" aria-label="${esc(t('train.d.set'))} ${si + 1} · ${esc(face.v)} ${esc(UNIT_PREFS.mass)}"><span class="sf-dot-n">${esc(face.v)}</span><span class="sf-dot-u">${esc(String(UNIT_PREFS.mass).toUpperCase())}</span></button>`;
+    if (face.t === 'sec') return `<button type="button" class="sf-dot ${clsF}" data-stu-live-dot="${si}" aria-label="${esc(t('train.d.set'))} ${si + 1} · ${esc(face.v)} ${esc(t('sess.face.secWord'))}"><span class="sf-dot-n">${esc(face.v)}</span><span class="sf-dot-u">${esc(t('sess.face.secU'))}</span></button>`;
+    /* En la ficha no hay rueda de carga: el «?» marca como
+       los demás círculos (acompañamiento en persona). */
+    if (face.t === 'q') return `<button type="button" class="sf-dot ${clsF} q" data-stu-live-dot="${si}" aria-label="${esc(t('train.d.set'))} ${si + 1}"><span class="sf-dot-q">?</span></button>`;
+    return `<button type="button" class="sf-dot ${clsF}" data-stu-live-dot="${si}" aria-label="${esc(t('train.d.set'))} ${si + 1}">${si + 1}</button>`;
+  }).join('');
+}
+function stuLiveHTML(uid, d) {
+  const diK = d.cur.split(':')[0];
+  const curEi = Number(d.cur.split(':')[1]);
+  const list = d.list || [];
+  const line = txt => `<div class="stu-now-line"><span>${esc(txt)}</span></div>`;
+  const allDone = list.length > 0 && list.every((it, ei) => { const c = d.checks[diK + ':' + ei]; return !!(c && c.done === true); });
+  if (allDone) return `<div class="stu-now">${line(t('students.nowDone'))}</div>`;
+  const head = `<div class="stu-now-row stu-live-head"><span class="stu-now-tag">${esc(t('students.nowCur'))}</span><span class="stu-now-name stu-live-name">${esc(stuLiveNameOf(list[curEi]))}</span></div>`;
+  const dots = stuLiveDotsHTML(d);
+  const band = dots ? `<div class="stu-live-band"><div class="sf-dots">${dots}</div></div>` : '';
+  let nextItem = null;
+  for (let ei = curEi + 1; ei < list.length; ei++) { const c = d.checks[diK + ':' + ei]; if (!c || c.done !== true) { nextItem = list[ei]; break; } }
+  const tail = nextItem
+    ? `<div class="stu-now-row stu-live-next"><span class="stu-now-tag">${esc(t('students.nowNext'))}</span><span class="stu-now-name stu-live-name">${esc(stuLiveNameOf(nextItem))}</span></div>`
+    : line(t('students.nowLast'));
+  return `<div class="stu-now">${head}${band}${tail}</div>`;
+}
+function stuLivePaint() {
+  try {
+    const uid = STU_LIVE.uid;
+    if (!uid) return;
+    if (typeof STUDENTS_DETAIL === 'undefined' || STUDENTS_DETAIL !== uid) return;
+    const box = $('stu-now');
+    if (!box || box.dataset.stuDay !== uid) return;
+    if (stuLiveDocOk(STU_LIVE.doc)) {
+      box.innerHTML = stuLiveHTML(uid, STU_LIVE.doc);
+      stuLiveWire(box);
+      STU_LIVE.shown = true;
+    } else if (STU_LIVE.shown) {
+      /* El espejo murió (el alumno cerró su día): la fila
+         vuelve a su lectura de siempre, byte a byte. */
+      box.innerHTML = stuNowHTML(uid, STU_LIVE.plan, STU_LIVE.logs, STU_LIVE.cfg);
+      stuNowWire(box);
+      STU_LIVE.shown = false;
+    }
+  } catch {}
+}
+function stuLiveWire(box) {
+  if (!box) return;
+  box.querySelectorAll('[data-stu-live-dot]').forEach(b => b.onclick = () => stuLiveDotTap(Number(b.dataset.stuLiveDot)));
+}
+/* El toque del entrenador: la frontera de sessDotTap sobre
+   una COPIA del mapa del documento — tocar en o tras la
+   frontera marca hasta ahí (sessDotMark espejado, con su
+   markedAt y el sello by/at de quien marca); tocar antes
+   desmarca desde ahí. Se escribe SOLO el mapa y la hora en
+   el documento compartido (updateDoc: si el alumno ya
+   cerró y el documento murió, la escritura falla en
+   silencio y no resucita nada). El repintado llega por la
+   propia suscripción. */
+function stuLiveDotTap(si) {
+  try {
+    const uid = STU_LIVE.uid;
+    const d = STU_LIVE.doc;
+    const me = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : '';
+    if (!uid || !me || !stuLiveDocOk(d)) return;
+    const key = d.cur;
+    const chk = d.checks[key];
+    if (!chk || !Array.isArray(chk.sets) || !chk.sets[si]) return;
+    const item = (d.list || [])[Number(key.split(':')[1])] || null;
+    const ex = stuLiveExOf(item);
+    const checks = JSON.parse(JSON.stringify(d.checks));
+    const c2 = checks[key];
+    if (!c2 || !Array.isArray(c2.sets)) return;
+    const fr = sessSetsFrontier(c2);
+    const now = Date.now();
+    if (si >= fr) { for (let j = fr; j <= si; j++) { const sj = c2.sets[j]; if (sj && !sessSetIsZero(ex, sj) && sj.dot !== true) { sessDotMark(sj); sj.markedAt = now; sj.by = me; sj.at = now; } } }
+    else { for (let j = si; j < fr; j++) { const sj = c2.sets[j]; if (sj && sj.dot === true) { delete sj.dot; delete sj.markedAt; sj.by = me; sj.at = now; } } }
+    updateDoc(doc(db, 'training_live', uid), { checks, updatedAt: now }).catch(() => {});
+  } catch {}
+}
 /* El toque en un ejercicio de la línea abre el EDITOR DE
    SIEMPRE de ese ejercicio en ese día del plan de ese alumno
    (la misma ruta de stuQDayEdit: plan fresco, openPlanEditor
@@ -10927,6 +11092,11 @@ async function loadStuDay(uid, u) {
      botones nacen en esta pasada asíncrona, no en el detalle. */
   const n2 = $('stu-now');
   if (n2 && n2.dataset.stuDay === uid) { n2.innerHTML = stuNowHTML(uid, state.plan, logs || [], state.cfg); stuNowWire(n2); }
+  /* AUTH-634: con la fila de siempre ya pintada, se arma la
+     suscripción a su espejo en vivo — si el alumno está
+     entrenando ahora, la fila pasa a su variante en vivo;
+     sin documento, queda byte a byte como se pintó. */
+  stuLiveWatch(uid, state.plan, logs || [], state.cfg);
 }
 /* H-07 (AUTH-2026-11-10-392; auditoría de espacio 2026-11-09 §H-07 (a),
    aprobado por Ronald 2026-11-10): las filas del bloque de planes
@@ -14300,6 +14470,7 @@ function studentsRowTap(uid) {
   renderStudentsBody();
 }
 function studentsCloseDetail() {
+  try { stuLiveStop(); } catch {}   /* AUTH-634: la suscripción al espejo muere con la ficha */
   STUDENTS_DETAIL = null;
   renderStudentsBody();
   const y = STUDENTS_SCROLL;
@@ -30296,6 +30467,197 @@ function trainChecksPersist(planId) {
       localStorage.setItem(trainChecksKey(planId), JSON.stringify(TRAIN_CHECKS));
     else { localStorage.removeItem(trainChecksKey(planId)); trainFlowDrop(planId); }   /* AUTH-451: si el borrador de marcas muere (día cerrado o vacío), el del flujo muere con él */
     TRAIN_CHECKS_EPOCH++;   /* AUTH-497: todo guardado del borrador — gesto del panel o de la tarjeta, sellado, cierre del día — es un avance de la sesión */
+  } catch {}
+  tlHookPersist(planId);   /* AUTH-634: el espejo en vivo sigue a cada guardado del borrador (su propio try/catch, jamás rompe el guardado) */
+}
+/* ═══ AUTH-634 · EL ESPEJO DE LA SESIÓN EN CURSO
+   (training_live/{uid}) — diseño aprobado por Ronald el
+   2026-11-27, con su delta de reglas.
+   EL PROBLEMA (su captura del 2026-11-26): la ficha del
+   alumno decía «Sin ejercicio en curso» mientras el alumno
+   entrenaba, porque la fila de la ficha solo puede leer el
+   plan y los registros (training_logs) — y el registro de
+   hoy NACE al cerrar el día: durante la sesión, el progreso
+   vive solo en el borrador local de su teléfono (la
+   invariante P6) y en Firestore no hay nada que leer.
+   LA PIEZA: un documento espejo por alumno con la
+   PROYECCIÓN SANEADA de ese mismo borrador — la misma
+   información que la ficha necesita (qué ejercicio está en
+   curso, qué series van hechas) — publicado por la propia
+   sesión del alumno. Una sola fuente de verdad: el espejo
+   no es un contador paralelo; al cerrar el día, el registro
+   de siempre sigue naciendo del mismo estado, una sola vez,
+   como hoy (sessFullSync y el escritor del cierre NO se
+   tocan). La P6 se precisa, no se rompe: el borrador jamás
+   escribe en el registro; escribe SOLO su espejo.
+   PUBLICACIÓN: todo guardado del borrador pasa por
+   trainChecksPersist — su gancho publica con freno
+   (~1,5 s, el último estado manda) y con guarda de
+   contenido (si la proyección no cambió, no se escribe).
+   Al abrir la vista de entrenamiento con un borrador
+   restaurado, la suscripción (tlWatchSync, en la
+   hidratación del contexto) publica sin esperar a un gesto.
+   Borrador vacío o día cerrado → el espejo se BORRA, con el
+   mismo gesto que borra el borrador.
+   FUSIÓN: la app del alumno escucha su propio espejo
+   mientras su contexto de entrenamiento vive; las marcas
+   que su entrenador puso desde la ficha (cada una con su
+   sello by/at por serie) se funden en TRAIN_CHECKS serie a
+   serie — la última marca manda, por serie — y se guardan
+   en el borrador local. La fusión NUNCA finaliza un
+   ejercicio por la espalda: si el entrenador marca la
+   última serie que faltaba, el sellado de AUTH-496 sigue
+   ocurriendo en el siguiente gesto o latido del propio
+   alumno, como manda el diseño. Las sesiones sueltas
+   (sin plan) no tienen espejo: la ficha lee planes. ═══ */
+let TL_PUB = { timer: 0, lastKey: '' };
+let TL_WATCH = { key: '', unsub: null };
+let TL_FUSED = {};   /* «di:ei:si» -> el mayor sello `at` externo ya fundido */
+function tlLiveGuard(planId) {
+  if (!planId) return null;
+  if (TRAIN_CHECKS_CTX !== planId + '|' + todayISO()) return null;
+  const plan = (typeof MY_PLAN !== 'undefined') ? MY_PLAN : null;
+  if (!plan || plan.id !== planId || plan.__loose) return null;
+  const uid = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : '';
+  if (!uid) return null;
+  return { uid, plan };
+}
+/* La proyección: las marcas se leen del borrador GUARDADO
+   pasándolas por el saneador de siempre (trainChecksRead) —
+   el espejo lleva exactamente la forma que la propia app
+   acepta al restaurar, ni un campo más. El día y el
+   ejercicio «de ahora» se resuelven con la cascada de la
+   casa (la de trainBarState, la de la píldora): manda el
+   flujo abierto; si no, el pausado; si no, el primer
+   pendiente con entrada; si no, el primer pendiente. Sin
+   estado de barra (sesión sin cronómetro arrancado), la
+   misma cascada corre sobre las claves del borrador y el
+   flujo en memoria. */
+function tlProjection(plan) {
+  const checks = trainChecksRead(plan.id);
+  const keys = Object.keys(checks).filter(k => /^-?\d+:\d+$/.test(k));
+  if (!keys.length) return null;
+  let di = -1, curEi = -1;
+  let st = null;
+  try { st = trainBarState(); } catch {}
+  if (st && st.plan && st.plan.id === plan.id && st.di >= 0 && checks[st.di + ':' + st.cur]) { di = st.di; curEi = st.cur; }
+  if (di < 0) {
+    const dis = [...new Set(keys.map(k => Number(k.split(':')[0])))].filter(d => d >= 0).sort((a, b) => a - b);
+    if (!dis.length) return null;
+    di = dis[0];
+    const eff = trainEffectiveList(plan, di);
+    const pend = [];
+    eff.forEach((it, ei) => { const c = checks[di + ':' + ei]; if (!c || c.done !== true) pend.push(ei); });
+    const withEntry = pend.filter(ei => !!checks[di + ':' + ei]);
+    const openEi = withEntry.find(ei => { const f = TRAIN_FLOW[di + ':' + ei]; return f && f.st === 'open'; });
+    const pausedEi = withEntry.find(ei => { const f = TRAIN_FLOW[di + ':' + ei]; return f && f.st === 'paused'; });
+    if (openEi != null) curEi = openEi;
+    else if (pausedEi != null) curEi = pausedEi;
+    else if (withEntry.length) curEi = withEntry[0];
+    else if (pend.length) curEi = pend[0];
+    else {
+      const ks = keys.filter(k => Number(k.split(':')[0]) === di).map(k => Number(k.split(':')[1])).sort((a, b) => a - b);
+      curEi = ks.length ? ks[ks.length - 1] : -1;
+    }
+    if (curEi < 0) return null;
+  }
+  const eff = trainEffectiveList(plan, di);
+  const list = eff.map(it => ({ exerciseId: (it.ex && it.ex.exerciseId) || null, name: (it.ex && (trainExName(it.ex) || it.ex.name)) || '', reps: (it.ex && it.ex.reps) || '' }));
+  return { date: todayISO(), planId: plan.id, di, cur: di + ':' + curEi, list, checks, updatedAt: Date.now() };
+}
+function tlPublishNow() {
+  try {
+    const g = tlLiveGuard(String(TRAIN_CHECKS_CTX || '').split('|')[0]);
+    if (!g) return;
+    const proj = (TRAIN_CHECKS && Object.keys(TRAIN_CHECKS).length) ? tlProjection(g.plan) : null;
+    const ref = doc(db, 'training_live', g.uid);
+    if (!proj) {
+      /* Sin borrador (día cerrado o vacío): el espejo muere
+         con él — la ficha vuelve a su lectura de siempre. */
+      if (TL_PUB.lastKey !== '__none') { TL_PUB.lastKey = '__none'; deleteDoc(ref).catch(() => { TL_PUB.lastKey = ''; }); }
+      return;
+    }
+    const key = JSON.stringify([proj.date, proj.planId, proj.di, proj.cur, proj.list, proj.checks]);
+    if (key === TL_PUB.lastKey) return;   /* sin cambio real, no se escribe */
+    TL_PUB.lastKey = key;
+    setDoc(ref, proj).catch(() => { TL_PUB.lastKey = ''; });
+  } catch {}
+}
+function tlPublishSoon(ms) {
+  try {
+    if (TL_PUB.timer) clearTimeout(TL_PUB.timer);
+    TL_PUB.timer = setTimeout(() => { TL_PUB.timer = 0; tlPublishNow(); }, ms == null ? 1500 : ms);
+  } catch {}
+}
+function tlHookPersist(planId) {
+  try {
+    if (!planId) return;
+    if (TRAIN_CHECKS_CTX !== planId + '|' + todayISO()) return;
+    tlPublishSoon();
+  } catch {}
+}
+/* LA FUSIÓN de las marcas externas: cada serie del espejo
+   con sello ajeno (by ≠ mi uid) y más nuevo que el último
+   fundido se aplica al borrador — marcar con el mismo
+   sessDotMark de la sesión (banca el tiempo si la serie
+   contaba) o desmarcar quitando su dot. Lo aplicado se
+   guarda en local por el camino de siempre; la publicación
+   que ese guardado dispara devuelve el estado ya fundido
+   (el saneador retira los sellos by/at del espejo: son del
+   documento, no del borrador). */
+function tlFuse(data, uid, planId) {
+  try {
+    if (!data || data.date !== todayISO() || data.planId !== planId) return;
+    if (TRAIN_CHECKS_CTX !== planId + '|' + todayISO()) return;
+    const checks = data.checks;
+    if (!checks || typeof checks !== 'object') return;
+    let changed = false;
+    Object.keys(checks).forEach(k => {
+      if (!/^-?\d+:\d+$/.test(k)) return;
+      const dchk = checks[k];
+      if (!dchk || !Array.isArray(dchk.sets)) return;
+      const chk = TRAIN_CHECKS[k];
+      if (!chk || !Array.isArray(chk.sets)) return;
+      dchk.sets.forEach((ds, si) => {
+        if (!ds || typeof ds !== 'object') return;
+        if (ds.by == null || ds.by === uid) return;
+        const at = (typeof ds.at === 'number' && isFinite(ds.at)) ? ds.at : 0;
+        const fk = k + ':' + si;
+        if (!(at > (TL_FUSED[fk] || 0))) return;
+        const ls = chk.sets[si];
+        if (!ls) return;
+        TL_FUSED[fk] = at;
+        if (ds.dot === true && ls.dot !== true) { sessDotMark(ls); changed = true; }
+        else if (ds.dot !== true && ls.dot === true) { delete ls.dot; changed = true; }
+      });
+    });
+    if (changed) {
+      trainChecksPersist(planId);
+      try { trainFlowPersist(); } catch {}
+      try { sessPillTick(); } catch {}
+    }
+  } catch {}
+}
+/* La suscripción al propio espejo: nace con el contexto de
+   entrenamiento (la hidratación de loadMyTraining la
+   llama) y muere cuando el contexto cambia de plan o de
+   día. Al nacer, además, publica el borrador restaurado:
+   reabrir la app a mitad de sesión no deja la ficha a
+   ciegas hasta el siguiente gesto. */
+function tlWatchSync(plan) {
+  try {
+    const uid = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : '';
+    const key = (uid && plan && !plan.__loose && plan.id) ? uid + '|' + plan.id + '|' + todayISO() : '';
+    if (TL_WATCH.key === key) return;
+    if (TL_WATCH.unsub) { try { TL_WATCH.unsub(); } catch {} TL_WATCH.unsub = null; }
+    TL_WATCH.key = key;
+    TL_FUSED = {};
+    if (!key) return;
+    TL_WATCH.unsub = onSnapshot(doc(db, 'training_live', uid), {
+      next: snap => { try { if (snap && snap.exists()) tlFuse(snap.data(), uid, plan.id); } catch {} },
+      error: () => {}
+    });
+    tlPublishSoon(80);
   } catch {}
 }
 /* ═══ AUTH-451 · EL ESTADO DEL FLUJO TAMBIÉN ES BORRADOR
@@ -48498,6 +48860,7 @@ async function loadMyTraining() {
     FLOW_AREA_FOLD = {};   /* AUTH-495: el pliegue de las áreas de series muere con el contexto, como el flujo */
     SESS_EDIT_FOCUS = null;   /* EDITAR ENFOCADO: el foco del editor muere con el contexto, como el pliegue */
     trainFlowRehydrate(plan.id);   /* AUTH-451: …y renace de su propio borrador, como las marcas */
+    try { tlWatchSync(plan); } catch {}   /* AUTH-634: el espejo en vivo nace con el contexto — suscripción a las marcas de su entrenador y publicación del borrador restaurado */
   }
   return trainViewPaint(false);   /* AUTH-580 (P2): la composición y la pintura viven en trainViewPaint — la comparten esta carga completa y el repintado ligero del día */
 }
