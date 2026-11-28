@@ -55598,10 +55598,16 @@ async function libManifestVersionRead() {
   } catch {}
   return null;
 }
-async function libManifestVersionWrite(sig, count) {
+async function libManifestVersionWrite(sig, count, parts) {
   try {
-    await setDoc(doc(db, 'app_settings', 'library_manifest_version'),
-      { sig, count, updatedAt: serverTimestamp() });
+    /* AUTH-659: quien regenera el manifiesto partido declara
+       también cuántas partes escribió (campo parts); la
+       autorreparación del mundo de un solo documento lo omite
+       a propósito — la PRESENCIA de parts es lo que distingue
+       un mundo del otro para el lector. */
+    const body = { sig, count, updatedAt: serverTimestamp() };
+    if (Number.isInteger(parts) && parts >= 1) body.parts = parts;
+    await setDoc(doc(db, 'app_settings', 'library_manifest_version'), body);
   } catch {}
 }
 /* V5 — EL GUARDADO DEL EDITOR YA NO REESCRIBE EL MANIFIESTO EN
@@ -55672,9 +55678,13 @@ window.addEventListener('pageshow', () => { libRevalidate(); });
      espacio legado congelado; se exploran siempre al menos E001–E125
      y se sigue mientras la tanda anterior haya traído documentos.
      Desde AUTH-2026-11-05-258 ese sondeo es solo el RESPALDO: la
-     vía normal es el manifiesto único app_settings/library_manifest,
+     vía normal es el manifiesto app_settings/library_manifest,
      que guarda el contenido íntegro de la fábrica y cuesta UNA
-     lectura (ver libFetchClassDocs). */
+     lectura (ver libFetchClassDocs). Desde AUTH-659 el
+     manifiesto va PARTIDO en library_manifest_p1..pN (el
+     documento único tocó el techo de 1 MiB de Firestore): la
+     vía normal cuesta N lecturas en paralelo, y el documento
+     único queda congelado como respaldo de migración. */
 async function libFetchClassDocs() {
   const colRef = collection(db, 'exercise_library');
   const uid = (auth.currentUser && auth.currentUser.uid) || '';
@@ -55715,7 +55725,40 @@ async function libFetchClassDocs() {
     if (LIB_FACTORY_CACHE && ver && ver.sig === LIB_FACTORY_CACHE.vsig && Number(ver.count) === LIB_FACTORY_CACHE.count) useCache = true;
     if (useCache) {
       factoryDocs = LIB_FACTORY_CACHE.docs;
+    } else if (ver && Number(ver.parts) >= 1) {
+      /* AUTH-659 — LA FÁBRICA POR PARTES: la versión declara
+         cuántas partes hay; se piden TODAS en paralelo, se unen
+         en orden (de parte, y de claves dentro de cada parte:
+         el mismo orden E001… del mapa de siempre) y se exige
+         que la huella de la unión sea la de la versión y que
+         el conteo cuadre. Si una parte falta, no se puede leer
+         o la huella no cuadra, NO se sirve un catálogo parcial
+         ni una mezcla de generaciones: factoryDocs queda en
+         null y manda el sondeo de respaldo de abajo, como
+         siempre que el manifiesto no está disponible. */
+      try {
+        const nParts = Number(ver.parts);
+        const snaps = await Promise.all(Array.from({ length: nParts }, (_, i) =>
+          getDoc(doc(db, 'app_settings', 'library_manifest_p' + (i + 1)))));
+        const joined = [];
+        let okParts = snaps.every(s => s.exists());
+        if (okParts) {
+          for (const s of snaps) {
+            const mdocs = (s.data() || {}).docs;
+            if (!mdocs || typeof mdocs !== 'object' || Array.isArray(mdocs)) { okParts = false; break; }
+            Object.keys(mdocs).forEach(id => joined.push({ id, ...mdocs[id] }));
+          }
+        }
+        if (okParts && joined.length === Number(ver.count) && libFactoryVersionSig(joined) === ver.sig) {
+          factoryDocs = joined;
+          LIB_FACTORY_CACHE = { vsig: ver.sig, count: joined.length, docs: joined };
+        }
+      } catch {}
     } else {
+      /* Mundo de UN documento (ventana de migración o versión
+         aún sin parts): se lee el manifiesto único como hasta
+         la AUTH-658; el documento queda congelado tras la
+         migración y las sesiones viejas lo siguen leyendo. */
       try {
         const msnap = await getDoc(doc(db, 'app_settings', 'library_manifest'));
         if (msnap.exists()) {
@@ -55767,15 +55810,47 @@ async function libFetchClassDocs() {
   LIB_OWN = own;
   LIB_PENDING = pending;
 }
-/* Escribe el manifiesto de fábrica (AUTH-2026-11-05-258): el
-   contenido íntegro de los documentos SIN 'estado' del catálogo
-   dado, en un solo documento de app_settings. Solo el
-   propietario puede escribirlo (las reglas lo limitan a su
-   lista de documentos); cualquier fallo se traga — el
-   manifiesto jamás rompe una superficie — y la próxima carga
-   que caiga al sondeo lo reintenta. Los valores undefined se
-   omiten: Firestore los rechazaría y en un documento leído de
-   la colección nunca existen. */
+/* AUTH-659 — EL MANIFIESTO PARTIDO: el documento único tocó el
+   techo de 1 MiB de Firestore (con la carga del 2026-11-27
+   mediría 1.063.110 B contra el máximo de 1.048.576 B), así que
+   la fábrica se guarda en documentos
+   app_settings/library_manifest_p1..pN, con la misma forma y
+   el mismo contenido íntegro por ficha. El corte es mecánico:
+   rangos contiguos de ids empaquetados por presupuesto de
+   tamaño, recalculado entero en cada regeneración — el mismo
+   algoritmo vive en refresh_manifest.py, como la huella —.
+   Una parte nueva nace sola en la primera regeneración que la
+   necesita y su número se publica en el documento de versión. */
+const LIB_MANIFEST_PART_BUDGET = 524288;   // 512 KiB medidos con el proxy (≈48 % del techo real)
+function libManifestPack(map, ids) {
+  const enc = new TextEncoder();
+  const parts = [];
+  let cur = null, curSize = 0;
+  (ids || []).forEach(id => {
+    /* El proxy de tamaño: bytes UTF-8 del JSON compacto de la
+       ficha (sin su id) más la clave — sobreestima ~4,6 %
+       frente a la contabilidad de Firestore, hacia el lado
+       seguro; ninguna parte se acerca al techo real. */
+    const size = enc.encode(JSON.stringify(map[id])).length + enc.encode(id).length;
+    if (!cur || (cur.ids.length && curSize + size > LIB_MANIFEST_PART_BUDGET)) {
+      cur = { ids: [], docs: {} }; parts.push(cur); curSize = 0;
+    }
+    cur.ids.push(id); cur.docs[id] = map[id]; curSize += size;
+  });
+  return parts;
+}
+/* Escribe el manifiesto de fábrica (AUTH-2026-11-05-258; desde
+   AUTH-659, partido): el contenido íntegro de los documentos
+   SIN 'estado' del catálogo dado, repartido en las partes de
+   app_settings. Solo el propietario puede escribirlas (las
+   reglas lo limitan a su lista de documentos); cualquier fallo
+   se traga — el manifiesto jamás rompe una superficie — y la
+   próxima carga que caiga al sondeo lo reintenta. Los valores
+   undefined se omiten: Firestore los rechazaría y en un
+   documento leído de la colección nunca existen. El documento
+   único viejo NO se escribe nunca más: queda congelado como
+   respaldo de las sesiones aún no actualizadas (decisión de
+   Ronald, 2026-11-28). */
 async function libManifestWrite(docs) {
   try {
     const map = {};
@@ -55785,10 +55860,24 @@ async function libManifestWrite(docs) {
       Object.keys(x).forEach(k => { if (k !== 'id' && x[k] !== undefined) clean[k] = x[k]; });
       map[x.id] = clean;
     });
-    const ids = Object.keys(map);
+    const ids = Object.keys(map).sort();
     if (!ids.length) return;
-    await setDoc(doc(db, 'app_settings', 'library_manifest'),
-      { v: 1, count: ids.length, generatedAt: serverTimestamp(), docs: map });
+    /* Las partes se escriben primero, en orden, y el documento
+       de versión AL FINAL, con la huella del MISMO conjunto y
+       el nº de partes: la versión es el punto de confirmación
+       de la generación — antes de ella los lectores siguen con
+       la generación anterior (o con su caché); después, ven la
+       nueva entera o detectan la mezcla por la huella y caen
+       al sondeo. Si alguna escritura de parte falla, la
+       excepción llega al catch de fuera y la bandera de sucio
+       queda puesta, como siempre. */
+    const prev = await libManifestVersionRead();
+    const prevParts = prev ? (Number(prev.parts) || 0) : 0;
+    const parts = libManifestPack(map, ids);
+    for (let i = 0; i < parts.length; i++) {
+      await setDoc(doc(db, 'app_settings', 'library_manifest_p' + (i + 1)),
+        { v: 2, part: i + 1, parts: parts.length, count: parts[i].ids.length, generatedAt: serverTimestamp(), docs: parts[i].docs });
+    }
     /* AUTH-629: regenerado el manifiesto, la bandera de sucio se
        quita (la regeneración pendiente ya no existe) y el
        documento de versión se escribe con la huella del MISMO
@@ -55798,7 +55887,14 @@ async function libManifestWrite(docs) {
     try { localStorage.removeItem(LIB_MANIFEST_DIRTY_KEY); } catch {}
     const written = ids.map(id => ({ id, ...map[id] }));
     LIB_FACTORY_CACHE = { vsig: libFactoryVersionSig(written), count: ids.length, docs: written };
-    libManifestVersionWrite(LIB_FACTORY_CACHE.vsig, ids.length);
+    libManifestVersionWrite(LIB_FACTORY_CACHE.vsig, ids.length, parts.length);
+    /* Partes sobrantes de una generación anterior con más
+       partes: se borran a mejor esfuerzo DESPUÉS de publicada
+       la versión nueva — ningún lector pide más allá del
+       parts vigente, así que una huérfana sería inofensiva. */
+    for (let i = parts.length + 1; i <= prevParts; i++) {
+      try { await deleteDoc(doc(db, 'app_settings', 'library_manifest_p' + i)); } catch {}
+    }
   } catch {}
 }
 /* El estado de un documento de la biblioteca: sin campo = fábrica. */
