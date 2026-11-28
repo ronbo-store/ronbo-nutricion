@@ -55878,16 +55878,35 @@ async function libManifestWrite(docs) {
       await setDoc(doc(db, 'app_settings', 'library_manifest_p' + (i + 1)),
         { v: 2, part: i + 1, parts: parts.length, count: parts[i].ids.length, generatedAt: serverTimestamp(), docs: parts[i].docs });
     }
-    /* AUTH-629: regenerado el manifiesto, la bandera de sucio se
-       quita (la regeneración pendiente ya no existe) y el
-       documento de versión se escribe con la huella del MISMO
-       mapa que se acaba de escribir — versión y manifiesto
-       nacen del mismo proceso y nunca se desincronizan entre sí.
-       La caché de la sesión también se actualiza con lo escrito. */
-    try { localStorage.removeItem(LIB_MANIFEST_DIRTY_KEY); } catch {}
+    /* AUTH-629: el documento de versión se escribe con la
+       huella del MISMO mapa que se acaba de escribir — versión
+       y manifiesto nacen del mismo proceso y nunca se
+       desincronizan entre sí — y solo cuando la versión está
+       publicada se quita la bandera de sucio (la regeneración
+       pendiente ya no existe) y se actualiza la caché de la
+       sesión con lo escrito.
+       REPARO 659 (hallado por la batería de velocidad de esta
+       promoción, escena de cierre brusco): la versión se
+       escribe AQUÍ, esperada, y no por la vía de
+       libManifestVersionWrite — esa traga sus errores a
+       propósito porque su otro llamador es la autorreparación
+       a mejor esfuerzo —. Si la escritura de la versión
+       fallara tras escribir las partes (o la página muriera en
+       ese instante), la excepción sube al catch de fuera y la
+       bandera de sucio QUEDA puesta: la próxima sesión del
+       propietario fuerza el sondeo y regenera, como manda el
+       diseño y como pasaba con el documento único, cuya
+       escritura iba antes de quitar la bandera. Sin este
+       orden, las partes nuevas quedarían huérfanas tras una
+       versión vieja que no las nombra y el manifiesto
+       congelado seguiría sirviéndose sin que nadie lo
+       recogiera. */
     const written = ids.map(id => ({ id, ...map[id] }));
-    LIB_FACTORY_CACHE = { vsig: libFactoryVersionSig(written), count: ids.length, docs: written };
-    libManifestVersionWrite(LIB_FACTORY_CACHE.vsig, ids.length, parts.length);
+    const vsig = libFactoryVersionSig(written);
+    await setDoc(doc(db, 'app_settings', 'library_manifest_version'),
+      { sig: vsig, count: ids.length, parts: parts.length, updatedAt: serverTimestamp() });
+    try { localStorage.removeItem(LIB_MANIFEST_DIRTY_KEY); } catch {}
+    LIB_FACTORY_CACHE = { vsig, count: ids.length, docs: written };
     /* Partes sobrantes de una generación anterior con más
        partes: se borran a mejor esfuerzo DESPUÉS de publicada
        la versión nueva — ningún lector pide más allá del
