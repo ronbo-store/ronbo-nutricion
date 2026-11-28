@@ -30469,6 +30469,7 @@ function trainChecksPersist(planId) {
     TRAIN_CHECKS_EPOCH++;   /* AUTH-497: todo guardado del borrador — gesto del panel o de la tarjeta, sellado, cierre del día — es un avance de la sesión */
   } catch {}
   tlHookPersist(planId);   /* AUTH-634: el espejo en vivo sigue a cada guardado del borrador (su propio try/catch, jamás rompe el guardado) */
+  tdHookPersist(planId);   /* AUTH-660: el borrador en servidor sigue al mismo guardado (su propio try/catch, jamás rompe el guardado) */
 }
 /* ═══ AUTH-634 · EL ESPEJO DE LA SESIÓN EN CURSO
    (training_live/{uid}) — diseño aprobado por Ronald el
@@ -30594,6 +30595,142 @@ function tlHookPersist(planId) {
     if (!planId) return;
     if (TRAIN_CHECKS_CTX !== planId + '|' + todayISO()) return;
     tlPublishSoon();
+  } catch {}
+}
+
+/* ═══ AUTH-660 · EL BORRADOR TEMPRANO DEL DÍA EN EL SERVIDOR
+   (training_drafts/{uid}) — pieza 3 del día extra, diseño
+   aprobado por Ronald el 2026-11-28. La sesión de hoy se
+   guarda en el servidor ANTES del cierre para no vivir solo
+   en el teléfono: una colección nueva que ninguna cuenta lee
+   (no es un registro; el registro sigue naciendo una sola
+   vez, al cerrar, en training_logs). La proyección es
+   COMPLETA — base, edición, marcas, flujo, cronómetro y
+   cardio tal cual viven en local — porque desde ella la
+   sesión debe poder reconstruirse entera tras una pérdida
+   total del almacenamiento local. Publicador calcado del
+   espejo de AUTH-634: freno de 1,5 s, guarda de contenido
+   por huella JSON y try/catch propio que jamás rompe el
+   gesto. Al cerrar (o saltar) el día, el borrador se borra;
+   si un borrador queda abandonado, se autolimpia por fecha
+   al abrir la vista un día posterior. Las sesiones sueltas
+   (__loose / 'suelta') no tienen borrador en servidor. ═══ */
+let TD_PUB = { timer: 0, lastKey: '' };
+function tdRaw(key) {
+  try { const v = JSON.parse(localStorage.getItem(key) || 'null'); return (v && typeof v === 'object') ? v : null; } catch { return null; }
+}
+function tdPlanOf(planId) {
+  try {
+    if (typeof MY_PLAN !== 'undefined' && MY_PLAN && MY_PLAN.id === planId) return MY_PLAN;
+    if (typeof MY_PLANS_ALL !== 'undefined' && Array.isArray(MY_PLANS_ALL)) return MY_PLANS_ALL.find(p => p && p.id === planId) || null;
+  } catch {}
+  return null;
+}
+function tdClosedToday(planId, di) {
+  try {
+    const pre = planId + '|' + todayISO() + '|';
+    if (Object.keys(TRAIN_CLOSED_MARK || {}).some(k => k.startsWith(pre) && (di == null || k === pre + di))) return true;
+    const logs = (typeof MY_LOGS !== 'undefined' && Array.isArray(MY_LOGS)) ? MY_LOGS : [];
+    return logs.some(l => l && l.planId === planId && l.date === todayISO() && (di == null || l.dayIndex === di) && ['done', 'partial', 'skipped'].includes(trainLogStatus(l)));
+  } catch { return false; }
+}
+function tdGuard(planId, iso) {
+  if (!planId || planId === 'suelta') return null;
+  if (iso && iso !== todayISO()) return null;
+  if (TRAIN_CHECKS_CTX && TRAIN_CHECKS_CTX !== planId + '|' + todayISO()) return null;
+  const plan = tdPlanOf(planId);
+  if (!plan || plan.__loose) return null;
+  const uid = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : '';
+  if (!uid) return null;
+  return { uid, plan };
+}
+function tdEffectiveDi(plan, base, checks) {
+  try { const d = sessTodayDi(plan); if (d != null) return d; } catch {}
+  if (base) return base.kind === 'brought' ? base.di : -1;
+  const ks = Object.keys(checks || {});
+  if (ks.length) return Number(ks[0].split(':')[0]);
+  return 0;
+}
+function tdProjection(plan) {
+  const base = tdRaw(trainBaseKey(plan.id));
+  const edits = tdRaw(trainEditsKey(plan.id));
+  let checks = {};
+  try { const raw = localStorage.getItem(trainChecksKey(plan.id)); checks = raw ? JSON.parse(raw) : {}; if (!checks || typeof checks !== 'object' || Array.isArray(checks)) checks = {}; } catch { checks = {}; }
+  if (!Object.keys(checks).length && TRAIN_CHECKS && TRAIN_CHECKS_CTX === plan.id + '|' + todayISO()) checks = TRAIN_CHECKS;
+  const flow = tdRaw(trainFlowKey(plan.id));
+  const chrono = trainChronoRead(plan.id);
+  const cardio = tdRaw(trainCardioKey(plan.id));
+  const cardio2 = tdRaw(trainCardio2Key(plan.id));
+  const empty = !base && !edits && !Object.keys(checks).length && !flow && !chrono && !cardio && !cardio2;
+  if (empty) return null;
+  const di = tdEffectiveDi(plan, base, checks);
+  return { v: 1, date: todayISO(), planId: plan.id, di, base: base || null, edits: edits || null, checks, flow: flow || null, chrono: chrono || null, cardio: cardio || null, cardio2: cardio2 || null };
+}
+function tdDeleteDraft(uid) {
+  try { TD_PUB.lastKey = '__none'; deleteDoc(doc(db, 'training_drafts', uid)).catch(() => { TD_PUB.lastKey = ''; }); } catch {}
+}
+function tdPublishNow() {
+  try {
+    const planId = String(TRAIN_CHECKS_CTX || '').split('|')[0] || ((typeof MY_PLAN !== 'undefined' && MY_PLAN) ? MY_PLAN.id : '');
+    const g = tdGuard(planId);
+    if (!g) return;
+    const proj = tdProjection(g.plan);
+    const ref = doc(db, 'training_drafts', g.uid);
+    if (!proj) {
+      if (TD_PUB.lastKey !== '__none') tdDeleteDraft(g.uid);
+      return;
+    }
+    if (tdClosedToday(g.plan.id, proj.di)) { tdDeleteDraft(g.uid); return; }   /* anti-resurrección: un día cerrado no resucita como borrador */
+    const key = JSON.stringify([proj.date, proj.planId, proj.di, proj.base, proj.edits, proj.checks, proj.flow, proj.chrono, proj.cardio, proj.cardio2]);
+    if (key === TD_PUB.lastKey) return;   /* sin cambio real, no se escribe */
+    TD_PUB.lastKey = key;
+    setDoc(ref, { ...proj, updatedAt: serverTimestamp() }).catch(() => { TD_PUB.lastKey = ''; });
+  } catch {}
+}
+function tdPublishSoon(ms) {
+  try {
+    if (TD_PUB.timer) clearTimeout(TD_PUB.timer);
+    TD_PUB.timer = setTimeout(() => { TD_PUB.timer = 0; tdPublishNow(); }, ms == null ? 1500 : ms);
+  } catch {}
+}
+function tdHookPersist(planId, iso) {
+  try {
+    if (!planId || planId === 'suelta') return;
+    if (iso && iso !== todayISO()) return;
+    if (TRAIN_CHECKS_CTX && TRAIN_CHECKS_CTX !== planId + '|' + todayISO()) return;
+    tdPublishSoon();
+  } catch {}
+}
+function tdLocalEmpty(planId) {
+  try {
+    if (TRAIN_CHECKS && TRAIN_CHECKS_CTX === planId + '|' + todayISO() && Object.keys(TRAIN_CHECKS).length) return false;
+    /* El vacío del diseño (§3.4): sin base, sin edición, sin
+       marcas y sin cronómetro — solo esas cuatro piezas. */
+    const keys = [trainBaseKey(planId), trainEditsKey(planId), trainChecksKey(planId), trainChronoKey(planId)];
+    return keys.every(k => localStorage.getItem(k) == null);
+  } catch { return false; }
+}
+async function tdRecoverDraft(plan) {
+  try {
+    if (!plan || plan.__loose || plan.id === 'suelta') return;
+    const uid = (typeof auth !== 'undefined' && auth.currentUser) ? auth.currentUser.uid : '';
+    if (!uid) return;
+    const snap = await getDoc(doc(db, 'training_drafts', uid));
+    if (!snap || !snap.exists()) return;
+    const d = snap.data();
+    if (!d || typeof d !== 'object') return;
+    if (d.date !== todayISO()) { try { await deleteDoc(doc(db, 'training_drafts', uid)); } catch {} return; }   /* autolimpieza del borrador abandonado */
+    if (d.planId !== plan.id) return;
+    if (tdClosedToday(plan.id, d.di)) { try { await deleteDoc(doc(db, 'training_drafts', uid)); } catch {} return; }
+    if (!tdLocalEmpty(plan.id)) return;   /* local presente gana: sin fusión */
+    const put = (key, v) => { try { if (v && typeof v === 'object') localStorage.setItem(key, JSON.stringify(v)); } catch {} };
+    put(trainBaseKey(plan.id), d.base);
+    put(trainEditsKey(plan.id), d.edits);
+    put(trainChecksKey(plan.id), d.checks && Object.keys(d.checks).length ? d.checks : null);
+    put(trainFlowKey(plan.id), d.flow);
+    put(trainChronoKey(plan.id), d.chrono);
+    put(trainCardioKey(plan.id), d.cardio);
+    put(trainCardio2Key(plan.id), d.cardio2);
   } catch {}
 }
 /* LA FUSIÓN de las marcas externas: cada serie del espejo
@@ -30737,9 +30874,10 @@ function trainFlowPersist() {
     if (!planId) return;
     const snap = trainFlowSnap();
     TRAIN_FLOW_SNAP_AT = Date.now();
-    if (!snap.flow || !Object.keys(snap.flow).length) { localStorage.removeItem(trainFlowKey(planId)); return; }
+    if (!snap.flow || !Object.keys(snap.flow).length) { localStorage.removeItem(trainFlowKey(planId)); tdHookPersist(planId); return; }
     snap.at = TRAIN_FLOW_SNAP_AT;
     localStorage.setItem(trainFlowKey(planId), JSON.stringify(snap));
+    tdHookPersist(planId);
   } catch {}
 }
 function trainFlowDrop(planId) {
@@ -30937,12 +31075,15 @@ function trainEditsWrite(planId, ed, iso) {
      almacenamiento se tragaba en silencio y la persona no
      tenía forma de saber si su ejercicio entró o no. Los
      demás llamantes ignoran el valor, como siempre. */
+  let okEd = false;
   try {
     if (ed && ((ed.swaps && Object.keys(ed.swaps).length) || (ed.added && ed.added.length) || (ed.removed && ed.removed.length) || (ed.order && ed.order.length)))
       localStorage.setItem(trainEditsKey(planId, iso), JSON.stringify(ed));
     else localStorage.removeItem(trainEditsKey(planId, iso));
-    return true;
-  } catch { return false; }
+    okEd = true;
+  } catch { okEd = false; }
+  tdHookPersist(planId, iso);   /* AUTH-660 */
+  return okEd;
 }
 function trainEditsClear(planId, iso) { trainEditsWrite(planId, null, iso); }
 /* DÍA ACCIONABLE (2026-10-30, decisiones D1/D4 de Ronald): BASE DE
@@ -30981,6 +31122,7 @@ function trainBaseWrite(planId, v, iso) {
     if (v) localStorage.setItem(trainBaseKey(planId, iso), JSON.stringify(v));
     else localStorage.removeItem(trainBaseKey(planId, iso));
   } catch {}
+  tdHookPersist(planId, iso);   /* AUTH-660 */
 }
 /* Día EFECTIVO de hoy para un plan ya resuelto por su mapa: el del
    mapa si lo hay; si no, el de la base de sesión (traído o libre);
@@ -36098,6 +36240,7 @@ function trainChronoRead(planId) {
 function trainChronoWrite(planId, v) {
   try { if (v) localStorage.setItem(trainChronoKey(planId), JSON.stringify(v));
     else localStorage.removeItem(trainChronoKey(planId)); } catch {}
+  tdHookPersist(planId);   /* AUTH-660 */
 }
 /* CRONÓMETRO DE SESIÓN (punto 88 de la cola, 2026-11-02): UNA sola
    sesión corriendo a la vez. Si ya hay un reloj de HOY para OTRO
@@ -41565,6 +41708,7 @@ async function trainCloseConfirm(plan, di) {
     /* AUTH-517: desde este instante el día CONSTA guardado — la
        marca de sesión lo dice aunque el repintado aún no llegue. */
     TRAIN_CLOSED_MARK[closeKey] = true;
+    try { deleteDoc(doc(db, 'training_drafts', uid)).catch(() => {}); } catch {}   /* AUTH-660: el borrador en servidor muere con el cierre, junto a los retiros locales */
     /* El volcado: la sesión entra en el día de actividad (o sale,
        si el cierre quedó sin estimación) en la misma operación
        lógica — una sola entrada, idempotente al re-cerrar. */
@@ -45327,6 +45471,7 @@ function trainCardioWrite(planId, v, iso) {
     if (s) localStorage.setItem(trainCardioKey(planId, iso), JSON.stringify(s));
     else localStorage.removeItem(trainCardioKey(planId, iso));
   } catch {}
+  tdHookPersist(planId, iso);   /* AUTH-660 */
 }
 /* La vista normalizada del calentamiento — la misma para el
    borrador de hoy, el registro cerrado y la tarjeta de
@@ -45630,6 +45775,7 @@ function trainCardio2Write(planId, doc, iso) {
      calentamiento: el gemelo de AUTH-426 se retira para que un
      cierre posterior no resucite su estado anterior. */
   trainCardioWrite(planId, null, iso);
+  tdHookPersist(planId, iso);   /* AUTH-660 */
 }
 /* La vista normalizada de una entrada: máquina y minutos, o
    nada — la misma doctrina del calentamiento de AUTH-426. */
@@ -48832,6 +48978,7 @@ async function trainSkipDayApply(plan, di, uid, today, logs) {
      REEMPLAZA era el de esa misma sesión con estimación (en
      rotación, saltar apunta a la sesión siguiente, no a la ya
      cerrada: su quemado no se toca). */
+  try { deleteDoc(doc(db, 'training_drafts', uid)).catch(() => {}); } catch {}   /* AUTH-660: el borrador en servidor muere al saltar el día */
   trainChronoWrite(plan.id, null);
   if (TRAIN_CLOSE_DI === di) TRAIN_CLOSE_DI = null;
   trainEditsClear(plan.id);   /* PERSONALIZA: saltar también cierra la sesión — el borrador de cambios de hoy se retira */
@@ -48994,6 +49141,7 @@ async function loadMyTraining() {
        reabrir o recargar la app ya no las borra. Sin borrador,
        el día nace limpio, como siempre. Los borradores de
        fechas pasadas del mismo plan se podan aquí. */
+    await tdRecoverDraft(plan);   /* AUTH-660: rescate del borrador en servidor solo si el local de hoy está completamente vacío (antes de restaurar las marcas) */
     TRAIN_CHECKS = trainChecksRead(plan.id);
     TRAIN_CHECKS_CTX = ctx;
     trainChecksPruneStale(plan.id);
